@@ -5,13 +5,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import SegmentCard from "./SegmentCard";
-import { Home, Car, Bike, Truck } from "lucide-react";
+
+import houseImg from "@/assets/segment-house.png";
+import carImg from "@/assets/segment-car.png";
+import motorcycleImg from "@/assets/segment-motorcycle.png";
+import truckImg from "@/assets/segment-truck.png";
 
 const segments = [
-  { id: "imovel", label: "Imóvel", icon: Home, description: "Realize o sonho da casa própria" },
-  { id: "veiculos", label: "Veículos", icon: Car, description: "Adquira um carro 0km ou seminovo" },
-  { id: "motos", label: "Motos", icon: Bike, description: "Compre uma moto sem comprometer seu orçamento" },
-  { id: "pesados", label: "Veículos Pesados", icon: Truck, description: "Caminhões e veículos de carga" },
+  { id: "imovel", label: "Imóvel", image: houseImg, description: "Realize o sonho da casa própria" },
+  { id: "veiculos", label: "Veículos", image: carImg, description: "Adquira um carro 0km ou seminovo" },
+  { id: "motos", label: "Motos", image: motorcycleImg, description: "Compre uma moto sem comprometer seu orçamento" },
+  { id: "pesados", label: "Veículos Pesados", image: truckImg, description: "Caminhões e veículos de carga" },
 ];
 
 const ConsortiumSimulator = () => {
@@ -123,7 +127,13 @@ const ConsortiumSimulator = () => {
               {segments.map((segment) => (
                 <SegmentCard
                   key={segment.id}
-                  icon={<segment.icon className="w-10 h-10 text-foreground" />}
+                  icon={
+                    <img 
+                      src={segment.image} 
+                      alt={segment.label}
+                      className="w-16 h-16 object-contain"
+                    />
+                  }
                   label={segment.label}
                   isSelected={selectedSegment === segment.id}
                   onClick={() => setSelectedSegment(segment.id)}
