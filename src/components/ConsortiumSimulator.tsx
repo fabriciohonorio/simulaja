@@ -102,7 +102,7 @@ const ConsortiumSimulator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div id="simulator" className="bg-background flex items-center justify-center p-4 py-12 md:py-16">
       <div className="w-full max-w-lg">
         <div className="bg-card rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
