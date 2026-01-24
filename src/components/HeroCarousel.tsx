@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import slideImovel from "@/assets/slide-imovel.png";
 import slideMoto from "@/assets/slide-moto.jpeg";
 import slideJetski from "@/assets/slide-jetski.jpeg";
+import logoMagalu from "@/assets/logo-consorcio-magalu.png";
 
 const slides = [
   {
@@ -66,6 +67,15 @@ const HeroCarousel = () => {
             />
           </div>
         ))}
+      </div>
+
+      {/* Logo Consórcio Magalu */}
+      <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
+        <img 
+          src={logoMagalu} 
+          alt="Consórcio Magalu" 
+          className="h-10 md:h-14 lg:h-16 w-auto drop-shadow-lg"
+        />
       </div>
 
       {/* Dark Gradient Overlay */}
