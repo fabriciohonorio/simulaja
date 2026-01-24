@@ -47,7 +47,7 @@ const HeroCarousel = () => {
   };
 
   return (
-    <section className="relative w-full h-[90vh] md:h-[70vh] overflow-hidden">
+    <section className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] xl:h-[600px] overflow-hidden">
       {/* Image Container */}
       <div className="absolute inset-0">
         {slides.map((slide, index) => (
