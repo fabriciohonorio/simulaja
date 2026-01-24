@@ -13,7 +13,7 @@ const SegmentCard = ({ icon, label, isSelected, onClick }: SegmentCardProps) => 
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 min-w-[100px]",
+        "flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl border-2 transition-all duration-300",
         "hover:scale-105 hover:shadow-lg",
         isSelected
           ? "border-secondary bg-secondary/10 shadow-md"
@@ -21,13 +21,13 @@ const SegmentCard = ({ icon, label, isSelected, onClick }: SegmentCardProps) => 
       )}
     >
       <div className={cn(
-        "w-16 h-16 flex items-center justify-center mb-2 transition-transform",
+        "w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center mb-1 transition-transform",
         isSelected && "scale-110"
       )}>
         {icon}
       </div>
       <span className={cn(
-        "text-sm font-medium text-center transition-colors",
+        "text-xs sm:text-sm font-medium text-center transition-colors leading-tight",
         isSelected ? "text-secondary" : "text-foreground"
       )}>
         {label}
