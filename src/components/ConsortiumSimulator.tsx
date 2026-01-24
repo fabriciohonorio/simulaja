@@ -10,12 +10,16 @@ import houseImg from "@/assets/segment-house.png";
 import carImg from "@/assets/segment-car.png";
 import motorcycleImg from "@/assets/segment-motorcycle.png";
 import truckImg from "@/assets/segment-truck.png";
+import tractorImg from "@/assets/segment-tractor.png";
+import investmentImg from "@/assets/segment-investment.png";
 
 const segments = [
   { id: "imovel", label: "Imóvel", image: houseImg, description: "Realize o sonho da casa própria" },
   { id: "veiculos", label: "Veículos", image: carImg, description: "Adquira um carro 0km ou seminovo" },
   { id: "motos", label: "Motos", image: motorcycleImg, description: "Compre uma moto sem comprometer seu orçamento" },
-  { id: "pesados", label: "Veículos Pesados", image: truckImg, description: "Caminhões e veículos de carga" },
+  { id: "pesados", label: "Pesados", image: truckImg, description: "Caminhões e veículos de carga" },
+  { id: "agricolas", label: "Agrícolas", image: tractorImg, description: "Máquinas e equipamentos agrícolas" },
+  { id: "investimentos", label: "Investimentos", image: investmentImg, description: "Faça seu dinheiro render mais" },
 ];
 
 const ConsortiumSimulator = () => {
@@ -123,7 +127,7 @@ const ConsortiumSimulator = () => {
             </h2>
 
             {/* Segment Selection */}
-            <div className="flex justify-center gap-3 mb-4 overflow-x-auto pb-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
               {segments.map((segment) => (
                 <SegmentCard
                   key={segment.id}
@@ -131,7 +135,7 @@ const ConsortiumSimulator = () => {
                     <img 
                       src={segment.image} 
                       alt={segment.label}
-                      className="w-16 h-16 object-contain"
+                      className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-lg"
                     />
                   }
                   label={segment.label}
