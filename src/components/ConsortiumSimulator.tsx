@@ -221,7 +221,7 @@ const ConsortiumSimulator = () => {
                 disabled={isSubmitting}
                 className="w-full h-14 text-lg font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                {isSubmitting ? "ENVIANDO..." : "FAZER SIMULAÇÃO"}
+                {isSubmitting ? "ENVIANDO..." : "QUERO SIMULAR MEU CONSÓRCIO"}
               </Button>
             </form>
           </div>
