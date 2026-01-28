@@ -4,23 +4,37 @@ import { ChevronDown } from "lucide-react";
 import slideImovel from "@/assets/slide-imovel.png";
 import slideMoto from "@/assets/slide-moto.jpeg";
 import slideJetski from "@/assets/slide-jetski.jpeg";
+import slideCarro from "@/assets/slide-carro.jpeg";
 import logoMagalu from "@/assets/logo-consorcio-magalu.png";
 
 const slides = [
   {
     id: 1,
     src: slideImovel,
-    alt: "Crédito para imóveis - R$110 mil"
+    alt: "Crédito para imóveis",
+    cta: "Saia do aluguel com planejamento",
+    category: "Imóvel"
   },
   {
     id: 2,
-    src: slideMoto,
-    alt: "Crédito para motos - R$37 mil"
+    src: slideCarro,
+    alt: "Crédito para carros",
+    cta: "Seu carro novo sem Juros",
+    category: "Veículo"
   },
   {
     id: 3,
+    src: slideMoto,
+    alt: "Crédito para motos",
+    cta: "A moto dos sonhos com parcelas acessíveis",
+    category: "Moto"
+  },
+  {
+    id: 4,
     src: slideJetski,
-    alt: "Crédito para jetski - R$120 mil"
+    alt: "Crédito para jetski",
+    cta: "Realize seu sonho de liberdade",
+    category: "Lazer"
   },
 ];
 
@@ -65,6 +79,17 @@ const HeroCarousel = () => {
               alt={slide.alt}
               className="w-full h-full object-cover"
             />
+            {/* CTA Overlay */}
+            <div className="absolute inset-0 flex items-center justify-start pl-6 md:pl-16 lg:pl-24">
+              <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 lg:p-8 max-w-xs md:max-w-md lg:max-w-lg">
+                <span className="text-secondary font-bold text-sm md:text-lg uppercase tracking-wider">
+                  {slide.category}
+                </span>
+                <h2 className="text-white font-bold text-xl md:text-3xl lg:text-4xl mt-2 leading-tight">
+                  {slide.cta}
+                </h2>
+              </div>
+            </div>
           </div>
         ))}
       </div>
