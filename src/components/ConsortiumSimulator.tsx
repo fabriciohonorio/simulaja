@@ -78,31 +78,51 @@ const ConsortiumSimulator = () => {
 
     setIsSubmitting(true);
 
-    const message = `🏦 *SIMULAÇÃO DE CONSÓRCIO*
+    const payload = {
+      "Valor do Crédito": formData.valorCredito,
+      "Nome": formData.nome,
+      "Email": formData.email,
+      "Celular": formData.celular,
+      "Cidade": formData.cidade,
+      "tipo_consorcio": selectedSegmentData?.label || selectedSegment,
+    };
 
-📋 *Segmento:* ${selectedSegmentData?.label}
-💰 *Valor do Crédito:* ${formData.valorCredito}
+    try {
+      const response = await fetch("https://hook.us2.make.com/r4od6xlua59ej2din9yol6tc34c4vgxb", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-👤 *Dados do Cliente:*
-• Nome: ${formData.nome}
-• Email: ${formData.email}
-• Celular: ${formData.celular}
-• Cidade: ${formData.cidade}
+      if (response.ok) {
+        toast({
+          title: "Simulação enviada!",
+          description: "Em breve um especialista entrará em contato.",
+        });
 
-📧 Aceita Marketing: ${acceptMarketing ? "Sim" : "Não"}`;
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappNumber = "5541997925357";
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-
-    window.open(whatsappUrl, "_blank");
-
-    toast({
-      title: "Simulação enviada!",
-      description: "Você será redirecionado para o WhatsApp.",
-    });
-
-    setIsSubmitting(false);
+        // Reset form
+        setFormData({
+          nome: "",
+          email: "",
+          celular: "",
+          cidade: "",
+          valorCredito: "",
+        });
+        setAcceptMarketing(false);
+      } else {
+        throw new Error("Erro ao enviar simulação");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
