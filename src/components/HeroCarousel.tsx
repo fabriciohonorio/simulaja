@@ -79,13 +79,13 @@ const HeroCarousel = () => {
               alt={slide.alt}
               className="w-full h-full object-cover"
             />
-            {/* CTA Overlay */}
-            <div className="absolute inset-0 flex items-center justify-start pl-6 md:pl-16 lg:pl-24">
-              <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 lg:p-8 max-w-xs md:max-w-md lg:max-w-lg">
-                <span className="text-secondary font-bold text-sm md:text-lg uppercase tracking-wider">
+            {/* CTA Overlay - Bottom */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 md:p-6 lg:p-8">
+              <div className="max-w-4xl">
+                <span className="text-secondary font-bold text-sm md:text-base uppercase tracking-wider">
                   {slide.category}
                 </span>
-                <h2 className="text-white font-bold text-xl md:text-3xl lg:text-4xl mt-2 leading-tight">
+                <h2 className="text-white font-bold text-lg md:text-2xl lg:text-3xl mt-1 leading-tight">
                   {slide.cta}
                 </h2>
               </div>
