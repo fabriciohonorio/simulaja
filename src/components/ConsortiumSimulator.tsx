@@ -23,13 +23,13 @@ const segments = [
 ];
 
 const creditValues = [
-  50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 750000, 1000000
+  27000, 40000, 50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 750000, 1000000
 ];
 
 const ConsortiumSimulator = () => {
   const { toast } = useToast();
   const [selectedSegment, setSelectedSegment] = useState("veiculos");
-  const [creditIndex, setCreditIndex] = useState(4); // Default: R$ 200.000
+  const [creditIndex, setCreditIndex] = useState(6); // Default: R$ 200.000
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -188,7 +188,7 @@ const ConsortiumSimulator = () => {
                   className="w-full"
                 />
                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>R$ 50 mil</span>
+                  <span>R$ 27 mil</span>
                   <span>R$ 1 milhão</span>
                 </div>
               </div>
