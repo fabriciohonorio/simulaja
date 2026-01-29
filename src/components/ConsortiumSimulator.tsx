@@ -4,21 +4,32 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import SegmentCard from "./SegmentCard";
-import { Home, Car, Bike, Truck, Tractor, TrendingUp } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const segments = [
-  { id: "imovel", label: "Imóvel", Icon: Home, description: "Realize o sonho da casa própria" },
-  { id: "veiculos", label: "Veículos", Icon: Car, description: "Adquira um carro 0km ou seminovo" },
-  { id: "motos", label: "Motos", Icon: Bike, description: "Compre uma moto sem comprometer seu orçamento" },
-  { id: "pesados", label: "Pesados", Icon: Truck, description: "Caminhões e veículos de carga" },
-  { id: "agricolas", label: "Agrícolas", Icon: Tractor, description: "Máquinas e equipamentos agrícolas" },
-  { id: "investimentos", label: "Investimentos", Icon: TrendingUp, description: "Faça seu dinheiro render mais" },
+  { id: "imovel", label: "Imóveis" },
+  { id: "veiculos", label: "Veículos" },
+  { id: "motos", label: "Motos" },
+  { id: "pesados", label: "Pesados" },
+  { id: "agricolas", label: "Agrícolas" },
+  { id: "investimentos", label: "Investimentos" },
+];
+
+const creditValues = [
+  50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 750000, 1000000
 ];
 
 const ConsortiumSimulator = () => {
   const { toast } = useToast();
   const [selectedSegment, setSelectedSegment] = useState("veiculos");
+  const [creditIndex, setCreditIndex] = useState(4); // Default: R$ 200.000
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -30,14 +41,14 @@ const ConsortiumSimulator = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedSegmentData = segments.find(s => s.id === selectedSegment);
+  const selectedCreditValue = creditValues[creditIndex];
 
-  const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const amount = parseInt(numbers) / 100;
-    if (isNaN(amount)) return "";
-    return amount.toLocaleString("pt-BR", {
+  const formatCurrencyDisplay = (value: number) => {
+    return value.toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
   };
 
@@ -49,9 +60,7 @@ const ConsortiumSimulator = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    if (field === "valorCredito") {
-      setFormData(prev => ({ ...prev, [field]: formatCurrency(value) }));
-    } else if (field === "celular") {
+    if (field === "celular") {
       setFormData(prev => ({ ...prev, [field]: formatPhone(value) }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
@@ -61,7 +70,7 @@ const ConsortiumSimulator = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome || !formData.email || !formData.celular || !formData.cidade || !formData.valorCredito) {
+    if (!formData.nome || !formData.email || !formData.celular || !formData.cidade) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos para continuar.",
@@ -73,7 +82,7 @@ const ConsortiumSimulator = () => {
     setIsSubmitting(true);
 
     const payload = {
-      "Valor do Crédito": formData.valorCredito,
+      "Valor do Crédito": formatCurrencyDisplay(selectedCreditValue),
       "Nome": formData.nome,
       "Email": formData.email,
       "Celular": formData.celular,
@@ -92,8 +101,7 @@ const ConsortiumSimulator = () => {
 
       if (response.ok) {
         toast({
-          title: "Simulação enviada!",
-          description: "Em breve um especialista entrará em contato.",
+          title: "Você será atendido por um Especialista.",
         });
 
         // Reset form
@@ -104,6 +112,8 @@ const ConsortiumSimulator = () => {
           cidade: "",
           valorCredito: "",
         });
+        setCreditIndex(4);
+        setSelectedSegment("veiculos");
         setAcceptMarketing(false);
       } else {
         throw new Error("Erro ao enviar simulação");
@@ -121,67 +131,81 @@ const ConsortiumSimulator = () => {
 
   return (
     <section id="simulator" className="bg-muted py-12 md:py-16">
-      <div className="container max-w-2xl mx-auto px-4">
+      <div className="container max-w-xl mx-auto px-4">
         <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
           {/* Header */}
-          <div className="bg-primary px-6 py-8 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
+          <div className="bg-primary px-6 py-6 text-center">
+            <h2 className="text-xl md:text-2xl font-bold text-primary-foreground">
               Simule seu Consórcio
             </h2>
-            <p className="text-primary-foreground/80 text-sm md:text-base">
-              Escolha o segmento e preencha os dados para receber uma proposta personalizada
+            <p className="text-primary-foreground/80 text-sm mt-1">
+              Planejamento financeiro inteligente
             </p>
           </div>
 
           {/* Content */}
           <div className="p-6 md:p-8">
-            {/* Segment Selection */}
+            {/* Segment Selection - Dropdown */}
             <div className="mb-6">
-              <p className="text-sm font-medium text-muted-foreground mb-3 text-center">
-                Selecione o tipo de consórcio
-              </p>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-                {segments.map((segment) => (
-                  <SegmentCard
-                    key={segment.id}
-                    Icon={segment.Icon}
-                    label={segment.label}
-                    isSelected={selectedSegment === segment.id}
-                    onClick={() => setSelectedSegment(segment.id)}
-                  />
-                ))}
-              </div>
+              <Label className="text-sm font-medium text-foreground mb-2 block">
+                Tipo de consórcio
+              </Label>
+              <Select value={selectedSegment} onValueChange={setSelectedSegment}>
+                <SelectTrigger className="h-12 text-base bg-background border-input">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  {segments.map((segment) => (
+                    <SelectItem key={segment.id} value={segment.id}>
+                      {segment.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Selected Segment Info */}
-            <div className="text-center mb-8">
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                {selectedSegmentData?.label}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {selectedSegmentData?.description}
-              </p>
+            {/* Credit Value Selection - Central Element */}
+            <div className="mb-8 p-6 bg-muted/50 rounded-lg border border-border">
+              <Label className="text-sm font-medium text-foreground mb-2 block text-center">
+                Escolha o valor aproximado do crédito desejado
+              </Label>
+              
+              {/* Display Selected Value */}
+              <div className="text-center my-6">
+                <span className="text-3xl md:text-4xl font-bold text-secondary">
+                  {formatCurrencyDisplay(selectedCreditValue)}
+                </span>
+              </div>
+
+              {/* Slider */}
+              <div className="px-2">
+                <Slider
+                  value={[creditIndex]}
+                  onValueChange={(value) => setCreditIndex(value[0])}
+                  max={creditValues.length - 1}
+                  min={0}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                  <span>R$ 50 mil</span>
+                  <span>R$ 1 milhão</span>
+                </div>
+              </div>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Credit Value */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Input
-                  placeholder="Valor do Crédito *"
-                  value={formData.valorCredito}
-                  onChange={(e) => handleInputChange("valorCredito", e.target.value)}
-                  className="h-12 text-base bg-background border-input focus:border-primary"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   placeholder="Nome *"
                   value={formData.nome}
                   onChange={(e) => handleInputChange("nome", e.target.value)}
                   className="h-12 text-base bg-background border-input focus:border-primary"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   type="email"
                   placeholder="Email *"
@@ -189,15 +213,15 @@ const ConsortiumSimulator = () => {
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className="h-12 text-base bg-background border-input focus:border-primary"
                 />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   placeholder="Celular *"
                   value={formData.celular}
                   onChange={(e) => handleInputChange("celular", e.target.value)}
                   className="h-12 text-base bg-background border-input focus:border-primary"
                 />
+              </div>
+
+              <div>
                 <Input
                   placeholder="Cidade *"
                   value={formData.cidade}
@@ -234,7 +258,7 @@ const ConsortiumSimulator = () => {
                 disabled={isSubmitting}
                 className="w-full h-14 text-base font-semibold bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
               >
-                {isSubmitting ? "ENVIANDO..." : "QUERO SIMULAR MEU CONSÓRCIO"}
+                {isSubmitting ? "ENVIANDO..." : "SIMULAR CONSÓRCIO"}
               </Button>
             </form>
           </div>
