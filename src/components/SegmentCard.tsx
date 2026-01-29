@@ -1,30 +1,35 @@
 import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
 interface SegmentCardProps {
-  icon: React.ReactNode;
+  Icon: LucideIcon;
   label: string;
   isSelected: boolean;
   onClick: () => void;
 }
 
-const SegmentCard = ({ icon, label, isSelected, onClick }: SegmentCardProps) => {
+const SegmentCard = ({ Icon, label, isSelected, onClick }: SegmentCardProps) => {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl border-2 transition-all duration-300",
-        "hover:scale-105 hover:shadow-lg",
+        "flex flex-col items-center justify-center p-3 sm:p-4 rounded-lg border transition-all duration-200",
+        "hover:border-secondary/50 focus:outline-none focus:ring-2 focus:ring-secondary/30",
         isSelected
-          ? "border-secondary bg-secondary/10 shadow-md"
-          : "border-border bg-card hover:border-secondary/50"
+          ? "border-secondary bg-secondary/5 shadow-sm"
+          : "border-border bg-card hover:bg-muted/50"
       )}
     >
       <div className={cn(
-        "w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center mb-1 transition-transform",
-        isSelected && "scale-110"
+        "w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center mb-2 transition-colors",
       )}>
-        {icon}
+        <Icon 
+          className={cn(
+            "w-7 h-7 sm:w-8 sm:h-8 stroke-[1.5]",
+            isSelected ? "text-secondary" : "text-primary"
+          )} 
+        />
       </div>
       <span className={cn(
         "text-xs sm:text-sm font-medium text-center transition-colors leading-tight",

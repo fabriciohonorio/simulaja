@@ -5,21 +5,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import SegmentCard from "./SegmentCard";
-
-import houseImg from "@/assets/segment-house.png";
-import carImg from "@/assets/segment-car.png";
-import motorcycleImg from "@/assets/segment-motorcycle.png";
-import truckImg from "@/assets/segment-truck.png";
-import tractorImg from "@/assets/segment-tractor.png";
-import investmentImg from "@/assets/segment-investment.png";
+import { Home, Car, Bike, Truck, Tractor, TrendingUp } from "lucide-react";
 
 const segments = [
-  { id: "imovel", label: "Imóvel", image: houseImg, description: "Realize o sonho da casa própria" },
-  { id: "veiculos", label: "Veículos", image: carImg, description: "Adquira um carro 0km ou seminovo" },
-  { id: "motos", label: "Motos", image: motorcycleImg, description: "Compre uma moto sem comprometer seu orçamento" },
-  { id: "pesados", label: "Pesados", image: truckImg, description: "Caminhões e veículos de carga" },
-  { id: "agricolas", label: "Agrícolas", image: tractorImg, description: "Máquinas e equipamentos agrícolas" },
-  { id: "investimentos", label: "Investimentos", image: investmentImg, description: "Faça seu dinheiro render mais" },
+  { id: "imovel", label: "Imóvel", Icon: Home, description: "Realize o sonho da casa própria" },
+  { id: "veiculos", label: "Veículos", Icon: Car, description: "Adquira um carro 0km ou seminovo" },
+  { id: "motos", label: "Motos", Icon: Bike, description: "Compre uma moto sem comprometer seu orçamento" },
+  { id: "pesados", label: "Pesados", Icon: Truck, description: "Caminhões e veículos de carga" },
+  { id: "agricolas", label: "Agrícolas", Icon: Tractor, description: "Máquinas e equipamentos agrícolas" },
+  { id: "investimentos", label: "Investimentos", Icon: TrendingUp, description: "Faça seu dinheiro render mais" },
 ];
 
 const ConsortiumSimulator = () => {
@@ -126,100 +120,99 @@ const ConsortiumSimulator = () => {
   };
 
   return (
-    <div id="simulator" className="bg-background flex items-center justify-center p-4 py-12 md:py-16">
-      <div className="w-full max-w-lg">
-        <div className="bg-card rounded-2xl shadow-2xl overflow-hidden">
+    <section id="simulator" className="bg-muted py-12 md:py-16">
+      <div className="container max-w-2xl mx-auto px-4">
+        <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
           {/* Header */}
-          <div className="bg-primary p-6 text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-              OPÇÕES DE CONSÓRCIOS
-            </h1>
-            <p className="text-primary-foreground/90 text-sm md:text-base">
-              Escolha um consórcio abaixo para ver as opções de crédito disponíveis!
+          <div className="bg-primary px-6 py-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
+              Simule seu Consórcio
+            </h2>
+            <p className="text-primary-foreground/80 text-sm md:text-base">
+              Escolha o segmento e preencha os dados para receber uma proposta personalizada
             </p>
           </div>
 
           {/* Content */}
-          <div className="p-6">
-            {/* Segment Title */}
-            <h2 className="text-xl font-bold text-secondary text-center mb-4">
-              {selectedSegmentData?.label}
-            </h2>
-
+          <div className="p-6 md:p-8">
             {/* Segment Selection */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
-              {segments.map((segment) => (
-                <SegmentCard
-                  key={segment.id}
-                  icon={
-                    <img 
-                      src={segment.image} 
-                      alt={segment.label}
-                      className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-lg"
-                    />
-                  }
-                  label={segment.label}
-                  isSelected={selectedSegment === segment.id}
-                  onClick={() => setSelectedSegment(segment.id)}
-                />
-              ))}
+            <div className="mb-6">
+              <p className="text-sm font-medium text-muted-foreground mb-3 text-center">
+                Selecione o tipo de consórcio
+              </p>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                {segments.map((segment) => (
+                  <SegmentCard
+                    key={segment.id}
+                    Icon={segment.Icon}
+                    label={segment.label}
+                    isSelected={selectedSegment === segment.id}
+                    onClick={() => setSelectedSegment(segment.id)}
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* Description */}
-            <p className="text-foreground text-center mb-6">
-              {selectedSegmentData?.description}
-            </p>
+            {/* Selected Segment Info */}
+            <div className="text-center mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                {selectedSegmentData?.label}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {selectedSegmentData?.description}
+              </p>
+            </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Credit Value */}
               <div>
                 <Input
                   placeholder="Valor do Crédito *"
                   value={formData.valorCredito}
                   onChange={(e) => handleInputChange("valorCredito", e.target.value)}
-                  className="h-12 text-base bg-muted border-input"
+                  className="h-12 text-base bg-background border-input focus:border-primary"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   placeholder="Nome *"
                   value={formData.nome}
                   onChange={(e) => handleInputChange("nome", e.target.value)}
-                  className="h-12 text-base bg-muted border-input"
+                  className="h-12 text-base bg-background border-input focus:border-primary"
                 />
                 <Input
                   type="email"
                   placeholder="Email *"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="h-12 text-base bg-muted border-input"
+                  className="h-12 text-base bg-background border-input focus:border-primary"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   placeholder="Celular *"
                   value={formData.celular}
                   onChange={(e) => handleInputChange("celular", e.target.value)}
-                  className="h-12 text-base bg-muted border-input"
+                  className="h-12 text-base bg-background border-input focus:border-primary"
                 />
                 <Input
                   placeholder="Cidade *"
                   value={formData.cidade}
                   onChange={(e) => handleInputChange("cidade", e.target.value)}
-                  className="h-12 text-base bg-muted border-input"
+                  className="h-12 text-base bg-background border-input focus:border-primary"
                 />
               </div>
 
               {/* Marketing Checkbox */}
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 pt-2">
                 <Checkbox
                   id="marketing"
                   checked={acceptMarketing}
                   onCheckedChange={(checked) => setAcceptMarketing(checked as boolean)}
-                  className="mt-1"
+                  className="mt-0.5 border-input data-[state=checked]:bg-secondary data-[state=checked]:border-secondary"
                 />
                 <Label htmlFor="marketing" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
                   Aceito receber comunicações de e-mail marketing com vantagens especiais.
@@ -227,9 +220,9 @@ const ConsortiumSimulator = () => {
               </div>
 
               {/* Privacy Policy */}
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-xs text-muted-foreground text-center pt-1">
                 Ao informar meus dados, eu concordo com a{" "}
-                <a href="#" className="text-primary underline hover:no-underline">
+                <a href="#" className="text-primary underline hover:no-underline font-medium">
                   Política de Privacidade
                 </a>{" "}
                 e receber contato de um especialista de consórcio.
@@ -239,7 +232,7 @@ const ConsortiumSimulator = () => {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-14 text-lg font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full h-14 text-base font-semibold bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
               >
                 {isSubmitting ? "ENVIANDO..." : "QUERO SIMULAR MEU CONSÓRCIO"}
               </Button>
@@ -247,7 +240,7 @@ const ConsortiumSimulator = () => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
