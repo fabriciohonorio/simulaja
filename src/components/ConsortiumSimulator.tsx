@@ -132,16 +132,16 @@ const ConsortiumSimulator = () => {
     setIsSubmitting(true);
 
     const payload = {
-      "Valor do Crédito": formatCurrencyDisplay(selectedCreditValue),
-      "Nome": formData.nome,
-      "Email": formData.email,
-      "Celular": formData.celular,
-      "Cidade": formData.cidade,
-      "tipo_consorcio": selectedSegmentData?.label || selectedSegment,
+      nome: formData.nome,
+      email: formData.email,
+      celular: formData.celular,
+      cidade: formData.cidade,
+      valor_credito: formatCurrencyDisplay(selectedCreditValue),
+      tipo_consorcio: selectedSegmentData?.label || selectedSegment,
     };
 
     try {
-      const response = await fetch("https://hook.us2.make.com/r4od6xlua59ej2din9yol6tc34c4vgxb", {
+      const response = await fetch("https://hook.us2.make.com/o1l3nb7g5pp3e42qav7kykv91cvy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
