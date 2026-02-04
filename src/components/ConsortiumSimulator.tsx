@@ -138,10 +138,12 @@ const ConsortiumSimulator = () => {
       cidade: formData.cidade,
       valor_credito: formatCurrencyDisplay(selectedCreditValue),
       tipo_consorcio: selectedSegmentData?.label || selectedSegment,
+      pagina: window.location.href,
+      origem: "Lovable",
     };
 
     try {
-      const response = await fetch("https://hook.us2.make.com/o1l3nb7g5pp3e42qav7kykv91cvy", {
+      const response = await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
