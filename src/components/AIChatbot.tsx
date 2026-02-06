@@ -76,13 +76,26 @@ const AIChatbot = () => {
 
       case "conhecimento":
         setLeadData((prev) => ({ ...prev, conhecimento_consorcio: value }));
-        setTimeout(() => {
-          setStep("simulacao");
-          addBotMessage("Quer que eu simule uma parcela pra você?", [
-            { label: "✅ Sim", value: "Sim" },
-            { label: "⏳ Depois", value: "Depois" },
-          ]);
-        }, 600);
+        if (value === "Quero entender melhor") {
+          setTimeout(() => {
+            addBotMessage("Consórcio é uma forma de compra, planejada, sem juros, parcelas acessíveis. Pode ser usada também como investimento.");
+            setTimeout(() => {
+              setStep("simulacao");
+              addBotMessage("Quer que eu simule uma parcela pra você?", [
+                { label: "✅ Sim", value: "Sim" },
+                { label: "⏳ Depois", value: "Depois" },
+              ]);
+            }, 1000);
+          }, 600);
+        } else {
+          setTimeout(() => {
+            setStep("simulacao");
+            addBotMessage("Quer que eu simule uma parcela pra você?", [
+              { label: "✅ Sim", value: "Sim" },
+              { label: "⏳ Depois", value: "Depois" },
+            ]);
+          }, 600);
+        }
         break;
 
       case "simulacao":
