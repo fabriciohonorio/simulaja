@@ -12,6 +12,32 @@ interface Message {
 
 const WHATSAPP_NUMBER = "5541997925357";
 
+const SIMULATION_TABLE = [
+  { credito: 110000, parcela: 404.14 },
+  { credito: 120000, parcela: 440.88 },
+  { credito: 130000, parcela: 477.61 },
+  { credito: 140000, parcela: 514.35 },
+  { credito: 150000, parcela: 551.09 },
+  { credito: 170000, parcela: 624.57 },
+  { credito: 190000, parcela: 698.05 },
+  { credito: 200000, parcela: 734.79 },
+];
+
+const parseValue = (input: string): number => {
+  const cleaned = input.replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", ".");
+  return parseFloat(cleaned) || 0;
+};
+
+const formatBRL = (value: number): string =>
+  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const findClosestPlan = (value: number) => {
+  if (value <= 0) return null;
+  return SIMULATION_TABLE.reduce((prev, curr) =>
+    Math.abs(curr.credito - value) < Math.abs(prev.credito - value) ? curr : prev
+  );
+};
+
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>("welcome");
@@ -100,12 +126,40 @@ const AIChatbot = () => {
 
       case "simulacao":
         setLeadData((prev) => ({ ...prev, interesse_simulacao: value }));
-        setTimeout(() => {
-          setStep("whatsapp");
-          addBotMessage(
-            "Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲"
-          );
-        }, 600);
+        if (value === "Sim") {
+          setTimeout(() => {
+            const valorNum = parseValue(leadData.valor_credito);
+            const plan = findClosestPlan(valorNum);
+
+            if (plan && leadData.objetivo === "Imóvel") {
+              addBotMessage(
+                `📊 Simulação aproximada — Consórcio Imobiliário Casa Própria\n\n` +
+                `💰 Crédito: ${formatBRL(plan.credito)}\n` +
+                `📅 Parcela reduzida até contemplação: ~${formatBRL(plan.parcela)}/mês\n` +
+                `📆 Plano: 217 meses | Modalidade 50/50\n\n` +
+                `⚠️ Valores aproximados, sujeitos a atualização.`
+              );
+              setTimeout(() => {
+                addBotMessage("Posso calcular sua simulação completa e sua chance de contemplação. Quer ver como acelerar sua casa própria? 🏡");
+                setTimeout(() => {
+                  setStep("whatsapp");
+                  addBotMessage("Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲");
+                }, 1200);
+              }, 1500);
+            } else {
+              addBotMessage("Para uma simulação personalizada do seu perfil, nosso especialista pode te ajudar com os melhores planos disponíveis! 🚀");
+              setTimeout(() => {
+                setStep("whatsapp");
+                addBotMessage("Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲");
+              }, 1000);
+            }
+          }, 600);
+        } else {
+          setTimeout(() => {
+            setStep("whatsapp");
+            addBotMessage("Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲");
+          }, 600);
+        }
         break;
     }
   };
@@ -185,7 +239,12 @@ const AIChatbot = () => {
                       : "bg-muted text-foreground rounded-bl-md"
                   }`}
                 >
-                  {msg.content}
+                  {msg.content.split("\n").map((line, idx) => (
+                    <span key={idx}>
+                      {line}
+                      {idx < msg.content.split("\n").length - 1 && <br />}
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}
