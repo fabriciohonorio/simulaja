@@ -10,7 +10,7 @@ interface Message {
   options?: { label: string; value: string }[];
 }
 
-const WHATSAPP_NUMBER = "5511999999999";
+const WHATSAPP_NUMBER = "5541997925357";
 
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
