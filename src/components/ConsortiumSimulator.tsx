@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,13 +132,43 @@ const ConsortiumSimulator = () => {
 
     setIsSubmitting(true);
 
+    const creditValueNum = selectedCreditValue;
+    const tipoConsorcio = selectedSegmentData?.label || selectedSegment;
+
+    // 1. Salvar no Supabase
+    try {
+      const { data: leadData, error: leadError } = await supabase
+        .from("leads")
+        .insert({
+          nome: formData.nome,
+          email: formData.email,
+          celular: formData.celular,
+          cidade: formData.cidade,
+          tipo_consorcio: tipoConsorcio,
+          valor_credito: creditValueNum,
+          prazo_meses: 60,
+          status: "novo",
+        })
+        .select()
+        .single();
+
+      if (leadError) {
+        console.error("[Supabase] Erro ao salvar lead:", leadError);
+      } else {
+        console.log("[Supabase] Lead salvo com sucesso:", leadData);
+      }
+    } catch (supaError) {
+      console.error("[Supabase] Exceção ao salvar lead:", supaError);
+    }
+
+    // 2. Enviar para webhook do Make
     const payload = {
       nome: formData.nome,
       email: formData.email,
       celular: formData.celular,
       cidade: formData.cidade,
       valor_credito: formatCurrencyDisplay(selectedCreditValue),
-      tipo_consorcio: selectedSegmentData?.label || selectedSegment,
+      tipo_consorcio: tipoConsorcio,
       pagina: window.location.href,
       origem: "Lovable",
     };
