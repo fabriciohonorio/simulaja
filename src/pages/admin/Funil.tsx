@@ -22,6 +22,8 @@ const COLUMNS = [
   { id: "proposta_enviada", label: "Proposta Enviada" },
   { id: "em_negociacao", label: "Em Negociação" },
   { id: "fechado", label: "Fechado" },
+  { id: "desistiu", label: "Desistiu" },
+  { id: "perdido", label: "Perdido" },
 ];
 
 const COLUMN_COLORS: Record<string, string> = {
@@ -30,6 +32,9 @@ const COLUMN_COLORS: Record<string, string> = {
   proposta_enviada: "border-t-orange-500",
   em_negociacao: "border-t-purple-500",
   fechado: "border-t-green-500",
+  desistiu: "border-t-gray-500",
+  perdido: "border-t-red-500",
+};
 };
 
 const formatCurrency = (v: number) =>
@@ -88,9 +93,8 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${
-                      snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
-                    }`}
+                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
+                      }`}
                   >
                     <div className="mb-3">
                       <h3 className="font-semibold text-sm">{col.label}</h3>
@@ -107,9 +111,8 @@ export default function Funil() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`bg-background border border-border rounded-md p-3 text-sm space-y-1.5 ${
-                                snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""
-                              }`}
+                              className={`bg-background border border-border rounded-md p-3 text-sm space-y-1.5 ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""
+                                }`}
                             >
                               <p className="font-medium truncate">{lead.nome}</p>
                               <p className="text-primary font-bold text-base">
