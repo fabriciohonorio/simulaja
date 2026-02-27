@@ -35,7 +35,6 @@ const COLUMN_COLORS: Record<string, string> = {
   desistiu: "border-t-gray-500",
   perdido: "border-t-red-500",
 };
-};
 
 const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
