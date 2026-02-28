@@ -54,12 +54,20 @@ export default function Metas() {
             if (leadsError) throw leadsError;
 
             // Busca meta atual
- const { data: metaData, error: metaError } = await supabase
-    .from("meta")
-    .select("*")
-    .eq("id", 1)
-    .single();            if (metaError && metaError.code !== 'PGRST116') throw metaError;
+const { error } = await supabase
+  .from("meta")
+  .upsert(
+    {
+      id: 1,
+      meta_anual: Number(valorNumerico),
+      created_at: new Date().toISOString()
+    },
+    {
+      onConflict: "id"
+    }
+  );
 
+if (error) throw error;
             // Busca termômetro
             const { data: termData, error: termError } = await supabase
                 .from("mercado_termometro")
