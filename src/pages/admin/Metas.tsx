@@ -103,11 +103,16 @@ export default function Metas() {
                 // Insere nova meta se não existir
 const { error } = await supabase
     .from("meta")
-    .upsert({
-        id: 1,
-        meta_anual: valorNumerico,
-        created_at: new Date().toISOString()
-    });
+    .upsert(
+        {
+            id: 1,
+            meta_anual: Number(valorNumerico),
+            created_at: new Date().toISOString()
+        },
+        {
+            onConflict: "id"
+        }
+    );
 
 if (error) throw error;
             }
