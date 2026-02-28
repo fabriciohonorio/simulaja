@@ -54,6 +54,20 @@ export default function Metas() {
             if (leadsError) throw leadsError;
 
             // Busca meta atual
+            // Busca meta atual
+const { data: metaData, error: metaError } = await supabase
+  .from("meta")
+  .select("*")
+  .eq("id", 1)
+  .single();
+
+if (metaError) {
+  console.error("Erro ao buscar meta:", metaError);
+  throw metaError;
+}
+
+setMetaAnualObj(metaData);
+setMetaAnualInput(String(metaData?.meta_anual || 0));
 
             // Busca termômetro
             const { data: termData, error: termError } = await supabase
