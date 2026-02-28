@@ -46,45 +46,42 @@ export default function Metas() {
         fetchData();
     }, []);
 
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            // Busca leads
-            const { data: leadsData, error: leadsError } = await supabase.from("leads").select("*");
-            if (leadsError) throw leadsError;
+const fetchData = async () => {
+    try {
+        setLoading(true);
+        const { data: leadsData, error: leadsError } = await supabase.from("leads").select("*");
+        if (leadsError) throw leadsError;
 
-         // Busca meta atual
-            const { data: metaData, error: metaError } = await supabase
-                .from("meta")
-                .select("*")
-                .eq("id", 1)
-                .single();
-            if (metaError && metaError.code !== 'PGRST116') throw metaError;
-            // Busca termômetro            const { data: termData, error: termError } = await supabase
-                .from("mercado_termometro")
-                .select("*")
-                .order("segmento");
-            if (termError) throw termError;
+        const { data: metaData, error: metaError } = await supabase
+            .from("meta")
+            .select("*")
+            .eq("id", 1)
+            .single();
+        if (metaError && metaError.code !== 'PGRST116') throw metaError;
 
-            setLeads(leadsData || []);
-            if (metaData) {
-                setMetaAnualObj(metaData);
-                setMetaAnualInput(String(metaData.meta_anual || 0));
-            }
-            }
-            setTermometro(termData || []);
-        } catch (error: any) {
-            console.error("Erro ao buscar dados:", error);
-            toast({
-                title: "Erro",
-                description: "Não foi possível carregar os dados de metas.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
+        const { data: termData, error: termError } = await supabase
+            .from("mercado_termometro")
+            .select("*")
+            .order("segmento");
+        if (termError) throw termError;
+
+        setLeads(leadsData || []);
+        if (metaData) {
+            setMetaAnualObj(metaData);
+            setMetaAnualInput(String(metaData.meta_anual || 0));
         }
-    };
-
+        setTermometro(termData || []);
+    } catch (error: any) {
+        console.error("Erro ao buscar dados:", error);
+        toast({
+            title: "Erro",
+            description: "Não foi possível carregar os dados de metas.",
+            variant: "destructive",
+        });
+    } finally {
+        setLoading(false);
+    }
+};
     const handleSalvarMeta = async () => {
         try {
             setSavingMeta(true);
