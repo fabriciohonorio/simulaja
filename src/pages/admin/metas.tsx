@@ -22,13 +22,19 @@ interface MetaAnual {
     updated_at?: string;
 }
 
-export default function Metas() {
+interface Termometro {
+    id: string;
+    segmento: string;
+    percentual: number;
+}
 
+export default function Metas() {
     const { toast } = useToast();
 
     const [leads, setLeads] = useState<Lead[]>([]);
     const [metaAnualObj, setMetaAnualObj] = useState<MetaAnual | null>(null);
     const [metaAnualInput, setMetaAnualInput] = useState<string>("0");
+    const [termometro, setTermometro] = useState<Termometro[]>([]);
     const [loading, setLoading] = useState(true);
     const [savingMeta, setSavingMeta] = useState(false);
 
@@ -43,14 +49,14 @@ export default function Metas() {
         try {
             setLoading(true);
 
-            // BUSCAR LEADS
+            // Buscar leads
             const { data: leadsData, error: leadsError } = await supabase
                 .from("leads")
                 .select("id, nome, status, valor_credito, created_at, updated_at");
 
             if (leadsError) throw leadsError;
 
-            // BUSCAR META (SEM FILTRAR ID)
+            // Buscar meta (pega o primeiro registro)
             const { data: metaData, error: metaError } = await supabase
                 .from("meta")
                 .select("*")
@@ -59,7 +65,16 @@ export default function Metas() {
 
             if (metaError) throw metaError;
 
+            // Buscar termômetro
+            const { data: termData, error: termError } = await supabase
+                .from("mercado_termometro")
+                .select("*")
+                .order("segmento");
+
+            if (termError) throw termError;
+
             setLeads(leadsData || []);
+            setTermometro(termData || []);
 
             if (metaData) {
                 setMetaAnualObj(metaData);
@@ -70,7 +85,7 @@ export default function Metas() {
             }
 
         } catch (error: any) {
-            console.error("ERRO COMPLETO:", error);
+            console.error("Erro ao buscar dados:", error);
             toast({
                 title: "Erro",
                 description: "Não foi possível carregar os dados da meta.",
@@ -86,7 +101,14 @@ export default function Metas() {
             setSavingMeta(true);
 
             const valorNumerico = parseFloat(metaAnualInput);
-            if (isNaN(valorNumerico)) return;
+            if (isNaN(valorNumerico)) {
+                toast({
+                    title: "Valor inválido",
+                    description: "Digite um número válido.",
+                    variant: "destructive",
+                });
+                return;
+            }
 
             const { error } = await supabase
                 .from("meta")
@@ -117,6 +139,34 @@ export default function Metas() {
             });
         } finally {
             setSavingMeta(false);
+        }
+    };
+
+    const updateTermometro = async (id: string, novoValor: number) => {
+        try {
+            const { error } = await supabase
+                .from("mercado_termometro")
+                .update({
+                    percentual: novoValor,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", id);
+
+            if (error) throw error;
+
+            setTermometro(prev =>
+                prev.map(t =>
+                    t.id === id ? { ...t, percentual: novoValor } : t
+                )
+            );
+
+        } catch (error: any) {
+            console.error("Erro ao atualizar termômetro:", error);
+            toast({
+                title: "Erro",
+                description: "Não foi possível atualizar o indicador.",
+                variant: "destructive",
+            });
         }
     };
 
