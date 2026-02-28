@@ -197,4 +197,4 @@ export default function Metas() {
       </Card>
     </div>
   );
-}
+}  
