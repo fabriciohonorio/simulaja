@@ -169,7 +169,7 @@ if (error) throw error;
         .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
 
     // Metas
-    const metaAnual = metaAnualObj?.valor || 0;
+    const metaAnual = (metaAnualObj as any)?.meta_anual || 0;
     const metaMensal = metaAnual / 12;
 
     // Progresso
