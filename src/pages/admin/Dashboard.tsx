@@ -94,9 +94,9 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {metrics.map((m) => (
-          <Card key={m.label}>
+          <Card key={m.label} className="shadow-sm border-border/50">
             <CardContent className="p-4 flex flex-col items-center text-center gap-2">
               <m.icon className={`h-6 w-6 ${m.color}`} />
               <p className="text-2xl font-bold">{m.value}</p>
@@ -106,16 +106,16 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Funnel bar */}
-        <Card>
+        <Card className="shadow-sm border-border/50 overflow-hidden">
           <CardHeader><CardTitle className="text-base">Funil de Vendas</CardTitle></CardHeader>
-          <CardContent className="h-64">
+          <CardContent className="h-64 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={funnelData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis />
+              <BarChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Bar dataKey="quantidade" fill="hsl(207, 90%, 35%)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -124,14 +124,14 @@ export default function Dashboard() {
         </Card>
 
         {/* Monthly line */}
-        <Card>
+        <Card className="shadow-sm border-border/50">
           <CardHeader><CardTitle className="text-base">Evolução Mensal</CardTitle></CardHeader>
-          <CardContent className="h-64">
+          <CardContent className="h-64 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                <YAxis />
+                <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Line type="monotone" dataKey="total" stroke="hsl(32, 95%, 55%)" strokeWidth={2} dot={{ r: 4 }} />
               </LineChart>
@@ -140,14 +140,14 @@ export default function Dashboard() {
         </Card>
 
         {/* Top cities */}
-        <Card>
+        <Card className="shadow-sm border-border/50">
           <CardHeader><CardTitle className="text-base">Top 5 Cidades</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-3">
               {topCidades.map(([cidade, count], i) => (
                 <div key={cidade} className="flex items-center justify-between">
                   <span className="text-sm font-medium">{i + 1}. {cidade}</span>
-                  <span className="text-sm font-bold text-primary">{count} leads</span>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{count} leads</span>
                 </div>
               ))}
               {topCidades.length === 0 && <p className="text-sm text-muted-foreground">Sem dados</p>}
@@ -156,18 +156,18 @@ export default function Dashboard() {
         </Card>
 
         {/* Pie by type */}
-        <Card>
+        <Card className="shadow-sm border-border/50">
           <CardHeader><CardTitle className="text-base">Distribuição por Tipo</CardTitle></CardHeader>
-          <CardContent className="h-64">
+          <CardContent className="h-64 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value" labelLine={false} label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : null}>
                   {pieData.map((_, i) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

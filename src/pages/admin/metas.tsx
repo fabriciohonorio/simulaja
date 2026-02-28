@@ -38,12 +38,12 @@ export default function Metas() {
         try {
             setLoading(true);
             const { data: leadsData } = await supabase.from("leads").select("*");
-            const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
+            const { data: metaData } = await supabase.from("metas").select("*").eq("ano", currentYear).maybeSingle();
             const { data: termData } = await supabase.from("mercado_termometro").select("*").order("segmento");
             setLeads(leadsData || []);
             if (metaData) {
-                setMetaAnual(metaData.meta_anual || 0);
-                setMetaInput(String(metaData.meta_anual || 0));
+                setMetaAnual(metaData.valor || 0);
+                setMetaInput(String(metaData.valor || 0));
             }
             setTermometro(termData || []);
         } catch (err) {
@@ -51,13 +51,12 @@ export default function Metas() {
         } finally {
             setLoading(false);
         }
-    };
-
+    }
     const salvarMeta = async () => {
-        const valor = parseFloat(metaInput);
-        if (isNaN(valor)) return;
-        await supabase.from("meta").upsert({ ano: currentYear, meta_anual: valor }, { onConflict: "ano" });
-        setMetaAnual(valor);
+        const novoValor = parseFloat(metaInput);
+        if (isNaN(novoValor)) return;
+        await supabase.from("metas").upsert({ ano: currentYear, valor: novoValor }, { onConflict: "ano" });
+        setMetaAnual(novoValor);
         toast({ title: "Meta salva com sucesso!" });
     };
 
@@ -86,14 +85,14 @@ export default function Metas() {
     const projecaoMes = diaHoje > 0 ? (realizadoMes / diaHoje) * diasMes : 0;
     const seteDias = new Date(); seteDias.setDate(seteDias.getDate() - 7);
     const semFollowUp = leads.filter(l => {
-        if (["fechado","perdido","desistiu"].includes(l.status || "")) return false;
+        if (["fechado", "perdido", "desistiu"].includes(l.status || "")) return false;
         const u = l.updated_at ? new Date(l.updated_at) : new Date(l.created_at || "");
         return u < seteDias;
     }).length;
-    const topLeads = leads.filter(l => !["fechado","perdido","desistiu"].includes(l.status || "")).sort((a,b) => Number(b.valor_credito||0) - Number(a.valor_credito||0)).slice(0,5);
+    const topLeads = leads.filter(l => !["fechado", "perdido", "desistiu"].includes(l.status || "")).sort((a, b) => Number(b.valor_credito || 0) - Number(a.valor_credito || 0)).slice(0, 5);
     const monthsData = Array.from({ length: 12 }, (_, i) => {
-        const m = `${currentYear}-${(i+1).toString().padStart(2,"0")}`;
-        const r = fechados.filter(l => l.created_at?.startsWith(m)).reduce((a,l) => a + Number(l.valor_credito||0), 0);
+        const m = `${currentYear}-${(i + 1).toString().padStart(2, "0")}`;
+        const r = fechados.filter(l => l.created_at?.startsWith(m)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
         return { name: new Date(currentYear, i, 1).toLocaleString("pt-BR", { month: "short" }), realizado: r, meta: metaMensal };
     });
 
@@ -160,11 +159,11 @@ export default function Metas() {
                             <BarChart data={monthsData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v/1000)+"k" : v}`} tick={{ fontSize: 12 }} />
+                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 12 }} />
                                 <Tooltip formatter={(v: number) => fmt(v)} />
                                 <Legend />
-                                <Bar dataKey="meta" name="Meta" fill="hsl(215,20%,65%)" radius={[4,4,0,0]} />
-                                <Bar dataKey="realizado" name="Realizado" fill="hsl(207,90%,35%)" radius={[4,4,0,0]} />
+                                <Bar dataKey="meta" name="Meta" fill="hsl(215,20%,65%)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="realizado" name="Realizado" fill="hsl(207,90%,35%)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
@@ -201,8 +200,8 @@ export default function Metas() {
                     <CardContent className="space-y-3">
                         {topLeads.map((l, i) => (
                             <div key={l.id} className="flex justify-between items-center p-3 rounded-lg border">
-                                <div><p className="text-sm font-bold">{i+1}. {l.nome}</p><p className="text-xs text-muted-foreground capitalize">{l.status}</p></div>
-                                <span className="font-bold text-primary">{fmt(l.valor_credito||0)}</span>
+                                <div><p className="text-sm font-bold">{i + 1}. {l.nome}</p><p className="text-xs text-muted-foreground capitalize">{l.status}</p></div>
+                                <span className="font-bold text-primary">{fmt(l.valor_credito || 0)}</span>
                             </div>
                         ))}
                         {topLeads.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum lead em aberto.</p>}

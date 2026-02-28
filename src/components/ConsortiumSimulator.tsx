@@ -120,7 +120,7 @@ const ConsortiumSimulator = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.nome || !formData.email || !formData.celular || !formData.cidade) {
       toast({
         title: "Campos obrigatórios",
@@ -148,6 +148,7 @@ const ConsortiumSimulator = () => {
           valor_credito: creditValueNum,
           prazo_meses: 60,
           status: "novo",
+          origem: "Simulador - Site",
         })
         .select()
         .single();
@@ -219,9 +220,9 @@ const ConsortiumSimulator = () => {
           <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden lg:sticky lg:top-8">
             {/* Header with Logo */}
             <div className="bg-primary px-6 py-6 text-center">
-              <img 
-                src={logoMagalu} 
-                alt="Consórcio Magalu" 
+              <img
+                src={logoMagalu}
+                alt="Consórcio Magalu"
                 className="h-10 md:h-12 mx-auto mb-4 object-contain"
               />
               <h2 className="text-xl md:text-2xl font-bold text-primary-foreground">
@@ -258,7 +259,7 @@ const ConsortiumSimulator = () => {
                 <Label className="text-sm font-medium text-foreground mb-2 block text-center">
                   Escolha o valor aproximado do crédito desejado
                 </Label>
-                
+
                 <div className="text-center my-6">
                   <span className="text-3xl md:text-4xl font-bold text-primary">
                     {formatCurrencyDisplay(selectedCreditValue)}
@@ -356,9 +357,9 @@ const ConsortiumSimulator = () => {
 
               {/* Signature */}
               <div className="mt-8 pt-6 border-t border-border flex items-center gap-4">
-                <img 
-                  src={gestorFabricio} 
-                  alt="Fabrício Rodrigues Honório" 
+                <img
+                  src={gestorFabricio}
+                  alt="Fabrício Rodrigues Honório"
                   className="w-14 h-14 rounded-full object-cover border-2 border-primary/20"
                 />
                 <div>
@@ -374,7 +375,7 @@ const ConsortiumSimulator = () => {
             {segments.map((segment) => {
               const banner = segmentBanners[segment.id];
               const isSelected = selectedSegment === segment.id;
-              
+
               return (
                 <button
                   key={segment.id}
@@ -382,8 +383,8 @@ const ConsortiumSimulator = () => {
                   onClick={() => setSelectedSegment(segment.id)}
                   className={`
                     relative w-full overflow-hidden rounded-xl transition-all duration-300 group
-                    ${isSelected 
-                      ? 'ring-4 ring-secondary shadow-xl scale-[1.02]' 
+                    ${isSelected
+                      ? 'ring-4 ring-secondary shadow-xl scale-[1.02]'
                       : 'ring-1 ring-border hover:ring-2 hover:ring-primary/50 hover:shadow-lg'
                     }
                   `}
@@ -396,7 +397,7 @@ const ConsortiumSimulator = () => {
                     />
                     {/* Overlay gradient */}
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/40 to-transparent" />
-                    
+
                     {/* Content */}
                     <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-center">
                       <h3 className="text-lg md:text-xl font-bold text-white drop-shadow-md">
@@ -408,8 +409,8 @@ const ConsortiumSimulator = () => {
                       <div className={`
                         mt-3 inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold w-fit
                         transition-all duration-300
-                        ${isSelected 
-                          ? 'bg-secondary text-secondary-foreground' 
+                        ${isSelected
+                          ? 'bg-secondary text-secondary-foreground'
                           : 'bg-primary text-primary-foreground group-hover:bg-secondary group-hover:text-secondary-foreground'
                         }
                       `}>

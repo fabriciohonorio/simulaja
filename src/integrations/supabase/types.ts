@@ -59,6 +59,7 @@ export type Database = {
           tipo_consorcio: string
           updated_at: string | null
           valor_credito: number
+          origem: string | null
         }
         Insert: {
           celular: string
@@ -72,6 +73,7 @@ export type Database = {
           tipo_consorcio: string
           updated_at?: string | null
           valor_credito: number
+          origem?: string | null
         }
         Update: {
           celular?: string
@@ -85,6 +87,7 @@ export type Database = {
           tipo_consorcio?: string
           updated_at?: string | null
           valor_credito?: number
+          origem?: string | null
         }
         Relationships: []
       }
