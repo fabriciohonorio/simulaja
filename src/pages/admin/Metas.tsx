@@ -55,7 +55,7 @@ export default function Metas() {
 
             // Busca meta atual
             const { data: metaData, error: metaError } = await supabase
-                .from("metas")
+                .from("meta")
                 .select("*")
                 .eq("ano", currentYear)
                 .maybeSingle();
@@ -100,11 +100,16 @@ export default function Metas() {
                     .eq("id", metaAnualObj.id);
                 if (error) throw error;
             } else {
-                // Insere
-                const { error } = await supabase
-                    .from("metas")
-                    .insert({ ano: currentYear, valor: valorNumerico });
-                if (error) throw error;
+                // Insere nova meta se não existir
+const { error } = await supabase
+    .from("meta")
+    .upsert({
+        id: 1,
+        meta_anual: valorNumerico,
+        created_at: new Date().toISOString()
+    });
+
+if (error) throw error;
             }
 
             toast({
