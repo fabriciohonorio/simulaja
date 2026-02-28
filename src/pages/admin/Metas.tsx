@@ -95,7 +95,7 @@ export default function Metas() {
             if (metaAnualObj && metaAnualObj.id) {
                 // Atualiza
                 const { error } = await supabase
-                    .from("metas")
+                    .from("meta")
                     .update({ valor: valorNumerico })
                     .eq("id", metaAnualObj.id);
                 if (error) throw error;
