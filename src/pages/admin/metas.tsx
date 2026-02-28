@@ -49,40 +49,57 @@ export default function Metas() {
 const fetchData = async () => {
     try {
         setLoading(true);
-        const { data: leadsData, error: leadsError } = await supabase.from("leads").select("*");
+
+        // LEADS
+        const { data: leadsData, error: leadsError } = await supabase
+            .from("leads")
+            .select("id, nome, status, valor_credito, created_at, updated_at");
+
         if (leadsError) throw leadsError;
 
-        const { data: metaData, error: metaError } = await supabase
+        // META
+        const metaResponse = await supabase
             .from("meta")
             .select("*")
             .eq("id", 1)
-            .single();
-        if (metaError && metaError.code !== 'PGRST116') throw metaError;
+            .maybeSingle(); // ← MELHOR que single()
 
+        if (metaResponse.error) throw metaResponse.error;
+
+        const metaData = metaResponse.data;
+
+        // TERMÔMETRO
         const { data: termData, error: termError } = await supabase
             .from("mercado_termometro")
             .select("*")
             .order("segmento");
+
         if (termError) throw termError;
 
+        // STATES
         setLeads(leadsData || []);
+
         if (metaData) {
             setMetaAnualObj(metaData);
             setMetaAnualInput(String(metaData.meta_anual || 0));
+        } else {
+            setMetaAnualObj(null);
+            setMetaAnualInput("0");
         }
+
         setTermometro(termData || []);
+
     } catch (error: any) {
         console.error("Erro ao buscar dados:", error);
         toast({
             title: "Erro",
-            description: "Não foi possível carregar os dados de metas.",
+            description: "Não foi possível carregar os dados.",
             variant: "destructive",
         });
     } finally {
         setLoading(false);
     }
-};
-    const handleSalvarMeta = async () => {
+};    const handleSalvarMeta = async () => {
         try {
             setSavingMeta(true);
             const valorNumerico = parseFloat(metaAnualInput);
