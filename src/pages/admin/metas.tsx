@@ -68,8 +68,9 @@ export default function Metas() {
 
             setLeads(leadsData || []);
             if (metaData) {
-                setMetaAnualObj({ id: metaData.id, ano: metaData.ano, valor: metaData.valor });
-                setMetaAnualInput(metaData.valor.toString());
+                setMetaAnualObj(metaData);
+                setMetaAnualInput(String(metaData.meta_anual || 0));
+            }
             }
             setTermometro(termData || []);
         } catch (error: any) {
@@ -94,7 +95,7 @@ export default function Metas() {
                 // Atualiza
                 const { error } = await supabase
                     .from("meta")
-                    .update({ valor: valorNumerico })
+                    .update({ meta_anual: valorNumerico })
                     .eq("id", metaAnualObj.id);
                 if (error) throw error;
             } else {
