@@ -53,24 +53,14 @@ export default function Metas() {
             const { data: leadsData, error: leadsError } = await supabase.from("leads").select("*");
             if (leadsError) throw leadsError;
 
-            // Busca meta atual
-            // Busca meta atual
-const { data: metaData, error: metaError } = await supabase
-  .from("meta")
-  .select("*")
-  .eq("id", 1)
-  .single();
-
-if (metaError) {
-  console.error("Erro ao buscar meta:", metaError);
-  throw metaError;
-}
-
-setMetaAnualObj(metaData);
-setMetaAnualInput(String(metaData?.meta_anual || 0));
-
-            // Busca termômetro
-            const { data: termData, error: termError } = await supabase
+         // Busca meta atual
+            const { data: metaData, error: metaError } = await supabase
+                .from("meta")
+                .select("*")
+                .eq("id", 1)
+                .single();
+            if (metaError && metaError.code !== 'PGRST116') throw metaError;
+            // Busca termômetro            const { data: termData, error: termError } = await supabase
                 .from("mercado_termometro")
                 .select("*")
                 .order("segmento");
