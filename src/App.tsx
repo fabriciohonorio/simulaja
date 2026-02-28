@@ -9,6 +9,7 @@ import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import Funil from "./pages/admin/Funil";
 import Leads from "./pages/admin/Leads";
+import Metas from "./pages/admin/Metas";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route index element={<Dashboard />} />
             <Route path="funil" element={<Funil />} />
             <Route path="leads" element={<Leads />} />
+            <Route path="metas" element={<Metas />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
