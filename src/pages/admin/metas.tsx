@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import {
-    Target, TrendingUp, DollarSign, Clock, Users,
-    Flame, Trophy, BarChart3, AlertTriangle, UserX
-} from "lucide-react";
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid,
-    Tooltip, ResponsiveContainer, Legend
-} from "recharts";
+import { Target } from "lucide-react";
 
 interface Lead {
     id: string;
@@ -29,12 +22,6 @@ interface MetaAnual {
     updated_at?: string;
 }
 
-interface Termometro {
-    id: string;
-    segmento: string;
-    percentual: number;
-}
-
 export default function Metas() {
 
     const { toast } = useToast();
@@ -42,7 +29,6 @@ export default function Metas() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [metaAnualObj, setMetaAnualObj] = useState<MetaAnual | null>(null);
     const [metaAnualInput, setMetaAnualInput] = useState<string>("0");
-    const [termometro, setTermometro] = useState<Termometro[]>([]);
     const [loading, setLoading] = useState(true);
     const [savingMeta, setSavingMeta] = useState(false);
 
@@ -57,26 +43,21 @@ export default function Metas() {
         try {
             setLoading(true);
 
+            // BUSCAR LEADS
             const { data: leadsData, error: leadsError } = await supabase
                 .from("leads")
                 .select("id, nome, status, valor_credito, created_at, updated_at");
 
             if (leadsError) throw leadsError;
 
+            // BUSCAR META (SEM FILTRAR ID)
             const { data: metaData, error: metaError } = await supabase
                 .from("meta")
                 .select("*")
-                .eq("id", 1)
+                .limit(1)
                 .maybeSingle();
 
             if (metaError) throw metaError;
-
-            const { data: termData, error: termError } = await supabase
-                .from("mercado_termometro")
-                .select("*")
-                .order("segmento");
-
-            if (termError) throw termError;
 
             setLeads(leadsData || []);
 
@@ -88,13 +69,11 @@ export default function Metas() {
                 setMetaAnualInput("0");
             }
 
-            setTermometro(termData || []);
-
         } catch (error: any) {
-            console.error("Erro ao buscar dados:", error);
+            console.error("ERRO COMPLETO:", error);
             toast({
                 title: "Erro",
-                description: "Não foi possível carregar os dados.",
+                description: "Não foi possível carregar os dados da meta.",
                 variant: "destructive",
             });
         } finally {
@@ -124,7 +103,7 @@ export default function Metas() {
 
             toast({
                 title: "Sucesso",
-                description: "Meta anual atualizada com sucesso!",
+                description: "Meta anual salva com sucesso!",
             });
 
             fetchData();
@@ -138,29 +117,6 @@ export default function Metas() {
             });
         } finally {
             setSavingMeta(false);
-        }
-    };
-
-    const updateTermometro = async (id: string, novoValor: number) => {
-        try {
-            const { error } = await supabase
-                .from("mercado_termometro")
-                .update({ percentual: novoValor, updated_at: new Date().toISOString() })
-                .eq("id", id);
-
-            if (error) throw error;
-
-            setTermometro(prev =>
-                prev.map(t => t.id === id ? { ...t, percentual: novoValor } : t)
-            );
-
-        } catch (error: any) {
-            console.error("Erro ao atualizar termômetro:", error);
-            toast({
-                title: "Erro",
-                description: "Não foi possível atualizar o indicador do mercado.",
-                variant: "destructive",
-            });
         }
     };
 
