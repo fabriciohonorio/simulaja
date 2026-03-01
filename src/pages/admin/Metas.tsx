@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Target,
@@ -161,7 +162,6 @@ export default function Metas() {
     m.realizado > best.realizado ? m : best
   );
 
-  // Pie data for month
   const pieMes = [
     { name: "Realizado", value: realizadoMes },
     { name: "Faltante", value: faltaMes },
@@ -180,7 +180,7 @@ export default function Metas() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Header */}
+      {/* Header with Meta Input */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">
           Metas e Indicadores ({currentYear})
@@ -199,74 +199,203 @@ export default function Metas() {
         </div>
       </div>
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
+      {/* Auto-filled monthly meta display */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
                 <CalendarDays className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Desempenho do Mês</p>
-                <p className="text-lg font-bold">{fmt(realizadoMes)}</p>
-                <p className="text-xs text-muted-foreground">de {fmt(metaMensal)}</p>
+                <p className="text-xs text-muted-foreground">Meta Mensal (automática)</p>
+                <p className="text-xl font-bold">{fmt(metaMensal)}</p>
               </div>
             </div>
-            <Progress value={progressoMes} className="mt-3 h-2" />
-            <p className="text-xs text-right mt-1 text-muted-foreground">{progressoMes.toFixed(1)}%</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Target className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Desempenho Anual</p>
-                <p className="text-lg font-bold">{fmt(realizadoAno)}</p>
-                <p className="text-xs text-muted-foreground">de {fmt(metaAnual)}</p>
+                <p className="text-xs text-muted-foreground">Meta Anual</p>
+                <p className="text-xl font-bold">{fmt(metaAnual)}</p>
               </div>
             </div>
-            <Progress value={progressoAno} className="mt-3 h-2" />
-            <p className="text-xs text-right mt-1 text-muted-foreground">{progressoAno.toFixed(1)}%</p>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-500/10">
-                <ArrowDown className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Falta p/ Meta Mês</p>
-                <p className="text-lg font-bold">{fmt(faltaMes)}</p>
-                <p className="text-xs text-muted-foreground">{leadsNecessariosMes} leads necessários</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Tabs: Mês / Ano */}
+      <Tabs defaultValue="mes" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="mes">📅 Meta do Mês</TabsTrigger>
+          <TabsTrigger value="ano">📊 Meta do Ano</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-500/10">
-                <Target className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Falta p/ Meta Ano</p>
-                <p className="text-lg font-bold">{fmt(faltaAno)}</p>
-                <p className="text-xs text-muted-foreground">{leadsNecessariosAno} leads necessários</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* TAB MÊS */}
+        <TabsContent value="mes" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Realizado no Mês</p>
+                    <p className="text-lg font-bold">{fmt(realizadoMes)}</p>
+                    <p className="text-xs text-muted-foreground">de {fmt(metaMensal)}</p>
+                  </div>
+                </div>
+                <Progress value={progressoMes} className="mt-3 h-2" />
+                <p className="text-xs text-right mt-1 text-muted-foreground">{progressoMes.toFixed(1)}%</p>
+              </CardContent>
+            </Card>
 
-      {/* Second row KPIs */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-destructive/10">
+                    <ArrowDown className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Falta p/ Meta</p>
+                    <p className="text-lg font-bold">{fmt(faltaMes)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Leads Necessários</p>
+                    <p className="text-lg font-bold">{leadsNecessariosMes}</p>
+                    <p className="text-xs text-muted-foreground">Ticket médio: {fmt(ticketMedio)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Donut Mês */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Atingimento Mensal</CardTitle>
+            </CardHeader>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieMes} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" strokeWidth={2}>
+                    <Cell fill="hsl(215, 70%, 40%)" />
+                    <Cell fill="hsl(var(--muted))" />
+                  </Pie>
+                  <Tooltip formatter={(v: number) => fmt(v)} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB ANO */}
+        <TabsContent value="ano" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Realizado no Ano</p>
+                    <p className="text-lg font-bold">{fmt(realizadoAno)}</p>
+                    <p className="text-xs text-muted-foreground">de {fmt(metaAnual)}</p>
+                  </div>
+                </div>
+                <Progress value={progressoAno} className="mt-3 h-2" />
+                <p className="text-xs text-right mt-1 text-muted-foreground">{progressoAno.toFixed(1)}%</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-destructive/10">
+                    <ArrowDown className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Falta p/ Meta</p>
+                    <p className="text-lg font-bold">{fmt(faltaAno)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Leads Necessários</p>
+                    <p className="text-lg font-bold">{leadsNecessariosAno}</p>
+                    <p className="text-xs text-muted-foreground">
+                      ~{leadsNecessariosAno > 0 ? Math.ceil(leadsNecessariosAno / mesesRestantes) : 0}/mês ({mesesRestantes} meses restantes)
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Donut Ano */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Atingimento Anual</CardTitle>
+            </CardHeader>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieAno} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" strokeWidth={2}>
+                    <Cell fill="hsl(150, 60%, 40%)" />
+                    <Cell fill="hsl(var(--muted))" />
+                  </Pie>
+                  <Tooltip formatter={(v: number) => fmt(v)} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Bar Chart - Meta vs Realizado (always visible) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Meta vs Realizado por Mês</CardTitle>
+        </CardHeader>
+        <CardContent className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={monthsData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => fmt(v)} />
+              <Legend />
+              <Bar dataKey="meta" name="Meta" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="realizado" name="Realizado" fill="hsl(215, 70%, 40%)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* KPIs extras */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -285,8 +414,8 @@ export default function Metas() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <Users className="h-5 w-5 text-green-600" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Leads Fechados (Mês / Ano)</p>
@@ -299,8 +428,8 @@ export default function Metas() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-500/10">
-                <Trophy className="h-5 w-5 text-yellow-600" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Trophy className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Melhor Mês</p>
@@ -312,137 +441,11 @@ export default function Metas() {
         </Card>
       </div>
 
-      {/* Donut Charts - Month & Year */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Atingimento Mensal</CardTitle>
-          </CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieMes}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  dataKey="value"
-                  strokeWidth={2}
-                >
-                  <Cell fill="hsl(215, 70%, 40%)" />
-                  <Cell fill="hsl(0, 0%, 88%)" />
-                </Pie>
-                <Tooltip formatter={(v: number) => fmt(v)} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Atingimento Anual</CardTitle>
-          </CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieAno}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  dataKey="value"
-                  strokeWidth={2}
-                >
-                  <Cell fill="hsl(150, 60%, 40%)" />
-                  <Cell fill="hsl(0, 0%, 88%)" />
-                </Pie>
-                <Tooltip formatter={(v: number) => fmt(v)} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bar Chart - Meta vs Realizado */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Meta vs Realizado por Mês</CardTitle>
-        </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthsData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => fmt(v)} />
-              <Legend />
-              <Bar dataKey="meta" name="Meta" fill="hsl(0, 0%, 80%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="realizado" name="Realizado" fill="hsl(215, 70%, 40%)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Leads Necessários */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-4 w-4" /> Leads Necessários — Mês
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-4">
-              <p className="text-4xl font-bold text-primary">{leadsNecessariosMes}</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                leads para atingir {fmt(metaMensal)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Ticket médio: {fmt(ticketMedio)} • Realizado: {fmt(realizadoMes)}
-              </p>
-            </div>
-            <Progress value={progressoMes} className="h-3" />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>{progressoMes.toFixed(0)}% atingido</span>
-              <span>{fmt(faltaMes)} restante</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Target className="h-4 w-4" /> Leads Necessários — Ano
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-4">
-              <p className="text-4xl font-bold text-green-600">{leadsNecessariosAno}</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                leads para atingir {fmt(metaAnual)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                ~{leadsNecessariosAno > 0 ? Math.ceil(leadsNecessariosAno / mesesRestantes) : 0} leads/mês restante ({mesesRestantes} meses)
-              </p>
-            </div>
-            <Progress value={progressoAno} className="h-3" />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>{progressoAno.toFixed(0)}% atingido</span>
-              <span>{fmt(faltaAno)} restante</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Termômetro do Mercado - ABAC */}
+      {/* Termômetro ABAC */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Flame className="h-4 w-4 text-orange-500" /> Termômetro do Mercado — Consórcio (Ref. ABAC)
+            <Flame className="h-4 w-4 text-destructive" /> Termômetro do Mercado — Consórcio (Ref. ABAC)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -489,7 +492,7 @@ export default function Metas() {
                 <div className="w-3 h-3 rounded-full mx-auto mb-1" style={{ backgroundColor: PIE_COLORS[i] }} />
                 <p className="text-xs font-medium">{item.segmento}</p>
                 <p className="text-sm font-bold">{item.participacao}%</p>
-                <p className="text-xs text-green-600">+{item.crescimento}%</p>
+                <p className="text-xs text-primary">+{item.crescimento}%</p>
               </div>
             ))}
           </div>
