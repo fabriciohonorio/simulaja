@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Filter, Users, LogOut, Target } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase } from "lucide-react";
 import logo from "@/assets/logo-consorcio-magalu.png";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const navItems = [
   { to: "/admin/funil", label: "Funil", icon: Filter },
   { to: "/admin/leads", label: "Leads", icon: Users },
   { to: "/admin/metas", label: "Metas", icon: Target },
+  { to: "/admin/carteira", label: "Carteira", icon: Briefcase },
 ];
 
 export default function AdminLayout() {
