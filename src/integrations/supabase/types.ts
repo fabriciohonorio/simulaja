@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      carteira: {
+        Row: {
+          cota: string | null
+          cota_contemplada: string | null
+          created_at: string
+          data_contemplacao: string | null
+          grupo: string | null
+          id: string
+          lead_id: string | null
+          nome: string
+          status: string
+          tipo_consorcio: string | null
+          updated_at: string
+          valor_credito: number | null
+        }
+        Insert: {
+          cota?: string | null
+          cota_contemplada?: string | null
+          created_at?: string
+          data_contemplacao?: string | null
+          grupo?: string | null
+          id?: string
+          lead_id?: string | null
+          nome: string
+          status?: string
+          tipo_consorcio?: string | null
+          updated_at?: string
+          valor_credito?: number | null
+        }
+        Update: {
+          cota?: string | null
+          cota_contemplada?: string | null
+          created_at?: string
+          data_contemplacao?: string | null
+          grupo?: string | null
+          id?: string
+          lead_id?: string | null
+          nome?: string
+          status?: string
+          tipo_consorcio?: string | null
+          updated_at?: string
+          valor_credito?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteira_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interacoes: {
         Row: {
           created_at: string | null
@@ -115,18 +168,30 @@ export type Database = {
           created_at: string
           id: number
           meta_anual: number | null
+          meta_imoveis: number | null
+          meta_motos: number | null
+          meta_outros: number | null
+          meta_veiculos: number | null
         }
         Insert: {
           ano?: number | null
           created_at?: string
           id?: number
           meta_anual?: number | null
+          meta_imoveis?: number | null
+          meta_motos?: number | null
+          meta_outros?: number | null
+          meta_veiculos?: number | null
         }
         Update: {
           ano?: number | null
           created_at?: string
           id?: number
           meta_anual?: number | null
+          meta_imoveis?: number | null
+          meta_motos?: number | null
+          meta_outros?: number | null
+          meta_veiculos?: number | null
         }
         Relationships: []
       }
