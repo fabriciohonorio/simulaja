@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar } from "lucide-react";
+import { Phone, MapPin, Calendar, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import {
@@ -172,7 +172,19 @@ export default function Funil() {
                               {...provided.dragHandleProps}
                               className={`bg-background border border-border rounded-md p-3 text-sm space-y-1.5 ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
                             >
-                              <p className="font-medium truncate">{lead.nome}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="font-medium truncate flex-1">{lead.nome}</p>
+                                <a
+                                  href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-green-500 hover:text-green-600 shrink-0 ml-1"
+                                  title="Enviar WhatsApp"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </a>
+                              </div>
                               <p className="text-primary font-bold text-base">
                                 {formatCurrency(Number(lead.valor_credito))}
                               </p>
