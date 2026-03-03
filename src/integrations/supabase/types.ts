@@ -67,6 +67,51 @@ export type Database = {
           },
         ]
       }
+      inadimplentes: {
+        Row: {
+          celular: string | null
+          cota: string | null
+          created_at: string
+          grupo: string | null
+          id: string
+          nome: string
+          parcelas_atrasadas: number | null
+          parcelas_pagas: number | null
+          status: string
+          tipo_consorcio: string | null
+          updated_at: string
+          valor_parcela: number | null
+        }
+        Insert: {
+          celular?: string | null
+          cota?: string | null
+          created_at?: string
+          grupo?: string | null
+          id?: string
+          nome: string
+          parcelas_atrasadas?: number | null
+          parcelas_pagas?: number | null
+          status?: string
+          tipo_consorcio?: string | null
+          updated_at?: string
+          valor_parcela?: number | null
+        }
+        Update: {
+          celular?: string | null
+          cota?: string | null
+          created_at?: string
+          grupo?: string | null
+          id?: string
+          nome?: string
+          parcelas_atrasadas?: number | null
+          parcelas_pagas?: number | null
+          status?: string
+          tipo_consorcio?: string | null
+          updated_at?: string
+          valor_parcela?: number | null
+        }
+        Relationships: []
+      }
       interacoes: {
         Row: {
           created_at: string | null
