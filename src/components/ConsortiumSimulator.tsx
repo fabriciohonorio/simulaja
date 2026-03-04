@@ -29,12 +29,9 @@ import {
   Tractor,
   Truck,
   MessageCircle,
-  Phone,
   Mail,
-  Instagram,
-  Facebook,
-  Linkedin,
 } from "lucide-react";
+import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon } from "./SocialIcons";
 
 import gestorFabricio from "@/assets/gestor-fabricio.jpg";
 import bannerImoveis from "@/assets/banner-imoveis.jpg";
@@ -556,29 +553,29 @@ const ConsortiumSimulator = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá Fabrício! Vi seu site e quero saber mais sobre consórcio.")}`}
+              href="https://wa.me/5541997925357?text=Ol%C3%A1%20Fabr%C3%ADcio!%20Vi%20seu%20site%20e%20quero%20saber%20mais%20sobre%20cons%C3%B3rcio."
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-bold transition-colors shadow-lg"
+              className="flex items-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe57] text-white px-7 py-3.5 rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
-              <MessageCircle className="w-5 h-5" />
+              <WhatsAppIcon className="w-5 h-5" />
               WhatsApp
             </a>
             <a
+              href="https://instagram.com/fabricioespecialistaconsorcio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:opacity-90 text-white px-7 py-3.5 rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <InstagramIcon className="w-5 h-5" />
+              Instagram
+            </a>
+            <a
               href="mailto:fabricio@consorciointeligente.com"
-              className="flex items-center gap-2 bg-primary-foreground/15 hover:bg-primary-foreground/25 border border-primary-foreground/30 text-primary-foreground px-6 py-3 rounded-full font-bold transition-colors"
+              className="flex items-center gap-2.5 bg-primary-foreground/15 hover:bg-primary-foreground/25 border border-primary-foreground/30 text-primary-foreground px-7 py-3.5 rounded-full font-bold transition-all hover:scale-105"
             >
               <Mail className="w-5 h-5" />
               E-mail
-            </a>
-            <a
-              href="https://instagram.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-primary-foreground/15 hover:bg-primary-foreground/25 border border-primary-foreground/30 text-primary-foreground px-6 py-3 rounded-full font-bold transition-colors"
-            >
-              <Instagram className="w-5 h-5" />
-              Instagram
             </a>
           </div>
         </div>
@@ -615,23 +612,37 @@ const ConsortiumSimulator = () => {
             <div>
               <h3 className="text-lg font-bold mb-3">Redes Sociais</h3>
               <div className="flex gap-3">
-                <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-secondary transition-colors">
-                  <Facebook className="w-5 h-5" />
-                </a>
-                <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-secondary transition-colors">
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-secondary transition-colors">
-                  <Linkedin className="w-5 h-5" />
-                </a>
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                  href="https://wa.me/5541997925357"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
-                  className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-green-600 transition-colors"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-[#25D366] transition-all hover:scale-110"
                 >
-                  <Phone className="w-5 h-5" />
+                  <WhatsAppIcon className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://instagram.com/fabricioespecialistaconsorcio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-gradient-to-tr hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF] transition-all hover:scale-110"
+                >
+                  <InstagramIcon className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="TikTok"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-foreground/80 transition-all hover:scale-110"
+                >
+                  <TikTokIcon className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-[#1877F2] transition-all hover:scale-110"
+                >
+                  <FacebookIcon className="w-5 h-5" />
                 </a>
               </div>
             </div>
