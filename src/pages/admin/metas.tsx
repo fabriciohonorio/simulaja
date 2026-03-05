@@ -51,7 +51,8 @@ export default function Metas() {
         } finally {
             setLoading(false);
         }
-    }
+    };
+
     const salvarMeta = async () => {
         const novoValor = parseFloat(metaInput);
         if (isNaN(novoValor)) return;
@@ -99,39 +100,80 @@ export default function Metas() {
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
     return (
-        <div className="space-y-6 pb-12">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-4 sm:space-y-6 pb-12">
+            {/* Header */}
+            <div className="space-y-3">
                 <div>
-                    <h1 className="text-2xl font-bold">Metas e Indicadores</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold">Metas e Indicadores</h1>
                     <p className="text-sm text-muted-foreground">Acompanhe seu desempenho de {currentYear}</p>
                 </div>
-                <Card className="w-full md:w-auto bg-primary/5 border-primary/20">
-                    <CardContent className="p-4 flex items-center gap-4">
-                        <Target className="h-5 w-5 text-primary" />
-                        <span className="font-semibold text-sm">Meta Anual ({currentYear})</span>
-                        <span className="text-muted-foreground">R$</span>
-                        <Input type="number" value={metaInput} onChange={e => setMetaInput(e.target.value)} className="w-36 h-8 text-right font-bold" />
-                        <Button size="sm" onClick={salvarMeta}>Salvar</Button>
+                {/* Meta Anual Card — stacked on mobile */}
+                <Card className="bg-primary/5 border-primary/20">
+                    <CardContent className="p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="flex items-center gap-2 shrink-0">
+                                <Target className="h-5 w-5 text-primary" />
+                                <span className="font-semibold text-sm">Meta Anual ({currentYear})</span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-1">
+                                <span className="text-muted-foreground text-sm">R$</span>
+                                <Input
+                                    type="number"
+                                    value={metaInput}
+                                    onChange={e => setMetaInput(e.target.value)}
+                                    className="flex-1 h-9 text-right font-bold"
+                                />
+                                <Button size="sm" onClick={salvarMeta} className="shrink-0">Salvar</Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-                <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Target className="h-4 w-4" />Desempenho do Mês</CardTitle></CardHeader>
+            {/* Progress Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                            <Target className="h-4 w-4" />Desempenho do Mês
+                        </CardTitle>
+                    </CardHeader>
                     <CardContent>
-                        <div className="flex justify-between items-end mb-2"><div><p className="text-2xl font-bold text-primary">{fmt(realizadoMes)}</p><p className="text-xs text-muted-foreground">de {fmt(metaMensal)}</p></div><span className="text-xl font-bold">{progressoMes.toFixed(1)}%</span></div>
-                        <div className="w-full bg-secondary/20 rounded-full h-2.5"><div className="bg-primary h-2.5 rounded-full" style={{ width: `${progressoMes}%` }} /></div>
+                        <div className="flex justify-between items-end mb-2">
+                            <div>
+                                <p className="text-xl sm:text-2xl font-bold text-primary">{fmt(realizadoMes)}</p>
+                                <p className="text-xs text-muted-foreground">de {fmt(metaMensal)}</p>
+                            </div>
+                            <span className="text-lg sm:text-xl font-bold">{progressoMes.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-secondary/20 rounded-full h-2.5">
+                            <div className="bg-primary h-2.5 rounded-full" style={{ width: `${progressoMes}%` }} />
+                        </div>
                     </CardContent>
                 </Card>
-                <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Trophy className="h-4 w-4" />Desempenho do Ano</CardTitle></CardHeader>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                            <Trophy className="h-4 w-4" />Desempenho do Ano
+                        </CardTitle>
+                    </CardHeader>
                     <CardContent>
-                        <div className="flex justify-between items-end mb-2"><div><p className="text-2xl font-bold text-green-600">{fmt(realizadoAno)}</p><p className="text-xs text-muted-foreground">de {fmt(metaAnual)}</p></div><span className="text-xl font-bold text-green-600">{progressoAno.toFixed(1)}%</span></div>
-                        <div className="w-full bg-secondary/20 rounded-full h-2.5"><div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressoAno}%` }} /></div>
+                        <div className="flex justify-between items-end mb-2">
+                            <div>
+                                <p className="text-xl sm:text-2xl font-bold text-green-600">{fmt(realizadoAno)}</p>
+                                <p className="text-xs text-muted-foreground">de {fmt(metaAnual)}</p>
+                            </div>
+                            <span className="text-lg sm:text-xl font-bold text-green-600">{progressoAno.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-secondary/20 rounded-full h-2.5">
+                            <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressoAno}%` }} />
+                        </div>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            {/* KPI Grid — 2 cols on phones, 4 on md, 7 on xl */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3">
                 {[
                     { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio" },
                     { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão" },
@@ -142,26 +184,27 @@ export default function Metas() {
                     { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d" },
                 ].map((k, i) => (
                     <Card key={i} className={i === 6 && semFollowUp > 0 ? "bg-red-50 border-red-200" : ""}>
-                        <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                        <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
                             <k.icon className={`h-5 w-5 ${k.color}`} />
-                            <p className="text-xl font-bold">{k.val}</p>
-                            <p className="text-xs text-muted-foreground">{k.label}</p>
+                            <p className="text-base sm:text-xl font-bold leading-tight">{k.val}</p>
+                            <p className="text-xs text-muted-foreground leading-tight">{k.label}</p>
                         </CardContent>
                     </Card>
                 ))}
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            {/* Chart + Thermometer */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="lg:col-span-2">
-                    <CardHeader><CardTitle className="text-base">Meta vs Realizado ({currentYear})</CardTitle></CardHeader>
-                    <CardContent className="h-72">
+                    <CardHeader><CardTitle className="text-sm sm:text-base">Meta vs Realizado ({currentYear})</CardTitle></CardHeader>
+                    <CardContent className="h-56 sm:h-72">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={monthsData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 11 }} />
                                 <Tooltip formatter={(v: number) => fmt(v)} />
-                                <Legend />
+                                <Legend wrapperStyle={{ fontSize: '12px' }} />
                                 <Bar dataKey="meta" name="Meta" fill="hsl(215,20%,65%)" radius={[4, 4, 0, 0]} />
                                 <Bar dataKey="realizado" name="Realizado" fill="hsl(207,90%,35%)" radius={[4, 4, 0, 0]} />
                             </BarChart>
@@ -169,7 +212,7 @@ export default function Metas() {
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader><CardTitle className="text-base flex items-center gap-2"><Flame className="h-5 w-5 text-orange-500" />Termômetro de Mercado</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-sm sm:text-base flex items-center gap-2"><Flame className="h-5 w-5 text-orange-500" />Termômetro de Mercado</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
                         {termometro.map(item => {
                             const cor = item.percentual >= 70 ? "bg-red-500" : item.percentual >= 40 ? "bg-orange-500" : "bg-blue-500";
@@ -177,15 +220,15 @@ export default function Metas() {
                             const label = item.percentual >= 70 ? "Quente" : item.percentual >= 40 ? "Morno" : "Frio";
                             return (
                                 <div key={item.id} className="space-y-1">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm font-medium">{item.segmento}</span>
-                                        <div className="flex items-center gap-1">
+                                    <div className="flex justify-between items-center gap-2">
+                                        <span className="text-sm font-medium truncate">{item.segmento}</span>
+                                        <div className="flex items-center gap-1 shrink-0">
                                             <span className={`text-xs font-bold ${txt}`}>{label}</span>
-                                            <Input type="number" value={item.percentual} onChange={e => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-6 text-xs text-center p-1" min="0" max="100" />
+                                            <Input type="number" value={item.percentual} onChange={e => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-7 text-xs text-center p-1" min="0" max="100" />
                                             <span className="text-xs">%</span>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-secondary rounded-full h-1.5"><div className={`${cor} h-full`} style={{ width: `${item.percentual}%` }} /></div>
+                                    <div className="w-full bg-secondary rounded-full h-1.5"><div className={`${cor} h-full rounded-full`} style={{ width: `${item.percentual}%` }} /></div>
                                 </div>
                             );
                         })}
@@ -194,26 +237,32 @@ export default function Metas() {
                 </Card>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            {/* Top Leads + Destaque */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="md:col-span-2">
-                    <CardHeader><CardTitle className="text-base">Top 5 Leads em Aberto</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="text-sm sm:text-base">Top 5 Leads em Aberto</CardTitle></CardHeader>
                     <CardContent className="space-y-3">
                         {topLeads.map((l, i) => (
-                            <div key={l.id} className="flex justify-between items-center p-3 rounded-lg border">
-                                <div><p className="text-sm font-bold">{i + 1}. {l.nome}</p><p className="text-xs text-muted-foreground capitalize">{l.status}</p></div>
-                                <span className="font-bold text-primary">{fmt(l.valor_credito || 0)}</span>
+                            <div key={l.id} className="flex justify-between items-center p-3 rounded-lg border gap-2">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-bold truncate">{i + 1}. {l.nome}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">{l.status}</p>
+                                </div>
+                                <span className="font-bold text-primary shrink-0">{fmt(l.valor_credito || 0)}</span>
                             </div>
                         ))}
                         {topLeads.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum lead em aberto.</p>}
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-primary/10 to-transparent">
-                    <CardHeader><CardTitle className="text-base text-center">Destaque do Ano</CardTitle></CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4 py-6">
-                        <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center"><Trophy className="h-10 w-10 text-primary" /></div>
+                    <CardHeader><CardTitle className="text-sm sm:text-base text-center">Destaque do Ano</CardTitle></CardHeader>
+                    <CardContent className="flex flex-col items-center gap-4 py-4 sm:py-6">
+                        <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                        </div>
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground">Melhor Mês</p>
-                            <p className="text-2xl font-bold text-primary">{monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.name}</p>
+                            <p className="text-xl sm:text-2xl font-bold text-primary">{monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.name}</p>
                             <p className="text-sm font-bold mt-1">{fmt(monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.realizado || 0)}</p>
                         </div>
                     </CardContent>

@@ -135,23 +135,24 @@ export default function Leads() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Leads</h1>
-        <Button onClick={exportCSV} variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" /> Exportar CSV
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leads</h1>
+        <Button onClick={exportCSV} variant="outline" size="sm" className="shrink-0">
+          <Download className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Exportar CSV</span>
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      {/* Filters — full width, wrapping grid on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <Input
           placeholder="Buscar nome, email, telefone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-64"
+          className="sm:col-span-2 lg:col-span-1"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
             {STATUS_OPTIONS.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -159,7 +160,7 @@ export default function Leads() {
           </SelectContent>
         </Select>
         <Select value={tipoFilter} onValueChange={setTipoFilter}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
             {TIPO_OPTIONS.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -170,7 +171,6 @@ export default function Leads() {
           placeholder="Filtrar cidade..."
           value={cidadeFilter}
           onChange={(e) => setCidadeFilter(e.target.value)}
-          className="w-44"
         />
       </div>
 
@@ -228,13 +228,13 @@ export default function Leads() {
         {/* Mobile Card View */}
         <div className="md:hidden flex flex-col divide-y divide-border">
           {filtered.map((l) => (
-            <div key={l.id} className="p-4 space-y-3 hover:bg-muted/50">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium">{l.nome}</h3>
+            <div key={l.id} className="p-4 space-y-3 active:bg-muted/50">
+              <div className="flex justify-between items-start gap-2">
+                <div className="min-w-0">
+                  <h3 className="font-medium truncate">{l.nome}</h3>
                   <p className="text-xs text-muted-foreground">{l.cidade}</p>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize shrink-0">
                   {(l.status ?? "novo").replace("_", " ")}
                 </span>
               </div>
@@ -246,24 +246,26 @@ export default function Leads() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Tipo / Prazo</p>
-                  <p className="capitalize">{l.tipo_consorcio} - {l.prazo_meses}m</p>
+                  <p className="capitalize">{l.tipo_consorcio} · {l.prazo_meses}m</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Celular</p>
+                  <p>{l.celular}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Data</p>
+                  <p>{l.created_at?.slice(0, 10)}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <div className="text-xs text-muted-foreground">
-                  <p>{l.celular}</p>
-                  <p>{l.created_at?.slice(0, 10)}</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-green-600 border-green-200 hover:bg-green-50 gap-2"
-                  onClick={() => openWhatsApp(l)}
-                >
-                  <MessageCircle className="h-4 w-4" /> Whatsapp
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-green-600 border-green-200 hover:bg-green-50 gap-2"
+                onClick={() => openWhatsApp(l)}
+              >
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </Button>
             </div>
           ))}
         </div>

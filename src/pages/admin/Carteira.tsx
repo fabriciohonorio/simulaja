@@ -11,15 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Users, Clock, Trophy, TrendingUp } from "lucide-react";
+import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar } from "lucide-react";
 
 interface CarteiraItem {
   id: string;
@@ -73,10 +65,11 @@ export default function Carteira() {
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Carteira de Clientes</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-xl sm:text-2xl font-bold">Carteira de Clientes</h1>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total de Clientes", value: total, icon: Users, color: "text-primary" },
           { label: "Aguardando", value: aguardando, icon: Clock, color: "text-muted-foreground" },
@@ -84,14 +77,14 @@ export default function Carteira() {
           { label: "% Contemplação", value: `${pctContemplacao}%`, icon: TrendingUp, color: "text-primary" },
         ].map((card) => (
           <Card key={card.label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <card.icon className={`h-5 w-5 ${card.color}`} />
+            <CardContent className="p-3 sm:p-4 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 shrink-0">
+                  <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.color}`} />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{card.label}</p>
-                  <p className="text-lg font-bold">{card.value}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground leading-tight">{card.label}</p>
+                  <p className="text-lg font-bold leading-tight">{card.value}</p>
                 </div>
               </div>
             </CardContent>
@@ -99,36 +92,33 @@ export default function Carteira() {
         ))}
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Grupo</TableHead>
-                <TableHead>Cota</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+      {/* Desktop Table */}
+      <Card className="hidden md:block">
+        <CardContent className="pt-6 overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted">
+              <tr>
+                {["Nome", "Tipo", "Valor", "Grupo", "Cota", "Status", "Ações"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
               {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.nome}</TableCell>
-                  <TableCell>{item.tipo_consorcio}</TableCell>
-                  <TableCell>{fmt(Number(item.valor_credito || 0))}</TableCell>
-                  <TableCell>{item.grupo || "—"}</TableCell>
-                  <TableCell>{item.cota || "—"}</TableCell>
-                  <TableCell>
+                <tr key={item.id} className="hover:bg-muted/50">
+                  <td className="px-3 py-2 font-medium">{item.nome}</td>
+                  <td className="px-3 py-2">{item.tipo_consorcio}</td>
+                  <td className="px-3 py-2">{fmt(Number(item.valor_credito || 0))}</td>
+                  <td className="px-3 py-2">{item.grupo || "—"}</td>
+                  <td className="px-3 py-2">{item.cota || "—"}</td>
+                  <td className="px-3 py-2">
                     {item.status === "contemplada" ? (
                       <Badge className="bg-green-600 text-white">🏆 Contemplada</Badge>
                     ) : (
                       <Badge variant="secondary">Aguardando</Badge>
                     )}
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-3 py-2">
                     {item.status === "aguardando" ? (
                       <Button size="sm" variant="outline" onClick={() => { setSelectedItem(item); setCotaContemplada(""); setDataContemplacao(""); }}>
                         Registrar Contemplação
@@ -139,16 +129,74 @@ export default function Carteira() {
                         <p>{item.data_contemplacao}</p>
                       </div>
                     )}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))}
               {items.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</TableCell></TableRow>
+                <tr><td colSpan={7} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</td></tr>
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </CardContent>
       </Card>
+
+      {/* Mobile Card List */}
+      <div className="md:hidden space-y-3">
+        {items.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</p>
+        )}
+        {items.map((item) => (
+          <Card key={item.id}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{item.nome}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{item.tipo_consorcio}</p>
+                </div>
+                {item.status === "contemplada" ? (
+                  <Badge className="bg-green-600 text-white shrink-0">🏆 Contemplada</Badge>
+                ) : (
+                  <Badge variant="secondary" className="shrink-0">Aguardando</Badge>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Valor</p>
+                  <p className="font-medium text-primary">{fmt(Number(item.valor_credito || 0))}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Grupo / Cota</p>
+                  <p>{item.grupo || "—"} / {item.cota || "—"}</p>
+                </div>
+                {item.status === "contemplada" && (
+                  <>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Cota Contemplada</p>
+                      <p>{item.cota_contemplada || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> Data</p>
+                      <p>{item.data_contemplacao || "—"}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {item.status === "aguardando" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => { setSelectedItem(item); setCotaContemplada(""); setDataContemplacao(""); }}
+                >
+                  <CheckCircle className="h-4 w-4" /> Registrar Contemplação
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
         <DialogContent className="sm:max-w-md">

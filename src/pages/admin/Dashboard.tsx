@@ -20,8 +20,8 @@ interface Lead {
 const STATUS_LABELS: Record<string, string> = {
   novo: "Novo",
   contatado: "Contatado",
-  proposta_enviada: "Proposta Enviada",
-  em_negociacao: "Em Negociação",
+  proposta_enviada: "Proposta",
+  em_negociacao: "Negociação",
   fechado: "Fechado",
 };
 
@@ -83,39 +83,39 @@ export default function Dashboard() {
   const metrics = [
     { label: "Total Leads", value: leads.length, icon: Users, color: "text-primary" },
     { label: "Leads Hoje", value: leadsHoje, icon: UserPlus, color: "text-primary" },
-    { label: "Taxa Conversão", value: `${taxaConversao}%`, icon: TrendingUp, color: "text-green-600" },
-    { label: "Ticket Médio", value: `R$ ${ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, icon: DollarSign, color: "text-secondary" },
+    { label: "Conversão", value: `${taxaConversao}%`, icon: TrendingUp, color: "text-green-600" },
+    { label: "Ticket Médio", value: `R$\u00a0${ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, icon: DollarSign, color: "text-secondary" },
     { label: "Em Negociação", value: emNeg, icon: Handshake, color: "text-secondary" },
     { label: "Fechados", value: fechados, icon: CheckCircle, color: "text-green-600" },
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* Metrics — 2 cols on phones, 3 on sm, 6 on xl */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         {metrics.map((m) => (
           <Card key={m.label} className="shadow-sm border-border/50">
-            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <m.icon className={`h-6 w-6 ${m.color}`} />
-              <p className="text-2xl font-bold">{m.value}</p>
-              <p className="text-xs text-muted-foreground">{m.label}</p>
+            <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center gap-1.5">
+              <m.icon className={`h-5 w-5 ${m.color}`} />
+              <p className="text-lg sm:text-2xl font-bold leading-tight">{m.value}</p>
+              <p className="text-xs text-muted-foreground leading-tight">{m.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Funnel bar */}
         <Card className="shadow-sm border-border/50 overflow-hidden">
-          <CardHeader><CardTitle className="text-base">Funil de Vendas</CardTitle></CardHeader>
-          <CardContent className="h-64 sm:h-72">
+          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Funil de Vendas</CardTitle></CardHeader>
+          <CardContent className="h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={funnelData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-45} textAnchor="end" height={60} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={55} />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Bar dataKey="quantidade" fill="hsl(207, 90%, 35%)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -125,15 +125,15 @@ export default function Dashboard() {
 
         {/* Monthly line */}
         <Card className="shadow-sm border-border/50">
-          <CardHeader><CardTitle className="text-base">Evolução Mensal</CardTitle></CardHeader>
-          <CardContent className="h-64 sm:h-72">
+          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Evolução Mensal</CardTitle></CardHeader>
+          <CardContent className="h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="total" stroke="hsl(32, 95%, 55%)" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="total" stroke="hsl(32, 95%, 55%)" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -141,13 +141,13 @@ export default function Dashboard() {
 
         {/* Top cities */}
         <Card className="shadow-sm border-border/50">
-          <CardHeader><CardTitle className="text-base">Top 5 Cidades</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Top 5 Cidades</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-3">
               {topCidades.map(([cidade, count], i) => (
-                <div key={cidade} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{i + 1}. {cidade}</span>
-                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{count} leads</span>
+                <div key={cidade} className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium truncate">{i + 1}. {cidade}</span>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md shrink-0">{count} leads</span>
                 </div>
               ))}
               {topCidades.length === 0 && <p className="text-sm text-muted-foreground">Sem dados</p>}
@@ -157,17 +157,26 @@ export default function Dashboard() {
 
         {/* Pie by type */}
         <Card className="shadow-sm border-border/50">
-          <CardHeader><CardTitle className="text-base">Distribuição por Tipo</CardTitle></CardHeader>
-          <CardContent className="h-64 sm:h-72">
+          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Distribuição por Tipo</CardTitle></CardHeader>
+          <CardContent className="h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value" labelLine={false} label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : null}>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={35}
+                  outerRadius={65}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ percent }) => percent > 0.07 ? `${(percent * 100).toFixed(0)}%` : null}
+                >
                   {pieData.map((_, i) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

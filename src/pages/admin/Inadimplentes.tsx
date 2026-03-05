@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { MessageCircle, Copy, Plus, AlertTriangle } from "lucide-react";
+import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,11 +28,11 @@ interface Inadimplente {
 }
 
 const COLUMNS = [
-  { id: "em_atraso", label: "Em Atraso", color: "border-t-red-500" },
-  { id: "notificado", label: "Notificado", color: "border-t-yellow-500" },
-  { id: "negociando", label: "Negociando", color: "border-t-orange-500" },
-  { id: "regularizado", label: "Regularizado", color: "border-t-green-500" },
-  { id: "juridico", label: "Jurídico", color: "border-t-purple-500" },
+  { id: "em_atraso", label: "Em Atraso", color: "border-t-red-500", dot: "bg-red-500" },
+  { id: "notificado", label: "Notificado", color: "border-t-yellow-500", dot: "bg-yellow-500" },
+  { id: "negociando", label: "Negociando", color: "border-t-orange-500", dot: "bg-orange-500" },
+  { id: "regularizado", label: "Regularizado", color: "border-t-green-500", dot: "bg-green-500" },
+  { id: "juridico", label: "Jurídico", color: "border-t-purple-500", dot: "bg-purple-500" },
 ];
 
 const formatCurrency = (v: number) =>
@@ -43,6 +43,7 @@ export default function Inadimplentes() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
+  const [mobileColIdx, setMobileColIdx] = useState(0);
   const [copyTemplate, setCopyTemplate] = useState(
     "Olá {nome}, identificamos que sua cota {cota} do grupo {grupo} possui {parcelas_atrasadas} parcela(s) em atraso. Entre em contato conosco para regularizar sua situação. Estamos à disposição!"
   );
@@ -126,27 +127,143 @@ export default function Inadimplentes() {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
 
+  const currentCol = COLUMNS[mobileColIdx];
+  const currentColItems = getColumnItems(currentCol.id);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Inadimplentes</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Inadimplentes</h1>
           <p className="text-sm text-muted-foreground">
             {totalAtrasados} inadimplentes · {formatCurrency(totalValorAtrasado)} em atraso
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowCopy(true)}>
-            <Copy className="h-4 w-4 mr-2" /> Copiar Mensagens
+          <Button variant="outline" size="sm" onClick={() => setShowCopy(true)} className="flex-1 sm:flex-none">
+            <Copy className="h-4 w-4 sm:mr-2" />
+            <span className="sm:inline">Copiar Msgs</span>
           </Button>
-          <Button onClick={() => setShowAdd(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Adicionar
+          <Button size="sm" onClick={() => setShowAdd(true)} className="flex-1 sm:flex-none">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="sm:inline">Adicionar</span>
           </Button>
         </div>
       </div>
 
+      {/* Mobile: Column navigator */}
+      <div className="md:hidden">
+        <div className="flex items-center gap-2 mb-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 w-9 p-0 shrink-0"
+            onClick={() => setMobileColIdx((i) => Math.max(0, i - 1))}
+            disabled={mobileColIdx === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 bg-card rounded-lg border border-border px-3 py-2 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${currentCol.dot}`} />
+              <span className="font-semibold text-sm">{currentCol.label}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{currentColItems.length} clientes</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 w-9 p-0 shrink-0"
+            onClick={() => setMobileColIdx((i) => Math.min(COLUMNS.length - 1, i + 1))}
+            disabled={mobileColIdx === COLUMNS.length - 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex justify-center gap-1.5 mb-3">
+          {COLUMNS.map((col, i) => (
+            <button
+              key={col.id}
+              onClick={() => setMobileColIdx(i)}
+              className={`h-2 rounded-full transition-all ${i === mobileColIdx ? `w-6 ${col.dot}` : "w-2 bg-muted-foreground/30"}`}
+            />
+          ))}
+        </div>
+
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId={currentCol.id}>
+            {(provided, snapshot) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className={`rounded-lg border-t-4 ${currentCol.color} bg-card p-3 min-h-[200px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+              >
+                <div className="space-y-2">
+                  {currentColItems.map((item, idx) => (
+                    <Draggable draggableId={item.id} index={idx} key={item.id}>
+                      {(prov, snap) => (
+                        <div
+                          ref={prov.innerRef}
+                          {...prov.draggableProps}
+                          {...prov.dragHandleProps}
+                          className={`bg-background border border-border rounded-md p-3 text-sm space-y-2 ${snap.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium truncate flex-1">{item.nome}</p>
+                            {item.celular && (
+                              <a
+                                href={`https://wa.me/55${item.celular.replace(/\D/g, "")}?text=${encodeURIComponent(
+                                  copyTemplate
+                                    .replace("{nome}", item.nome)
+                                    .replace("{cota}", item.cota || "—")
+                                    .replace("{grupo}", item.grupo || "—")
+                                    .replace("{parcelas_atrasadas}", String(item.parcelas_atrasadas))
+                                    .replace("{valor_parcela}", formatCurrency(item.valor_parcela))
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                              </a>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
+                              {item.parcelas_pagas} pagas
+                            </span>
+                            <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
+                              <AlertTriangle className="h-3 w-3" />
+                              {item.parcelas_atrasadas} atrasadas
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
+                          </p>
+                          <p className="text-primary font-bold text-sm">
+                            {formatCurrency(item.valor_parcela)}/mês
+                          </p>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {currentColItems.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">Nenhum cliente nesta etapa</p>
+                  )}
+                  {provided.placeholder}
+                </div>
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
+
+      {/* Desktop: horizontal scroll kanban */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="hidden md:flex gap-4 overflow-x-auto pb-4">
           {COLUMNS.map((col) => {
             const items = getColumnItems(col.id);
             return (
@@ -247,7 +364,7 @@ export default function Inadimplentes() {
               <Input type="number" value={form.parcelas_pagas} onChange={(e) => setForm({ ...form, parcelas_pagas: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <Label>Parcelas Atrasadas</Label>
+              <Label>Parc. Atrasadas</Label>
               <Input type="number" value={form.parcelas_atrasadas} onChange={(e) => setForm({ ...form, parcelas_atrasadas: e.target.value })} />
             </div>
             <div className="space-y-1">
