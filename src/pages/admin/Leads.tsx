@@ -174,100 +174,53 @@ export default function Leads() {
         />
       </div>
 
-      {/* Responsive Lead List */}
-      <div className="rounded-lg border border-border bg-card">
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr>
-                <SortHeader label="Nome" field="nome" />
-                <SortHeader label="Email" field="email" />
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Celular</th>
-                <SortHeader label="Cidade" field="cidade" />
-                <SortHeader label="Tipo" field="tipo_consorcio" />
-                <SortHeader label="Valor" field="valor_credito" />
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Prazo</th>
-                <SortHeader label="Status" field="status" />
-                <SortHeader label="Data" field="created_at" />
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Ações</th>
+      {/* Table */}
+      <div className="rounded-lg border border-border overflow-auto bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted">
+            <tr>
+              <SortHeader label="Nome" field="nome" />
+              <SortHeader label="Email" field="email" />
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Celular</th>
+              <SortHeader label="Cidade" field="cidade" />
+              <SortHeader label="Tipo" field="tipo_consorcio" />
+              <SortHeader label="Valor" field="valor_credito" />
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Prazo</th>
+              <SortHeader label="Status" field="status" />
+              <SortHeader label="Data" field="created_at" />
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {filtered.map((l) => (
+              <tr key={l.id} className="hover:bg-muted/50">
+                <td className="px-3 py-2 font-medium whitespace-nowrap">{l.nome}</td>
+                <td className="px-3 py-2 text-muted-foreground">{l.email}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{l.celular}</td>
+                <td className="px-3 py-2">{l.cidade}</td>
+                <td className="px-3 py-2 capitalize">{l.tipo_consorcio}</td>
+                <td className="px-3 py-2 font-medium whitespace-nowrap">{formatCurrency(Number(l.valor_credito))}</td>
+                <td className="px-3 py-2">{l.prazo_meses}m</td>
+                <td className="px-3 py-2">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
+                    {(l.status ?? "novo").replace("_", " ")}
+                  </span>
+                </td>
+                <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
+                <td className="px-3 py-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                    onClick={() => openWhatsApp(l)}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((l) => (
-                <tr key={l.id} className="hover:bg-muted/50">
-                  <td className="px-3 py-2 font-medium whitespace-nowrap">{l.nome}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{l.email}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">{l.celular}</td>
-                  <td className="px-3 py-2">{l.cidade}</td>
-                  <td className="px-3 py-2 capitalize">{l.tipo_consorcio}</td>
-                  <td className="px-3 py-2 font-medium whitespace-nowrap">{formatCurrency(Number(l.valor_credito))}</td>
-                  <td className="px-3 py-2">{l.prazo_meses}m</td>
-                  <td className="px-3 py-2">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
-                      {(l.status ?? "novo").replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
-                  <td className="px-3 py-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                      onClick={() => openWhatsApp(l)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="md:hidden flex flex-col divide-y divide-border">
-          {filtered.map((l) => (
-            <div key={l.id} className="p-4 space-y-3 hover:bg-muted/50">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium">{l.nome}</h3>
-                  <p className="text-xs text-muted-foreground">{l.cidade}</p>
-                </div>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
-                  {(l.status ?? "novo").replace("_", " ")}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Valor</p>
-                  <p className="font-medium text-primary">{formatCurrency(Number(l.valor_credito))}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Tipo / Prazo</p>
-                  <p className="capitalize">{l.tipo_consorcio} - {l.prazo_meses}m</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <div className="text-xs text-muted-foreground">
-                  <p>{l.celular}</p>
-                  <p>{l.created_at?.slice(0, 10)}</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-green-600 border-green-200 hover:bg-green-50 gap-2"
-                  onClick={() => openWhatsApp(l)}
-                >
-                  <MessageCircle className="h-4 w-4" /> Whatsapp
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
+            ))}
+          </tbody>
+        </table>
         {filtered.length === 0 && (
           <div className="py-10 text-center text-muted-foreground">Nenhum lead encontrado.</div>
         )}
