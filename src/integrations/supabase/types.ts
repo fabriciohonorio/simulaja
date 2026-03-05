@@ -67,6 +67,41 @@ export type Database = {
           },
         ]
       }
+      historico_contatos: {
+        Row: {
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          observacao: string | null
+          resultado: string | null
+          tipo: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          observacao?: string | null
+          resultado?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          observacao?: string | null
+          resultado?: string | null
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_contatos_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inadimplentes: {
         Row: {
           celular: string | null
@@ -155,6 +190,7 @@ export type Database = {
           prazo_meses: number | null
           status: string | null
           tipo_consorcio: string | null
+          ultimo_contato: string | null
           updated_at: string | null
           valor_credito: number | null
         }
@@ -168,6 +204,7 @@ export type Database = {
           prazo_meses?: number | null
           status?: string | null
           tipo_consorcio?: string | null
+          ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
         }
@@ -181,6 +218,7 @@ export type Database = {
           prazo_meses?: number | null
           status?: string | null
           tipo_consorcio?: string | null
+          ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
         }
