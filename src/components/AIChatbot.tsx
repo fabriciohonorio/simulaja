@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Bot, Send } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import robotAvatar from "@/assets/robot-avatar.png";
 
 type Step = "welcome" | "objetivo" | "valor" | "conhecimento" | "simulacao" | "whatsapp";
 
@@ -195,11 +196,10 @@ const AIChatbot = () => {
         <div className="fixed bottom-6 right-6 z-50 group">
           <button
             onClick={handleOpen}
-            className="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 animate-scale-in"
+            className="relative flex items-center justify-center w-16 h-16 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 animate-scale-in overflow-hidden"
             aria-label="Atendimento Inteligente"
           >
-            <Bot className="w-8 h-8" />
-            {/* Pulse ring */}
+            <img src={robotAvatar} alt="Assistente" className="w-full h-full object-cover" />
             <span className="absolute inset-0 rounded-full bg-violet-500/40 animate-ping" />
           </button>
           <div className="absolute bottom-full right-0 mb-3 px-3 py-1.5 bg-foreground text-background text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
@@ -213,8 +213,8 @@ const AIChatbot = () => {
         <div className="fixed bottom-6 right-6 z-50 w-[92vw] sm:w-96 h-[520px] max-h-[80vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-scale-in border border-border">
           {/* Header */}
           <div className="bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              <img src={robotAvatar} alt="Assistente" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1">
               <p className="text-white font-semibold text-sm">Assistente Inteligente</p>
