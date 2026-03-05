@@ -6,57 +6,74 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "@/components/ui/slider";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowRight,
+  Users,
   CheckCircle2,
+  Award,
+  Zap,
+  DollarSign,
+  BarChart3,
+  ShieldCheck,
+  Star,
   Home,
   Car,
   Bike,
   TrendingUp,
   Tractor,
-  Target,
-  BarChart3,
-  Shield,
-  Clock,
+  Truck,
+  MessageCircle,
   Mail,
 } from "lucide-react";
-import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
+import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon } from "./SocialIcons";
 
-import fabricioReal from "@/assets/fabricio-real.jpg";
-import cardImovel from "@/assets/card-imovel.jpg";
-import cardVeiculo from "@/assets/card-veiculo.jpg";
-import cardMoto from "@/assets/card-moto.jpg";
-import cardAgro from "@/assets/card-agro.jpg";
-import cardInvestimento from "@/assets/card-investimento.jpg";
-
-const SIMULATOR_URL = "https://simulaja.lovable.app";
-const WHATSAPP_LINK = "https://wa.me/5541997925357?text=Ol%C3%A1%20Fabr%C3%ADcio!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
+import gestorFabricio from "@/assets/gestor-fabricio.jpg";
+import bannerImoveis from "@/assets/banner-imoveis.jpg";
+import bannerVeiculos from "@/assets/banner-veiculos.jpg";
+import bannerMotos from "@/assets/banner-motos.jpg";
+import bannerPesados from "@/assets/banner-pesados.jpg";
+import bannerAgricolas from "@/assets/banner-agricolas.jpg";
+import bannerInvestimentos from "@/assets/banner-investimentos.jpg";
 
 const segments = [
   { id: "imovel", label: "Imóveis", icon: Home },
   { id: "veiculos", label: "Veículos", icon: Car },
   { id: "motos", label: "Motos", icon: Bike },
+  { id: "pesados", label: "Pesados", icon: Truck },
   { id: "agricolas", label: "Agrícolas", icon: Tractor },
   { id: "investimentos", label: "Investimentos", icon: TrendingUp },
 ];
+
+const segmentBanners: Record<string, string> = {
+  imovel: bannerImoveis,
+  veiculos: bannerVeiculos,
+  motos: bannerMotos,
+  pesados: bannerPesados,
+  agricolas: bannerAgricolas,
+  investimentos: bannerInvestimentos,
+};
 
 const creditValues = [
   27000, 40000, 50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 750000, 1000000,
 ];
 
-const consortiumCards = [
-  { title: "Consórcio Imobiliário", desc: "Casa própria, apartamento ou terreno com planejamento inteligente.", img: cardImovel },
-  { title: "Consórcio de Veículos", desc: "SUV, sedan ou utilitário — sem juros e com poder de compra à vista.", img: cardVeiculo },
-  { title: "Consórcio de Motos", desc: "A moto dos seus sonhos com parcelas que cabem no bolso.", img: cardMoto },
-  { title: "Consórcio Agro", desc: "Tratores, máquinas e implementos para alavancar sua produção.", img: cardAgro },
-  { title: "Consórcio para Investimento", desc: "Construa patrimônio com estratégia e sem juros bancários.", img: cardInvestimento },
-];
+const WHATSAPP_NUMBER = "5541997925357";
 
 const ConsortiumSimulator = () => {
   const { toast } = useToast();
+  const [selectedSegment, setSelectedSegment] = useState("veiculos");
   const [creditIndex, setCreditIndex] = useState(6);
   const [formData, setFormData] = useState({ nome: "", celular: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [simulatingCount, setSimulatingCount] = useState(23);
 
+  // UTM capture
   const [utmParams, setUtmParams] = useState({ origem: "", meio: "", campanha: "" });
 
   useEffect(() => {
@@ -66,18 +83,28 @@ const ConsortiumSimulator = () => {
       meio: params.get("utm_medium") || "",
       campanha: params.get("utm_campaign") || "",
     });
+    // Simulating count fluctuation
+    const interval = setInterval(() => {
+      setSimulatingCount((prev) => prev + Math.floor(Math.random() * 3) - 1);
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const selectedCreditValue = creditValues[creditIndex];
 
-  const fmt = (v: number) =>
-    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const formatCurrencyDisplay = (value: number) =>
+    value.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
 
   const formatPhone = (value: string) => {
-    const n = value.replace(/\D/g, "");
-    if (n.length <= 2) return n;
-    if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
-    return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7, 11)}`;
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -91,15 +118,17 @@ const ConsortiumSimulator = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nome || !formData.celular) {
-      toast({ title: "Preencha seu nome e WhatsApp.", variant: "destructive" });
+      toast({ title: "Preencha seu nome e WhatsApp para continuar.", variant: "destructive" });
       return;
     }
     setIsSubmitting(true);
+    const tipoConsorcio = segments.find((s) => s.id === selectedSegment)?.label || selectedSegment;
+
     try {
       await supabase.from("leads").insert({
         nome: formData.nome,
         celular: formData.celular,
-        tipo_consorcio: "Geral",
+        tipo_consorcio: tipoConsorcio,
         valor_credito: selectedCreditValue,
         prazo_meses: 60,
         status: "novo",
@@ -108,28 +137,27 @@ const ConsortiumSimulator = () => {
       console.error(err);
     }
 
+    const payload = {
+      nome: formData.nome,
+      celular: formData.celular,
+      valor_credito: formatCurrencyDisplay(selectedCreditValue),
+      tipo_consorcio: tipoConsorcio,
+      pagina: window.location.href,
+      origem: utmParams.origem || "Lovable",
+      meio: utmParams.meio,
+      campanha: utmParams.campanha,
+    };
+
     try {
       const response = await fetch(
         "https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: formData.nome,
-            celular: formData.celular,
-            valor_credito: fmt(selectedCreditValue),
-            tipo_consorcio: "Geral",
-            pagina: window.location.href,
-            origem: utmParams.origem || "Lovable",
-            meio: utmParams.meio,
-            campanha: utmParams.campanha,
-          }),
-        }
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
       );
       if (response.ok) {
-        toast({ title: "✅ Simulação enviada! Entraremos em contato em breve." });
+        toast({ title: "✅ Simulação enviada! Um especialista entrará em contato em breve." });
         setFormData({ nome: "", celular: "" });
         setCreditIndex(6);
+        setSelectedSegment("veiculos");
       } else {
         throw new Error("Erro");
       }
@@ -141,335 +169,486 @@ const ConsortiumSimulator = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* ===== HERO SECTION ===== */}
-      <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 30%) 100%)" }}>
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+    <div className="min-h-screen flex flex-col">
+      {/* ===== SOCIAL PROOF BAR ===== */}
+      <div className="bg-primary text-primary-foreground py-2.5 px-4 text-center text-sm font-medium">
+        <div className="flex items-center justify-center gap-6 flex-wrap">
+          <span className="flex items-center gap-1.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400" />
+            </span>
+            {simulatingCount} pessoas simulando agora
+          </span>
+          <span className="hidden sm:inline">•</span>
+          <span className="hidden sm:inline">🔥 1.247+ simulações realizadas</span>
+          <span className="hidden md:inline">•</span>
+          <span className="hidden md:inline">⚠️ Grupos fechando em breve</span>
+        </div>
+      </div>
 
-        <div className="relative container max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20 lg:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            {/* Left column */}
-            <div className="text-white space-y-8 animate-fade-in-up">
-              <div>
-                <p className="text-sm md:text-base font-semibold tracking-[0.2em] uppercase text-white/60 mb-3">
-                  FABRICIO | Especialista em Consórcio
-                </p>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
-                  CONSÓRCIO
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative bg-gradient-to-br from-primary via-primary to-primary/90 overflow-hidden">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 opacity-10 bg-cover bg-center transition-all duration-700"
+          style={{ backgroundImage: `url(${segmentBanners[selectedSegment]})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/60" />
+
+        <div className="relative container max-w-7xl mx-auto px-4 py-10 md:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left - Hero Content */}
+            <div className="text-primary-foreground space-y-6">
+              <div className="space-y-3">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+                  Consórcio
                   <br />
-                  <span className="text-secondary">INTELIGENTE</span>
+                  <span className="text-secondary">Inteligente</span>
                 </h1>
-                <p className="text-lg md:text-xl text-white/70 mt-5 max-w-lg leading-relaxed">
-                  Imóveis, veículos e investimentos com planejamento financeiro e <strong className="text-white">sem juros</strong>.
+                <p className="text-lg md:text-xl text-primary-foreground/85 max-w-lg">
+                  Imóveis, Carros, Motos e Investimentos — sem juros abusivos, com parcelas que cabem no seu bolso.
                 </p>
               </div>
 
-              {/* Benefits list */}
+              {/* Badges */}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 rounded-full px-4 py-2 text-sm font-medium">
+                  <Users className="w-4 h-4 text-secondary" />
+                  500+ Clientes Atendidos
+                </div>
+                <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 rounded-full px-4 py-2 text-sm font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  94% Taxa de Aprovação
+                </div>
+                <div className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 rounded-full px-4 py-2 text-sm font-medium">
+                  <Award className="w-4 h-4 text-secondary" />
+                  Expert ABAC
+                </div>
+              </div>
+
+              {/* Fabrício Card */}
+              <div className="flex items-center gap-4 bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-4 border border-primary-foreground/15 max-w-md">
+                <img
+                  src={gestorFabricio}
+                  alt="Fabrício Rodrigues Honório - Especialista em Consórcios"
+                  className="w-20 h-20 rounded-xl object-cover border-2 border-secondary shadow-lg"
+                />
+                <div>
+                  <p className="font-bold text-lg">Fabrício Rodrigues Honório</p>
+                  <p className="text-secondary font-semibold text-sm">Especialista em Consórcios</p>
+                  <p className="text-primary-foreground/70 text-xs mt-1">10+ anos ajudando famílias a realizar seus sonhos</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Form Card */}
+            <div id="simulator" className="bg-card rounded-2xl shadow-2xl border border-border overflow-hidden">
+              <div className="bg-gradient-to-r from-secondary to-secondary/80 px-6 py-5 text-center">
+                <h2 className="text-xl md:text-2xl font-bold text-secondary-foreground">
+                  Simule Gratuitamente
+                </h2>
+                <p className="text-secondary-foreground/80 text-sm mt-1">
+                  Descubra sua parcela em segundos
+                </p>
+              </div>
+
+              <div className="p-6 md:p-8 space-y-6">
+                {/* Segment badges */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {segments.map((seg) => {
+                    const Icon = seg.icon;
+                    const isActive = selectedSegment === seg.id;
+                    return (
+                      <button
+                        key={seg.id}
+                        onClick={() => setSelectedSegment(seg.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all border ${
+                          isActive
+                            ? "bg-primary text-primary-foreground border-primary shadow-md"
+                            : "bg-muted text-muted-foreground border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        {seg.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Credit slider */}
+                <div className="p-5 bg-muted/50 rounded-xl border border-border">
+                  <Label className="text-sm font-medium text-foreground mb-1 block text-center">
+                    Valor do crédito desejado
+                  </Label>
+                  <div className="text-center my-4">
+                    <span className="text-3xl md:text-4xl font-extrabold text-primary">
+                      {formatCurrencyDisplay(selectedCreditValue)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[creditIndex]}
+                    onValueChange={(v) => setCreditIndex(v[0])}
+                    max={creditValues.length - 1}
+                    min={0}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                    <span>R$ 27 mil</span>
+                    <span>R$ 1 milhão</span>
+                  </div>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <Input
+                    placeholder="Seu nome completo *"
+                    value={formData.nome}
+                    onChange={(e) => handleInputChange("nome", e.target.value)}
+                    className="h-13 text-base bg-background border-input"
+                    maxLength={100}
+                  />
+                  <div>
+                    <Input
+                      placeholder="Seu WhatsApp *"
+                      value={formData.celular}
+                      onChange={(e) => handleInputChange("celular", e.target.value)}
+                      className="h-13 text-base bg-background border-input"
+                      maxLength={15}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
+                      📱 Enviaremos a proposta completa em até 2 horas
+                    </p>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-14 text-base font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group"
+                  >
+                    {isSubmitting ? "ENVIANDO..." : (
+                      <span className="flex items-center gap-2">
+                        SIMULAR GRATUITAMENTE
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Ao simular, você concorda com nossa{" "}
+                    <a href="#" className="text-primary underline hover:no-underline font-medium">
+                      Política de Privacidade
+                    </a>
+                  </p>
+                </form>
+
+                {/* 127 pessoas */}
+                <p className="text-center text-sm text-muted-foreground font-medium">
+                  🔥 127 pessoas simularam hoje
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== BENEFITS ===== */}
+      <section className="py-16 bg-background">
+        <div className="container max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10">
+            Por que escolher o <span className="text-primary">Consórcio Inteligente</span>?
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Zap, title: "Resposta em 2 min", desc: "Atendimento ágil e personalizado" },
+              { icon: DollarSign, title: "Sem juros abusivos", desc: "Economize até 30% comparado ao financiamento" },
+              { icon: CheckCircle2, title: "Aprovação facilitada", desc: "94% de taxa de aprovação" },
+              { icon: BarChart3, title: "Use seu FGTS", desc: "Para imóveis e veículos" },
+            ].map((b, i) => (
+              <div key={i} className="flex flex-col items-center text-center p-6 rounded-xl bg-card border border-border hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <b.icon className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="font-bold text-foreground mb-1">{b.title}</h3>
+                <p className="text-sm text-muted-foreground">{b.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== O QUE É CONSÓRCIO ===== */}
+      <section className="py-16 bg-muted/50">
+        <div className="container max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-4">
+            O que é <span className="text-primary">Consórcio</span>?
+          </h2>
+          <p className="text-center text-muted-foreground max-w-2xl mx-auto mb-10">
+            Uma forma inteligente e planejada de adquirir bens, sem pagar juros bancários.
+            Grupos de pessoas se unem para formar uma poupança coletiva.
+          </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-card rounded-xl p-6 border border-border">
+              <h3 className="font-bold text-lg text-foreground mb-4">Como funciona?</h3>
               <ul className="space-y-3">
                 {[
-                  "Consórcio imobiliário",
-                  "Consórcio de veículos",
-                  "Consórcio de motos",
-                  "Consórcio agro",
-                  "Consórcio para investimento",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-white/90">
-                    <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                    <span className="text-base md:text-lg">{item}</span>
+                  "Você escolhe o valor do crédito e o prazo",
+                  "Paga parcelas mensais acessíveis",
+                  "Todo mês, participantes são contemplados",
+                  "Pode dar lance para antecipar a contemplação",
+                  "Recebe a carta de crédito para usar como quiser",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                    {item}
                   </li>
                 ))}
               </ul>
-
-              <a
-                href={SIMULATOR_URL}
-                className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
-              >
-                SIMULAR CONSÓRCIO AGORA
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
             </div>
+            <div className="bg-card rounded-xl p-6 border border-border">
+              <h3 className="font-bold text-lg text-foreground mb-4">Vantagens vs Financiamento</h3>
+              <ul className="space-y-3">
+                {[
+                  "Sem juros — apenas taxa de administração",
+                  "Parcelas até 50% menores",
+                  "Poder de compra à vista",
+                  "Pode usar FGTS",
+                  "Flexibilidade para trocar o bem",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Right column — Specialist image */}
-            <div className="relative flex justify-center lg:justify-end">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-2xl" />
-                <img
-                  src={fabricioReal}
-                  alt="Fabrício — Especialista em Consórcio"
-                  className="relative w-full max-w-md lg:max-w-lg rounded-2xl shadow-2xl object-cover border-2 border-white/10"
-                />
+      {/* ===== COMPARAÇÃO ===== */}
+      <section className="py-16 bg-background">
+        <div className="container max-w-4xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10">
+            Consórcio vs <span className="text-destructive">Financiamento</span>
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-card rounded-xl p-6 border-2 border-primary shadow-lg">
+              <div className="text-center mb-4">
+                <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-bold">
+                  ✅ CONSÓRCIO
+                </span>
+              </div>
+              <ul className="space-y-3 text-sm">
+                {[
+                  "Taxa de administração de ~15% no total",
+                  "Parcelas menores e acessíveis",
+                  "Poder de compra à vista",
+                  "Sem entrada obrigatória",
+                  "Economia de até 30%",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-card rounded-xl p-6 border border-border opacity-75">
+              <div className="text-center mb-4">
+                <span className="bg-destructive/10 text-destructive px-4 py-1 rounded-full text-sm font-bold">
+                  ❌ FINANCIAMENTO
+                </span>
+              </div>
+              <ul className="space-y-3 text-sm">
+                {[
+                  "Juros de 8% a 15% ao ano",
+                  "Parcelas mais altas",
+                  "Entrada de 20% a 30%",
+                  "Custo total muito maior",
+                  "Burocracia elevada",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-muted-foreground">
+                    <span className="w-4 h-4 text-destructive flex-shrink-0">✗</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== DEPOIMENTO ===== */}
+      <section className="py-16 bg-muted/50">
+        <div className="container max-w-3xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">
+            O que nossos clientes dizem
+          </h2>
+          <div className="bg-card rounded-2xl p-8 border border-border shadow-md">
+            <div className="flex justify-center mb-4">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-6 h-6 text-secondary fill-secondary" />
+              ))}
+            </div>
+            <blockquote className="text-lg text-foreground italic leading-relaxed mb-6">
+              "Consegui meu apartamento! O Fabrício me ajudou a realizar o sonho da casa própria.
+              Super recomendo!"
+            </blockquote>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+                M
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-foreground">Maria Silva</p>
+                <p className="text-sm text-muted-foreground">Contemplada em Imóvel</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== SOBRE O ESPECIALISTA ===== */}
-      <section className="py-20 bg-background">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3">Sobre</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Consultoria <span className="text-primary">Inteligente</span> em Consórcio
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Ajudo pessoas a conquistarem imóveis, veículos e patrimônio utilizando o consórcio como estratégia financeira inteligente.
-          </p>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-4">
-            Com planejamento correto é possível adquirir bens de alto valor <strong className="text-foreground">sem pagar juros</strong> e com segurança.
-          </p>
-        </div>
-      </section>
-
-      {/* ===== TIPOS DE CONSÓRCIO — Cards ===== */}
-      <section className="py-20" style={{ background: "linear-gradient(180deg, hsl(210 20% 96%) 0%, hsl(210 20% 98%) 100%)" }}>
-        <div className="container max-w-7xl mx-auto px-4">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3 text-center">Segmentos</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
-            Tipos de Consórcio
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {consortiumCards.map((card) => (
-              <div
-                key={card.title}
-                className="group bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={card.img}
-                    alt={card.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
-                  <h3 className="absolute bottom-4 left-4 text-xl font-bold text-white">{card.title}</h3>
-                </div>
-                <div className="p-5">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{card.desc}</p>
-                  <a
-                    href={SIMULATOR_URL}
-                    className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary transition-colors group/link"
-                  >
-                    SIMULAR
-                    <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== SIMULADOR RÁPIDO ===== */}
-      <section id="simulator" className="py-20 bg-background">
-        <div className="container max-w-3xl mx-auto px-4">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3 text-center">Simulador</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-3">
-            Simule seu Consórcio <span className="text-primary">em segundos</span>
-          </h2>
-          <p className="text-center text-muted-foreground mb-10 max-w-xl mx-auto">
-            Descubra o valor da carta de crédito, parcelas aproximadas e prazo ideal para seu objetivo.
-          </p>
-
-          <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-            <div className="p-6 md:p-8 space-y-6">
-              {/* Credit slider */}
-              <div className="p-5 rounded-xl border border-border bg-muted/30">
-                <Label className="text-sm font-medium text-foreground mb-1 block text-center">
-                  Valor do crédito desejado
-                </Label>
-                <div className="text-center my-4">
-                  <span className="text-3xl md:text-4xl font-extrabold text-primary">
-                    {fmt(selectedCreditValue)}
-                  </span>
-                </div>
-                <Slider
-                  value={[creditIndex]}
-                  onValueChange={(v) => setCreditIndex(v[0])}
-                  max={creditValues.length - 1}
-                  min={0}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>R$ 27 mil</span>
-                  <span>R$ 1 milhão</span>
-                </div>
-              </div>
-
-              {/* Segment badges */}
-              <div className="flex flex-wrap gap-2 justify-center">
-                {segments.map((seg) => {
-                  const Icon = seg.icon;
-                  return (
-                    <span key={seg.id} className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
-                      <Icon className="w-3.5 h-3.5" />
-                      {seg.label}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  placeholder="Seu nome completo *"
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange("nome", e.target.value)}
-                  className="h-13 text-base"
-                  maxLength={100}
-                />
-                <div>
-                  <Input
-                    placeholder="Seu WhatsApp *"
-                    value={formData.celular}
-                    onChange={(e) => handleInputChange("celular", e.target.value)}
-                    className="h-13 text-base"
-                    maxLength={15}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                    📱 Enviaremos a proposta completa em até 2 horas
-                  </p>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-14 text-base font-bold bg-secondary hover:bg-secondary/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all group"
+      {/* ===== ABAC ===== */}
+      <section className="py-12 bg-background">
+        <div className="container max-w-4xl mx-auto px-4">
+          <div className="bg-card rounded-2xl p-8 border border-border flex flex-col md:flex-row items-center gap-6 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-8 h-8 text-primary" />
+            </div>
+            <div className="text-center md:text-left flex-1">
+              <h3 className="text-lg font-bold text-foreground mb-1">Regulamentado pela ABAC</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                O consórcio é regulamentado pelo Banco Central e fiscalizado pela ABAC — Associação Brasileira de Administradoras de Consórcios.
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                <a
+                  href="https://www.abac.org.br/para-voce"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary font-medium hover:underline"
                 >
-                  {isSubmitting ? "ENVIANDO..." : (
-                    <span className="flex items-center gap-2">
-                      SIMULAR AGORA
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  )}
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Ao simular, você concorda com nossa{" "}
-                  <a href="#" className="text-primary underline hover:no-underline font-medium">
-                    Política de Privacidade
-                  </a>
-                </p>
-              </form>
+                  Saiba mais na ABAC →
+                </a>
+                <a
+                  href="https://www.abac.org.br/perguntas-frequentes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary font-medium hover:underline"
+                >
+                  Perguntas Frequentes →
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== DIFERENCIAL / CONSULTORIA ===== */}
-      <section className="py-20" style={{ background: "linear-gradient(180deg, hsl(210 20% 96%) 0%, hsl(210 20% 98%) 100%)" }}>
-        <div className="container max-w-5xl mx-auto px-4">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3 text-center">Diferencial</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
-            Consultoria <span className="text-primary">Inteligente</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { icon: Target, title: "Análise do melhor valor de carta", desc: "Encontramos a carta ideal para o seu objetivo e orçamento." },
-              { icon: Clock, title: "Planejamento de prazo", desc: "Definimos o prazo perfeito para suas parcelas caberem no bolso." },
-              { icon: BarChart3, title: "Estratégia de lance", desc: "Orientação para aumentar suas chances de contemplação." },
-              { icon: Shield, title: "Planejamento patrimonial", desc: "Construa patrimônio de forma estratégica e segura." },
-            ].map((item) => (
-              <div key={item.title} className="flex items-start gap-4 bg-card rounded-xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground mb-1">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CTA FINAL ===== */}
-      <section className="py-20 relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 25%) 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
-        <div className="relative container max-w-3xl mx-auto px-4 text-center text-white">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6">
-            Seu próximo patrimônio pode começar <span className="text-secondary">hoje</span>.
-          </h2>
-          <p className="text-lg text-white/70 mb-10 max-w-xl mx-auto">
-            Não espere mais. Simule seu consórcio ou fale diretamente com o especialista.
+      {/* ===== FALE COMIGO ===== */}
+      <section className="py-16 bg-primary text-primary-foreground">
+        <div className="container max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Fale Comigo</h2>
+          <p className="text-primary-foreground/80 mb-8 max-w-lg mx-auto">
+            Tire suas dúvidas diretamente com o especialista. Atendimento rápido e personalizado.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             <a
-              href={SIMULATOR_URL}
-              className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
-            >
-              Simular Consórcio
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a
-              href={WHATSAPP_LINK}
+              href="https://wa.me/5541997925357?text=Ol%C3%A1%20Fabr%C3%ADcio!%20Vi%20seu%20site%20e%20quero%20saber%20mais%20sobre%20cons%C3%B3rcio."
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all hover:scale-[1.02]"
+              className="flex items-center gap-2.5 bg-[#25D366] hover:bg-[#1ebe57] text-white px-7 py-3.5 rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
               <WhatsAppIcon className="w-5 h-5" />
-              Falar com Especialista
+              WhatsApp
+            </a>
+            <a
+              href="https://instagram.com/fabricioespecialistaconsorcio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:opacity-90 text-white px-7 py-3.5 rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <InstagramIcon className="w-5 h-5" />
+              Instagram
+            </a>
+            <a
+              href="mailto:fabricio@consorciointeligente.com"
+              className="flex items-center gap-2.5 bg-primary-foreground/15 hover:bg-primary-foreground/25 border border-primary-foreground/30 text-primary-foreground px-7 py-3.5 rounded-full font-bold transition-all hover:scale-105"
+            >
+              <Mail className="w-5 h-5" />
+              E-mail
             </a>
           </div>
         </div>
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="py-12 px-4" style={{ background: "hsl(213 70% 10%)" }}>
+      <footer className="py-10 px-4 bg-foreground text-background">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-            {/* Brand */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
-              <h3 className="text-lg font-bold text-white mb-2">
-                FABRICIO <span className="text-white/40">|</span> <span className="text-secondary">Especialista em Consórcio</span>
-              </h3>
-              <p className="text-sm text-white/50 leading-relaxed">
-                Planejamento financeiro inteligente para conquistar seus bens sem juros abusivos.
+              <h3 className="text-lg font-bold mb-3">Consórcio Inteligente</h3>
+              <p className="text-sm text-background/60">
+                Seu caminho inteligente para conquistar imóveis, veículos e investimentos — sem juros abusivos.
               </p>
             </div>
-
-            {/* Links */}
             <div>
-              <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Links</h4>
-              <ul className="space-y-2 text-sm text-white/40">
-                <li><a href={SIMULATOR_URL} className="hover:text-secondary transition-colors">Simular Consórcio</a></li>
-                <li><a href="https://www.abac.org.br/para-voce" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Para Você</a></li>
-                <li><a href="https://www.abac.org.br/perguntas-frequentes" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — FAQ</a></li>
-                <li><a href="#" className="hover:text-secondary transition-colors">Política de Privacidade</a></li>
+              <h3 className="text-lg font-bold mb-3">Links Úteis</h3>
+              <ul className="space-y-2 text-sm text-background/60">
+                <li>
+                  <a href="https://www.abac.org.br/para-voce" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                    ABAC — Para Você
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.abac.org.br/perguntas-frequentes" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">
+                    ABAC — FAQ
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-secondary transition-colors">Política de Privacidade</a>
+                </li>
               </ul>
             </div>
-
-            {/* Social */}
             <div>
-              <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Redes Sociais</h4>
+              <h3 className="text-lg font-bold mb-3">Redes Sociais</h3>
               <div className="flex gap-3">
-                {[
-                  { icon: WhatsAppIcon, href: "https://wa.me/5541997925357", label: "WhatsApp", hoverBg: "hover:bg-[#25D366]" },
-                  { icon: InstagramIcon, href: "https://instagram.com/fabricioespecialistaconsorcio", label: "Instagram", hoverBg: "hover:bg-gradient-to-tr hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF]" },
-                  { icon: TikTokIcon, href: "#", label: "TikTok", hoverBg: "hover:bg-white/20" },
-                  { icon: FacebookIcon, href: "#", label: "Facebook", hoverBg: "hover:bg-[#1877F2]" },
-                  { icon: LinkedInIcon, href: "#", label: "LinkedIn", hoverBg: "hover:bg-[#0A66C2]" },
-                ].map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={social.label}
-                    className={`w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white transition-all hover:scale-110 ${social.hoverBg}`}
-                  >
-                    <social.icon className="w-5 h-5" />
-                  </a>
-                ))}
+                <a
+                  href="https://wa.me/5541997925357"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-[#25D366] transition-all hover:scale-110"
+                >
+                  <WhatsAppIcon className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://instagram.com/fabricioespecialistaconsorcio"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-gradient-to-tr hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF] transition-all hover:scale-110"
+                >
+                  <InstagramIcon className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="TikTok"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-foreground/80 transition-all hover:scale-110"
+                >
+                  <TikTokIcon className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="w-11 h-11 rounded-full bg-background/10 flex items-center justify-center hover:bg-[#1877F2] transition-all hover:scale-110"
+                >
+                  <FacebookIcon className="w-5 h-5" />
+                </a>
               </div>
             </div>
           </div>
-
-          <div className="border-t border-white/10 pt-6 text-center text-sm text-white/30">
-            © {new Date().getFullYear()} Fabrício — Especialista em Consórcio Inteligente. Todos os direitos reservados.
+          <div className="border-t border-background/15 pt-6 text-center text-sm text-background/50">
+            © {new Date().getFullYear()} Fabrício Rodrigues Honório — Especialista em Consórcio Inteligente. Todos os direitos reservados.
           </div>
         </div>
       </footer>
