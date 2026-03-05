@@ -2,102 +2,98 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X } from "lucide-react";
-import logo from "@/assets/logo-consorcio-magalu.png";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const navItems = [
-    { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
-    { to: "/admin/funil", label: "Funil", icon: Filter },
-    { to: "/admin/leads", label: "Leads", icon: Users },
-    { to: "/admin/metas", label: "Metas", icon: Target },
-    { to: "/admin/carteira", label: "Carteira", icon: Briefcase },
-    { to: "/admin/inadimplentes", label: "Inadimplentes", icon: AlertTriangle },
+const menuItems = [
+    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+    { icon: Filter, label: "Leads", path: "/admin/leads" },
+    { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil" },
+    { icon: Users, label: "Carteira Clientes", path: "/admin/carteira" },
+    { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes" },
+    { icon: Target, label: "Metas e KPIs", path: "/admin/metas" },
 ];
 
 export default function AdminLayout() {
     const { signOut } = useAuth();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [open, setOpen] = useState(false);
 
-    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-    const closeSidebar = () => setIsSidebarOpen(false);
-
-    return (
-        <div className="min-h-screen flex flex-col md:flex-row bg-muted">
-            {/* Mobile Top Navbar */}
-            <div className="md:hidden flex items-center justify-between bg-card px-4 py-3 border-b border-border z-20 shadow-sm">
-                <img src={logo} alt="Consórcio Magalu" className="h-8" />
-                <button
-                    onClick={toggleSidebar}
-                    className="text-muted-foreground hover:text-foreground p-2 rounded-md hover:bg-muted transition-colors"
-                    aria-label="Menu"
-                >
-                    {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
+    const SidebarContent = () => (
+        <div className="flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border">
+            <div className="p-6 border-b border-sidebar-border">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">SimulaJá Admin</h1>
             </div>
 
-            {/* Sidebar Overlay for Mobile */}
-            {isSidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden"
-                    onClick={closeSidebar}
-                />
-            )}
-
-            {/* Sidebar */}
-            <aside
-                className={cn(
-                    "fixed inset-y-0 left-0 z-40 w-72 bg-card border-r border-border flex flex-col transition-transform duration-300 ease-in-out md:static md:w-60 md:shrink-0 md:translate-x-0",
-                    isSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
-                )}
-            >
-                <div className="p-4 border-b border-border hidden md:flex">
-                    <img src={logo} alt="Consórcio Magalu" className="h-10" />
-                </div>
-                {/* Mobile: logo inside sidebar too */}
-                <div className="p-4 border-b border-border md:hidden flex items-center justify-between">
-                    <img src={logo} alt="Consórcio Magalu" className="h-8" />
-                    <button onClick={closeSidebar} className="p-1 text-muted-foreground">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-                <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            end={item.end}
-                            onClick={closeSidebar}
-                            className={({ isActive }) =>
-                                cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                                    isActive
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )
-                            }
-                        >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                            {item.label}
-                        </NavLink>
-                    ))}
-                </nav>
-                <div className="p-3 border-t border-border">
-                    <button
-                        onClick={signOut}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                {menuItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setOpen(false)}
+                        end={item.path === "/admin"}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
+                                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                                : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground"
+                            }`
+                        }
                     >
-                        <LogOut className="h-5 w-5 shrink-0" />
-                        Sair
-                    </button>
-                </div>
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="font-medium">{item.label}</span>
+                    </NavLink>
+                ))}
+            </nav>
+
+            <div className="p-4 border-t border-sidebar-border mt-auto bg-sidebar-background/50 backdrop-blur-sm">
+                <Button
+                    variant="ghost"
+                    onClick={() => signOut()}
+                    className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-6"
+                >
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-semibold">Sair</span>
+                </Button>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex h-screen bg-background overflow-hidden">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:block w-72 h-full opacity-100 transition-all duration-300 ease-in-out">
+                <SidebarContent />
             </aside>
 
-            {/* Main */}
-            <main className="flex-1 overflow-auto min-h-0">
-                <div className="w-full max-w-[1400px] mx-auto p-3 sm:p-4 md:p-6">
-                    <Outlet />
-                </div>
-            </main>
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Mobile Header */}
+                <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-border shadow-sm sticky top-0 z-30">
+                    <div className="flex items-center gap-2">
+                        <h1 className="font-bold text-lg text-primary">SimulaJá</h1>
+                    </div>
+
+                    <Sheet open={open} onOpenChange={setOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 active:scale-90 transition-transform">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 border-none w-72">
+                            <SheetHeader className="sr-only">
+                                <SheetTitle>Menu de Navegação</SheetTitle>
+                            </SheetHeader>
+                            <SidebarContent />
+                        </SheetContent>
+                    </Sheet>
+                </header>
+
+                {/* Dynamic Page Content */}
+                <main className="flex-1 overflow-auto bg-slate-50/50 p-4 sm:p-6 md:p-8">
+                    <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-3 duration-500">
+                        <Outlet />
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

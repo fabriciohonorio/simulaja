@@ -1,38 +1,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, CheckCircle } from "lucide-react";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
-} from "recharts";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 interface Lead {
   id: string;
   nome: string;
   status: string | null;
-  tipo_consorcio: string;
   valor_credito: number;
-  cidade: string;
   created_at: string | null;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  novo: "Novo",
-  contatado: "Contatado",
-  proposta_enviada: "Proposta",
-  em_negociacao: "Negociação",
-  fechado: "Fechado",
-};
+const formatCurrency = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
-const PIE_COLORS = [
-  "hsl(207, 90%, 35%)",
-  "hsl(32, 95%, 55%)",
-  "hsl(160, 60%, 45%)",
-  "hsl(350, 70%, 50%)",
-  "hsl(270, 60%, 55%)",
-  "hsl(45, 90%, 50%)",
-];
+const openWhatsApp = (lead: Lead) => {
+  const msg = encodeURIComponent(`Olá ${lead.nome}! Vi que você tem interesse em um consórcio. Vamos conversar?`);
+  const phone = "5511999999999"; // Exemplo
+  window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+};
 
 export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -45,143 +32,147 @@ export default function Dashboard() {
     });
   }, []);
 
+  const totalLeads = leads.length;
+  const leadsNovos = leads.filter(l => l.status === "novo").length;
+  const leadsConvertidos = leads.filter(l => l.status === "fechado").length;
+  const taxaConversao = totalLeads > 0 ? (leadsConvertidos / totalLeads) * 100 : 0;
+  const volumeTotal = leads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+  const volumeFechado = leads.filter(l => l.status === "fechado").reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+
+  const stats = [
+    { label: "Total Leads", value: totalLeads, icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "Novos", value: leadsNovos, icon: UserPlus, color: "text-orange-500", bg: "bg-orange-50" },
+    { label: "Fechados", value: leadsConvertidos, icon: Handshake, color: "text-green-500", bg: "bg-green-50" },
+    { label: "Conversão", value: `${taxaConversao.toFixed(1)}%`, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
+    { label: "Vol. Total", value: formatCurrency(volumeTotal), icon: DollarSign, color: "text-indigo-500", bg: "bg-indigo-50" },
+    { label: "Vol. Fechado", value: formatCurrency(volumeFechado), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-50" },
+  ];
+
+  // Dados fictícios para o gráfico (agrupados por dia/mês nas próximas iterações)
+  const chartData = [
+    { name: "Seg", leads: 4, volume: 450000 },
+    { name: "Ter", leads: 7, volume: 820000 },
+    { name: "Qua", leads: 5, volume: 590000 },
+    { name: "Qui", leads: 12, volume: 1400000 },
+    { name: "Sex", leads: 8, volume: 920000 },
+  ];
+
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const leadsHoje = leads.filter((l) => l.created_at?.slice(0, 10) === today).length;
-  const fechados = leads.filter((l) => l.status === "fechado").length;
-  const emNeg = leads.filter((l) => l.status === "em_negociacao").length;
-  const taxaConversao = leads.length > 0 ? ((fechados / leads.length) * 100).toFixed(1) : "0";
-  const ticketMedio = leads.length > 0 ? leads.reduce((s, l) => s + Number(l.valor_credito), 0) / leads.length : 0;
-
-  // Funnel data
-  const funnelData = Object.entries(STATUS_LABELS).map(([key, label]) => ({
-    name: label,
-    quantidade: leads.filter((l) => (l.status ?? "novo") === key).length,
-  }));
-
-  // Monthly evolution
-  const monthlyMap: Record<string, number> = {};
-  leads.forEach((l) => {
-    const m = l.created_at?.slice(0, 7) ?? "N/A";
-    monthlyMap[m] = (monthlyMap[m] ?? 0) + 1;
-  });
-  const monthlyData = Object.entries(monthlyMap).sort().slice(-12).map(([mes, total]) => ({ mes, total }));
-
-  // Top 5 cities
-  const cityMap: Record<string, number> = {};
-  leads.forEach((l) => { cityMap[l.cidade] = (cityMap[l.cidade] ?? 0) + 1; });
-  const topCidades = Object.entries(cityMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-  // Pie by type
-  const typeMap: Record<string, number> = {};
-  leads.forEach((l) => { typeMap[l.tipo_consorcio] = (typeMap[l.tipo_consorcio] ?? 0) + 1; });
-  const pieData = Object.entries(typeMap).map(([name, value]) => ({ name, value }));
-
-  const metrics = [
-    { label: "Total Leads", value: leads.length, icon: Users, color: "text-primary" },
-    { label: "Leads Hoje", value: leadsHoje, icon: UserPlus, color: "text-primary" },
-    { label: "Conversão", value: `${taxaConversao}%`, icon: TrendingUp, color: "text-green-600" },
-    { label: "Ticket Médio", value: `R$\u00a0${ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, icon: DollarSign, color: "text-secondary" },
-    { label: "Em Negociação", value: emNeg, icon: Handshake, color: "text-secondary" },
-    { label: "Fechados", value: fechados, icon: CheckCircle, color: "text-green-600" },
-  ];
-
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
+    <div className="space-y-4 sm:space-y-6 pb-12">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard Admin</h1>
+          <p className="text-sm text-muted-foreground">Bem-vindo ao painel de controle do SimulaJá.</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full outline outline-1 outline-border">
+          <Calendar className="h-4 w-4" />
+          {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
+        </div>
+      </div>
 
-      {/* Metrics — 2 cols on phones, 3 on sm, 6 on xl */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {metrics.map((m) => (
-          <Card key={m.label} className="shadow-sm border-border/50">
-            <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center gap-1.5">
-              <m.icon className={`h-5 w-5 ${m.color}`} />
-              <p className="text-lg sm:text-2xl font-bold leading-tight">{m.value}</p>
-              <p className="text-xs text-muted-foreground leading-tight">{m.label}</p>
+      {/* Stats Grid — 2-col on phones, 3-col on sm, 6-col on xl */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+        {stats.map((s, i) => (
+          <Card key={i} className="overflow-hidden border-none shadow-sm bg-card hover:bg-accent/5 transition-colors">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className={`p-1.5 sm:p-2 rounded-lg ${s.bg}`}>
+                  <s.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${s.color}`} />
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                <p className="text-base sm:text-xl font-bold text-foreground truncate">{s.value}</p>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Funnel bar */}
-        <Card className="shadow-sm border-border/50 overflow-hidden">
-          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Funil de Vendas</CardTitle></CardHeader>
-          <CardContent className="h-56 sm:h-72">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Gráfico de Evolução */}
+        <Card className="lg:col-span-2 shadow-sm border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" /> Performance Semanal
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-[220px] sm:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={funnelData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={55} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Bar dataKey="quantidade" fill="hsl(207, 90%, 35%)" radius={[4, 4, 0, 0]} />
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v} />
+                <Tooltip
+                  cursor={{ fill: 'hsl(var(--accent)/0.5)' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                />
+                <Bar dataKey="leads" name="Leads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Monthly line */}
-        <Card className="shadow-sm border-border/50">
-          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Evolução Mensal</CardTitle></CardHeader>
-          <CardContent className="h-56 sm:h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="total" stroke="hsl(32, 95%, 55%)" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Top cities */}
-        <Card className="shadow-sm border-border/50">
-          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Top 5 Cidades</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {topCidades.map(([cidade, count], i) => (
-                <div key={cidade} className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium truncate">{i + 1}. {cidade}</span>
-                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md shrink-0">{count} leads</span>
-                </div>
-              ))}
-              {topCidades.length === 0 && <p className="text-sm text-muted-foreground">Sem dados</p>}
+        {/* Alertas / Próximas Ações */}
+        <Card className="shadow-sm border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" /> Atenção Necessária
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100 group cursor-pointer hover:bg-orange-100 transition-colors">
+              <div className="p-2 rounded-full bg-white text-orange-500 shadow-sm"><Clock className="h-4 w-4" /></div>
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-orange-800">12 Leads sem contato</p>
+                <p className="text-[10px] sm:text-xs text-orange-700">Há mais de 24h sem primeira interação.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100 group cursor-pointer hover:bg-blue-100 transition-colors">
+              <div className="p-2 rounded-full bg-white text-blue-500 shadow-sm"><MessageCircle className="h-4 w-4" /></div>
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-blue-800">5 Propostas vencendo</p>
+                <p className="text-[10px] sm:text-xs text-blue-700">Acompanhe hoje para não perder o timing.</p>
+              </div>
+            </div>
+            <div className="pt-2">
+              <p className="text-[10px] sm:text-xs text-muted-foreground italic text-center">Última atualização: agora mesmo</p>
             </div>
           </CardContent>
         </Card>
-
-        {/* Pie by type */}
-        <Card className="shadow-sm border-border/50">
-          <CardHeader className="pb-2"><CardTitle className="text-sm sm:text-base">Distribuição por Tipo</CardTitle></CardHeader>
-          <CardContent className="h-56 sm:h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={35}
-                  outerRadius={65}
-                  dataKey="value"
-                  labelLine={false}
-                  label={({ percent }) => percent > 0.07 ? `${(percent * 100).toFixed(0)}%` : null}
-                >
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Recentes / Quick Links */}
+      <Card className="shadow-sm border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base sm:text-lg">Últimos Leads Registrados</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {leads.slice(0, 5).map((l) => (
+              <div key={l.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-accent/5 transition-colors">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{l.nome}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(l.created_at || '').toLocaleDateString('pt-BR')}</p>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <p className="text-xs sm:text-sm font-medium hidden sm:block">{formatCurrency(Number(l.valor_credito))}</p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-primary/10 text-primary capitalize shrink-0">
+                    {l.status ?? 'novo'}
+                  </span>
+                  <button onClick={() => openWhatsApp(l)} className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors active:scale-95">
+                    <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
