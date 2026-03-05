@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
 
-import fabricioPoltrona from "@/assets/fabricio-poltrona.jpg";
+import fabricioReal from "@/assets/fabricio-real.jpg";
 import cardImovel from "@/assets/card-imovel.jpg";
 import cardVeiculo from "@/assets/card-veiculo.jpg";
 import cardMoto from "@/assets/card-moto.jpg";
@@ -195,29 +195,10 @@ const ConsortiumSimulator = () => {
               <div className="relative">
                 <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-2xl" />
                 <img
-                  src={fabricioPoltrona}
+                  src={fabricioReal}
                   alt="Fabrício — Especialista em Consórcio"
                   className="relative w-full max-w-md lg:max-w-lg rounded-2xl shadow-2xl object-cover border-2 border-white/10"
                 />
-                {/* Floating mini cards */}
-                <div className="absolute -left-6 top-1/4 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-xl hidden md:flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Home className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground pr-1">Imóveis</span>
-                </div>
-                <div className="absolute -right-6 top-1/2 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-xl hidden md:flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Car className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground pr-1">Veículos</span>
-                </div>
-                <div className="absolute -left-4 bottom-12 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-xl hidden md:flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-secondary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground pr-1">Investir</span>
-                </div>
               </div>
             </div>
           </div>
