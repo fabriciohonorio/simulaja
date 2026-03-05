@@ -11,7 +11,6 @@ import Funil from "./pages/admin/Funil";
 import Leads from "./pages/admin/Leads";
 import Metas from "./pages/admin/Metas";
 import Carteira from "./pages/admin/Carteira";
-import Inadimplentes from "./pages/admin/Inadimplentes";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -39,7 +38,6 @@ const App = () => (
             <Route path="leads" element={<Leads />} />
             <Route path="metas" element={<Metas />} />
             <Route path="carteira" element={<Carteira />} />
-            <Route path="inadimplentes" element={<Inadimplentes />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

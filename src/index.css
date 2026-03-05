@@ -2,38 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
 @layer base {
   :root {
     --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    --foreground: 215 25% 27%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 215 25% 27%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 215 25% 27%;
 
-    --primary: 213 90% 40%;
+    --primary: 207 90% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 24 95% 50%;
+    --secondary: 32 95% 55%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 20% 96%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 24 95% 50%;
+    --accent: 32 95% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;
-    --success-foreground: 0 0% 100%;
-
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 213 90% 40%;
+    --ring: 207 90% 35%;
 
     --radius: 0.75rem;
 
@@ -48,36 +49,33 @@
   }
 
   .dark {
-    --background: 215 25% 8%;
+    --background: 215 25% 12%;
     --foreground: 210 20% 98%;
 
-    --card: 215 25% 12%;
+    --card: 215 25% 15%;
     --card-foreground: 210 20% 98%;
 
-    --popover: 215 25% 12%;
+    --popover: 215 25% 15%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 213 90% 50%;
+    --primary: 207 90% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 24 95% 55%;
+    --secondary: 32 95% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 25% 18%;
+    --muted: 215 25% 20%;
     --muted-foreground: 215 16% 65%;
 
-    --accent: 24 95% 55%;
+    --accent: 32 95% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 210 40% 98%;
 
-    --success: 160 84% 39%;
-    --success-foreground: 0 0% 100%;
-
-    --border: 215 25% 22%;
-    --input: 215 25% 22%;
-    --ring: 213 90% 50%;
+    --border: 215 25% 25%;
+    --input: 215 25% 25%;
+    --ring: 207 90% 45%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

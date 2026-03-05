@@ -73,7 +73,7 @@ const AIChatbot = () => {
     setIsOpen(true);
     if (messages.length === 0) {
       setTimeout(() => {
-        addBotMessage("Olá 👋 Sou o Assistente Inteligente do Consórcio Inteligente. Vou te ajudar rápido.");
+        addBotMessage("Olá 👋 Sou o Assistente Inteligente do Especialista em Consórcio. Vou te ajudar rápido.");
         setTimeout(() => {
           setStep("objetivo");
           addBotMessage("Qual seu objetivo hoje?", [
