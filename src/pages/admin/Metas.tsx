@@ -36,7 +36,7 @@ const ABAC_DATA = [
 
 const PIE_COLORS = ["hsl(215,70%,40%)","hsl(150,60%,40%)","hsl(40,80%,50%)","hsl(0,65%,50%)","hsl(280,55%,50%)","hsl(195,60%,45%)"];
 
-const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
+const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const SEGMENTS = [
   { key: "imoveis", label: "Imóveis", icon: Home, filter: "Imóveis" },
