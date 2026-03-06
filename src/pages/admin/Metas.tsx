@@ -14,6 +14,8 @@ interface Lead {
     valor_credito: number;
     created_at: string | null;
     updated_at: string | null;
+    propensity_score: number | null;
+    propensity_reason: string | null;
 }
 
 interface Termometro {
@@ -90,7 +92,10 @@ export default function Metas() {
         const u = l.updated_at ? new Date(l.updated_at) : new Date(l.created_at || "");
         return u < seteDias;
     }).length;
-    const topLeads = leads.filter(l => !["fechado", "perdido", "desistiu"].includes(l.status || "")).sort((a, b) => Number(b.valor_credito || 0) - Number(a.valor_credito || 0)).slice(0, 5);
+    const topLeads = leads
+        .filter(l => !["fechado", "perdido", "desistiu", "morto"].includes(l.status || ""))
+        .sort((a, b) => Number(b.propensity_score || 0) - Number(a.propensity_score || 0))
+        .slice(0, 5);
     const monthsData = Array.from({ length: 12 }, (_, i) => {
         const m = `${currentYear}-${(i + 1).toString().padStart(2, "0")}`;
         const r = fechados.filter(l => l.created_at?.startsWith(m)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
@@ -120,7 +125,7 @@ export default function Metas() {
                                 <Input
                                     type="number"
                                     value={metaInput}
-                                    onChange={e => setMetaInput(e.target.value)}
+                                    onChange={(e: any) => setMetaInput(e.target.value)}
                                     className="flex-1 h-9 text-right font-bold"
                                 />
                                 <Button size="sm" onClick={salvarMeta} className="shrink-0">Salvar</Button>
@@ -224,7 +229,7 @@ export default function Metas() {
                                         <span className="text-sm font-medium truncate">{item.segmento}</span>
                                         <div className="flex items-center gap-1 shrink-0">
                                             <span className={`text-xs font-bold ${txt}`}>{label}</span>
-                                            <Input type="number" value={item.percentual} onChange={e => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-7 text-xs text-center p-1" min="0" max="100" />
+                                            <Input type="number" value={item.percentual} onChange={(e: any) => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-7 text-xs text-center p-1" min="0" max="100" />
                                             <span className="text-xs">%</span>
                                         </div>
                                     </div>
@@ -240,15 +245,35 @@ export default function Metas() {
             {/* Top Leads + Destaque */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="md:col-span-2">
-                    <CardHeader><CardTitle className="text-sm sm:text-base">Top 5 Leads em Aberto</CardTitle></CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm sm:text-base">Ranking de Propensão de Compra</CardTitle>
+                        <Trophy className="h-4 w-4 text-primary" />
+                    </CardHeader>
                     <CardContent className="space-y-3">
                         {topLeads.map((l, i) => (
-                            <div key={l.id} className="flex justify-between items-center p-3 rounded-lg border gap-2">
-                                <div className="min-w-0">
-                                    <p className="text-sm font-bold truncate">{i + 1}. {l.nome}</p>
-                                    <p className="text-xs text-muted-foreground capitalize">{l.status}</p>
+                            <div key={l.id} className="space-y-2 p-3 rounded-lg border bg-white shadow-sm">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold truncate">{i + 1}. {l.nome}</p>
+                                        <p className="text-[10px] text-muted-foreground italic truncate">{l.propensity_reason || "Calculando propensão..."}</p>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <p className="font-bold text-primary text-sm">{fmt(l.valor_credito || 0)}</p>
+                                        <span className={`text-[10px] font-black ${(l.propensity_score || 0) >= 70 ? "text-green-600" :
+                                            (l.propensity_score || 0) >= 40 ? "text-orange-600" : "text-slate-400"
+                                            }`}>
+                                            {l.propensity_score || 0}% Chance
+                                        </span>
+                                    </div>
                                 </div>
-                                <span className="font-bold text-primary shrink-0">{fmt(l.valor_credito || 0)}</span>
+                                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-500 ${(l.propensity_score || 0) >= 70 ? "bg-green-500" :
+                                            (l.propensity_score || 0) >= 40 ? "bg-orange-500" : "bg-slate-300"
+                                            }`}
+                                        style={{ width: `${l.propensity_score || 0}%` }}
+                                    />
+                                </div>
                             </div>
                         ))}
                         {topLeads.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum lead em aberto.</p>}

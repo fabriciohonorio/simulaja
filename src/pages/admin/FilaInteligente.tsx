@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle } from "lucide-react";
+import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -16,6 +16,20 @@ interface Lead {
     last_interaction_at: string | null;
     origem: string | null;
 }
+
+const TEMP_EMOJIS: Record<string, string> = {
+    quente: "🔥",
+    morno: "🌤",
+    frio: "❄️",
+    morto: "☠️",
+};
+
+const SCORE_LABELS: Record<string, string> = {
+    premium: "🔥 Lead Premium",
+    alto: "🚀 Lead Alto",
+    medio: "⚡ Lead Médio",
+    baixo: "🧊 Lead Baixo",
+};
 
 const formatCurrency = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
@@ -36,14 +50,14 @@ export default function FilaInteligente() {
     const getPriorityScore = (lead: Lead) => {
         let score = 0;
         // Temp priority
-        if (lead.lead_temperatura === "🔥 Quente") score += 1000;
-        else if (lead.lead_temperatura === "🌤 Morno") score += 500;
-        else if (lead.lead_temperatura === "❄️ Frio") score += 100;
+        if (lead.lead_temperatura === "quente") score += 1000;
+        else if (lead.lead_temperatura === "morno") score += 500;
+        else if (lead.lead_temperatura === "frio") score += 100;
 
         // Credit priority
-        if (lead.lead_score_valor === "💎 Premium") score += 300;
-        else if (lead.lead_score_valor === "🔥 Alto Potencial") score += 200;
-        else if (lead.lead_score_valor === "🚀 Médio Potencial") score += 100;
+        if (lead.lead_score_valor === "premium") score += 300;
+        else if (lead.lead_score_valor === "alto") score += 200;
+        else if (lead.lead_score_valor === "medio") score += 100;
 
         // Wait time priority
         if (lead.last_interaction_at) {
@@ -87,13 +101,13 @@ export default function FilaInteligente() {
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h3 className="font-bold text-lg">{lead.nome}</h3>
-                                            <Badge variant={lead.lead_temperatura === "🔥 Quente" ? "destructive" : "secondary"} className="text-[10px]">
-                                                {lead.lead_temperatura || "🔥 Quente"}
+                                            <Badge variant={lead.lead_temperatura === "quente" ? "destructive" : "secondary"} className="text-[10px] font-bold">
+                                                {TEMP_EMOJIS[lead.lead_temperatura || 'quente']} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
                                             </Badge>
                                         </div>
-                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground font-medium">
-                                            <span className="flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> {lead.lead_score_valor || "🌱 Baixo"}</span>
-                                            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {lead.cidade || "N/Inf"}</span>
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground font-bold">
+                                            <span className="flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                                            <span className="flex items-center gap-1 font-medium"><MapPin className="h-3.5 w-3.5" /> {lead.cidade || "N/Inf"}</span>
                                             <span className="flex items-center gap-1 text-primary"><Clock className="h-3.5 w-3.5" /> {hoursWait}h de espera</span>
                                         </div>
                                     </div>
@@ -102,23 +116,32 @@ export default function FilaInteligente() {
                                 <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
                                     <p className="text-xl font-black text-foreground">{formatCurrency(Number(lead.valor_credito))}</p>
                                     <div className="flex gap-2">
-                                        <a
-                                            href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
-                                            title="WhatsApp"
-                                        >
-                                            <MessageCircle className="h-5 w-5" />
-                                        </a>
-                                        <a
-                                            href={`tel:${(lead.celular || "").replace(/\D/g, "")}`}
-                                            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
-                                            title="Ligar"
-                                        >
-                                            <Phone className="h-5 w-5" />
-                                        </a>
-                                        <Button variant="outline" size="sm" className="hidden sm:inline-flex">Ver Detalhes</Button>
+                                        <div className="flex gap-2">
+                                            <a
+                                                href="/admin/sdr"
+                                                className="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-lg transition-colors"
+                                                title="Conselho da IA"
+                                            >
+                                                <Sparkles className="h-5 w-5" />
+                                            </a>
+                                            <a
+                                                href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
+                                                title="WhatsApp"
+                                            >
+                                                <MessageCircle className="h-5 w-5" />
+                                            </a>
+                                            <a
+                                                href={`tel:${(lead.celular || "").replace(/\D/g, "")}`}
+                                                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
+                                                title="Ligar"
+                                            >
+                                                <Phone className="h-5 w-5" />
+                                            </a>
+                                            <Button variant="outline" size="sm" className="hidden sm:inline-flex">Ver Detalhes</Button>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>

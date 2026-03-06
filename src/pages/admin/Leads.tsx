@@ -16,7 +16,23 @@ interface Lead {
   prazo_meses: number;
   status: string | null;
   created_at: string | null;
+  lead_score_valor: string | null;
+  lead_temperatura: string | null;
 }
+
+const TEMP_EMOJIS: Record<string, string> = {
+  quente: "🔥",
+  morno: "🌤",
+  frio: "❄️",
+  morto: "☠️",
+};
+
+const SCORE_LABELS: Record<string, string> = {
+  premium: "🔥 Lead Premium",
+  alto: "🚀 Lead Alto",
+  medio: "⚡ Lead Médio",
+  baixo: "🧊 Lead Baixo",
+};
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos os status" },
@@ -88,7 +104,7 @@ export default function Leads() {
     }
     if (statusFilter !== "all") result = result.filter((l) => (l.status ?? "novo") === statusFilter);
     if (tipoFilter !== "all") result = result.filter((l) => l.tipo_consorcio === tipoFilter);
-    if (cidadeFilter) result = result.filter((l) => l.cidade.toLowerCase().includes(cidadeFilter.toLowerCase()));
+    if (cidadeFilter) result = result.filter((l) => l.cidade?.toLowerCase().includes(cidadeFilter.toLowerCase()) ?? false);
 
     result.sort((a, b) => {
       const aVal = a[sortKey] ?? "";
@@ -102,10 +118,11 @@ export default function Leads() {
   }, [leads, search, statusFilter, tipoFilter, cidadeFilter, sortKey, sortDir]);
 
   const exportCSV = () => {
-    const headers = ["Nome", "Email", "Celular", "Cidade", "Tipo", "Valor Crédito", "Prazo", "Status", "Data"];
+    const headers = ["Nome", "Email", "Celular", "Cidade", "Tipo", "Valor Crédito", "Prazo", "Status", "Score", "Temp", "Data"];
     const rows = filtered.map((l) => [
       l.nome, l.email, l.celular, l.cidade, l.tipo_consorcio,
       l.valor_credito, l.prazo_meses, l.status ?? "novo",
+      l.lead_score_valor ?? "baixo", l.lead_temperatura ?? "quente",
       l.created_at?.slice(0, 10) ?? "",
     ]);
     const csv = [headers, ...rows].map((r) => r.join(";")).join("\n");
@@ -148,7 +165,7 @@ export default function Leads() {
         <Input
           placeholder="Buscar nome, email, telefone..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
           className="sm:col-span-2 lg:col-span-1"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -170,7 +187,7 @@ export default function Leads() {
         <Input
           placeholder="Filtrar cidade..."
           value={cidadeFilter}
-          onChange={(e) => setCidadeFilter(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCidadeFilter(e.target.value)}
         />
       </div>
 
@@ -182,12 +199,11 @@ export default function Leads() {
             <thead className="bg-muted">
               <tr>
                 <SortHeader label="Nome" field="nome" />
-                <SortHeader label="Email" field="email" />
                 <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Celular</th>
                 <SortHeader label="Cidade" field="cidade" />
-                <SortHeader label="Tipo" field="tipo_consorcio" />
                 <SortHeader label="Valor" field="valor_credito" />
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Prazo</th>
+                <SortHeader label="Score" field="lead_score_valor" />
+                <SortHeader label="Temp" field="lead_temperatura" />
                 <SortHeader label="Status" field="status" />
                 <SortHeader label="Data" field="created_at" />
                 <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Ações</th>
@@ -197,14 +213,17 @@ export default function Leads() {
               {filtered.map((l) => (
                 <tr key={l.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium whitespace-nowrap">{l.nome}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{l.email}</td>
                   <td className="px-3 py-2 whitespace-nowrap">{l.celular}</td>
-                  <td className="px-3 py-2">{l.cidade}</td>
-                  <td className="px-3 py-2 capitalize">{l.tipo_consorcio}</td>
+                  <td className="px-3 py-2">{l.cidade || "N/Inf"}</td>
                   <td className="px-3 py-2 font-medium whitespace-nowrap">{formatCurrency(Number(l.valor_credito))}</td>
-                  <td className="px-3 py-2">{l.prazo_meses}m</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <span className="text-[10px] font-bold uppercase">{SCORE_LABELS[l.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <span className="text-[10px] font-bold uppercase">{TEMP_EMOJIS[l.lead_temperatura || "quente"] || "🔥"}</span>
+                  </td>
                   <td className="px-3 py-2">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary capitalize">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary capitalize">
                       {(l.status ?? "novo").replace("_", " ")}
                     </span>
                   </td>
@@ -241,20 +260,23 @@ export default function Leads() {
 
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-xs text-muted-foreground">Valor</p>
-                  <p className="font-medium text-primary">{formatCurrency(Number(l.valor_credito))}</p>
+                  <p className="text-xs text-muted-foreground uppercase font-black">Score / Temp</p>
+                  <p className="font-bold text-[10px] mt-1">
+                    {SCORE_LABELS[l.lead_score_valor || "baixo"] || "🧊 Lead Baixo"} <br />
+                    {TEMP_EMOJIS[l.lead_temperatura || "quente"] || "🔥"} {l.lead_temperatura === 'quente' ? 'Quente' : l.lead_temperatura === 'morno' ? 'Morno' : l.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Tipo / Prazo</p>
-                  <p className="capitalize">{l.tipo_consorcio} · {l.prazo_meses}m</p>
+                  <p className="text-xs text-muted-foreground uppercase font-black">Valor</p>
+                  <p className="font-bold text-primary">{formatCurrency(Number(l.valor_credito))}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Celular</p>
-                  <p>{l.celular}</p>
+                  <p className="text-xs text-muted-foreground uppercase font-black">Celular</p>
+                  <p className="font-medium">{l.celular}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Data</p>
-                  <p>{l.created_at?.slice(0, 10)}</p>
+                  <p className="text-xs text-muted-foreground uppercase font-black">Tipo / Prazo</p>
+                  <p className="capitalize font-medium">{l.tipo_consorcio} · {l.prazo_meses}m</p>
                 </div>
               </div>
 

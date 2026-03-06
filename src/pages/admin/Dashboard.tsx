@@ -44,17 +44,17 @@ export default function Dashboard() {
 
   // Intelligence Metrics
   const leadsPorTemp = {
-    Quente: leads.filter(l => (l.lead_temperatura || "🔥 Quente").includes("Quente")).length,
-    Morno: leads.filter(l => (l.lead_temperatura || "").includes("Morno")).length,
-    Frio: leads.filter(l => (l.lead_temperatura || "").includes("Frio")).length,
-    Morto: leads.filter(l => (l.lead_temperatura || "").includes("Morto")).length,
+    Quente: leads.filter(l => l.lead_temperatura === "quente").length,
+    Morno: leads.filter(l => l.lead_temperatura === "morno").length,
+    Frio: leads.filter(l => l.lead_temperatura === "frio").length,
+    Morto: leads.filter(l => l.lead_temperatura === "morto").length,
   };
 
   const leadsPorCredito = {
-    Premium: leads.filter(l => (l.lead_score_valor || "").includes("Premium")).length,
-    Alto: leads.filter(l => (l.lead_score_valor || "").includes("Alto")).length,
-    Medio: leads.filter(l => (l.lead_score_valor || "").includes("Médio")).length,
-    Baixo: leads.filter(l => (l.lead_score_valor || "").includes("Baixo")).length,
+    Premium: leads.filter(l => l.lead_score_valor === "premium").length,
+    Alto: leads.filter(l => l.lead_score_valor === "alto").length,
+    Medio: leads.filter(l => l.lead_score_valor === "medio").length,
+    Baixo: leads.filter(l => l.lead_score_valor === "baixo").length,
   };
 
   const avgContactTime = leads.filter(l => l.last_interaction_at).length > 0

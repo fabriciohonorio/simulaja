@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp } from "lucide-react";
+import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,8 @@ interface Lead {
   origem: string | null;
   status_updated_at: string | null;
   last_interaction_at: string | null;
+  propensity_score: number | null;
+  propensity_reason: string | null;
 }
 
 const COLUMNS = [
@@ -66,10 +69,24 @@ const COLUMN_DOT_COLORS: Record<string, string> = {
 };
 
 const TEMP_COLORS: Record<string, string> = {
-  "🔥 Quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
-  "🌤 Morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
-  "❄️ Frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
-  "☠️ Lead Morto": "border-gray-400 bg-gray-50 opacity-75",
+  "quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
+  "morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
+  "frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+  "morto": "border-gray-400 bg-gray-50 opacity-75",
+};
+
+const TEMP_EMOJIS: Record<string, string> = {
+  quente: "🔥",
+  morno: "🌤",
+  frio: "❄️",
+  morto: "☠️",
+};
+
+const SCORE_LABELS: Record<string, string> = {
+  premium: "🔥 Lead Premium",
+  alto: "🚀 Lead Alto",
+  medio: "⚡ Lead Médio",
+  baixo: "🧊 Lead Baixo",
 };
 
 const formatCurrency = (v: number) =>
@@ -95,26 +112,58 @@ export default function Funil() {
       fetchedLeads.forEach(async (lead: Lead) => {
         const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
         const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
-        let newTemp = lead.lead_temperatura || "🔥 Quente";
+        let newTemp = lead.lead_temperatura || "quente";
         let newStatus = lead.status;
 
         if (hoursDiff > 24 * 7) {
           newStatus = "morto";
-          newTemp = "☠️ Lead Morto";
+          newTemp = "morto";
         } else if (hoursDiff > 24 * 3) {
-          newTemp = "❄️ Frio";
+          newTemp = "frio";
         } else if (hoursDiff > 24) {
-          newTemp = "🌤 Morno";
+          newTemp = "morno";
         }
 
-        if (newTemp !== lead.lead_temperatura || newStatus !== lead.status) {
+        // Propensity Calculation
+        let score = 0;
+        let reasons = [];
+
+        // Value (40%)
+        if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
+        else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
+        else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
+        else { score += 10; reasons.push("Baixo Potencial"); }
+
+        // Temp (40%)
+        if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
+        else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
+        else if (newTemp === "frio") { score += 5; }
+
+        // Status (20%)
+        if (["proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
+        else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
+        else if (newStatus === "contato") { score += 10; }
+        else { score += 5; }
+
+        const newScore = score;
+        const newReason = reasons.join(" + ");
+
+        if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
           await supabase.from("leads").update({
             lead_temperatura: newTemp,
             status: newStatus,
-            status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at
+            status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
+            propensity_score: newScore,
+            propensity_reason: newReason
           }).eq("id", lead.id);
 
-          setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, lead_temperatura: newTemp, status: newStatus } : l));
+          setLeads(prev => prev.map(l => l.id === lead.id ? {
+            ...l,
+            lead_temperatura: newTemp,
+            status: newStatus,
+            propensity_score: newScore,
+            propensity_reason: newReason
+          } : l));
         }
       });
     });
@@ -268,8 +317,17 @@ export default function Funil() {
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex flex-col min-w-0">
-                              <p className="font-bold truncate text-foreground">{lead.nome}</p>
-                              <span className="text-[10px] text-muted-foreground uppercase">{lead.lead_score_valor || "🌱 Baixo"}</span>
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-bold truncate text-foreground">{lead.nome}</p>
+                                {lead.propensity_score !== null && (
+                                  <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
+                                    lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
+                                    }`}>
+                                    {lead.propensity_score}%
+                                  </Badge>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                             </div>
                             <a
                               href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
@@ -303,8 +361,8 @@ export default function Funil() {
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                               <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
                             </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                              {lead.lead_temperatura || "🔥 Quente"}
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
+                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
                             </div>
                           </div>
                         </div>
@@ -357,9 +415,27 @@ export default function Funil() {
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex flex-col min-w-0">
-                                  <p className="font-bold truncate text-foreground">{lead.nome}</p>
-                                  <span className="text-[10px] text-muted-foreground uppercase">{lead.lead_score_valor || "🌱 Baixo"}</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-bold truncate text-foreground">{lead.nome}</p>
+                                    {lead.propensity_score !== null && (
+                                      <div className="flex flex-col items-center">
+                                        <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
+                                          lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
+                                          }`}>
+                                          {lead.propensity_score}%
+                                        </Badge>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                                 </div>
+                                <a
+                                  href="/admin/sdr"
+                                  className="bg-primary/10 hover:bg-primary/20 text-primary p-1.5 rounded-lg transition-colors"
+                                  title="Conselho da IA"
+                                >
+                                  <Sparkles className="h-4 w-4" />
+                                </a>
                                 <a
                                   href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                                   target="_blank"
@@ -393,8 +469,8 @@ export default function Funil() {
                                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                                   <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
                                 </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                                  {lead.lead_temperatura || "🔥 Quente"}
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
+                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
                                 </div>
                               </div>
                             </div>
