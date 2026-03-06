@@ -13,6 +13,7 @@ import Leads from "./pages/admin/Leads";
 import Metas from "./pages/admin/Metas";
 import Carteira from "./pages/admin/Carteira";
 import Inadimplentes from "./pages/admin/Inadimplentes";
+import FilaInteligente from "./pages/admin/FilaInteligente";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="metas" element={<Metas />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
+            <Route path="fila" element={<FilaInteligente />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

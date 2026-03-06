@@ -89,6 +89,7 @@ const consortiumCards = [
 
 const ConsortiumSimulator = () => {
   const { toast } = useToast();
+<<<<<<< HEAD
 
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
@@ -156,6 +157,12 @@ const ConsortiumSimulator = () => {
     };
     setHistorico(prev => [...prev, item]);
 
+    // Lead Score Logic
+    let leadScoreValor = "baixo";
+    if (g.credito >= 500000) leadScoreValor = "premium";
+    else if (g.credito >= 200000) leadScoreValor = "alto";
+    else if (g.credito >= 80000) leadScoreValor = "medio";
+
     try {
       await supabase.from("leads").insert({
         nome: simNome.trim(),
@@ -164,8 +171,15 @@ const ConsortiumSimulator = () => {
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo",
+        lead_score_valor: leadScoreValor,
+        lead_temperatura: "quente",
+        origem: utmParams.origem || "Simulador",
+        status_updated_at: new Date().toISOString(),
+        last_interaction_at: new Date().toISOString(),
       });
-    } catch (e) { console.warn("Supabase:", e); }
+    } catch (e) {
+      console.warn("Supabase:", e);
+    }
 
     try {
       await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
@@ -180,6 +194,7 @@ const ConsortiumSimulator = () => {
           origem: utmParams.origem || "Lovable",
           meio: utmParams.meio,
           campanha: utmParams.campanha,
+          score: leadScoreValor,
         }),
       });
       toast({ title: "✅ Simulação enviada! Entraremos em contato em breve." });
@@ -358,11 +373,10 @@ const ConsortiumSimulator = () => {
                 <button
                   key={cat.id}
                   onClick={() => setCategoria(cat.id)}
-                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold transition-all border ${
-                    categoria === cat.id
-                      ? "bg-primary text-primary-foreground border-primary shadow-md"
-                      : "bg-muted text-muted-foreground border-border hover:border-primary hover:text-primary"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold transition-all border ${categoria === cat.id
+                    ? "bg-primary text-primary-foreground border-primary shadow-md"
+                    : "bg-muted text-muted-foreground border-border hover:border-primary hover:text-primary"
+                    }`}
                 >
                   <span>{cat.icon}</span>
                   {cat.label}
@@ -619,7 +633,7 @@ const ConsortiumSimulator = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 
