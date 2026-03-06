@@ -14,6 +14,7 @@ import Metas from "./pages/admin/Metas";
 import Carteira from "./pages/admin/Carteira";
 import Inadimplentes from "./pages/admin/Inadimplentes";
 import FilaInteligente from "./pages/admin/FilaInteligente";
+import SDRPanel from "./pages/admin/SDRPanel";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
             <Route path="fila" element={<FilaInteligente />} />
+            <Route path="sdr" element={<SDRPanel />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
