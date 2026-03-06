@@ -116,6 +116,12 @@ export default function Simulador() {
     };
     setHistorico(prev => [...prev, item]);
 
+    // Lead Score Logic
+    let leadScoreValor = "baixo";
+    if (g.credito >= 500000) leadScoreValor = "premium";
+    else if (g.credito >= 200000) leadScoreValor = "alto";
+    else if (g.credito >= 80000) leadScoreValor = "medio";
+
     // Save to Supabase
     try {
       await supabase.from("leads").insert({
@@ -125,8 +131,14 @@ export default function Simulador() {
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo",
+        lead_score_valor: leadScoreValor,
+        lead_temperatura: "quente",
+        status_updated_at: new Date().toISOString(),
+        last_interaction_at: new Date().toISOString(),
       });
-    } catch (e) { console.warn("Supabase:", e); }
+    } catch (e) {
+      console.warn("Supabase:", e);
+    }
 
     // Webhook Make
     try {
@@ -140,6 +152,7 @@ export default function Simulador() {
           tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
           origem: new URLSearchParams(window.location.search).get("utm_source") || "Simulador",
+          score: leadScoreValor,
         }),
       });
     } catch (e) { console.warn("Webhook:", e); }

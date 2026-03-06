@@ -89,7 +89,7 @@ const consortiumCards = [
 
 const ConsortiumSimulator = () => {
   const { toast } = useToast();
-<<<<<<< HEAD
+
 
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
