@@ -1,23 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Slider } from "@/components/ui/slider";
 import {
   ArrowRight,
   CheckCircle2,
-  Home,
-  Car,
-  Bike,
-  TrendingUp,
-  Tractor,
   Target,
   BarChart3,
   Shield,
   Clock,
-  Mail,
+  Anchor,
+  Award,
 } from "lucide-react";
 import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
 
@@ -29,20 +21,62 @@ import cardAgro from "@/assets/card-agro.jpg";
 import cardInvestimento from "@/assets/card-investimento.jpg";
 import cardNautica from "@/assets/card-nautica.jpg";
 
-const SIMULATOR_URL = "/simulador";
 const WHATSAPP_LINK = "https://wa.me/5541997925357?text=Ol%C3%A1%20Fabr%C3%ADcio!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
 
-const segments = [
-  { id: "imovel", label: "Imóveis", icon: Home },
-  { id: "veiculos", label: "Veículos", icon: Car },
-  { id: "motos", label: "Motos", icon: Bike },
-  { id: "agricolas", label: "Agrícolas", icon: Tractor },
-  { id: "investimentos", label: "Investimentos", icon: TrendingUp },
+type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
+
+const GRUPOS: Record<string, GrupoItem[]> = {
+  imovel: [
+    { grupo: "6041", credito: 110000, r50: 405.9, prazo: 216 },
+    { grupo: "6041", credito: 120000, r50: 442.8, prazo: 216 },
+    { grupo: "6041", credito: 130000, r50: 479.69, prazo: 216 },
+    { grupo: "6041", credito: 140000, r50: 516.59, prazo: 216 },
+    { grupo: "6041", credito: 150000, r50: 553.49, prazo: 216 },
+    { grupo: "6041", credito: 160000, r50: 590.39, prazo: 216 },
+    { grupo: "6041", credito: 170000, r50: 627.29, prazo: 216 },
+    { grupo: "6041", credito: 180000, r50: 664.19, prazo: 216 },
+    { grupo: "6041", credito: 190000, r50: 701.09, prazo: 216 },
+    { grupo: "6041", credito: 200000, r50: 737.99, prazo: 216 },
+    { grupo: "6030", credito: 250000, r50: 941.72, prazo: 199 },
+    { grupo: "6030", credito: 300000, r50: 1130.06, prazo: 199 },
+    { grupo: "6035", credito: 350000, r50: 1286.42, prazo: 220 },
+    { grupo: "6039", credito: 500000, r50: 1672.7, prazo: 230 },
+    { grupo: "6039", credito: 700000, r50: 2341.78, prazo: 230 },
+    { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
+  ],
+  veiculo: [
+    { grupo: "5293", credito: 25000, r50: 264.63, prazo: 77 },
+    { grupo: "5294", credito: 37000, r50: 273.98, prazo: 100 },
+    { grupo: "5294", credito: 40000, r50: 296.2, prazo: 100 },
+    { grupo: "5294", credito: 45000, r50: 333.22, prazo: 100 },
+    { grupo: "5294", credito: 50000, r50: 370.25, prazo: 100 },
+    { grupo: "5294", credito: 60000, r50: 444.3, prazo: 100 },
+    { grupo: "5295", credito: 80000, r50: 592.39, prazo: 100 },
+    { grupo: "5295", credito: 100000, r50: 740.49, prazo: 100 },
+    { grupo: "5295", credito: 120000, r50: 888.59, prazo: 100 },
+    { grupo: "5282", credito: 150000, r50: 1249.79, prazo: 91 },
+    { grupo: "5282", credito: 160000, r50: 1333.11, prazo: 91 },
+  ],
+  pesados: [
+    { grupo: "5996", credito: 180000, r50: 932.64, prazo: 135 },
+    { grupo: "5996", credito: 200000, r50: 1036.26, prazo: 135 },
+    { grupo: "5996", credito: 250000, r50: 1295.33, prazo: 135 },
+    { grupo: "5996", credito: 280000, r50: 1450.77, prazo: 135 },
+    { grupo: "5996", credito: 300000, r50: 1554.4, prazo: 135 },
+    { grupo: "5996", credito: 400000, r50: 2072.52, prazo: 135 },
+    { grupo: "5996", credito: 500000, r50: 2590.66, prazo: 135 },
+  ],
+};
+
+const CATEGORIAS = [
+  { id: "imovel", label: "Imóvel / Investimento", icon: "🏠" },
+  { id: "veiculo", label: "Moto / Veículos / Náutico", icon: "🚗" },
+  { id: "pesados", label: "Pesados / Agrícola", icon: "🚛" },
 ];
 
-const creditValues = [
-  27000, 40000, 50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 750000, 1000000,
-];
+const MAX_CONSULTAS = 5;
+
+type HistItem = { credito: number; grupo: string; prazo: number; r50: number; nome: string; ts: string };
 
 const consortiumCards = [
   { title: "Consórcio Imobiliário", desc: "Casa própria, apartamento ou terreno com planejamento inteligente.", img: cardImovel },
@@ -55,9 +89,18 @@ const consortiumCards = [
 
 const ConsortiumSimulator = () => {
   const { toast } = useToast();
-  const [creditIndex, setCreditIndex] = useState(6);
-  const [formData, setFormData] = useState({ nome: "", celular: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [categoria, setCategoria] = useState("imovel");
+  const [idx, setIdx] = useState(4);
+  const [simNome, setSimNome] = useState("");
+  const [simWpp, setSimWpp] = useState("");
+  const [errNome, setErrNome] = useState(false);
+  const [errWpp, setErrWpp] = useState(false);
+  const [consultas, setConsultas] = useState(0);
+  const [resultado, setResultado] = useState<GrupoItem | null>(null);
+  const [historico, setHistorico] = useState<HistItem[]>([]);
+  const [bloqueado, setBloqueado] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const [utmParams, setUtmParams] = useState({ origem: "", meio: "", campanha: "" });
 
@@ -70,83 +113,89 @@ const ConsortiumSimulator = () => {
     });
   }, []);
 
-  const selectedCreditValue = creditValues[creditIndex];
+  const lista = GRUPOS[categoria];
+  const safeIdx = Math.min(idx, lista.length - 1);
+  const g = lista[safeIdx];
+
+  useEffect(() => {
+    setIdx(Math.min(4, lista.length - 1));
+  }, [categoria]);
 
   const fmt = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-  const formatPhone = (value: string) => {
-    const n = value.replace(/\D/g, "");
-    if (n.length <= 2) return n;
-    if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
-    return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7, 11)}`;
+  const fmtFull = (v: number) =>
+    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const mascaraWpp = (value: string) => {
+    let v = value.replace(/\D/g, "");
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length > 7) v = v.replace(/(\d{2})(\d{5})(\d*)/, "($1) $2-$3");
+    else if (v.length > 2) v = v.replace(/(\d{2})(\d*)/, "($1) $2");
+    setSimWpp(v);
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    if (field === "celular") {
-      setFormData((prev) => ({ ...prev, [field]: formatPhone(value) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    }
-  };
+  const pct = lista.length > 1 ? (safeIdx / (lista.length - 1)) * 100 : 0;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.nome || !formData.celular) {
-      toast({ title: "Preencha seu nome e WhatsApp.", variant: "destructive" });
-      return;
-    }
-    setIsSubmitting(true);
+  const confirmarSimulacao = async () => {
+    const nomeOk = simNome.trim().length > 0;
+    const wppOk = simWpp.replace(/\D/g, "").length >= 10;
+    setErrNome(!nomeOk);
+    setErrWpp(!wppOk);
+    if (!nomeOk || !wppOk) return;
+    if (consultas >= MAX_CONSULTAS) { setBloqueado(true); return; }
+
+    const novaConsulta = consultas + 1;
+    setConsultas(novaConsulta);
+    setResultado(g);
+
+    const item: HistItem = {
+      credito: g.credito, grupo: g.grupo, prazo: g.prazo, r50: g.r50,
+      nome: simNome.trim(),
+      ts: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    };
+    setHistorico(prev => [...prev, item]);
+
     try {
       await supabase.from("leads").insert({
-        nome: formData.nome,
-        celular: formData.celular,
-        tipo_consorcio: "Geral",
-        valor_credito: selectedCreditValue,
-        prazo_meses: 60,
+        nome: simNome.trim(),
+        celular: simWpp.replace(/\D/g, ""),
+        tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+        valor_credito: g.credito,
+        prazo_meses: g.prazo,
         status: "novo",
       });
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (e) { console.warn("Supabase:", e); }
 
     try {
-      const response = await fetch(
-        "https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: formData.nome,
-            celular: formData.celular,
-            valor_credito: fmt(selectedCreditValue),
-            tipo_consorcio: "Geral",
-            pagina: window.location.href,
-            origem: utmParams.origem || "Lovable",
-            meio: utmParams.meio,
-            campanha: utmParams.campanha,
-          }),
-        }
-      );
-      if (response.ok) {
-        toast({ title: "✅ Simulação enviada! Entraremos em contato em breve." });
-        setFormData({ nome: "", celular: "" });
-        setCreditIndex(6);
-      } else {
-        throw new Error("Erro");
-      }
-    } catch {
-      toast({ title: "Erro ao enviar", description: "Tente novamente.", variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
+      await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: simNome.trim(),
+          celular: simWpp,
+          valor_credito: fmt(g.credito),
+          tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+          pagina: window.location.href,
+          origem: utmParams.origem || "Lovable",
+          meio: utmParams.meio,
+          campanha: utmParams.campanha,
+        }),
+      });
+      toast({ title: "✅ Simulação enviada! Entraremos em contato em breve." });
+    } catch { /* silent */ }
+
+    if (novaConsulta >= MAX_CONSULTAS) setTimeout(() => setBloqueado(true), 700);
+    setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
   };
+
+  const wppLockMsg = historico.map((h, i) => `${i + 1}. ${fmtFull(h.credito)} — ${fmtFull(h.r50)} / ${h.prazo}m`).join("\n");
+  const lockWppUrl = `https://wa.me/5541997925357?text=${encodeURIComponent("Olá Fabricio! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* ===== HERO SECTION ===== */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 30%) 100%)" }}>
-        {/* Subtle pattern overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
         <div className="relative container max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20 lg:py-24">
@@ -175,6 +224,8 @@ const ConsortiumSimulator = () => {
                   "Consórcio de motos",
                   "Consórcio agro",
                   "Consórcio para investimento",
+                  "Consórcio para Náutica",
+                  "Cartas Contempladas",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-white/90">
                     <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
@@ -184,7 +235,7 @@ const ConsortiumSimulator = () => {
               </ul>
 
               <a
-                href={SIMULATOR_URL}
+                href="#simulator"
                 className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
               >
                 SIMULAR CONSÓRCIO AGORA
@@ -249,7 +300,7 @@ const ConsortiumSimulator = () => {
                 <div className="p-5">
                   <p className="text-sm text-muted-foreground leading-relaxed mb-4">{card.desc}</p>
                   <a
-                    href={SIMULATOR_URL}
+                    href="#simulator"
                     className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary transition-colors group/link"
                   >
                     SIMULAR
@@ -262,99 +313,195 @@ const ConsortiumSimulator = () => {
         </div>
       </section>
 
-      {/* ===== SIMULADOR RÁPIDO ===== */}
+      {/* ===== SIMULADOR COMPLETO (inline) ===== */}
       <section id="simulator" className="py-20 bg-background">
-        <div className="container max-w-3xl mx-auto px-4">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3 text-center">Simulador</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-3">
+        <div className="container max-w-[620px] mx-auto px-4">
+          <p className="text-xs font-bold tracking-[0.16em] uppercase text-center mb-2" style={{ color: "#f47920" }}>Simulador</p>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-2 text-foreground">
             Simule seu Consórcio <span className="text-primary">em segundos</span>
           </h2>
-          <p className="text-center text-muted-foreground mb-10 max-w-xl mx-auto">
-            Descubra o valor da carta de crédito, parcelas aproximadas e prazo ideal para seu objetivo.
+          <p className="text-sm text-center text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
+            Descubra agora o valor do seu crédito, parcelas e o prazo ideal para o seu planejamento.
           </p>
 
-          <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
-            <div className="p-6 md:p-8 space-y-6">
-              {/* Credit slider */}
-              <div className="p-5 rounded-xl border border-border bg-muted/30">
-                <Label className="text-sm font-medium text-foreground mb-1 block text-center">
-                  Valor do crédito desejado
-                </Label>
-                <div className="text-center my-4">
-                  <span className="text-3xl md:text-4xl font-extrabold text-primary">
-                    {fmt(selectedCreditValue)}
-                  </span>
-                </div>
-                <Slider
-                  value={[creditIndex]}
-                  onValueChange={(v) => setCreditIndex(v[0])}
-                  max={creditValues.length - 1}
-                  min={0}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>R$ 27 mil</span>
-                  <span>R$ 1 milhão</span>
-                </div>
-              </div>
-
-              {/* Segment badges */}
-              <div className="flex flex-wrap gap-2 justify-center">
-                {segments.map((seg) => {
-                  const Icon = seg.icon;
-                  return (
-                    <span key={seg.id} className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
-                      <Icon className="w-3.5 h-3.5" />
-                      {seg.label}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  placeholder="Seu nome completo *"
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange("nome", e.target.value)}
-                  className="h-13 text-base"
-                  maxLength={100}
-                />
-                <div>
-                  <Input
-                    placeholder="Seu WhatsApp *"
-                    value={formData.celular}
-                    onChange={(e) => handleInputChange("celular", e.target.value)}
-                    className="h-13 text-base"
-                    maxLength={15}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
-                    📱 Enviaremos a proposta completa em até 2 horas
-                  </p>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-14 text-base font-bold bg-secondary hover:bg-secondary/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all group"
-                >
-                  {isSubmitting ? "ENVIANDO..." : (
-                    <span className="flex items-center gap-2">
-                      SIMULAR AGORA
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  )}
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Ao simular, você concorda com nossa{" "}
-                  <a href="#" className="text-primary underline hover:no-underline font-medium">
-                    Política de Privacidade
-                  </a>
-                </p>
-              </form>
+          {/* Simulator Card */}
+          <div className="rounded-[22px] p-6 sm:p-8 bg-card border border-border shadow-xl">
+            {/* Slider */}
+            <p className="text-xs font-semibold text-center mb-2 text-muted-foreground">Valor do crédito desejado</p>
+            <div className="text-center mb-5">
+              <span className="text-sm font-bold mr-1 text-muted-foreground">R$</span>
+              <span className="text-3xl sm:text-4xl font-extrabold text-foreground" style={{ letterSpacing: "-0.03em" }}>
+                {g.credito.toLocaleString("pt-BR")}
+              </span>
             </div>
+
+            <input
+              type="range"
+              min={0}
+              max={lista.length - 1}
+              step={1}
+              value={safeIdx}
+              onChange={(e) => setIdx(Number(e.target.value))}
+              className="w-full h-1.5 rounded-full cursor-pointer appearance-none mb-2"
+              style={{
+                background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${pct}%, hsl(var(--secondary)) ${pct}%, hsl(var(--secondary)) 100%)`,
+              }}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mb-6">
+              <span>R$ {lista[0].credito.toLocaleString("pt-BR")}</span>
+              <span>R$ {lista[lista.length - 1].credito.toLocaleString("pt-BR")}</span>
+            </div>
+
+            {/* Segmentos */}
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              {CATEGORIAS.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategoria(cat.id)}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold transition-all border ${
+                    categoria === cat.id
+                      ? "bg-primary text-primary-foreground border-primary shadow-md"
+                      : "bg-muted text-muted-foreground border-border hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Parcela verde */}
+            <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
+              <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,#16a34a,#4ade80)" }} />
+              <p className="text-[0.65rem] font-bold uppercase tracking-wider mb-1" style={{ color: "#15803d" }}>
+                Parcela reduzida 50% <span style={{ color: "#4ade80", fontWeight: 400 }}>· até a contemplação</span>
+              </p>
+              <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "monospace", color: "#16a34a" }}>
+                {fmtFull(g.r50)}
+              </p>
+              <div className="flex gap-2 mt-3.5">
+                {[
+                  { label: "Crédito", value: fmt(g.credito) },
+                  { label: "Prazo", value: `${g.prazo} meses` },
+                  { label: "Grupo", value: g.grupo },
+                ].map((m) => (
+                  <div key={m.label} className="flex-1 bg-white rounded-lg py-2 px-2.5 text-center" style={{ border: "1px solid #d1fae5" }}>
+                    <p className="text-[0.58rem] uppercase tracking-wider mb-0.5 text-muted-foreground">{m.label}</p>
+                    <p className="text-sm font-bold text-foreground" style={{ fontFamily: "monospace" }}>{m.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px bg-border mb-5" />
+
+            {/* Formulário */}
+            <input
+              type="text"
+              placeholder="Seu nome completo *"
+              value={simNome}
+              onChange={(e) => { setSimNome(e.target.value); setErrNome(false); }}
+              className={`w-full px-4 py-[15px] rounded-[10px] text-sm outline-none mb-1 transition-all bg-background text-foreground border ${errNome ? "border-destructive" : "border-border"} focus:border-primary focus:ring-1 focus:ring-primary/20`}
+            />
+            {errNome && <p className="text-xs text-destructive mb-2 ml-0.5">Por favor, informe seu nome.</p>}
+            {!errNome && <div className="mb-2.5" />}
+
+            <input
+              type="tel"
+              placeholder="Seu WhatsApp *"
+              value={simWpp}
+              onChange={(e) => { mascaraWpp(e.target.value); setErrWpp(false); }}
+              className={`w-full px-4 py-[15px] rounded-[10px] text-sm outline-none mb-1 transition-all bg-background text-foreground border ${errWpp ? "border-destructive" : "border-border"} focus:border-primary focus:ring-1 focus:ring-primary/20`}
+            />
+            {errWpp && <p className="text-xs text-destructive mb-2 ml-0.5">Por favor, informe um WhatsApp válido.</p>}
+            {!errWpp && <div className="mb-2.5" />}
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+              <Clock className="w-3.5 h-3.5 text-primary opacity-75" />
+              Saiba o valor da sua parcela após a contemplação.
+            </div>
+
+            <button
+              onClick={confirmarSimulacao}
+              disabled={bloqueado}
+              className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed bg-secondary hover:bg-secondary/90 text-white shadow-lg"
+            >
+              Simule Já
+              <ArrowRight className="w-5 h-5" />
+            </button>
+
+            <p className="text-center text-xs text-muted-foreground mt-3.5">
+              Ao simular, você concorda com nossa <a href="#" className="text-primary underline hover:no-underline font-medium">Política de Privacidade</a>
+            </p>
+
+            {/* Resultado */}
+            {resultado && (
+              <div ref={resultRef} className="rounded-[14px] p-5 mt-5 animate-fade-in" style={{ background: "hsl(213 70% 14%)" }}>
+                <div className="text-[0.58rem] uppercase tracking-[0.12em] mb-3 flex items-center gap-2 text-white/40">
+                  ✅ Proposta confirmada
+                  <span className="flex-1 h-px bg-white/10" />
+                </div>
+                <div className="grid grid-cols-3 gap-0.5 rounded-[10px] overflow-hidden">
+                  {[
+                    { label: "Parcela 50%", value: fmtFull(resultado.r50), sub: "até contemplação", green: true },
+                    { label: "Crédito", value: fmt(resultado.credito) },
+                    { label: "Prazo", value: `${resultado.prazo} meses` },
+                  ].map((item) => (
+                    <div key={item.label} className="py-3 px-2.5 text-center" style={{ background: item.green ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)" }}>
+                      <p className="text-[0.56rem] uppercase tracking-wider mb-1 text-white/40">{item.label}</p>
+                      <p className={`font-medium ${item.green ? "text-lg" : "text-base"} text-white`} style={{ fontFamily: "monospace", color: item.green ? "#4ade80" : "#fff" }}>{item.value}</p>
+                      {item.sub && <p className="text-[0.52rem] mt-0.5 text-white/20">{item.sub}</p>}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2.5 py-2 px-3 rounded-lg text-center text-[0.7rem] bg-white/5 text-white/40">
+                  Para lance e condições especiais <strong style={{ color: "#ffa040" }}>fale com o especialista ✉️</strong>
+                </div>
+              </div>
+            )}
+
+            {/* Histórico */}
+            {historico.length > 0 && (
+              <div className="mt-4">
+                <p className="text-[0.64rem] font-bold tracking-[0.1em] uppercase mb-2 text-muted-foreground">Suas simulações</p>
+                {historico.map((h, i) => (
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-[10px] mb-1.5 flex-wrap gap-2 bg-card border border-border" style={{ borderLeft: "3px solid hsl(var(--secondary))" }}>
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{fmt(h.credito)}</p>
+                      <p className="text-[0.67rem] text-muted-foreground">Grupo {h.grupo} · {h.prazo} meses · {h.ts}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm" style={{ fontFamily: "monospace", color: "#16a34a" }}>{fmtFull(h.r50)}</p>
+                      <p className="text-[0.67rem] text-muted-foreground">Reduzida 50%</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Bloqueio */}
+            {bloqueado && (
+              <div className="rounded-[14px] p-7 text-center mt-5 animate-fade-in bg-card border-2 border-secondary shadow-lg">
+                <p className="text-3xl mb-2">🔐</p>
+                <p className="text-lg font-extrabold text-foreground mb-1.5">Limite atingido</p>
+                <div className="rounded-lg py-2 px-3.5 mb-3 text-sm font-semibold bg-secondary/10 border border-secondary/30 text-secondary">
+                  ⏰ As melhores cotas são contempladas rapidamente!
+                </div>
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  Você utilizou suas 5 simulações gratuitas.<br />Fale agora com o especialista e garanta sua cota!
+                </p>
+                <a
+                  href={lockWppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 py-3.5 px-7 rounded-full text-sm font-extrabold tracking-wider text-white"
+                  style={{ background: "#25D366" }}
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                  🔥 Falar com Fabricio Agora
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -400,7 +547,7 @@ const ConsortiumSimulator = () => {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href={SIMULATOR_URL}
+              href="#simulator"
               className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
             >
               Simular Consórcio
@@ -423,7 +570,6 @@ const ConsortiumSimulator = () => {
       <footer className="py-12 px-4" style={{ background: "hsl(213 70% 10%)" }}>
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-            {/* Brand */}
             <div>
               <h3 className="text-lg font-bold text-white mb-2">
                 FABRICIO <span className="text-white/40">|</span> <span className="text-secondary">Especialista em Consórcio</span>
@@ -433,18 +579,16 @@ const ConsortiumSimulator = () => {
               </p>
             </div>
 
-            {/* Links */}
             <div>
               <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Links</h4>
               <ul className="space-y-2 text-sm text-white/40">
-                <li><a href={SIMULATOR_URL} className="hover:text-secondary transition-colors">Simular Consórcio</a></li>
+                <li><a href="#simulator" className="hover:text-secondary transition-colors">Simular Consórcio</a></li>
                 <li><a href="https://www.abac.org.br/para-voce" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Para Você</a></li>
                 <li><a href="https://www.abac.org.br/perguntas-frequentes" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — FAQ</a></li>
                 <li><a href="#" className="hover:text-secondary transition-colors">Política de Privacidade</a></li>
               </ul>
             </div>
 
-            {/* Social */}
             <div>
               <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Redes Sociais</h4>
               <div className="flex gap-3">
