@@ -17,7 +17,7 @@ interface Lead {
 }
 
 interface Termometro {
-    id: string;
+    id: number;
     segmento: string;
     percentual: number;
 }
@@ -38,12 +38,12 @@ export default function Metas() {
         try {
             setLoading(true);
             const { data: leadsData } = await supabase.from("leads").select("*");
-            const { data: metaData } = await supabase.from("metas").select("*").eq("ano", currentYear).maybeSingle();
+            const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
             const { data: termData } = await supabase.from("mercado_termometro").select("*").order("segmento");
             setLeads(leadsData || []);
             if (metaData) {
-                setMetaAnual(metaData.valor || 0);
-                setMetaInput(String(metaData.valor || 0));
+                setMetaAnual(metaData.meta_anual || 0);
+                setMetaInput(String(metaData.meta_anual || 0));
             }
             setTermometro(termData || []);
         } catch (err) {
@@ -56,12 +56,12 @@ export default function Metas() {
     const salvarMeta = async () => {
         const novoValor = parseFloat(metaInput);
         if (isNaN(novoValor)) return;
-        await supabase.from("metas").upsert({ ano: currentYear, valor: novoValor }, { onConflict: "ano" });
+        await supabase.from("meta").upsert({ ano: currentYear, meta_anual: novoValor }, { onConflict: "ano" });
         setMetaAnual(novoValor);
         toast({ title: "Meta salva com sucesso!" });
     };
 
-    const updateTermometro = async (id: string, novoValor: number) => {
+    const updateTermometro = async (id: number, novoValor: number) => {
         await supabase.from("mercado_termometro").update({ percentual: novoValor }).eq("id", id);
         setTermometro(prev => prev.map(t => t.id === id ? { ...t, percentual: novoValor } : t));
     };

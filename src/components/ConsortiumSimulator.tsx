@@ -27,8 +27,9 @@ import cardVeiculo from "@/assets/card-veiculo.jpg";
 import cardMoto from "@/assets/card-moto.jpg";
 import cardAgro from "@/assets/card-agro.jpg";
 import cardInvestimento from "@/assets/card-investimento.jpg";
+import cardNautica from "@/assets/card-nautica.jpg";
 
-const SIMULATOR_URL = "https://simulaja.lovable.app";
+const SIMULATOR_URL = "/simulador";
 const WHATSAPP_LINK = "https://wa.me/5541997925357?text=Ol%C3%A1%20Fabr%C3%ADcio!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
 
 const segments = [
@@ -47,6 +48,7 @@ const consortiumCards = [
   { title: "Consórcio Imobiliário", desc: "Casa própria, apartamento ou terreno com planejamento inteligente.", img: cardImovel },
   { title: "Consórcio de Veículos", desc: "SUV, sedan ou utilitário — sem juros e com poder de compra à vista.", img: cardVeiculo },
   { title: "Consórcio de Motos", desc: "A moto dos seus sonhos com parcelas que cabem no bolso.", img: cardMoto },
+  { title: "Consórcio Náutico", desc: "Jet ski, lancha ou barco — realize o sonho náutico com planejamento.", img: cardNautica },
   { title: "Consórcio Agro", desc: "Tratores, máquinas e implementos para alavancar sua produção.", img: cardAgro },
   { title: "Consórcio para Investimento", desc: "Construa patrimônio com estratégia e sem juros bancários.", img: cardInvestimento },
 ];
