@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2 } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 interface Lead {
@@ -10,6 +10,9 @@ interface Lead {
   status: string | null;
   valor_credito: number;
   created_at: string | null;
+  lead_score_valor: string | null;
+  lead_temperatura: string | null;
+  last_interaction_at: string | null;
 }
 
 const formatCurrency = (v: number) =>
@@ -27,7 +30,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      setLeads(data ?? []);
+      setLeads((data as any) ?? []);
       setLoading(false);
     });
   }, []);
@@ -39,13 +42,35 @@ export default function Dashboard() {
   const volumeTotal = leads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   const volumeFechado = leads.filter(l => l.status === "fechado").reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
 
+  // Intelligence Metrics
+  const leadsPorTemp = {
+    Quente: leads.filter(l => (l.lead_temperatura || "🔥 Quente").includes("Quente")).length,
+    Morno: leads.filter(l => (l.lead_temperatura || "").includes("Morno")).length,
+    Frio: leads.filter(l => (l.lead_temperatura || "").includes("Frio")).length,
+    Morto: leads.filter(l => (l.lead_temperatura || "").includes("Morto")).length,
+  };
+
+  const leadsPorCredito = {
+    Premium: leads.filter(l => (l.lead_score_valor || "").includes("Premium")).length,
+    Alto: leads.filter(l => (l.lead_score_valor || "").includes("Alto")).length,
+    Medio: leads.filter(l => (l.lead_score_valor || "").includes("Médio")).length,
+    Baixo: leads.filter(l => (l.lead_score_valor || "").includes("Baixo")).length,
+  };
+
+  const avgContactTime = leads.filter(l => l.last_interaction_at).length > 0
+    ? leads.filter(l => l.last_interaction_at).reduce((acc, l) => {
+      const diff = (new Date(l.last_interaction_at!).getTime() - new Date(l.created_at!).getTime()) / (1000 * 60 * 60);
+      return acc + diff;
+    }, 0) / leads.filter(l => l.last_interaction_at).length
+    : 0;
+
   const stats = [
     { label: "Total Leads", value: totalLeads, icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
     { label: "Novos", value: leadsNovos, icon: UserPlus, color: "text-orange-500", bg: "bg-orange-50" },
     { label: "Fechados", value: leadsConvertidos, icon: Handshake, color: "text-green-500", bg: "bg-green-50" },
-    { label: "Conversão", value: `${taxaConversao.toFixed(1)}%`, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
-    { label: "Vol. Total", value: formatCurrency(volumeTotal), icon: DollarSign, color: "text-indigo-500", bg: "bg-indigo-50" },
-    { label: "Vol. Fechado", value: formatCurrency(volumeFechado), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { label: "Taxa Conversão", value: `${taxaConversao.toFixed(1)}%`, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
+    { label: "Valor Potencial", value: formatCurrency(volumeTotal), icon: DollarSign, color: "text-indigo-500", bg: "bg-indigo-50" },
+    { label: "Avg Contact", value: `${avgContactTime.toFixed(1)}h`, icon: Clock, color: "text-emerald-500", bg: "bg-emerald-50" },
   ];
 
   // Dados fictícios para o gráfico (agrupados por dia/mês nas próximas iterações)
@@ -141,6 +166,42 @@ export default function Dashboard() {
             </div>
             <div className="pt-2">
               <p className="text-[10px] sm:text-xs text-muted-foreground italic text-center">Última atualização: agora mesmo</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Intelligence Breakdown */}
+        <Card className="shadow-sm border-border bg-gradient-to-br from-white to-slate-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" /> Inteligência Comercial
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-white rounded-lg border border-border shadow-sm">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Por Temperatura</p>
+                <div className="mt-2 space-y-1">
+                  <div className="flex justify-between text-xs"><span>🔥 Quente</span> <b>{leadsPorTemp.Quente}</b></div>
+                  <div className="flex justify-between text-xs"><span>🌤 Morno</span> <b>{leadsPorTemp.Morno}</b></div>
+                  <div className="flex justify-between text-xs"><span>❄️ Frio</span> <b>{leadsPorTemp.Frio}</b></div>
+                  <div className="flex justify-between text-xs text-red-400"><span>☠️ Morto</span> <b>{leadsPorTemp.Morto}</b></div>
+                </div>
+              </div>
+              <div className="p-3 bg-white rounded-lg border border-border shadow-sm">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Por Crédito</p>
+                <div className="mt-2 space-y-1">
+                  <div className="flex justify-between text-xs"><span>💎 Premium</span> <b>{leadsPorCredito.Premium}</b></div>
+                  <div className="flex justify-between text-xs"><span>🔥 Alto</span> <b>{leadsPorCredito.Alto}</b></div>
+                  <div className="flex justify-between text-xs"><span>🚀 Médio</span> <b>{leadsPorCredito.Medio}</b></div>
+                  <div className="flex justify-between text-xs"><span>🌱 Baixo</span> <b>{leadsPorCredito.Baixo}</b></div>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
+              <p className="text-[10px] text-primary uppercase font-bold">Oportunidade de Mercado</p>
+              <p className="text-lg font-bold text-primary mt-1">{formatCurrency(volumeTotal)}</p>
+              <p className="text-[10px] text-primary/70">Volume total em negociação no funil</p>
             </div>
           </CardContent>
         </Card>

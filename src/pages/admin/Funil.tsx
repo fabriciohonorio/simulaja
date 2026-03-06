@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import {
@@ -25,36 +25,51 @@ interface Lead {
   prazo_meses: number;
   status: string | null;
   created_at: string | null;
+  lead_score_valor: string | null;
+  lead_temperatura: string | null;
+  origem: string | null;
+  status_updated_at: string | null;
+  last_interaction_at: string | null;
 }
 
 const COLUMNS = [
-  { id: "novo", label: "Novo" },
-  { id: "contatado", label: "Contatado" },
-  { id: "proposta_enviada", label: "Proposta Enviada" },
-  { id: "em_negociacao", label: "Em Negociação" },
-  { id: "fechado", label: "Fechado" },
-  { id: "desistiu", label: "Desistiu" },
-  { id: "perdido", label: "Perdido" },
+  { id: "novo", label: "🆕 Novo Lead" },
+  { id: "contato", label: "📞 Primeiro Contato" },
+  { id: "qualificacao", label: "🧠 Qualificação" },
+  { id: "proposta", label: "📊 Simulação Enviada" },
+  { id: "negociacao", label: "🤝 Negociação" },
+  { id: "fechado", label: "🏆 Venda Fechada" },
+  { id: "perdido", label: "❌ Perdido" },
+  { id: "morto", label: "☠️ Lead Morto" },
 ];
 
 const COLUMN_COLORS: Record<string, string> = {
   novo: "border-t-blue-500",
-  contatado: "border-t-yellow-500",
-  proposta_enviada: "border-t-orange-500",
-  em_negociacao: "border-t-purple-500",
+  contato: "border-t-yellow-500",
+  qualificacao: "border-t-orange-500",
+  proposta: "border-t-purple-500",
+  negociacao: "border-t-indigo-500",
   fechado: "border-t-green-500",
-  desistiu: "border-t-gray-500",
   perdido: "border-t-red-500",
+  morto: "border-t-gray-500",
 };
 
 const COLUMN_DOT_COLORS: Record<string, string> = {
   novo: "bg-blue-500",
-  contatado: "bg-yellow-500",
-  proposta_enviada: "bg-orange-500",
-  em_negociacao: "bg-purple-500",
+  contato: "bg-yellow-500",
+  qualificacao: "bg-orange-500",
+  proposta: "bg-purple-500",
+  negociacao: "bg-indigo-500",
   fechado: "bg-green-500",
-  desistiu: "bg-gray-500",
   perdido: "bg-red-500",
+  morto: "bg-gray-500",
+};
+
+const TEMP_COLORS: Record<string, string> = {
+  "🔥 Quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
+  "🌤 Morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
+  "❄️ Frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+  "☠️ Lead Morto": "border-gray-400 bg-gray-50 opacity-75",
 };
 
 const formatCurrency = (v: number) =>
@@ -71,8 +86,37 @@ export default function Funil() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      setLeads(data ?? []);
+      const fetchedLeads = (data as any) ?? [];
+      setLeads(fetchedLeads);
       setLoading(false);
+
+      // Automations: Temperature and "Dead" status
+      const now = new Date();
+      fetchedLeads.forEach(async (lead: Lead) => {
+        const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
+        const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
+        let newTemp = lead.lead_temperatura || "🔥 Quente";
+        let newStatus = lead.status;
+
+        if (hoursDiff > 24 * 7) {
+          newStatus = "morto";
+          newTemp = "☠️ Lead Morto";
+        } else if (hoursDiff > 24 * 3) {
+          newTemp = "❄️ Frio";
+        } else if (hoursDiff > 24) {
+          newTemp = "🌤 Morno";
+        }
+
+        if (newTemp !== lead.lead_temperatura || newStatus !== lead.status) {
+          await supabase.from("leads").update({
+            lead_temperatura: newTemp,
+            status: newStatus,
+            status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at
+          }).eq("id", lead.id);
+
+          setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, lead_temperatura: newTemp, status: newStatus } : l));
+        }
+      });
     });
   }, []);
 
@@ -100,7 +144,10 @@ export default function Funil() {
 
     const { error } = await supabase
       .from("leads")
-      .update({ status: newStatus })
+      .update({
+        status: newStatus,
+        status_updated_at: new Date().toISOString()
+      })
       .eq("id", leadId);
 
     if (error) {
@@ -216,31 +263,49 @@ export default function Funil() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`bg-background border border-border rounded-md p-3 text-sm space-y-1.5 ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+                          className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
+                            } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <p className="font-medium truncate flex-1">{lead.nome}</p>
+                            <div className="flex flex-col min-w-0">
+                              <p className="font-bold truncate text-foreground">{lead.nome}</p>
+                              <span className="text-[10px] text-muted-foreground uppercase">{lead.lead_score_valor || "🌱 Baixo"}</span>
+                            </div>
                             <a
                               href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1"
+                              className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1 bg-green-50 rounded-full"
                             >
                               <MessageCircle className="h-4 w-4" />
                             </a>
                           </div>
-                          <p className="text-primary font-bold text-base">
-                            {formatCurrency(Number(lead.valor_credito))}
-                          </p>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" /> {lead.prazo_meses} meses
+
+                          <div className="flex items-center justify-between">
+                            <p className="text-primary font-bold text-base">
+                              {formatCurrency(Number(lead.valor_credito))}
+                            </p>
+                            {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
+                                <Clock className="h-3 w-3" /> 12h+
+                              </span>
+                            )}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Phone className="h-3 w-3" /> {lead.celular}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3" /> {lead.cidade}
+
+                          <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                              {lead.lead_temperatura || "🔥 Quente"}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -287,32 +352,50 @@ export default function Funil() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`bg-background border border-border rounded-md p-3 text-sm space-y-1.5 ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+                              className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
+                                } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
                             >
                               <div className="flex items-center justify-between">
-                                <p className="font-medium truncate flex-1">{lead.nome}</p>
+                                <div className="flex flex-col min-w-0">
+                                  <p className="font-bold truncate text-foreground">{lead.nome}</p>
+                                  <span className="text-[10px] text-muted-foreground uppercase">{lead.lead_score_valor || "🌱 Baixo"}</span>
+                                </div>
                                 <a
                                   href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-green-500 hover:text-green-600 shrink-0 ml-1"
+                                  className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1 bg-green-50 rounded-full"
                                   title="Enviar WhatsApp"
                                 >
                                   <MessageCircle className="h-4 w-4" />
                                 </a>
                               </div>
-                              <p className="text-primary font-bold text-base">
-                                {formatCurrency(Number(lead.valor_credito))}
-                              </p>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Calendar className="h-3 w-3" /> {lead.prazo_meses} meses
+
+                              <div className="flex items-center justify-between">
+                                <p className="text-primary font-bold text-base">
+                                  {formatCurrency(Number(lead.valor_credito))}
+                                </p>
+                                {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
+                                    <Clock className="h-3 w-3" /> 12h+
+                                  </span>
+                                )}
                               </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Phone className="h-3 w-3" /> {lead.celular}
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3" /> {lead.cidade}
+
+                              <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                  <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+                                </div>
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                  <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
+                                </div>
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                  <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
+                                </div>
+                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                                  {lead.lead_temperatura || "🔥 Quente"}
+                                </div>
                               </div>
                             </div>
                           )}
