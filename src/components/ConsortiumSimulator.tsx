@@ -174,8 +174,6 @@ const ConsortiumSimulator = () => {
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
         origem: utmParams.origem || "Simulador",
-        status_updated_at: new Date().toISOString(),
-        last_interaction_at: new Date().toISOString(),
       });
     } catch (e) {
       console.warn("Supabase:", e);
