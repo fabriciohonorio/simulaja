@@ -178,6 +178,13 @@ export default function Simulador() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
+      {/* Banner indicação */}
+      {isIndicacao && (
+        <div className="w-full max-w-[580px] rounded-full px-5 py-2.5 mb-4 flex items-center justify-center gap-2 text-xs font-semibold"
+          style={{ background: "#fff7ed", border: "1.5px solid #fed7aa", color: "#c2410c" }}>
+          🤝 Indicação de <strong>{nomeIndicador}</strong>
+        </div>
+      )}
       {/* Hero */}
       <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>Simulador</p>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
