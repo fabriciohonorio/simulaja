@@ -383,9 +383,16 @@ export default function Funil() {
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <p className="text-primary font-bold text-base">
-                              {formatCurrency(Number(lead.valor_credito))}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-primary font-bold text-base">
+                                {formatCurrency(Number(lead.valor_credito))}
+                              </p>
+                              {lead.indicador_nome && (
+                                <span className="text-[9px] text-muted-foreground font-medium">
+                                  via {lead.indicador_nome}
+                                </span>
+                              )}
+                            </div>
                             {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
                               <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
                                 <Clock className="h-3 w-3" /> 12h+
