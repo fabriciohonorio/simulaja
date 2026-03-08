@@ -245,7 +245,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
         {/* Calendário de Vencimentos */}
         <DashboardCalendar leads={leads} />
