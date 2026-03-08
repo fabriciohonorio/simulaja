@@ -180,6 +180,38 @@ export default function Metas() {
                 </Card>
             </div>
 
+            {/* Falta para Meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="bg-amber-50 border-amber-200">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                            <Target className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide">Falta para a Meta Anual</p>
+                            <p className="text-xl sm:text-2xl font-bold text-amber-800">{fmt(faltaAno)}</p>
+                            <p className="text-xs text-amber-600 mt-0.5">
+                                {faltaAno <= 0 ? "🎉 Meta atingida!" : `${(100 - progressoAno).toFixed(1)}% restante`}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-indigo-50 border-indigo-200">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                            <TrendingUp className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-indigo-700 font-semibold uppercase tracking-wide">Necessário por Mês</p>
+                            <p className="text-xl sm:text-2xl font-bold text-indigo-800">{fmt(necessarioPorMes)}</p>
+                            <p className="text-xs text-indigo-600 mt-0.5">
+                                nos {mesesRestantes} {mesesRestantes === 1 ? "mês restante" : "meses restantes"} de {currentYear}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* KPI Grid — 2 cols on phones, 4 on md, 7 on xl */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3">
                 {[
