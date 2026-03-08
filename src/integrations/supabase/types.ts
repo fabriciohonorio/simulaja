@@ -189,6 +189,8 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          indicador_celular: string | null
+          indicador_nome: string | null
           lead_score_valor: string | null
           lead_temperatura: string | null
           nome: string
@@ -205,6 +207,8 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          indicador_celular?: string | null
+          indicador_nome?: string | null
           lead_score_valor?: string | null
           lead_temperatura?: string | null
           nome: string
@@ -221,6 +225,8 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          indicador_celular?: string | null
+          indicador_nome?: string | null
           lead_score_valor?: string | null
           lead_temperatura?: string | null
           nome?: string
