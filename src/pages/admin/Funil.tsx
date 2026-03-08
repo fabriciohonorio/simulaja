@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp } from "lucide-react";
+import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
