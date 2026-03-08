@@ -107,62 +107,33 @@ export default function Funil() {
       setLeads(fetchedLeads);
       setLoading(false);
 
-      // Automations: Temperature and "Dead" status
+      // Automations: Temperature only (never auto-change status of fechado/perdido/morto)
       const now = new Date();
       fetchedLeads.forEach(async (lead: Lead) => {
+        // Skip leads that are already in final states
+        const finalStatuses = ["fechado", "perdido", "morto"];
+        if (finalStatuses.includes(lead.status || "")) return;
+
         const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
         const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
         let newTemp = lead.lead_temperatura || "quente";
-        let newStatus = lead.status;
 
         if (hoursDiff > 24 * 7) {
-          newStatus = "morto";
-          newTemp = "morto";
+          newTemp = "frio";
         } else if (hoursDiff > 24 * 3) {
           newTemp = "frio";
         } else if (hoursDiff > 24) {
           newTemp = "morno";
         }
 
-        // Propensity Calculation
-        let score = 0;
-        let reasons = [];
-
-        // Value (40%)
-        if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
-        else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
-        else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
-        else { score += 10; reasons.push("Baixo Potencial"); }
-
-        // Temp (40%)
-        if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
-        else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
-        else if (newTemp === "frio") { score += 5; }
-
-        // Status (20%)
-        if (["proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
-        else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
-        else if (newStatus === "contato") { score += 10; }
-        else { score += 5; }
-
-        const newScore = score;
-        const newReason = reasons.join(" + ");
-
-        if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
+        if (newTemp !== lead.lead_temperatura) {
           await supabase.from("leads").update({
             lead_temperatura: newTemp,
-            status: newStatus,
-            status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
-            propensity_score: newScore,
-            propensity_reason: newReason
           }).eq("id", lead.id);
 
           setLeads(prev => prev.map(l => l.id === lead.id ? {
             ...l,
             lead_temperatura: newTemp,
-            status: newStatus,
-            propensity_score: newScore,
-            propensity_reason: newReason
           } : l));
         }
       });
