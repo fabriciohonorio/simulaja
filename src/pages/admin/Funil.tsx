@@ -351,6 +351,10 @@ export default function Funil() {
                             </a>
                           </div>
 
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
+                          </div>
+
                           <div className="flex items-center justify-between">
                             <p className="text-primary font-bold text-base">
                               {formatCurrency(Number(lead.valor_credito))}
@@ -373,7 +377,7 @@ export default function Funil() {
                               <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
+                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
                             </div>
                           </div>
                         </div>
