@@ -43,8 +43,6 @@ const App = () => (
             <Route path="metas" element={<Metas />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
-            <Route path="fila" element={<FilaInteligente />} />
-            <Route path="sdr" element={<SDRPanel />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
