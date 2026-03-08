@@ -89,6 +89,33 @@ const SCORE_LABELS: Record<string, string> = {
   baixo: "🧊 Lead Baixo",
 };
 
+const normalizeStatus = (status: string | null): string => {
+  if (!status) return "novo";
+  const s = status.toLowerCase().trim();
+  const map: Record<string, string> = {
+    "novo": "novo",
+    "contato": "contato",
+    "contatado": "contato",
+    "primeiro_contato": "contato",
+    "qualificacao": "qualificacao",
+    "qualificação": "qualificacao",
+    "proposta": "proposta",
+    "proposta_enviada": "proposta",
+    "simulação enviada": "proposta",
+    "negociacao": "negociacao",
+    "negociação": "negociacao",
+    "em_negociacao": "negociacao",
+    "em_negociação": "negociacao",
+    "fechado": "fechado",
+    "venda_fechada": "fechado",
+    "perdido": "perdido",
+    "desistiu": "perdido",
+    "morto": "morto",
+    "lead_morto": "morto",
+  };
+  return map[s] || "novo";
+};
+
 const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
