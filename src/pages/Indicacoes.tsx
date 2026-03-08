@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
 
@@ -160,6 +161,8 @@ export default function Indicacoes() {
         }),
       });
     } catch (e) { console.warn("Webhook:", e); }
+
+    toast.success("Em breve o especialista entrará em contato.", { duration: 5000 });
 
     if (novaConsulta >= MAX_CONSULTAS) setTimeout(() => setBloqueado(true), 700);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
