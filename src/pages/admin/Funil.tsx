@@ -33,6 +33,8 @@ interface Lead {
   last_interaction_at: string | null;
   propensity_score: number | null;
   propensity_reason: string | null;
+  indicador_nome: string | null;
+  indicador_celular: string | null;
 }
 
 const COLUMNS = [
