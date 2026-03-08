@@ -130,7 +130,10 @@ export default function Funil() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      const fetchedLeads = (data as any) ?? [];
+      const fetchedLeads = ((data as any) ?? []).map((lead: Lead) => ({
+        ...lead,
+        status: normalizeStatus(lead.status),
+      }));
       setLeads(fetchedLeads);
       setLoading(false);
 
