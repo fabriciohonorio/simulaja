@@ -321,7 +321,7 @@ export default function Inadimplentes() {
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                {item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
+                                {item.administradora ? `${item.administradora} · ` : ""}{item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
                               </p>
                               <p className="text-primary font-bold text-sm">
                                 {formatCurrency(item.valor_parcela)}/mês
