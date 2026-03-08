@@ -40,7 +40,7 @@ export default function Metas() {
             const { data: leadsData } = await supabase.from("leads").select("*");
             const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
             const { data: termData } = await supabase.from("mercado_termometro").select("*").order("segmento");
-            setLeads(leadsData || []);
+            setLeads((leadsData as Lead[]) || []);
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
