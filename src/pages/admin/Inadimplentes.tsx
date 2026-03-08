@@ -25,6 +25,7 @@ interface Inadimplente {
   grupo: string | null;
   cota: string | null;
   status: string;
+  administradora: string | null;
 }
 
 const COLUMNS = [
