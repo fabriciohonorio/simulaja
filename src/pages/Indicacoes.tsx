@@ -129,7 +129,7 @@ export default function Indicacoes() {
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
     try {
-      await supabase.from("leads").insert({
+      await (supabase.from("leads") as any).insert({
         nome: nomeCliente.trim(),
         celular: wppCliente.replace(/\D/g, ""),
         tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
@@ -138,6 +138,8 @@ export default function Indicacoes() {
         status: "novo",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
+        indicador_nome: pNome.trim(),
+        indicador_celular: pWpp.replace(/\D/g, ""),
       });
     } catch (e) { console.warn("Supabase:", e); }
 

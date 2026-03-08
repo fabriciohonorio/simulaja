@@ -131,7 +131,7 @@ export default function Simulador() {
 
     // Save to Supabase
     try {
-      await supabase.from("leads").insert({
+      await (supabase.from("leads") as any).insert({
         nome: nome.trim(),
         celular: wpp.replace(/\D/g, ""),
         tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
@@ -140,6 +140,7 @@ export default function Simulador() {
         status: "novo",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
+        ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : {}),
       });
     } catch (e) {
       console.warn("Supabase:", e);
