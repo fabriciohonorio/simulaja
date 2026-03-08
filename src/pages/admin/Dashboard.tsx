@@ -170,38 +170,34 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Intelligence Breakdown */}
-        <Card className="shadow-sm border-border bg-gradient-to-br from-white to-slate-50">
+        {/* Top Leads por Valor */}
+        <Card className="shadow-sm border-border lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" /> Inteligência Comercial
+              <DollarSign className="h-5 w-5 text-primary" /> Maiores Valores para Negociar
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-white rounded-lg border border-border shadow-sm">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold">Por Temperatura</p>
-                <div className="mt-2 space-y-1">
-                  <div className="flex justify-between text-xs"><span>🔥 Quente</span> <b>{leadsPorTemp.Quente}</b></div>
-                  <div className="flex justify-between text-xs"><span>🌤 Morno</span> <b>{leadsPorTemp.Morno}</b></div>
-                  <div className="flex justify-between text-xs"><span>❄️ Frio</span> <b>{leadsPorTemp.Frio}</b></div>
-                  <div className="flex justify-between text-xs text-red-400"><span>☠️ Morto</span> <b>{leadsPorTemp.Morto}</b></div>
-                </div>
-              </div>
-              <div className="p-3 bg-white rounded-lg border border-border shadow-sm">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold">Por Crédito</p>
-                <div className="mt-2 space-y-1">
-                  <div className="flex justify-between text-xs"><span>💎 Premium</span> <b>{leadsPorCredito.Premium}</b></div>
-                  <div className="flex justify-between text-xs"><span>🔥 Alto</span> <b>{leadsPorCredito.Alto}</b></div>
-                  <div className="flex justify-between text-xs"><span>🚀 Médio</span> <b>{leadsPorCredito.Medio}</b></div>
-                  <div className="flex justify-between text-xs"><span>🌱 Baixo</span> <b>{leadsPorCredito.Baixo}</b></div>
-                </div>
-              </div>
-            </div>
-            <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-              <p className="text-[10px] text-primary uppercase font-bold">Oportunidade de Mercado</p>
-              <p className="text-lg font-bold text-primary mt-1">{formatCurrency(volumeTotal)}</p>
-              <p className="text-[10px] text-primary/70">Volume total em negociação no funil</p>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {leads
+                .filter(l => l.status !== "fechado" && l.status !== "morto")
+                .sort((a, b) => Number(b.valor_credito || 0) - Number(a.valor_credito || 0))
+                .slice(0, 7)
+                .map((l, i) => (
+                  <div key={l.id} className="flex items-center justify-between p-3 hover:bg-accent/5 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-lg font-black text-muted-foreground/40 w-6 text-center">{i + 1}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{l.nome}</p>
+                        <p className="text-[10px] text-muted-foreground capitalize">{l.status?.replace("_", " ") ?? "novo"}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-primary shrink-0">{formatCurrency(Number(l.valor_credito))}</p>
+                  </div>
+                ))}
+              {leads.filter(l => l.status !== "fechado" && l.status !== "morto").length === 0 && (
+                <p className="text-center text-sm text-muted-foreground py-6">Nenhum lead em negociação.</p>
+              )}
             </div>
           </CardContent>
         </Card>
