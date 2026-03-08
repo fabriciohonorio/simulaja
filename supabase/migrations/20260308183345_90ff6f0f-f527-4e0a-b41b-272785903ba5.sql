@@ -1,0 +1,1 @@
+ALTER TABLE public.inadimplentes ADD COLUMN IF NOT EXISTS administradora text DEFAULT NULL;
