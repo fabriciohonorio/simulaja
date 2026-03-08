@@ -13,7 +13,7 @@ const menuItems = [
     { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil" },
     { icon: Users, label: "Carteira Clientes", path: "/admin/carteira" },
     { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes" },
-    { icon: Target, label: "Metas e KPIs", path: "/admin/metas" },
+    { icon: Target, label: "Metas", path: "/admin/metas" },
 ];
 
 export default function AdminLayout() {
