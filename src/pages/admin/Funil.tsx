@@ -181,7 +181,9 @@ export default function Funil() {
   }, []);
 
   const getColumnLeads = (colId: string) =>
-    leads.filter((l) => normalizeStatus(l.status) === colId);
+    leads
+      .filter((l) => normalizeStatus(l.status) === colId)
+      .sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
