@@ -72,14 +72,24 @@ const TEMP_COLORS: Record<string, string> = {
   "quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
   "morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
   "frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+  "perdido": "border-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.1)]",
   "morto": "border-gray-400 bg-gray-50 opacity-75",
 };
 
 const TEMP_EMOJIS: Record<string, string> = {
   quente: "🔥",
-  morno: "🌤",
+  morno: "🌤️",
   frio: "❄️",
+  perdido: "💀",
   morto: "☠️",
+};
+
+const TEMP_LABELS: Record<string, string> = {
+  quente: "Quente",
+  morno: "Morno",
+  frio: "Frio",
+  perdido: "Perdido",
+  morto: "Morto",
 };
 
 const SCORE_LABELS: Record<string, string> = {
