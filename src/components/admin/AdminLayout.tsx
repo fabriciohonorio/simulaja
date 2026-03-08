@@ -8,8 +8,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Filter, label: "Leads", path: "/admin/leads" },
-    { icon: Bot, label: "Agente SDR IA", path: "/admin/sdr" },
-    { icon: Clock, label: "Fila Inteligente", path: "/admin/fila" },
     { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil" },
     { icon: Users, label: "Carteira Clientes", path: "/admin/carteira" },
     { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes" },
