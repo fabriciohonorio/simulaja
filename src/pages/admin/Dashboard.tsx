@@ -247,6 +247,10 @@ export default function Dashboard() {
         </Card>
       </div>
 
+        {/* Calendário de Vencimentos */}
+        <DashboardCalendar leads={leads} />
+      </div>
+
       {/* Recentes / Quick Links */}
       <Card className="shadow-sm border-border">
         <CardHeader className="pb-2">
