@@ -71,7 +71,7 @@ export default function Metas() {
     const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
     const metaMensal = metaAnual / 12;
     const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
-    const fechados = leads.filter(l => l.status === "fechado");
+    const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const realizadoAno = fechados.filter(l => l.created_at?.startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const progressoMes = metaMensal > 0 ? Math.min(100, (realizadoMes / metaMensal) * 100) : 0;
@@ -79,7 +79,7 @@ export default function Metas() {
     const ticketMedio = fechados.length > 0 ? realizadoAno / fechados.length : 0;
     const leadsAno = leads.filter(l => l.created_at?.startsWith(String(currentYear)));
     const taxaConversao = leadsAno.length > 0 ? (fechados.length / leadsAno.length) * 100 : 0;
-    const perdidos = leads.filter(l => l.status === "perdido" || l.status === "desistiu");
+    const perdidos = leads.filter(l => ["perdido", "desistiu"].includes((l.status || "").toLowerCase()));
     const taxaPerda = leadsAno.length > 0 ? (perdidos.length / leadsAno.length) * 100 : 0;
     const faltaMes = Math.max(0, metaMensal - realizadoMes);
     const leadsNecessarios = Math.ceil(ticketMedio > 0 ? faltaMes / ticketMedio : 0);
