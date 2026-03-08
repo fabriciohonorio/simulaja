@@ -172,7 +172,9 @@ export default function Simulador() {
   };
 
   const wppLockMsg = historico.map((h, i) => `${i + 1}. ${fmt(h.credito)} — ${fmt(h.r50)} / ${h.prazo}m`).join("\n");
-  const lockWppUrl = `https://wa.me/5541997925357?text=${encodeURIComponent("Olá Fabricio! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
+  const lockWppUrl = `https://wa.me/55${wppDestino}?text=${encodeURIComponent("Olá! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
+
+  const nomeIndicador = refNome || "um parceiro";
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
