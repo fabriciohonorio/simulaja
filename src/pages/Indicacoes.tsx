@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
-import { UserCheck, ArrowRight } from "lucide-react";
+import { UserCheck } from "lucide-react";
 
 type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
 
@@ -55,27 +55,21 @@ const CATEGORIAS = [
 ];
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
 const MAX_CONSULTAS = 5;
 
 type HistItem = {
-  credito: number;
-  grupo: string;
-  prazo: number;
-  r50: number;
-  nomeCliente: string;
-  ts: string;
+  credito: number; grupo: string; prazo: number; r50: number;
+  nomeCliente: string; ts: string;
 };
 
 export default function Indicacoes() {
-  // Step 1: Partner identification
-  const [parceiro, setParceiro] = useState<{ nome: string; wpp: string } | null>(null);
+  // Partner
   const [pNome, setPNome] = useState("");
   const [pWpp, setPWpp] = useState("");
   const [errPNome, setErrPNome] = useState(false);
   const [errPWpp, setErrPWpp] = useState(false);
 
-  // Step 2: Simulator
+  // Simulator
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
   const [nomeCliente, setNomeCliente] = useState("");
@@ -91,9 +85,7 @@ export default function Indicacoes() {
   const lista = GRUPOS[categoria];
   const g = lista[idx];
 
-  useEffect(() => {
-    setIdx(Math.min(4, lista.length - 1));
-  }, [categoria]);
+  useEffect(() => { setIdx(Math.min(4, lista.length - 1)); }, [categoria]);
 
   const mascaraWpp = (value: string, setter: (v: string) => void) => {
     let v = value.replace(/\D/g, "");
@@ -105,41 +97,37 @@ export default function Indicacoes() {
 
   const pct = lista.length > 1 ? (idx / (lista.length - 1)) * 100 : 0;
 
-  const identificarParceiro = () => {
-    const nomeOk = pNome.trim().length > 0;
-    const wppOk = pWpp.replace(/\D/g, "").length >= 10;
-    setErrPNome(!nomeOk);
-    setErrPWpp(!wppOk);
-    if (!nomeOk || !wppOk) return;
-    setParceiro({ nome: pNome.trim(), wpp: pWpp.replace(/\D/g, "") });
-  };
-
   const simular = async () => {
-    if (!parceiro) return;
+    // Validate partner
+    const pNomeOk = pNome.trim().length > 0;
+    const pWppOk = pWpp.replace(/\D/g, "").length >= 10;
+    setErrPNome(!pNomeOk);
+    setErrPWpp(!pWppOk);
+
+    // Validate client
     const nomeOk = nomeCliente.trim().length > 0;
     const wppOk = wppCliente.replace(/\D/g, "").length >= 10;
     setErrNomeC(!nomeOk);
     setErrWppC(!wppOk);
-    if (!nomeOk || !wppOk) return;
+
+    if (!pNomeOk || !pWppOk || !nomeOk || !wppOk) return;
     if (consultas >= MAX_CONSULTAS) { setBloqueado(true); return; }
 
     const novaConsulta = consultas + 1;
     setConsultas(novaConsulta);
     setResultado(g);
 
-    const item: HistItem = {
+    setHistorico(prev => [...prev, {
       credito: g.credito, grupo: g.grupo, prazo: g.prazo, r50: g.r50,
       nomeCliente: nomeCliente.trim(),
       ts: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setHistorico(prev => [...prev, item]);
+    }]);
 
     let leadScoreValor = "baixo";
     if (g.credito >= 500000) leadScoreValor = "premium";
     else if (g.credito >= 200000) leadScoreValor = "alto";
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
-    // Save to Supabase
     try {
       await supabase.from("leads").insert({
         nome: nomeCliente.trim(),
@@ -151,11 +139,8 @@ export default function Indicacoes() {
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
       });
-    } catch (e) {
-      console.warn("Supabase:", e);
-    }
+    } catch (e) { console.warn("Supabase:", e); }
 
-    // Webhook Make → Telegram
     try {
       await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
         method: "POST",
@@ -168,107 +153,67 @@ export default function Indicacoes() {
           pagina: window.location.href,
           origem: "indicacao",
           score: leadScoreValor,
-          indicador_celular: parceiro.wpp,
-          indicador_nome: parceiro.nome,
+          indicador_celular: pWpp.replace(/\D/g, ""),
+          indicador_nome: pNome.trim(),
         }),
       });
     } catch (e) { console.warn("Webhook:", e); }
 
-    if (novaConsulta >= MAX_CONSULTAS) {
-      setTimeout(() => setBloqueado(true), 700);
-    }
-
+    if (novaConsulta >= MAX_CONSULTAS) setTimeout(() => setBloqueado(true), 700);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
   };
 
   const wppLockMsg = historico.map((h, i) => `${i + 1}. ${fmt(h.credito)} — ${fmt(h.r50)} / ${h.prazo}m (${h.nomeCliente})`).join("\n");
-  const lockWppUrl = `https://wa.me/55${parceiro?.wpp || "5541997925357"}?text=${encodeURIComponent("Olá! Simulei para clientes:\n\n" + wppLockMsg + "\n\nQuero dar andamento!")}`;
+  const lockWppUrl = `https://wa.me/55${pWpp.replace(/\D/g, "") || "5541997925357"}?text=${encodeURIComponent("Olá! Simulei para clientes:\n\n" + wppLockMsg + "\n\nQuero dar andamento!")}`;
 
-  // ─── STEP 1: Partner Identification ───
-  if (!parceiro) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
-        <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>
-          Área do Parceiro
-        </p>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
-          Identifique-se para <em className="not-italic" style={{ color: "#f47920" }}>Simular</em>
-        </h1>
-        <p className="text-sm text-center max-w-md mb-8" style={{ color: "#6b7a99", lineHeight: 1.65 }}>
-          Preencha seus dados de parceiro indicador. Todas as simulações serão atribuídas ao seu nome.
-        </p>
-
-        <div className="w-full max-w-[520px] rounded-[22px] p-6 sm:p-8" style={{ background: "#fff", boxShadow: "0 4px 40px rgba(15,32,68,.10)" }}>
-          <div className="flex items-center gap-3 mb-5 pb-4" style={{ borderBottom: "1.5px solid #e4e9f2" }}>
-            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "#fff7ed" }}>
-              <UserCheck className="w-5 h-5" style={{ color: "#f47920" }} />
-            </div>
-            <div>
-              <p className="text-sm font-bold" style={{ color: "#0f2044" }}>Dados do Parceiro</p>
-              <p className="text-xs" style={{ color: "#6b7a99" }}>Seu nome e WhatsApp para atribuição</p>
-            </div>
-          </div>
-
-          <input
-            type="text"
-            placeholder="Seu nome completo *"
-            value={pNome}
-            onChange={(e) => { setPNome(e.target.value); setErrPNome(false); }}
-            className="w-full px-4 py-[15px] rounded-[10px] text-sm outline-none mb-1 transition-all"
-            style={{ border: `1.5px solid ${errPNome ? "#dc2626" : "#e4e9f2"}`, color: "#0f2044" }}
-          />
-          {errPNome && <p className="text-[0.7rem] mb-2 ml-0.5" style={{ color: "#dc2626" }}>Informe seu nome.</p>}
-          {!errPNome && <div className="mb-2.5" />}
-
-          <input
-            type="tel"
-            placeholder="Seu WhatsApp *"
-            value={pWpp}
-            onChange={(e) => { mascaraWpp(e.target.value, setPWpp); setErrPWpp(false); }}
-            className="w-full px-4 py-[15px] rounded-[10px] text-sm outline-none mb-1 transition-all"
-            style={{ border: `1.5px solid ${errPWpp ? "#dc2626" : "#e4e9f2"}`, color: "#0f2044" }}
-          />
-          {errPWpp && <p className="text-[0.7rem] mb-2 ml-0.5" style={{ color: "#dc2626" }}>Informe um WhatsApp válido.</p>}
-          {!errPWpp && <div className="mb-2.5" />}
-
-          <button
-            onClick={identificarParceiro}
-            className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all"
-            style={{ background: "#0f2044", color: "#fff", boxShadow: "0 4px 20px rgba(15,32,68,.25)" }}
-          >
-            Acessar Simulador
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── STEP 2: Full Simulator ───
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
-      {/* Partner badge */}
-      <div className="w-full max-w-[580px] rounded-full px-5 py-2.5 mb-4 flex items-center justify-center gap-2 text-xs font-semibold"
-        style={{ background: "#fff7ed", border: "1.5px solid #fed7aa", color: "#c2410c" }}>
-        🤝 Parceiro: <strong>{parceiro.nome}</strong>
-        <button
-          onClick={() => setParceiro(null)}
-          className="ml-2 underline text-[0.65rem] opacity-70 hover:opacity-100"
-        >
-          trocar
-        </button>
-      </div>
-
       {/* Hero */}
-      <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>Simulador do Parceiro</p>
+      <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>Área do Parceiro</p>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
         Simule para seu <em className="not-italic" style={{ color: "#f47920" }}>Cliente</em>
       </h1>
       <p className="text-sm text-center max-w-md mb-8" style={{ color: "#6b7a99", lineHeight: 1.65 }}>
-        Preencha os dados do cliente. O lead será atribuído automaticamente a <strong>{parceiro.nome}</strong>.
+        Identifique-se, preencha os dados do cliente e simule. O lead será atribuído ao seu nome automaticamente.
       </p>
 
-      {/* Main card */}
+      {/* Partner identification — compact */}
+      <div className="w-full max-w-[580px] rounded-[22px] p-5 sm:p-6 mb-5" style={{ background: "#fff", boxShadow: "0 4px 40px rgba(15,32,68,.10)" }}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "#fff7ed" }}>
+            <UserCheck className="w-4 h-4" style={{ color: "#f47920" }} />
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: "#0f2044" }}>Seus dados (indicador)</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <input
+              type="text"
+              placeholder="Seu nome completo *"
+              value={pNome}
+              onChange={(e) => { setPNome(e.target.value); setErrPNome(false); }}
+              className="w-full px-4 py-[13px] rounded-[10px] text-sm outline-none transition-all"
+              style={{ border: `1.5px solid ${errPNome ? "#dc2626" : "#e4e9f2"}`, color: "#0f2044" }}
+            />
+            {errPNome && <p className="text-[0.7rem] mt-1 ml-0.5" style={{ color: "#dc2626" }}>Informe seu nome.</p>}
+          </div>
+          <div>
+            <input
+              type="tel"
+              placeholder="Seu WhatsApp *"
+              value={pWpp}
+              onChange={(e) => { mascaraWpp(e.target.value, setPWpp); setErrPWpp(false); }}
+              className="w-full px-4 py-[13px] rounded-[10px] text-sm outline-none transition-all"
+              style={{ border: `1.5px solid ${errPWpp ? "#dc2626" : "#e4e9f2"}`, color: "#0f2044" }}
+            />
+            {errPWpp && <p className="text-[0.7rem] mt-1 ml-0.5" style={{ color: "#dc2626" }}>WhatsApp inválido.</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Simulator Card (same as main page) ─── */}
       <div className="w-full max-w-[580px] rounded-[22px] p-6 sm:p-8" style={{ background: "#fff", boxShadow: "0 4px 40px rgba(15,32,68,.10)" }}>
         {/* Slider */}
         <p className="text-xs font-semibold text-center mb-2" style={{ color: "#6b7a99" }}>Valor do crédito desejado</p>
@@ -280,16 +225,10 @@ export default function Indicacoes() {
         </div>
 
         <input
-          type="range"
-          min={0}
-          max={lista.length - 1}
-          step={1}
-          value={idx}
+          type="range" min={0} max={lista.length - 1} step={1} value={idx}
           onChange={(e) => setIdx(Number(e.target.value))}
           className="w-full h-1.5 rounded-full cursor-pointer appearance-none mb-2"
-          style={{
-            background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #f47920 ${pct}%, #f47920 100%)`,
-          }}
+          style={{ background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #f47920 ${pct}%, #f47920 100%)` }}
         />
         <div className="flex justify-between text-xs mb-6" style={{ color: "#6b7a99" }}>
           <span>R$ {lista[0].credito.toLocaleString("pt-BR")}</span>
@@ -342,13 +281,10 @@ export default function Indicacoes() {
         <div className="h-px mb-5" style={{ background: "#e4e9f2" }} />
 
         {/* Client form */}
-        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#0f2044" }}>
-          📋 Dados do Cliente
-        </p>
+        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#0f2044" }}>📋 Dados do Cliente</p>
 
         <input
-          type="text"
-          placeholder="Nome do cliente *"
+          type="text" placeholder="Nome do cliente *"
           value={nomeCliente}
           onChange={(e) => { setNomeCliente(e.target.value); setErrNomeC(false); }}
           className="w-full px-4 py-[15px] rounded-[10px] text-sm outline-none mb-1 transition-all"
@@ -358,33 +294,36 @@ export default function Indicacoes() {
         {!errNomeC && <div className="mb-2.5" />}
 
         <input
-          type="tel"
-          placeholder="WhatsApp do cliente *"
+          type="tel" placeholder="WhatsApp do cliente *"
           value={wppCliente}
           onChange={(e) => { mascaraWpp(e.target.value, setWppCliente); setErrWppC(false); }}
           className="w-full px-4 py-[15px] rounded-[10px] text-sm outline-none mb-1 transition-all"
           style={{ border: `1.5px solid ${errWppC ? "#dc2626" : "#e4e9f2"}`, color: "#0f2044" }}
         />
-        {errWppC && <p className="text-[0.7rem] mb-2 ml-0.5" style={{ color: "#dc2626" }}>Informe o WhatsApp do cliente.</p>}
+        {errWppC && <p className="text-[0.7rem] mb-2 ml-0.5" style={{ color: "#dc2626" }}>WhatsApp do cliente inválido.</p>}
         {!errWppC && <div className="mb-2.5" />}
+
+        <div className="flex items-center gap-2 text-xs mb-4" style={{ color: "#6b7a99" }}>
+          <span style={{ color: "#0057a8", opacity: 0.75 }}>🕐</span>
+          Saiba o valor da sua parcela após a contemplação.
+        </div>
 
         <button
           onClick={simular}
           disabled={bloqueado}
           className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
-          style={{
-            background: "#f47920",
-            color: "#fff",
-            border: "none",
-            boxShadow: "0 4px 20px rgba(244,121,32,.35)",
-          }}
+          style={{ background: "#f47920", color: "#fff", border: "none", boxShadow: "0 4px 20px rgba(244,121,32,.35)" }}
         >
-          Simular para o Cliente
+          Simule Já
           <span>→</span>
         </button>
 
         <p className="text-center text-xs mt-3.5" style={{ color: "#6b7a99" }}>
-          O lead será salvo com a indicação de <strong style={{ color: "#f47920" }}>{parceiro.nome}</strong>
+          {pNome.trim() ? (
+            <>Lead atribuído a <strong style={{ color: "#f47920" }}>{pNome.trim()}</strong></>
+          ) : (
+            <>Ao simular, você concorda com nossa <a href="#" className="underline" style={{ color: "#0057a8" }}>Política de Privacidade</a></>
+          )}
         </p>
 
         {/* Result */}
@@ -408,7 +347,7 @@ export default function Indicacoes() {
               ))}
             </div>
             <div className="mt-2.5 py-2 px-3 rounded-lg text-center text-[0.7rem]" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}>
-              Lead atribuído a <strong style={{ color: "#ffa040" }}>{parceiro.nome}</strong> ✅
+              Lead atribuído a <strong style={{ color: "#ffa040" }}>{pNome.trim()}</strong> ✅
             </div>
           </div>
         )}
@@ -416,7 +355,7 @@ export default function Indicacoes() {
         {/* History */}
         {historico.length > 0 && (
           <div className="mt-4">
-            <p className="text-[0.64rem] font-bold tracking-[0.1em] uppercase mb-2" style={{ color: "#6b7a99" }}>Simulações realizadas</p>
+            <p className="text-[0.64rem] font-bold tracking-[0.1em] uppercase mb-2" style={{ color: "#6b7a99" }}>Suas simulações</p>
             {historico.map((h, i) => (
               <div key={i} className="flex items-center justify-between p-2.5 rounded-[10px] mb-1.5 flex-wrap gap-2" style={{ background: "#fff", border: "1.5px solid #e4e9f2", borderLeft: "3px solid #f47920" }}>
                 <div>
@@ -437,18 +376,19 @@ export default function Indicacoes() {
           <div className="rounded-[14px] p-7 text-center mt-5 animate-fade-in" style={{ background: "#fff", border: "2px solid #f47920", boxShadow: "0 4px 24px rgba(244,121,32,.1)" }}>
             <p className="text-3xl mb-2">🔐</p>
             <p className="text-lg font-extrabold mb-1.5" style={{ color: "#0f2044" }}>Limite atingido</p>
+            <div className="rounded-lg py-2 px-3.5 mb-3 text-sm font-semibold" style={{ background: "#fff7ed", border: "1px solid #fed7aa", color: "#c2410c" }}>
+              ⏰ As melhores cotas são contempladas rapidamente!
+            </div>
             <p className="text-sm mb-4" style={{ color: "#6b7a99", lineHeight: 1.6 }}>
-              Você utilizou suas 5 simulações.<br />Entre em contato para continuar!
+              Você utilizou suas 5 simulações gratuitas.<br />Fale agora com o especialista!
             </p>
             <a
-              href={lockWppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={lockWppUrl} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 py-3.5 px-7 rounded-full text-sm font-extrabold tracking-wider text-white"
               style={{ background: "#25D366" }}
             >
               <WhatsAppIcon className="w-4 h-4" />
-              Falar no WhatsApp
+              🔥 Falar no WhatsApp
             </a>
           </div>
         )}
