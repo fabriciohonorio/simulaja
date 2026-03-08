@@ -595,8 +595,7 @@ const ConsortiumSimulator = () => {
               <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Links</h4>
               <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="#simulator" className="hover:text-secondary transition-colors">Simular Consórcio</a></li>
-                <li><a href="https://www.abac.org.br/para-voce" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Para Você</a></li>
-                <li><a href="https://www.abac.org.br/perguntas-frequentes" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — FAQ</a></li>
+                <li><a href="https://www.abac.org.br" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Associação Brasileira de Administradores de Consórcio</a></li>
                 <li><a href="#" className="hover:text-secondary transition-colors">Política de Privacidade</a></li>
               </ul>
             </div>
