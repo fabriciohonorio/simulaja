@@ -50,7 +50,7 @@ export default function Inadimplentes() {
   );
   const [form, setForm] = useState({
     nome: "", celular: "", tipo_consorcio: "", valor_parcela: "",
-    parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "",
+    parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "",
   });
   const [saving, setSaving] = useState(false);
 
