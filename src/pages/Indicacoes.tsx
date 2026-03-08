@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
 
