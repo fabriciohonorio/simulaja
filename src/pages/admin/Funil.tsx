@@ -411,7 +411,7 @@ export default function Funil() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
+                              className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
                                 } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
                             >
                               <div className="flex items-center justify-between">
