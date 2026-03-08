@@ -445,13 +445,6 @@ export default function Funil() {
                                   <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                                 </div>
                                 <a
-                                  href="/admin/sdr"
-                                  className="bg-primary/10 hover:bg-primary/20 text-primary p-1.5 rounded-lg transition-colors"
-                                  title="Conselho da IA"
-                                >
-                                  <Sparkles className="h-4 w-4" />
-                                </a>
-                                <a
                                   href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -461,6 +454,10 @@ export default function Funil() {
                                 >
                                   <MessageCircle className="h-4 w-4" />
                                 </a>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
                               </div>
 
                               <div className="flex items-center justify-between">
@@ -485,7 +482,7 @@ export default function Funil() {
                                   <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
                                 </div>
                                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
+                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
                                 </div>
                               </div>
                             </div>
