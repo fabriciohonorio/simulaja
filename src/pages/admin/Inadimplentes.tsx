@@ -33,7 +33,7 @@ const COLUMNS = [
   { id: "notificado", label: "Notificado", color: "border-t-yellow-500", dot: "bg-yellow-500" },
   { id: "negociando", label: "Negociando", color: "border-t-orange-500", dot: "bg-orange-500" },
   { id: "regularizado", label: "Regularizado", color: "border-t-green-500", dot: "bg-green-500" },
-  { id: "juridico", label: "Jurídico", color: "border-t-purple-500", dot: "bg-purple-500" },
+  
 ];
 
 const formatCurrency = (v: number) =>
