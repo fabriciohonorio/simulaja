@@ -43,6 +43,7 @@ const COLUMNS = [
   { id: "qualificacao", label: "🧠 Qualificação" },
   { id: "proposta", label: "📊 Simulação Enviada" },
   { id: "negociacao", label: "🤝 Negociação" },
+  { id: "aguardando_pagamento", label: "🧘 Aguardando Pagamento" },
   { id: "fechado", label: "🏆 Venda Fechada" },
   { id: "perdido", label: "❌ Perdido" },
   { id: "morto", label: "☠️ Lead Morto" },
