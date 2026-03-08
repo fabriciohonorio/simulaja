@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Trash2 } from "lucide-react";
+import { Phone, MapPin, Calendar as CalendarIcon, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Trash2, Bell } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Lead {
   id: string;
@@ -35,6 +39,7 @@ interface Lead {
   propensity_reason: string | null;
   indicador_nome: string | null;
   indicador_celular: string | null;
+  data_vencimento: string | null;
 }
 
 const COLUMNS = [
@@ -136,6 +141,143 @@ const normalizeStatus = (status: string | null): string => {
 const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
+const isToday = (dateStr: string | null) => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const today = new Date();
+  return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+};
+
+const isPastDue = (dateStr: string | null) => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d < today;
+};
+
+// Lead card component to avoid duplication
+function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
+  lead: Lead;
+  snapshot: any;
+  provided: any;
+  onDelete: (id: string, nome: string) => void;
+  onSetVencimento: (lead: Lead) => void;
+}) {
+  const isAguardando = normalizeStatus(lead.status) === "aguardando_pagamento";
+  const vencHoje = isToday(lead.data_vencimento);
+  const vencAtrasado = isPastDue(lead.data_vencimento);
+
+  return (
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
+        } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold truncate text-foreground">{lead.nome}</p>
+            {lead.propensity_score !== null && (
+              <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
+                lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
+                }`}>
+                {lead.propensity_score}%
+              </Badge>
+            )}
+            {isAguardando && (vencHoje || vencAtrasado) && (
+              <Bell className="h-4 w-4 text-amber-500 animate-pulse" />
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {isAguardando && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+              className="text-amber-500 hover:text-amber-600 shrink-0 p-1 bg-amber-50 rounded-full"
+              title="Agendar vencimento"
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </button>
+          )}
+          <a
+            href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
+            title="Enviar WhatsApp"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </a>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+            className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
+            title="Excluir lead"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+        <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-primary font-bold text-base">
+            {formatCurrency(Number(lead.valor_credito))}
+          </p>
+          {lead.indicador_nome && (
+            <span className="text-[9px] text-muted-foreground font-medium">
+              via {lead.indicador_nome}
+            </span>
+          )}
+        </div>
+        {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
+          <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
+            <Clock className="h-3 w-3" /> 12h+
+          </span>
+        )}
+      </div>
+
+      {/* Vencimento info for aguardando_pagamento */}
+      {isAguardando && lead.data_vencimento && (
+        <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${vencAtrasado ? "bg-red-100 text-red-700" : vencHoje ? "bg-amber-100 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+          {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
+          <CalendarIcon className="h-3 w-3" />
+          Venc: {format(new Date(lead.data_vencimento), "dd/MM/yyyy")}
+          {vencAtrasado && " — ATRASADO"}
+          {vencHoje && " — VENCE HOJE!"}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <CalendarIcon className="h-3 w-3" /> {lead.prazo_meses}m
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
+          {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
+        </div>
+        {/* Data de inclusão */}
+        <div className="col-span-2 flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+          <Clock className="h-3 w-3" /> Incluído: {lead.created_at ? format(new Date(lead.created_at), "dd/MM/yy", { locale: ptBR }) : "—"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Funil() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,20 +286,20 @@ export default function Funil() {
   const [cota, setCota] = useState("");
   const [saving, setSaving] = useState(false);
   const [mobileColIdx, setMobileColIdx] = useState(0);
+  const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      const fetchedLeads = ((data as any) ?? []).map((lead: Lead) => ({
+      const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
         ...lead,
         status: normalizeStatus(lead.status),
       }));
       setLeads(fetchedLeads);
       setLoading(false);
 
-      // Automations: Temperature only (never auto-change status of fechado/perdido/morto)
       const now = new Date();
       fetchedLeads.forEach(async (lead: Lead) => {
-        // Skip leads that are already in final states
         const finalStatuses = ["fechado", "perdido", "morto"];
         if (finalStatuses.includes(lead.status || "")) return;
 
@@ -224,6 +366,14 @@ export default function Funil() {
       return;
     }
 
+    if (newStatus === "aguardando_pagamento") {
+      const lead = leads.find((l) => l.id === leadId);
+      if (lead) {
+        setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
+        setSelectedDate(lead.data_vencimento ? new Date(lead.data_vencimento) : undefined);
+      }
+    }
+
     if (newStatus === "fechado") {
       const lead = leads.find((l) => l.id === leadId);
       if (lead) {
@@ -233,6 +383,25 @@ export default function Funil() {
         fireConfetti();
       }
     }
+  };
+
+  const handleSaveVencimento = async () => {
+    if (!vencimentoLead || !selectedDate) return;
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    
+    const { error } = await (supabase.from("leads") as any).update({
+      data_vencimento: dateStr,
+    }).eq("id", vencimentoLead.id);
+
+    if (error) {
+      toast.error("Erro ao salvar data de vencimento");
+      return;
+    }
+
+    setLeads(prev => prev.map(l => l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr } : l));
+    toast.success(`Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`);
+    setVencimentoLead(null);
+    setSelectedDate(undefined);
   };
 
   const handleSaveCelebration = async () => {
@@ -318,7 +487,6 @@ export default function Funil() {
           </Button>
         </div>
 
-        {/* Mobile column dots */}
         <div className="flex justify-center gap-1.5 mb-3">
           {COLUMNS.map((col, i) => (
             <button
@@ -329,7 +497,6 @@ export default function Funil() {
           ))}
         </div>
 
-        {/* Mobile single-column kanban */}
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId={currentCol.id}>
             {(provided, snapshot) => (
@@ -342,84 +509,16 @@ export default function Funil() {
                   {currentColLeads.map((lead, idx) => (
                     <Draggable draggableId={lead.id} index={idx} key={lead.id}>
                       {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
-                            } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
-                        >
-          <div className="flex items-center justify-between gap-2">
-                            <div className="flex flex-col min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <p className="font-bold truncate text-foreground">{lead.nome}</p>
-                                {lead.propensity_score !== null && (
-                                  <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
-                                    lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
-                                    }`}>
-                                    {lead.propensity_score}%
-                                  </Badge>
-                                )}
-                              </div>
-                              <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <a
-                                href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
-                              >
-                                <MessageCircle className="h-4 w-4" />
-                              </a>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id, lead.nome); }}
-                                className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
-                                title="Excluir lead"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                            <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <p className="text-primary font-bold text-base">
-                                {formatCurrency(Number(lead.valor_credito))}
-                              </p>
-                              {lead.indicador_nome && (
-                                <span className="text-[9px] text-muted-foreground font-medium">
-                                  via {lead.indicador_nome}
-                                </span>
-                              )}
-                            </div>
-                            {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
-                                <Clock className="h-3 w-3" /> 12h+
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
-                            </div>
-                          </div>
-                        </div>
+                        <LeadCard
+                          lead={lead}
+                          snapshot={snapshot}
+                          provided={provided}
+                          onDelete={handleDeleteLead}
+                          onSetVencimento={(l) => {
+                            setVencimentoLead(l);
+                            setSelectedDate(l.data_vencimento ? new Date(l.data_vencimento) : undefined);
+                          }}
+                        />
                       )}
                     </Draggable>
                   ))}
@@ -460,87 +559,16 @@ export default function Funil() {
                       {colLeads.map((lead, idx) => (
                         <Draggable draggableId={lead.id} index={idx} key={lead.id}>
                           {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
-                                } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex flex-col min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <p className="font-bold truncate text-foreground">{lead.nome}</p>
-                                    {lead.propensity_score !== null && (
-                                      <div className="flex flex-col items-center">
-                                        <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
-                                          lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
-                                          }`}>
-                                          {lead.propensity_score}%
-                                        </Badge>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <a
-                                    href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
-                                    title="Enviar WhatsApp"
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                  </a>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id, lead.nome); }}
-                                    className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
-                                    title="Excluir lead"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                                <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-primary font-bold text-base">
-                                    {formatCurrency(Number(lead.valor_credito))}
-                                  </p>
-                                  {lead.indicador_nome && (
-                                    <span className="text-[9px] text-muted-foreground font-medium">
-                                      via {lead.indicador_nome}
-                                    </span>
-                                  )}
-                                </div>
-                                {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
-                                  <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
-                                    <Clock className="h-3 w-3" /> 12h+
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
-                                </div>
-                              </div>
-                            </div>
+                            <LeadCard
+                              lead={lead}
+                              snapshot={snapshot}
+                              provided={provided}
+                              onDelete={handleDeleteLead}
+                              onSetVencimento={(l) => {
+                                setVencimentoLead(l);
+                                setSelectedDate(l.data_vencimento ? new Date(l.data_vencimento) : undefined);
+                              }}
+                            />
                           )}
                         </Draggable>
                       ))}
@@ -553,6 +581,40 @@ export default function Funil() {
           })}
         </div>
       </DragDropContext>
+
+      {/* Vencimento Calendar Dialog */}
+      <Dialog open={!!vencimentoLead} onOpenChange={(open) => !open && setVencimentoLead(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-amber-500" /> Agendar Vencimento
+            </DialogTitle>
+            <DialogDescription>
+              Marque a data de vencimento do pagamento de <span className="font-bold">{vencimentoLead?.nome}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              locale={ptBR}
+              className="rounded-md border"
+            />
+            {selectedDate && (
+              <p className="text-sm text-muted-foreground">
+                Data selecionada: <span className="font-bold text-foreground">{format(selectedDate, "dd/MM/yyyy")}</span>
+              </p>
+            )}
+            <div className="flex gap-2 w-full">
+              <Button className="flex-1" onClick={handleSaveVencimento} disabled={!selectedDate}>
+                <Bell className="h-4 w-4 mr-2" /> Agendar
+              </Button>
+              <Button variant="ghost" onClick={() => setVencimentoLead(null)}>Cancelar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Celebration Dialog */}
       <Dialog open={!!celebrationLead} onOpenChange={(open) => !open && setCelebrationLead(null)}>
