@@ -14,6 +14,7 @@ import {
 import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
 
 import fabricioReal from "@/assets/fabricio-real.jpg";
+import heroBg from "@/assets/hero-bg.png";
 
 import cardImovel from "@/assets/card-imovel.jpg";
 import cardVeiculo from "@/assets/card-veiculo.jpg";
