@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Sparkles } from "lucide-react";
+import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
@@ -72,14 +72,24 @@ const TEMP_COLORS: Record<string, string> = {
   "quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
   "morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
   "frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+  "perdido": "border-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.1)]",
   "morto": "border-gray-400 bg-gray-50 opacity-75",
 };
 
 const TEMP_EMOJIS: Record<string, string> = {
   quente: "🔥",
-  morno: "🌤",
+  morno: "🌤️",
   frio: "❄️",
+  perdido: "💀",
   morto: "☠️",
+};
+
+const TEMP_LABELS: Record<string, string> = {
+  quente: "Quente",
+  morno: "Morno",
+  frio: "Frio",
+  perdido: "Perdido",
+  morto: "Morto",
 };
 
 const SCORE_LABELS: Record<string, string> = {
@@ -341,6 +351,10 @@ export default function Funil() {
                             </a>
                           </div>
 
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
+                          </div>
+
                           <div className="flex items-center justify-between">
                             <p className="text-primary font-bold text-base">
                               {formatCurrency(Number(lead.valor_credito))}
@@ -363,7 +377,7 @@ export default function Funil() {
                               <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
+                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
                             </div>
                           </div>
                         </div>
@@ -431,13 +445,6 @@ export default function Funil() {
                                   <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                                 </div>
                                 <a
-                                  href="/admin/sdr"
-                                  className="bg-primary/10 hover:bg-primary/20 text-primary p-1.5 rounded-lg transition-colors"
-                                  title="Conselho da IA"
-                                >
-                                  <Sparkles className="h-4 w-4" />
-                                </a>
-                                <a
                                   href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -447,6 +454,10 @@ export default function Funil() {
                                 >
                                   <MessageCircle className="h-4 w-4" />
                                 </a>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
                               </div>
 
                               <div className="flex items-center justify-between">
@@ -471,7 +482,7 @@ export default function Funil() {
                                   <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
                                 </div>
                                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
+                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
                                 </div>
                               </div>
                             </div>

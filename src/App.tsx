@@ -13,8 +13,6 @@ import Leads from "./pages/admin/Leads";
 import Metas from "./pages/admin/Metas";
 import Carteira from "./pages/admin/Carteira";
 import Inadimplentes from "./pages/admin/Inadimplentes";
-import FilaInteligente from "./pages/admin/FilaInteligente";
-import SDRPanel from "./pages/admin/SDRPanel";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -29,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/simulador" element={<Simulador />} />
+          <Route path="/parceiro" element={<Simulador />} />
           <Route path="/admin/login" element={<Login />} />
           <Route
             path="/admin"
@@ -44,8 +43,6 @@ const App = () => (
             <Route path="metas" element={<Metas />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
-            <Route path="fila" element={<FilaInteligente />} />
-            <Route path="sdr" element={<SDRPanel />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
