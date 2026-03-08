@@ -74,6 +74,9 @@ export default function Metas() {
     const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const realizadoAno = fechados.filter(l => l.created_at?.startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+    const faltaAno = Math.max(0, metaAnual - realizadoAno);
+    const mesesRestantes = Math.max(1, 12 - currentMonth + 1);
+    const necessarioPorMes = faltaAno / mesesRestantes;
     const progressoMes = metaMensal > 0 ? Math.min(100, (realizadoMes / metaMensal) * 100) : 0;
     const progressoAno = metaAnual > 0 ? Math.min(100, (realizadoAno / metaAnual) * 100) : 0;
     const ticketMedio = fechados.length > 0 ? realizadoAno / fechados.length : 0;
@@ -172,6 +175,38 @@ export default function Metas() {
                         </div>
                         <div className="w-full bg-secondary/20 rounded-full h-2.5">
                             <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressoAno}%` }} />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Falta para Meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="bg-amber-50 border-amber-200">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                            <Target className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide">Falta para a Meta Anual</p>
+                            <p className="text-xl sm:text-2xl font-bold text-amber-800">{fmt(faltaAno)}</p>
+                            <p className="text-xs text-amber-600 mt-0.5">
+                                {faltaAno <= 0 ? "🎉 Meta atingida!" : `${(100 - progressoAno).toFixed(1)}% restante`}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-indigo-50 border-indigo-200">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                            <TrendingUp className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-indigo-700 font-semibold uppercase tracking-wide">Necessário por Mês</p>
+                            <p className="text-xl sm:text-2xl font-bold text-indigo-800">{fmt(necessarioPorMes)}</p>
+                            <p className="text-xs text-indigo-600 mt-0.5">
+                                nos {mesesRestantes} {mesesRestantes === 1 ? "mês restante" : "meses restantes"} de {currentYear}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
