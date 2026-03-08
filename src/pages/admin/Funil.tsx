@@ -171,7 +171,7 @@ export default function Funil() {
   }, []);
 
   const getColumnLeads = (colId: string) =>
-    leads.filter((l) => (l.status ?? "novo") === colId);
+    leads.filter((l) => normalizeStatus(l.status) === colId);
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
