@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
@@ -67,6 +68,12 @@ type HistItem = {
 };
 
 export default function Simulador() {
+  const [searchParams] = useSearchParams();
+  const refCelular = searchParams.get("ref") || "";
+  const refNome = searchParams.get("nome") ? decodeURIComponent(searchParams.get("nome")!) : "";
+  const isIndicacao = refCelular.length >= 10;
+  const wppDestino = isIndicacao ? refCelular : "5541997925357";
+
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
   const [nome, setNome] = useState("");
@@ -149,8 +156,10 @@ export default function Simulador() {
           valor_credito: fmt(g.credito),
           tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
-          origem: new URLSearchParams(window.location.search).get("utm_source") || "Simulador",
+          origem: new URLSearchParams(window.location.search).get("utm_source") || (isIndicacao ? "indicacao" : "Simulador"),
           score: leadScoreValor,
+          indicador_celular: isIndicacao ? refCelular : undefined,
+          indicador_nome: isIndicacao ? refNome : undefined,
         }),
       });
     } catch (e) { console.warn("Webhook:", e); }
@@ -163,10 +172,19 @@ export default function Simulador() {
   };
 
   const wppLockMsg = historico.map((h, i) => `${i + 1}. ${fmt(h.credito)} — ${fmt(h.r50)} / ${h.prazo}m`).join("\n");
-  const lockWppUrl = `https://wa.me/5541997925357?text=${encodeURIComponent("Olá Fabricio! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
+  const lockWppUrl = `https://wa.me/55${wppDestino}?text=${encodeURIComponent("Olá! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
+
+  const nomeIndicador = refNome || "um parceiro";
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
+      {/* Banner indicação */}
+      {isIndicacao && (
+        <div className="w-full max-w-[580px] rounded-full px-5 py-2.5 mb-4 flex items-center justify-center gap-2 text-xs font-semibold"
+          style={{ background: "#fff7ed", border: "1.5px solid #fed7aa", color: "#c2410c" }}>
+          🤝 Indicação de <strong>{nomeIndicador}</strong>
+        </div>
+      )}
       {/* Hero */}
       <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>Simulador</p>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
@@ -368,12 +386,12 @@ export default function Simulador() {
 
       {/* WhatsApp flutuante */}
       <a
-        href="https://wa.me/5541997925357?text=Ola%20Fabricio!%20Gostaria%20de%20saber%20mais%20sobre%20consorcio."
+        href={`https://wa.me/55${wppDestino}?text=${encodeURIComponent(isIndicacao ? `Olá! Vi o simulador pela indicação de ${nomeIndicador} e gostaria de saber mais sobre consórcio.` : "Ola Fabricio! Gostaria de saber mais sobre consorcio.")}`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed right-5 bottom-5 z-50 w-14 h-14 rounded-full flex items-center justify-center animate-pulse"
         style={{ background: "#25D366", boxShadow: "0 4px 16px rgba(37,211,102,.5)" }}
-        title="Falar com Fabricio"
+        title={isIndicacao ? `Falar com ${nomeIndicador}` : "Falar com Fabricio"}
       >
         <WhatsAppIcon className="w-6 h-6 text-white" />
       </a>
