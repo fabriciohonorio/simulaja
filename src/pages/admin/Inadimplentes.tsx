@@ -97,7 +97,7 @@ export default function Inadimplentes() {
     if (error) { toast.error("Erro ao adicionar"); return; }
     toast.success("Inadimplente adicionado!");
     setShowAdd(false);
-    setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "" });
+    setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
     fetchData();
   };
 
