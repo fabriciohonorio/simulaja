@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3 } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell } from "lucide-react";
+import { format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 interface Lead {
@@ -13,6 +14,8 @@ interface Lead {
   lead_score_valor: string | null;
   lead_temperatura: string | null;
   last_interaction_at: string | null;
+  data_vencimento: string | null;
+  celular: string | null;
 }
 
 const formatCurrency = (v: number) =>
@@ -149,22 +152,62 @@ export default function Dashboard() {
               <AlertTriangle className="h-5 w-5 text-orange-500" /> Atenção Necessária
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100 group cursor-pointer hover:bg-orange-100 transition-colors">
-              <div className="p-2 rounded-full bg-white text-orange-500 shadow-sm"><Clock className="h-4 w-4" /></div>
-              <div>
-                <p className="text-xs sm:text-sm font-semibold text-orange-800">12 Leads sem contato</p>
-                <p className="text-[10px] sm:text-xs text-orange-700">Há mais de 24h sem primeira interação.</p>
+          <CardContent className="space-y-3">
+            {/* Vencimentos de pagamento */}
+            {(() => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const aguardando = leads.filter(l => l.status === "aguardando_pagamento" && l.data_vencimento);
+              const vencendoHoje = aguardando.filter(l => {
+                const d = new Date(l.data_vencimento!);
+                return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+              });
+              const atrasados = aguardando.filter(l => new Date(l.data_vencimento!) < today);
+              return (
+                <>
+                  {atrasados.length > 0 && (
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-100">
+                      <div className="p-2 rounded-full bg-white text-red-500 shadow-sm"><Bell className="h-4 w-4 animate-pulse" /></div>
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold text-red-800">🔔 {atrasados.length} pagamento(s) ATRASADO(S)</p>
+                        <div className="space-y-0.5 mt-1">
+                          {atrasados.slice(0, 3).map(l => (
+                            <p key={l.id} className="text-[10px] sm:text-xs text-red-700">
+                              {l.nome} — venc. {format(new Date(l.data_vencimento!), "dd/MM")}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {vencendoHoje.length > 0 && (
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-100">
+                      <div className="p-2 rounded-full bg-white text-amber-500 shadow-sm"><Bell className="h-4 w-4 animate-bounce" /></div>
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold text-amber-800">🔔 {vencendoHoje.length} pagamento(s) vencem HOJE</p>
+                        <div className="space-y-0.5 mt-1">
+                          {vencendoHoje.map(l => (
+                            <p key={l.id} className="text-[10px] sm:text-xs text-amber-700">{l.nome}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+            {leads.filter(l => l.status === "novo" && l.created_at && (Date.now() - new Date(l.created_at).getTime() > 24 * 60 * 60 * 1000)).length > 0 && (
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100">
+                <div className="p-2 rounded-full bg-white text-orange-500 shadow-sm"><Clock className="h-4 w-4" /></div>
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-orange-800">
+                    {leads.filter(l => l.status === "novo" && l.created_at && (Date.now() - new Date(l.created_at).getTime() > 24 * 60 * 60 * 1000)).length} Leads sem contato
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-orange-700">Há mais de 24h sem primeira interação.</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100 group cursor-pointer hover:bg-blue-100 transition-colors">
-              <div className="p-2 rounded-full bg-white text-blue-500 shadow-sm"><MessageCircle className="h-4 w-4" /></div>
-              <div>
-                <p className="text-xs sm:text-sm font-semibold text-blue-800">5 Propostas vencendo</p>
-                <p className="text-[10px] sm:text-xs text-blue-700">Acompanhe hoje para não perder o timing.</p>
-              </div>
-            </div>
-            <div className="pt-2">
+            )}
+            <div className="pt-1">
               <p className="text-[10px] sm:text-xs text-muted-foreground italic text-center">Última atualização: agora mesmo</p>
             </div>
           </CardContent>
