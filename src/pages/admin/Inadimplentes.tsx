@@ -377,6 +377,10 @@ export default function Inadimplentes() {
               <Label>Cota</Label>
               <Input value={form.cota} onChange={(e) => setForm({ ...form, cota: e.target.value })} />
             </div>
+            <div className="space-y-1 col-span-2">
+              <Label>Administradora</Label>
+              <Input value={form.administradora} onChange={(e) => setForm({ ...form, administradora: e.target.value })} placeholder="Ex: Magalu, Embracon..." />
+            </div>
           </div>
           <Button onClick={handleAdd} disabled={saving || !form.nome} className="mt-2 w-full">
             {saving ? "Salvando..." : "Adicionar"}
