@@ -386,12 +386,12 @@ export default function Simulador() {
 
       {/* WhatsApp flutuante */}
       <a
-        href="https://wa.me/5541997925357?text=Ola%20Fabricio!%20Gostaria%20de%20saber%20mais%20sobre%20consorcio."
+        href={`https://wa.me/55${wppDestino}?text=${encodeURIComponent(isIndicacao ? `Olá! Vi o simulador pela indicação de ${nomeIndicador} e gostaria de saber mais sobre consórcio.` : "Ola Fabricio! Gostaria de saber mais sobre consorcio.")}`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed right-5 bottom-5 z-50 w-14 h-14 rounded-full flex items-center justify-center animate-pulse"
         style={{ background: "#25D366", boxShadow: "0 4px 16px rgba(37,211,102,.5)" }}
-        title="Falar com Fabricio"
+        title={isIndicacao ? `Falar com ${nomeIndicador}` : "Falar com Fabricio"}
       >
         <WhatsAppIcon className="w-6 h-6 text-white" />
       </a>
