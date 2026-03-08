@@ -68,6 +68,12 @@ type HistItem = {
 };
 
 export default function Simulador() {
+  const [searchParams] = useSearchParams();
+  const refCelular = searchParams.get("ref") || "";
+  const refNome = searchParams.get("nome") ? decodeURIComponent(searchParams.get("nome")!) : "";
+  const isIndicacao = refCelular.length >= 10;
+  const wppDestino = isIndicacao ? refCelular : "5541997925357";
+
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
   const [nome, setNome] = useState("");
