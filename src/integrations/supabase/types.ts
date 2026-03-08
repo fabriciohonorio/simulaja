@@ -104,6 +104,7 @@ export type Database = {
       }
       inadimplentes: {
         Row: {
+          administradora: string | null
           celular: string | null
           cota: string | null
           created_at: string
@@ -118,6 +119,7 @@ export type Database = {
           valor_parcela: number | null
         }
         Insert: {
+          administradora?: string | null
           celular?: string | null
           cota?: string | null
           created_at?: string
@@ -132,6 +134,7 @@ export type Database = {
           valor_parcela?: number | null
         }
         Update: {
+          administradora?: string | null
           celular?: string | null
           cota?: string | null
           created_at?: string
