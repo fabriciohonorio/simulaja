@@ -253,6 +253,20 @@ export default function Funil() {
     setCelebrationLead(null);
   };
 
+  const handleDeleteLead = async (leadId: string, leadNome: string) => {
+    if (!confirm(`Excluir o lead "${leadNome}" permanentemente?`)) return;
+    await Promise.all([
+      supabase.from("interacoes").delete().eq("lead_id", leadId),
+      supabase.from("historico_contatos").delete().eq("lead_id", leadId),
+      supabase.from("propostas").delete().eq("lead_id", leadId),
+      supabase.from("carteira").delete().eq("lead_id", leadId),
+    ]);
+    const { error } = await supabase.from("leads").delete().eq("id", leadId);
+    if (error) { toast.error("Erro ao excluir lead"); return; }
+    setLeads(prev => prev.filter(l => l.id !== leadId));
+    toast.success(`Lead "${leadNome}" excluído`);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
