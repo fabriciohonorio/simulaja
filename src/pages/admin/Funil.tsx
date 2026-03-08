@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp } from "lucide-react";
+import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
@@ -253,6 +253,20 @@ export default function Funil() {
     setCelebrationLead(null);
   };
 
+  const handleDeleteLead = async (leadId: string, leadNome: string) => {
+    if (!confirm(`Excluir o lead "${leadNome}" permanentemente?`)) return;
+    await Promise.all([
+      supabase.from("interacoes").delete().eq("lead_id", leadId),
+      supabase.from("historico_contatos").delete().eq("lead_id", leadId),
+      supabase.from("propostas").delete().eq("lead_id", leadId),
+      supabase.from("carteira").delete().eq("lead_id", leadId),
+    ]);
+    const { error } = await supabase.from("leads").delete().eq("id", leadId);
+    if (error) { toast.error("Erro ao excluir lead"); return; }
+    setLeads(prev => prev.filter(l => l.id !== leadId));
+    toast.success(`Lead "${leadNome}" excluído`);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
@@ -328,7 +342,7 @@ export default function Funil() {
                           className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
                             } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
                         >
-                          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
                             <div className="flex flex-col min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="font-bold truncate text-foreground">{lead.nome}</p>
@@ -342,15 +356,24 @@ export default function Funil() {
                               </div>
                               <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                             </div>
-                            <a
-                              href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1 bg-green-50 rounded-full"
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                            </a>
+                            <div className="flex items-center gap-1">
+                              <a
+                                href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                              </a>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id, lead.nome); }}
+                                className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
+                                title="Excluir lead"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
 
                           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -446,16 +469,25 @@ export default function Funil() {
                                   </div>
                                   <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                                 </div>
-                                <a
-                                  href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1 bg-green-50 rounded-full"
-                                  title="Enviar WhatsApp"
-                                >
-                                  <MessageCircle className="h-4 w-4" />
-                                </a>
+                                <div className="flex items-center gap-1">
+                                  <a
+                                    href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
+                                    title="Enviar WhatsApp"
+                                  >
+                                    <MessageCircle className="h-4 w-4" />
+                                  </a>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id, lead.nome); }}
+                                    className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
+                                    title="Excluir lead"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </div>
 
                               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
