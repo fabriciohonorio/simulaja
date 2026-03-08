@@ -187,6 +187,7 @@ export type Database = {
           celular: string | null
           cidade: string | null
           created_at: string | null
+          data_vencimento: string | null
           email: string | null
           id: string
           indicador_celular: string | null
@@ -205,6 +206,7 @@ export type Database = {
           celular?: string | null
           cidade?: string | null
           created_at?: string | null
+          data_vencimento?: string | null
           email?: string | null
           id?: string
           indicador_celular?: string | null
@@ -223,6 +225,7 @@ export type Database = {
           celular?: string | null
           cidade?: string | null
           created_at?: string | null
+          data_vencimento?: string | null
           email?: string | null
           id?: string
           indicador_celular?: string | null
