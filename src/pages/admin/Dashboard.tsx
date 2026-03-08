@@ -13,6 +13,8 @@ interface Lead {
   lead_score_valor: string | null;
   lead_temperatura: string | null;
   last_interaction_at: string | null;
+  data_vencimento: string | null;
+  celular: string | null;
 }
 
 const formatCurrency = (v: number) =>
