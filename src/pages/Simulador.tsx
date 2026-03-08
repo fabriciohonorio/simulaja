@@ -156,8 +156,10 @@ export default function Simulador() {
           valor_credito: fmt(g.credito),
           tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
-          origem: new URLSearchParams(window.location.search).get("utm_source") || "Simulador",
+          origem: new URLSearchParams(window.location.search).get("utm_source") || (isIndicacao ? "indicacao" : "Simulador"),
           score: leadScoreValor,
+          indicador_celular: isIndicacao ? refCelular : undefined,
+          indicador_nome: isIndicacao ? refNome : undefined,
         }),
       });
     } catch (e) { console.warn("Webhook:", e); }
