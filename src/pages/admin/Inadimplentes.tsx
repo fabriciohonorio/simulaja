@@ -90,6 +90,7 @@ export default function Inadimplentes() {
       parcelas_atrasadas: Number(form.parcelas_atrasadas) || 0,
       grupo: form.grupo,
       cota: form.cota,
+      administradora: form.administradora || null,
       status: "em_atraso",
     });
     setSaving(false);
