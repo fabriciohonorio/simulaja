@@ -55,6 +55,7 @@ const COLUMN_COLORS: Record<string, string> = {
   qualificacao: "border-t-orange-500",
   proposta: "border-t-purple-500",
   negociacao: "border-t-indigo-500",
+  aguardando_pagamento: "border-t-amber-500",
   fechado: "border-t-green-500",
   perdido: "border-t-red-500",
   morto: "border-t-gray-500",
