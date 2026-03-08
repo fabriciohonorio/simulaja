@@ -74,6 +74,9 @@ export default function Metas() {
     const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const realizadoAno = fechados.filter(l => l.created_at?.startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+    const faltaAno = Math.max(0, metaAnual - realizadoAno);
+    const mesesRestantes = Math.max(1, 12 - currentMonth + 1);
+    const necessarioPorMes = faltaAno / mesesRestantes;
     const progressoMes = metaMensal > 0 ? Math.min(100, (realizadoMes / metaMensal) * 100) : 0;
     const progressoAno = metaAnual > 0 ? Math.min(100, (realizadoAno / metaAnual) * 100) : 0;
     const ticketMedio = fechados.length > 0 ? realizadoAno / fechados.length : 0;
