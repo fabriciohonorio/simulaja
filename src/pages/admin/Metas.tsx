@@ -14,6 +14,8 @@ interface Lead {
     valor_credito: number;
     created_at: string | null;
     updated_at: string | null;
+    propensity_score?: number | null;
+    propensity_reason?: string | null;
 }
 
 interface Termometro {
