@@ -186,6 +186,8 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          lead_score_valor: string | null
+          lead_temperatura: string | null
           nome: string
           prazo_meses: number | null
           status: string | null
@@ -200,6 +202,8 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          lead_score_valor?: string | null
+          lead_temperatura?: string | null
           nome: string
           prazo_meses?: number | null
           status?: string | null
@@ -214,6 +218,8 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          lead_score_valor?: string | null
+          lead_temperatura?: string | null
           nome?: string
           prazo_meses?: number | null
           status?: string | null

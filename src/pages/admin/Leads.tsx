@@ -76,7 +76,7 @@ export default function Leads() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      setLeads(data ?? []);
+      setLeads((data as Lead[]) ?? []);
       setLoading(false);
     });
   }, []);
