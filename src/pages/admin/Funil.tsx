@@ -196,7 +196,7 @@ export default function Funil() {
       .from("leads")
       .update({
         status: newStatus,
-        status_updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq("id", leadId);
 
