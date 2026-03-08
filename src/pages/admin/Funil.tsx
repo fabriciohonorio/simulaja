@@ -121,6 +121,8 @@ const normalizeStatus = (status: string | null): string => {
     "negociação": "negociacao",
     "em_negociacao": "negociacao",
     "em_negociação": "negociacao",
+    "aguardando_pagamento": "aguardando_pagamento",
+    "aguardando pagamento": "aguardando_pagamento",
     "fechado": "fechado",
     "venda_fechada": "fechado",
     "perdido": "perdido",
