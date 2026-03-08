@@ -162,6 +162,8 @@ export default function Indicacoes() {
       });
     } catch (e) { console.warn("Webhook:", e); }
 
+    toast.success("Em breve o especialista entrará em contato.", { duration: 5000 });
+
     if (novaConsulta >= MAX_CONSULTAS) setTimeout(() => setBloqueado(true), 700);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
   };
