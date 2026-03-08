@@ -528,10 +528,10 @@ const ConsortiumSimulator = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
-              { icon: Target, title: "Análise do melhor valor de carta", desc: "Encontramos a carta ideal para o seu objetivo e orçamento." },
-              { icon: Clock, title: "Planejamento de prazo", desc: "Definimos o prazo perfeito para suas parcelas caberem no bolso." },
-              { icon: BarChart3, title: "Estratégia de lance", desc: "Orientação para aumentar suas chances de contemplação." },
-              { icon: Shield, title: "Planejamento patrimonial", desc: "Construa patrimônio de forma estratégica e segura." },
+              { icon: Target, title: "Análise do melhor valor de carta", desc: "Análise do melhor valor de sua carta após a contemplação. Lucratividade com a venda da carta contemplada." },
+              { icon: Clock, title: "Acompanhamento e estratégia de lance", desc: "Garante a agilidade e eficiência na contemplação com a melhor estratégia de lance." },
+              { icon: Shield, title: "Planejamento Patrimonial", desc: "Após reunião e conversa com o cliente, alinhamos o melhor projeto capaz de entregar o bem de acordo com suas necessidades." },
+              { icon: BarChart3, title: "Atendimento Completo", desc: "Atendimento pessoal e online de norte a sul, com as melhores tecnologias." },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-4 bg-card rounded-xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
