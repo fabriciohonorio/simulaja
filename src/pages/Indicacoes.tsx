@@ -340,7 +340,7 @@ export default function Indicacoes() {
             </div>
             <div className="grid grid-cols-1 gap-2 rounded-[10px] overflow-hidden">
               <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(74,222,128,0.12)" }}>
-                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Parcela 50%</p>
+                <p className="text-[0.65rem] tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Parcela 50%</p>
                 <p className="text-2xl font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#4ade80" }}>{fmt(resultado.r50)}</p>
                 <p className="text-[0.6rem] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>até contemplação</p>
               </div>
