@@ -388,10 +388,11 @@ export default function Funil() {
   const handleSaveVencimento = async () => {
     if (!vencimentoLead || !selectedDate) return;
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    
-    const { error } = await (supabase.from("leads") as any).update({
-      data_vencimento: dateStr,
-    }).eq("id", vencimentoLead.id);
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ data_vencimento: dateStr, updated_at: new Date().toISOString() })
+      .eq("id", vencimentoLead.id);
 
     if (error) {
       toast.error("Erro ao salvar data de vencimento");
@@ -399,7 +400,11 @@ export default function Funil() {
     }
 
     setLeads(prev => prev.map(l => l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr } : l));
-    toast.success(`Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`);
+    toast.success(
+      vencimentoLead.data_vencimento
+        ? `Agendamento atualizado para ${format(selectedDate, "dd/MM/yyyy")}`
+        : `Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`
+    );
     setVencimentoLead(null);
     setSelectedDate(undefined);
   };
