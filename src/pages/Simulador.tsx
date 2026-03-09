@@ -322,21 +322,25 @@ export default function Simulador() {
               ✅ Proposta confirmada
               <span className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
             </div>
-            <div className="grid grid-cols-3 gap-0.5 rounded-[10px] overflow-hidden">
-              {[
-                { label: "Parcela 50%", value: fmt(resultado.r50), sub: "até contemplação", green: true },
-                { label: "Crédito", value: fmt(resultado.credito) },
-                { label: "Prazo", value: `${resultado.prazo} meses` },
-              ].map((item) => (
-                <div key={item.label} className="py-3 px-2.5 text-center" style={{ background: item.green ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)" }}>
-                  <p className="text-[0.56rem] uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.38)" }}>{item.label}</p>
-                  <p className={`font-medium ${item.green ? "text-lg" : "text-base"}`} style={{ fontFamily: "'DM Mono', monospace", color: item.green ? "#4ade80" : "#fff" }}>{item.value}</p>
-                  {item.sub && <p className="text-[0.52rem] mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>{item.sub}</p>}
+            <div className="grid grid-cols-1 gap-2 rounded-[10px] overflow-hidden">
+              <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(74,222,128,0.12)" }}>
+                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Parcela 50%</p>
+                <p className="text-2xl font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#4ade80" }}>{fmt(resultado.r50)}</p>
+                <p className="text-[0.6rem] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>até contemplação</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Crédito</p>
+                  <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{fmt(resultado.credito)}</p>
                 </div>
-              ))}
+                <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Prazo</p>
+                  <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{resultado.prazo} meses</p>
+                </div>
+              </div>
             </div>
-            <div className="mt-2.5 py-2 px-3 rounded-lg text-center text-[0.7rem]" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}>
-              Para lance e condições especiais <strong style={{ color: "#ffa040" }}>fale com o especialista ✉️</strong>
+            <div className="mt-3 py-2.5 px-3 rounded-lg text-center text-xs font-semibold" style={{ background: "rgba(255,255,255,0.08)", color: "#fff" }}>
+              👨‍💼 Você será atendido pelo Especialista
             </div>
           </div>
         )}
