@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame } from "lucide-react";
+import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame, Lightbulb, ArrowRight, Star } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Lead {
@@ -283,41 +283,112 @@ export default function Metas() {
                 </Card>
             </div>
 
-            {/* Top Leads + Destaque */}
+            {/* Dicas e Sugestões + Destaque */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="md:col-span-2">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm sm:text-base">Ranking de Propensão de Compra</CardTitle>
-                        <Trophy className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                            <Lightbulb className="h-4 w-4 text-amber-500" />
+                            Dicas e Sugestões para Atingir a Meta
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        {topLeads.map((l, i) => (
-                            <div key={l.id} className="space-y-2 p-3 rounded-lg border bg-white shadow-sm">
-                                <div className="flex justify-between items-start gap-2">
+                        {(() => {
+                            const dicas: { icon: typeof Lightbulb; color: string; titulo: string; descricao: string }[] = [];
+
+                            // Dica baseada no termômetro — segmentos quentes
+                            const segQuentes = termometro.filter(t => t.percentual >= 70);
+                            if (segQuentes.length > 0) {
+                                dicas.push({
+                                    icon: Flame,
+                                    color: "text-red-500",
+                                    titulo: `Segmentos em alta: ${segQuentes.map(s => s.segmento).join(", ")}`,
+                                    descricao: `O mercado está aquecido! Aproveite para prospectar clientes nesses segmentos onde a demanda é maior.`,
+                                });
+                            }
+
+                            // Dica baseada em leads sem follow-up
+                            if (semFollowUp > 0) {
+                                dicas.push({
+                                    icon: AlertTriangle,
+                                    color: "text-amber-500",
+                                    titulo: `${semFollowUp} leads sem contato há mais de 7 dias`,
+                                    descricao: `Retome o contato com esses leads. Um follow-up pode reativar o interesse e gerar fechamento.`,
+                                });
+                            }
+
+                            // Dica de ticket médio vs falta
+                            if (faltaMes > 0 && ticketMedio > 0) {
+                                dicas.push({
+                                    icon: Target,
+                                    color: "text-primary",
+                                    titulo: `Faltam aproximadamente ${leadsNecessarios} fechamento(s) para bater a meta do mês`,
+                                    descricao: `Com ticket médio de ${fmt(ticketMedio)}, foque nos leads com maior valor de crédito para atingir os ${fmt(faltaMes)} restantes.`,
+                                });
+                            }
+
+                            // Dica de projeção
+                            if (projecaoMes < metaMensal && metaMensal > 0) {
+                                dicas.push({
+                                    icon: TrendingUp,
+                                    color: "text-indigo-500",
+                                    titulo: `Projeção abaixo da meta: ${fmt(projecaoMes)} de ${fmt(metaMensal)}`,
+                                    descricao: `Intensifique a prospecção nos próximos ${diasMes - diaHoje} dias. Considere oferecer condições especiais para acelerar fechamentos.`,
+                                });
+                            }
+
+                            // Dica de segmentos frios — oportunidade
+                            const segFrios = termometro.filter(t => t.percentual < 40);
+                            if (segFrios.length > 0) {
+                                dicas.push({
+                                    icon: Star,
+                                    color: "text-blue-500",
+                                    titulo: `Oportunidade em segmentos frios: ${segFrios.map(s => s.segmento).join(", ")}`,
+                                    descricao: `Menos concorrência nesses segmentos. Trabalhe leads que já demonstraram interesse para se destacar.`,
+                                });
+                            }
+
+                            // Dica de taxa de perda
+                            if (taxaPerda > 30) {
+                                dicas.push({
+                                    icon: UserX,
+                                    color: "text-red-500",
+                                    titulo: `Taxa de perda alta: ${taxaPerda.toFixed(1)}%`,
+                                    descricao: `Revise o processo de atendimento. Identifique os motivos de desistência e ajuste sua abordagem comercial.`,
+                                });
+                            }
+
+                            if (faltaMes <= 0) {
+                                dicas.push({
+                                    icon: Trophy,
+                                    color: "text-green-600",
+                                    titulo: `🎉 Meta do mês atingida! Parabéns!`,
+                                    descricao: `Continue prospectando para acumular resultados e garantir a meta anual.`,
+                                });
+                            }
+
+                            if (dicas.length === 0) {
+                                dicas.push({
+                                    icon: Lightbulb,
+                                    color: "text-amber-500",
+                                    titulo: "Defina sua meta anual para receber dicas personalizadas",
+                                    descricao: "Configure a meta no campo acima para que o sistema gere sugestões inteligentes de atuação.",
+                                });
+                            }
+
+                            return dicas.map((d, i) => (
+                                <div key={i} className="flex items-start gap-3 p-3 rounded-lg border bg-card shadow-sm">
+                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                                        <d.icon className={`h-4 w-4 ${d.color}`} />
+                                    </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm font-bold truncate">{i + 1}. {l.nome}</p>
-                                        <p className="text-[10px] text-muted-foreground italic truncate">{l.propensity_reason || "Calculando propensão..."}</p>
+                                        <p className="text-sm font-semibold">{d.titulo}</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">{d.descricao}</p>
                                     </div>
-                                    <div className="text-right shrink-0">
-                                        <p className="font-bold text-primary text-sm">{fmt(l.valor_credito || 0)}</p>
-                                        <span className={`text-[10px] font-black ${(l.propensity_score || 0) >= 70 ? "text-green-600" :
-                                            (l.propensity_score || 0) >= 40 ? "text-orange-600" : "text-slate-400"
-                                            }`}>
-                                            {l.propensity_score || 0}% Chance
-                                        </span>
-                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
                                 </div>
-                                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div
-                                        className={`h-full transition-all duration-500 ${(l.propensity_score || 0) >= 70 ? "bg-green-500" :
-                                            (l.propensity_score || 0) >= 40 ? "bg-orange-500" : "bg-slate-300"
-                                            }`}
-                                        style={{ width: `${l.propensity_score || 0}%` }}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                        {topLeads.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum lead em aberto.</p>}
+                            ));
+                        })()}
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-primary/10 to-transparent">
