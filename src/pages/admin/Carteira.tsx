@@ -113,6 +113,27 @@ export default function Carteira() {
     fetchData();
   };
 
+  const handleSendWhatsApp = async (item: CarteiraItem) => {
+    if (!item.boleto_url) {
+      toast({ title: "Sem boleto", description: "Faça o upload do boleto antes de enviar.", variant: "destructive" });
+      return;
+    }
+    if (!item.celular) {
+      toast({ title: "Sem celular", description: "Este cliente não possui celular cadastrado.", variant: "destructive" });
+      return;
+    }
+    const { data, error } = await supabase.storage.from("boletos").createSignedUrl(item.boleto_url, 86400);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Erro", description: "Não foi possível gerar o link do boleto.", variant: "destructive" });
+      return;
+    }
+    const phone = item.celular.replace(/\D/g, "");
+    const msg = encodeURIComponent(
+      `Olá ${item.nome}! 😊\n\nSegue o link para download do seu boleto:\n${data.signedUrl}\n\n⚠️ Este link é válido por 24 horas.`
+    );
+    window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
+  };
+
   const handleContemplacao = async () => {
     if (!selectedItem) return;
     setSaving(true);
