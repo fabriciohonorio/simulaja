@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar, Upload, FileText, Trash2 } from "lucide-react";
+import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar, Upload, FileText, Trash2, Send } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface CarteiraItem {
