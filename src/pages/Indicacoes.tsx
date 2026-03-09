@@ -174,7 +174,7 @@ export default function Indicacoes() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
       {/* Hero */}
-      <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>Área do Parceiro</p>
+      <p className="text-xs font-bold tracking-[0.16em]" style={{ color: "#f47920" }}>Área do Parceiro</p>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
         Simule para seu <em className="not-italic" style={{ color: "#f47920" }}>Cliente</em>
       </h1>
