@@ -286,7 +286,7 @@ export default function Indicacoes() {
         <div className="h-px mb-5" style={{ background: "#e4e9f2" }} />
 
         {/* Client form */}
-        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#0f2044" }}>📋 Dados do Cliente</p>
+        <p className="text-xs font-bold tracking-wider mb-3" style={{ color: "#0f2044" }}>📋 Dados do Cliente</p>
 
         <input
           type="text" placeholder="Nome do cliente *"
