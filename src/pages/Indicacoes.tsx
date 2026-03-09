@@ -276,7 +276,7 @@ export default function Indicacoes() {
               { label: "Grupo", value: g.grupo },
             ].map((m) => (
               <div key={m.label} className="flex-1 bg-white rounded-lg py-2 px-2.5 text-center" style={{ border: "1px solid #d1fae5" }}>
-                <p className="text-[0.58rem] uppercase tracking-wider mb-0.5" style={{ color: "#6b7a99" }}>{m.label}</p>
+                <p className="text-[0.58rem] tracking-wider mb-0.5" style={{ color: "#6b7a99" }}>{m.label}</p>
                 <p className="text-sm font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#0f2044" }}>{m.value}</p>
               </div>
             ))}
