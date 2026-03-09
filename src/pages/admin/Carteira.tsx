@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar, Upload, FileText, Trash2 } from "lucide-react";
+import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar, Upload, FileText, Trash2, Send } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface CarteiraItem {
@@ -27,6 +27,7 @@ interface CarteiraItem {
   data_contemplacao: string | null;
   boleto_url: string | null;
   created_at: string;
+  celular?: string | null;
 }
 
 const fmt = (v: number) =>
@@ -43,8 +44,12 @@ export default function Carteira() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchData = async () => {
-    const { data } = await (supabase.from("carteira" as any) as any).select("*").order("created_at", { ascending: false });
-    setItems(data ?? []);
+    const { data } = await (supabase.from("carteira" as any) as any).select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
+    const mapped = (data ?? []).map((item: any) => ({
+      ...item,
+      celular: item.leads?.celular ?? null,
+    }));
+    setItems(mapped);
     setLoading(false);
   };
 
@@ -108,6 +113,27 @@ export default function Carteira() {
     fetchData();
   };
 
+  const handleSendWhatsApp = async (item: CarteiraItem) => {
+    if (!item.boleto_url) {
+      toast({ title: "Sem boleto", description: "Faça o upload do boleto antes de enviar.", variant: "destructive" });
+      return;
+    }
+    if (!item.celular) {
+      toast({ title: "Sem celular", description: "Este cliente não possui celular cadastrado.", variant: "destructive" });
+      return;
+    }
+    const { data, error } = await supabase.storage.from("boletos").createSignedUrl(item.boleto_url, 86400);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Erro", description: "Não foi possível gerar o link do boleto.", variant: "destructive" });
+      return;
+    }
+    const phone = item.celular.replace(/\D/g, "");
+    const msg = encodeURIComponent(
+      `Olá ${item.nome}! 😊\n\nSegue o link para download do seu boleto:\n${data.signedUrl}\n\n⚠️ Este link é válido por 24 horas.`
+    );
+    window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
+  };
+
   const handleContemplacao = async () => {
     if (!selectedItem) return;
     setSaving(true);
@@ -148,6 +174,9 @@ export default function Carteira() {
         <>
           <Button size="sm" variant="ghost" onClick={() => handleViewBoleto(item)} title="Ver boleto">
             <FileText className="h-3.5 w-3.5 text-primary" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleSendWhatsApp(item)} title="Enviar por WhatsApp">
+            <Send className="h-3.5 w-3.5 text-green-600" />
           </Button>
           <Button size="sm" variant="ghost" onClick={() => handleDeleteBoleto(item)} title="Excluir boleto">
             <Trash2 className="h-3.5 w-3.5 text-destructive" />
