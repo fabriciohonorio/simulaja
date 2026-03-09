@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface Lead {
@@ -141,16 +141,17 @@ const normalizeStatus = (status: string | null): string => {
 const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
+// IMPORTANT: data_vencimento é um campo DATE (sem horário). Usamos parseISO para evitar shift de fuso (UTC -> local).
 const isToday = (dateStr: string | null) => {
   if (!dateStr) return false;
-  const d = new Date(dateStr);
+  const d = parseISO(dateStr);
   const today = new Date();
   return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
 };
 
 const isPastDue = (dateStr: string | null) => {
   if (!dateStr) return false;
-  const d = new Date(dateStr);
+  const d = parseISO(dateStr);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return d < today;
