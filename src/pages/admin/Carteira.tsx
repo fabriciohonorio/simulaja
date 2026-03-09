@@ -44,8 +44,12 @@ export default function Carteira() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchData = async () => {
-    const { data } = await (supabase.from("carteira" as any) as any).select("*").order("created_at", { ascending: false });
-    setItems(data ?? []);
+    const { data } = await (supabase.from("carteira" as any) as any).select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
+    const mapped = (data ?? []).map((item: any) => ({
+      ...item,
+      celular: item.leads?.celular ?? null,
+    }));
+    setItems(mapped);
     setLoading(false);
   };
 
