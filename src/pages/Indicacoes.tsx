@@ -174,7 +174,7 @@ export default function Indicacoes() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
       {/* Hero */}
-      <p className="text-xs font-bold tracking-[0.16em] uppercase" style={{ color: "#f47920" }}>Área do Parceiro</p>
+      <p className="text-xs font-bold tracking-[0.16em]" style={{ color: "#f47920" }}>Área do Parceiro</p>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
         Simule para seu <em className="not-italic" style={{ color: "#f47920" }}>Cliente</em>
       </h1>
@@ -263,7 +263,7 @@ export default function Indicacoes() {
         {/* Green installment card */}
         <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
           <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,#16a34a,#4ade80)" }} />
-          <p className="text-[0.65rem] font-bold uppercase tracking-wider mb-1" style={{ color: "#15803d" }}>
+          <p className="text-[0.65rem] font-bold tracking-wider mb-1" style={{ color: "#15803d" }}>
             Parcela reduzida 50% <span style={{ color: "#4ade80", fontWeight: 400 }}>· até a contemplação</span>
           </p>
           <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "'DM Mono', monospace", color: "#16a34a" }}>
@@ -276,7 +276,7 @@ export default function Indicacoes() {
               { label: "Grupo", value: g.grupo },
             ].map((m) => (
               <div key={m.label} className="flex-1 bg-white rounded-lg py-2 px-2.5 text-center" style={{ border: "1px solid #d1fae5" }}>
-                <p className="text-[0.58rem] uppercase tracking-wider mb-0.5" style={{ color: "#6b7a99" }}>{m.label}</p>
+                <p className="text-[0.58rem] tracking-wider mb-0.5" style={{ color: "#6b7a99" }}>{m.label}</p>
                 <p className="text-sm font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#0f2044" }}>{m.value}</p>
               </div>
             ))}
@@ -286,7 +286,7 @@ export default function Indicacoes() {
         <div className="h-px mb-5" style={{ background: "#e4e9f2" }} />
 
         {/* Client form */}
-        <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#0f2044" }}>📋 Dados do Cliente</p>
+        <p className="text-xs font-bold tracking-wider mb-3" style={{ color: "#0f2044" }}>📋 Dados do Cliente</p>
 
         <input
           type="text" placeholder="Nome do cliente *"
@@ -316,7 +316,7 @@ export default function Indicacoes() {
         <button
           onClick={simular}
           disabled={bloqueado}
-          className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
+          className="w-full py-4 rounded-[10px] text-base font-extrabold tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
           style={{ background: "#f47920", color: "#fff", border: "none", boxShadow: "0 4px 20px rgba(244,121,32,.35)" }}
         >
           Simule Já
@@ -334,23 +334,23 @@ export default function Indicacoes() {
         {/* Result */}
         {resultado && (
           <div ref={resultRef} className="rounded-[14px] p-5 mt-5 animate-fade-in" style={{ background: "#0f2044" }}>
-            <div className="text-[0.58rem] uppercase tracking-[0.12em] mb-3 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.38)" }}>
+            <div className="text-[0.58rem] tracking-[0.12em] mb-3 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.38)" }}>
               ✅ Proposta confirmada
               <span className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
             </div>
             <div className="grid grid-cols-1 gap-2 rounded-[10px] overflow-hidden">
               <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(74,222,128,0.12)" }}>
-                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Parcela 50%</p>
+                <p className="text-[0.65rem] tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Parcela 50%</p>
                 <p className="text-2xl font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#4ade80" }}>{fmt(resultado.r50)}</p>
                 <p className="text-[0.6rem] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>até contemplação</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Crédito</p>
+                  <p className="text-[0.65rem] tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Crédito</p>
                   <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{fmt(resultado.credito)}</p>
                 </div>
                 <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Prazo</p>
+                  <p className="text-[0.65rem] tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Prazo</p>
                   <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{resultado.prazo} meses</p>
                 </div>
               </div>
@@ -367,7 +367,7 @@ export default function Indicacoes() {
         {/* History */}
         {historico.length > 0 && (
           <div className="mt-4">
-            <p className="text-[0.64rem] font-bold tracking-[0.1em] uppercase mb-2" style={{ color: "#6b7a99" }}>Suas simulações</p>
+            <p className="text-[0.64rem] font-bold tracking-[0.1em] mb-2" style={{ color: "#6b7a99" }}>Suas simulações</p>
             {historico.map((h, i) => (
               <div key={i} className="flex items-center justify-between p-2.5 rounded-[10px] mb-1.5 flex-wrap gap-2" style={{ background: "#fff", border: "1.5px solid #e4e9f2", borderLeft: "3px solid #f47920" }}>
                 <div>
