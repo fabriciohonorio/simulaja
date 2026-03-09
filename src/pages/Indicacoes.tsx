@@ -367,7 +367,7 @@ export default function Indicacoes() {
         {/* History */}
         {historico.length > 0 && (
           <div className="mt-4">
-            <p className="text-[0.64rem] font-bold tracking-[0.1em] uppercase mb-2" style={{ color: "#6b7a99" }}>Suas simulações</p>
+            <p className="text-[0.64rem] font-bold tracking-[0.1em] mb-2" style={{ color: "#6b7a99" }}>Suas simulações</p>
             {historico.map((h, i) => (
               <div key={i} className="flex items-center justify-between p-2.5 rounded-[10px] mb-1.5 flex-wrap gap-2" style={{ background: "#fff", border: "1.5px solid #e4e9f2", borderLeft: "3px solid #f47920" }}>
                 <div>
