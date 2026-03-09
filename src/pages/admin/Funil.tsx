@@ -251,7 +251,7 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
         <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${vencAtrasado ? "bg-red-100 text-red-700" : vencHoje ? "bg-amber-100 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
           {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
           <CalendarIcon className="h-3 w-3" />
-          Venc: {format(new Date(lead.data_vencimento), "dd/MM/yyyy")}
+          Venc: {format(parseISO(lead.data_vencimento), "dd/MM/yyyy")}
           {vencAtrasado && " — ATRASADO"}
           {vencHoje && " — VENCE HOJE!"}
         </div>
