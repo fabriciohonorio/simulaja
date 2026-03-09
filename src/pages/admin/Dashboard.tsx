@@ -159,11 +159,15 @@ export default function Dashboard() {
               const today = new Date();
               today.setHours(0, 0, 0, 0);
               const aguardando = leads.filter(l => l.status === "aguardando_pagamento" && l.data_vencimento);
-              const vencendoHoje = aguardando.filter(l => {
-                const d = new Date(l.data_vencimento!);
-                return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+              const vencendoHoje = aguardando.filter((l) => {
+                const d = parseISO(l.data_vencimento!);
+                return (
+                  d.getFullYear() === today.getFullYear() &&
+                  d.getMonth() === today.getMonth() &&
+                  d.getDate() === today.getDate()
+                );
               });
-              const atrasados = aguardando.filter(l => new Date(l.data_vencimento!) < today);
+              const atrasados = aguardando.filter((l) => parseISO(l.data_vencimento!) < today);
               return (
                 <>
                   {atrasados.length > 0 && (
