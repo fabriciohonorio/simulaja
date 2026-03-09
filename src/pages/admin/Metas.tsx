@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame } from "lucide-react";
+import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame, Lightbulb, ArrowRight, Star } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Lead {
