@@ -175,6 +175,9 @@ export default function Carteira() {
           <Button size="sm" variant="ghost" onClick={() => handleViewBoleto(item)} title="Ver boleto">
             <FileText className="h-3.5 w-3.5 text-primary" />
           </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleSendWhatsApp(item)} title="Enviar por WhatsApp">
+            <Send className="h-3.5 w-3.5 text-green-600" />
+          </Button>
           <Button size="sm" variant="ghost" onClick={() => handleDeleteBoleto(item)} title="Excluir boleto">
             <Trash2 className="h-3.5 w-3.5 text-destructive" />
           </Button>
