@@ -869,9 +869,35 @@ export default function Funil() {
     </Draggable>
   );
 
+  const columnSummaries = COLUMNS.map((col) => {
+    const colLeads = getColumnLeads(col.id);
+    const total = colLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
+    return { ...col, count: colLeads.length, total };
+  });
+  const grandTotal = columnSummaries.reduce((s, c) => s + c.total, 0);
+  const grandCount = columnSummaries.reduce((s, c) => s + c.count, 0);
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
+
+      {/* Summary bar */}
+      <div className="rounded-lg border border-border bg-card p-3 overflow-x-auto">
+        <div className="flex items-center gap-4 min-w-max">
+          <div className="pr-4 border-r border-border">
+            <p className="text-xs text-muted-foreground font-medium">Total Geral</p>
+            <p className="text-lg font-bold text-foreground">{formatCurrency(grandTotal)}</p>
+            <p className="text-[10px] text-muted-foreground">{grandCount} leads</p>
+          </div>
+          {columnSummaries.map((col) => (
+            <div key={col.id} className="text-center px-2">
+              <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[90px]">{col.label.replace(/^[^\s]+\s/, "")}</p>
+              <p className="text-sm font-bold text-foreground">{formatCurrency(col.total)}</p>
+              <p className="text-[10px] text-muted-foreground">{col.count}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Mobile: Column navigator */}
       <div className="md:hidden">
