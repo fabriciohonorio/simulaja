@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       carteira: {
         Row: {
+          boleto_url: string | null
           cota: string | null
           cota_contemplada: string | null
           created_at: string
@@ -30,6 +31,7 @@ export type Database = {
           valor_credito: number | null
         }
         Insert: {
+          boleto_url?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
@@ -44,6 +46,7 @@ export type Database = {
           valor_credito?: number | null
         }
         Update: {
+          boleto_url?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
