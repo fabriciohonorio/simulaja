@@ -350,7 +350,7 @@ export default function Indicacoes() {
                   <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{fmt(resultado.credito)}</p>
                 </div>
                 <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Prazo</p>
+                  <p className="text-[0.65rem] tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Prazo</p>
                   <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{resultado.prazo} meses</p>
                 </div>
               </div>
