@@ -178,7 +178,8 @@ export default function Dashboard() {
                         <div className="space-y-0.5 mt-1">
                           {atrasados.slice(0, 3).map(l => (
                             <p key={l.id} className="text-[10px] sm:text-xs text-red-700">
-                              {l.nome} — venc. {format(new Date(l.data_vencimento!), "dd/MM")}
+                              {l.nome} — venc. {format(parseISO(l.data_vencimento!), "dd/MM")}
+
                             </p>
                           ))}
                         </div>
