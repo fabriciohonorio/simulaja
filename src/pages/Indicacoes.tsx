@@ -263,7 +263,7 @@ export default function Indicacoes() {
         {/* Green installment card */}
         <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
           <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,#16a34a,#4ade80)" }} />
-          <p className="text-[0.65rem] font-bold uppercase tracking-wider mb-1" style={{ color: "#15803d" }}>
+          <p className="text-[0.65rem] font-bold tracking-wider mb-1" style={{ color: "#15803d" }}>
             Parcela reduzida 50% <span style={{ color: "#4ade80", fontWeight: 400 }}>· até a contemplação</span>
           </p>
           <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "'DM Mono', monospace", color: "#16a34a" }}>
