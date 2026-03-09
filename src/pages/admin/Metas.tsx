@@ -213,24 +213,30 @@ export default function Metas() {
             </div>
 
             {/* KPI Grid — 2 cols on phones, 4 on md, 7 on xl */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3">
-                {[
-                    { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio" },
-                    { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão" },
-                    { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários" },
-                    { icon: Clock, color: "text-purple-500", val: `${diasMes - diaHoje} dias`, label: "Dias p/ Fechar Mês" },
-                    { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda" },
-                    { icon: BarChart3, color: "text-indigo-500", val: fmt(projecaoMes), label: "Projeção do Mês" },
-                    { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d" },
-                ].map((k, i) => (
-                    <Card key={i} className={i === 6 && semFollowUp > 0 ? "bg-red-50 border-red-200" : ""}>
-                        <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
-                            <k.icon className={`h-5 w-5 ${k.color}`} />
-                            <p className="text-base sm:text-xl font-bold leading-tight">{k.val}</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{k.label}</p>
-                        </CardContent>
-                    </Card>
-                ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3">
+                {(() => {
+                    const faltaMetaMesColor = progressoMes >= 99 ? "text-green-600" : progressoMes >= 70 ? "text-amber-500" : "text-red-500";
+                    const faltaMetaMesBg = progressoMes >= 99 ? "bg-green-50 border-green-200" : progressoMes >= 70 ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200";
+                    const items = [
+                        { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio", cardClass: "" },
+                        { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão", cardClass: "" },
+                        { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários", cardClass: "" },
+                        { icon: Clock, color: "text-purple-500", val: `${diasMes - diaHoje} dias`, label: "Dias p/ Fechar Mês", cardClass: "" },
+                        { icon: Target, color: faltaMetaMesColor, val: fmt(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg },
+                        { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda", cardClass: "" },
+                        { icon: BarChart3, color: "text-indigo-500", val: fmt(projecaoMes), label: "Projeção do Mês", cardClass: "" },
+                        { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-50 border-red-200" : "" },
+                    ];
+                    return items.map((k, i) => (
+                        <Card key={i} className={k.cardClass}>
+                            <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
+                                <k.icon className={`h-5 w-5 ${k.color}`} />
+                                <p className="text-base sm:text-xl font-bold leading-tight">{k.val}</p>
+                                <p className="text-xs text-muted-foreground leading-tight">{k.label}</p>
+                            </CardContent>
+                        </Card>
+                    ));
+                })()}
             </div>
 
             {/* Chart + Thermometer */}
