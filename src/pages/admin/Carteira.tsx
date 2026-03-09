@@ -27,6 +27,7 @@ interface CarteiraItem {
   data_contemplacao: string | null;
   boleto_url: string | null;
   created_at: string;
+  celular?: string | null;
 }
 
 const fmt = (v: number) =>
