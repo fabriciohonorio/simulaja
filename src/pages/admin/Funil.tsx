@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import {
@@ -12,6 +12,13 @@ import {
   TrendingUp,
   Trash2,
   Bell,
+  NotebookPen,
+  Plus,
+  CheckCircle2,
+  XCircle,
+  PhoneCall,
+  Mail,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -26,9 +33,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface Lead {
@@ -51,6 +59,15 @@ interface Lead {
   indicador_nome: string | null;
   indicador_celular: string | null;
   data_vencimento: string | null;
+}
+
+interface HistoricoContato {
+  id: string;
+  lead_id: string | null;
+  tipo: string | null;
+  observacao: string | null;
+  resultado: string | null;
+  created_at: string | null;
 }
 
 const COLUMNS = [
@@ -120,6 +137,20 @@ const SCORE_LABELS: Record<string, string> = {
   baixo: "🧊 Lead Baixo",
 };
 
+const TIPO_CONTATO_OPTIONS = [
+  { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { value: "ligacao", label: "Ligação", icon: PhoneCall },
+  { value: "email", label: "E-mail", icon: Mail },
+  { value: "presencial", label: "Presencial", icon: MessageSquare },
+];
+
+const RESULTADO_OPTIONS = [
+  { value: "positivo", label: "✅ Positivo", color: "text-green-600 bg-green-50 border-green-200" },
+  { value: "neutro", label: "🔄 Neutro", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  { value: "negativo", label: "❌ Negativo", color: "text-red-600 bg-red-50 border-red-200" },
+  { value: "sem_retorno", label: "📵 Sem Retorno", color: "text-gray-600 bg-gray-50 border-gray-200" },
+];
+
 const normalizeStatus = (status: string | null): string => {
   if (!status) return "novo";
   const s = status.toLowerCase().trim();
@@ -156,7 +187,6 @@ const formatCurrency = (v: number) =>
     minimumFractionDigits: 0,
   });
 
-// data_vencimento é DATE (sem timezone); parseISO evita shift de UTC → local (ex: mostrando o dia anterior).
 const isToday = (dateStr: string | null) => {
   if (!dateStr) return false;
   const d = parseISO(dateStr);
@@ -176,19 +206,23 @@ const isPastDue = (dateStr: string | null) => {
   return d < today;
 };
 
-// Lead card component to avoid duplication
+// ─── Lead Card ───────────────────────────────────────────────────────────────
 function LeadCard({
   lead,
   snapshot,
   provided,
   onDelete,
   onSetVencimento,
+  onOpenHistorico,
+  ultimaTratativa,
 }: {
   lead: Lead;
   snapshot: any;
   provided: any;
   onDelete: (id: string, nome: string) => void;
   onSetVencimento: (lead: Lead) => void;
+  onOpenHistorico: (lead: Lead) => void;
+  ultimaTratativa?: HistoricoContato | null;
 }) {
   const isAguardando = normalizeStatus(lead.status) === "aguardando_pagamento";
   const vencHoje = isToday(lead.data_vencimento);
@@ -244,6 +278,17 @@ function LeadCard({
               <CalendarIcon className="h-4 w-4" />
             </button>
           )}
+          {/* Botão Histórico/Notas */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenHistorico(lead);
+            }}
+            className="text-primary/70 hover:text-primary shrink-0 p-1 bg-primary/5 hover:bg-primary/10 rounded-full transition-colors"
+            title="Ver/adicionar tratativas"
+          >
+            <NotebookPen className="h-4 w-4" />
+          </button>
           <a
             href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(
               `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`,
@@ -293,6 +338,44 @@ function LeadCard({
           )}
       </div>
 
+      {/* Última tratativa resumida */}
+      {ultimaTratativa ? (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+          className="w-full text-left"
+        >
+          <div className="flex items-start gap-1.5 px-2 py-1.5 rounded bg-muted/50 hover:bg-muted transition-colors">
+            <NotebookPen className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold text-muted-foreground truncate">
+                {ultimaTratativa.observacao || "Sem observação"}
+              </p>
+              <p className="text-[9px] text-muted-foreground/70">
+                {ultimaTratativa.created_at
+                  ? formatDistanceToNow(new Date(ultimaTratativa.created_at), { addSuffix: true, locale: ptBR })
+                  : "—"}
+                {ultimaTratativa.resultado && (
+                  <span className={`ml-1 font-medium ${
+                    ultimaTratativa.resultado === "positivo" ? "text-green-600" :
+                    ultimaTratativa.resultado === "negativo" ? "text-red-500" :
+                    "text-yellow-600"
+                  }`}>
+                    · {RESULTADO_OPTIONS.find(r => r.value === ultimaTratativa.resultado)?.label ?? ultimaTratativa.resultado}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </button>
+      ) : (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+          className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
+        >
+          <Plus className="h-3 w-3" /> Adicionar tratativa
+        </button>
+      )}
+
       {/* Vencimento info for aguardando_pagamento */}
       {isAguardando && lead.data_vencimento && (
         <div
@@ -325,7 +408,6 @@ function LeadCard({
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
           {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
         </div>
-        {/* Data de inclusão */}
         <div className="col-span-2 flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
           <Clock className="h-3 w-3" /> Incluído:{" "}
           {lead.created_at
@@ -337,6 +419,209 @@ function LeadCard({
   );
 }
 
+// ─── Histórico Modal ──────────────────────────────────────────────────────────
+function HistoricoModal({
+  lead,
+  onClose,
+}: {
+  lead: Lead | null;
+  onClose: () => void;
+}) {
+  const [historico, setHistorico] = useState<HistoricoContato[]>([]);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [savingNota, setSavingNota] = useState(false);
+  const [tipoContato, setTipoContato] = useState("whatsapp");
+  const [observacao, setObservacao] = useState("");
+  const [resultado, setResultado] = useState("positivo");
+
+  const fetchHistorico = useCallback(async (leadId: string) => {
+    setLoadingHistorico(true);
+    const { data } = await supabase
+      .from("historico_contatos")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false });
+    setHistorico((data as HistoricoContato[]) ?? []);
+    setLoadingHistorico(false);
+  }, []);
+
+  useEffect(() => {
+    if (lead) fetchHistorico(lead.id);
+  }, [lead, fetchHistorico]);
+
+  const handleSaveNota = async () => {
+    if (!lead || !observacao.trim()) return;
+    setSavingNota(true);
+
+    const { error } = await supabase.from("historico_contatos").insert({
+      lead_id: lead.id,
+      tipo: tipoContato,
+      observacao: observacao.trim(),
+      resultado,
+    });
+
+    if (error) {
+      toast.error("Erro ao salvar tratativa");
+      setSavingNota(false);
+      return;
+    }
+
+    // Atualiza ultimo_contato e last_interaction_at no lead
+    await supabase
+      .from("leads")
+      .update({
+        ultimo_contato: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", lead.id);
+
+    toast.success("Tratativa registrada!");
+    setObservacao("");
+    setResultado("positivo");
+    setTipoContato("whatsapp");
+    await fetchHistorico(lead.id);
+    setSavingNota(false);
+  };
+
+  return (
+    <Dialog open={!!lead} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <NotebookPen className="h-5 w-5 text-primary" />
+            Tratativas — {lead?.nome}
+          </DialogTitle>
+          <DialogDescription>
+            {formatCurrency(Number(lead?.valor_credito))} · {lead?.tipo_consorcio}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Formulário nova tratativa */}
+        <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border">
+          <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Nova Tratativa</p>
+
+          {/* Tipo de contato */}
+          <div className="flex gap-2 flex-wrap">
+            {TIPO_CONTATO_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setTipoContato(opt.value)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  tipoContato === opt.value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                <opt.icon className="h-3 w-3" />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Observação */}
+          <Textarea
+            placeholder="O que foi tratado? Anotações importantes..."
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+            className="min-h-[80px] text-sm resize-none"
+          />
+
+          {/* Resultado */}
+          <div className="flex gap-2 flex-wrap">
+            {RESULTADO_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setResultado(opt.value)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                  resultado === opt.value ? opt.color + " border-current" : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <Button
+            onClick={handleSaveNota}
+            disabled={savingNota || !observacao.trim()}
+            size="sm"
+            className="w-full"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            {savingNota ? "Salvando..." : "Registrar Tratativa"}
+          </Button>
+        </div>
+
+        {/* Timeline de histórico */}
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Histórico ({historico.length})
+          </p>
+
+          {loadingHistorico ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+            </div>
+          ) : historico.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <NotebookPen className="h-8 w-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Nenhuma tratativa registrada ainda.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {historico.map((h, i) => {
+                const resultadoOpt = RESULTADO_OPTIONS.find(r => r.value === h.resultado);
+                const tipoOpt = TIPO_CONTATO_OPTIONS.find(t => t.value === h.tipo);
+                return (
+                  <div key={h.id} className="flex gap-3">
+                    {/* Timeline dot */}
+                    <div className="flex flex-col items-center">
+                      <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${
+                        h.resultado === "positivo" ? "bg-green-500" :
+                        h.resultado === "negativo" ? "bg-red-500" :
+                        h.resultado === "sem_retorno" ? "bg-gray-400" :
+                        "bg-yellow-500"
+                      }`} />
+                      {i < historico.length - 1 && (
+                        <div className="w-px flex-1 bg-border mt-1" />
+                      )}
+                    </div>
+                    {/* Conteúdo */}
+                    <div className="flex-1 pb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-muted-foreground" />}
+                        <span className="text-[10px] font-semibold text-muted-foreground capitalize">
+                          {tipoOpt?.label ?? h.tipo}
+                        </span>
+                        {resultadoOpt && (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${resultadoOpt.color}`}>
+                            {resultadoOpt.label}
+                          </span>
+                        )}
+                        <span className="ml-auto text-[9px] text-muted-foreground/60">
+                          {h.created_at
+                            ? formatDistanceToNow(new Date(h.created_at), { addSuffix: true, locale: ptBR })
+                            : "—"}
+                        </span>
+                      </div>
+                      {h.observacao && (
+                        <p className="text-xs text-foreground bg-background rounded px-2 py-1.5 border border-border/50">
+                          {h.observacao}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Funil() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -347,6 +632,9 @@ export default function Funil() {
   const [mobileColIdx, setMobileColIdx] = useState(0);
   const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
+  // Cache de última tratativa por lead_id
+  const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
 
   useEffect(() => {
     supabase
@@ -380,25 +668,39 @@ export default function Funil() {
           if (newTemp !== lead.lead_temperatura) {
             await supabase
               .from("leads")
-              .update({
-                lead_temperatura: newTemp,
-              })
+              .update({ lead_temperatura: newTemp })
               .eq("id", lead.id);
 
             setLeads((prev) =>
               prev.map((l) =>
-                l.id === lead.id
-                  ? {
-                      ...l,
-                      lead_temperatura: newTemp,
-                    }
-                  : l,
+                l.id === lead.id ? { ...l, lead_temperatura: newTemp } : l,
               ),
             );
           }
         });
       });
   }, []);
+
+  // Busca última tratativa de todos os leads
+  useEffect(() => {
+    if (leads.length === 0) return;
+    const leadIds = leads.map((l) => l.id);
+    supabase
+      .from("historico_contatos")
+      .select("*")
+      .in("lead_id", leadIds)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, HistoricoContato> = {};
+        (data as HistoricoContato[]).forEach((h) => {
+          if (h.lead_id && !map[h.lead_id]) {
+            map[h.lead_id] = h;
+          }
+        });
+        setUltimasTratativas(map);
+      });
+  }, [leads.length]);
 
   const getColumnLeads = (colId: string) =>
     leads
@@ -424,10 +726,7 @@ export default function Funil() {
 
     const { error } = await supabase
       .from("leads")
-      .update({
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq("id", leadId);
 
     if (error) {
@@ -523,6 +822,22 @@ export default function Funil() {
     toast.success(`Lead "${leadNome}" excluído`);
   };
 
+  // Ao fechar o modal de histórico, atualiza o cache da última tratativa
+  const handleCloseHistorico = useCallback(async () => {
+    if (!historicoLead) { setHistoricoLead(null); return; }
+    const leadId = historicoLead.id;
+    setHistoricoLead(null);
+    const { data } = await supabase
+      .from("historico_contatos")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (data && data.length > 0) {
+      setUltimasTratativas((prev) => ({ ...prev, [leadId]: data[0] as HistoricoContato }));
+    }
+  }, [historicoLead]);
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -534,6 +849,25 @@ export default function Funil() {
   const currentCol = COLUMNS[mobileColIdx];
   const currentColLeads = getColumnLeads(currentCol.id);
   const currentColTotal = currentColLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
+
+  const renderLeadCard = (lead: Lead, idx: number) => (
+    <Draggable draggableId={lead.id} index={idx} key={lead.id}>
+      {(provided, snapshot) => (
+        <LeadCard
+          lead={lead}
+          snapshot={snapshot}
+          provided={provided}
+          onDelete={handleDeleteLead}
+          onSetVencimento={(l) => {
+            setVencimentoLead(l);
+            setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
+          }}
+          onOpenHistorico={setHistoricoLead}
+          ultimaTratativa={ultimasTratativas[lead.id] ?? null}
+        />
+      )}
+    </Draggable>
+  );
 
   return (
     <div className="space-y-4">
@@ -553,9 +887,7 @@ export default function Funil() {
           </Button>
           <div className="flex-1 bg-card rounded-lg border border-border px-3 py-2 text-center">
             <div className="flex items-center justify-center gap-2">
-              <span
-                className={`h-2.5 w-2.5 rounded-full shrink-0 ${COLUMN_DOT_COLORS[currentCol.id]}`}
-              />
+              <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${COLUMN_DOT_COLORS[currentCol.id]}`} />
               <span className="font-semibold text-sm">{currentCol.label}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -579,9 +911,7 @@ export default function Funil() {
               key={col.id}
               onClick={() => setMobileColIdx(i)}
               className={`h-2 rounded-full transition-all ${
-                i === mobileColIdx
-                  ? `w-6 ${COLUMN_DOT_COLORS[col.id]}`
-                  : "w-2 bg-muted-foreground/30"
+                i === mobileColIdx ? `w-6 ${COLUMN_DOT_COLORS[col.id]}` : "w-2 bg-muted-foreground/30"
               }`}
             />
           ))}
@@ -598,22 +928,7 @@ export default function Funil() {
                 }`}
               >
                 <div className="space-y-2">
-                  {currentColLeads.map((lead, idx) => (
-                    <Draggable draggableId={lead.id} index={idx} key={lead.id}>
-                      {(provided, snapshot) => (
-                        <LeadCard
-                          lead={lead}
-                          snapshot={snapshot}
-                          provided={provided}
-                          onDelete={handleDeleteLead}
-                          onSetVencimento={(l) => {
-                            setVencimentoLead(l);
-                            setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
-                          }}
-                        />
-                      )}
-                    </Draggable>
-                  ))}
+                  {currentColLeads.map((lead, idx) => renderLeadCard(lead, idx))}
                   {currentColLeads.length === 0 && (
                     <p className="text-center text-sm text-muted-foreground py-8">
                       Nenhum lead nesta etapa
@@ -652,22 +967,7 @@ export default function Funil() {
                     </div>
 
                     <div className="space-y-2 flex-1 min-h-[100px]">
-                      {colLeads.map((lead, idx) => (
-                        <Draggable draggableId={lead.id} index={idx} key={lead.id}>
-                          {(provided, snapshot) => (
-                            <LeadCard
-                              lead={lead}
-                              snapshot={snapshot}
-                              provided={provided}
-                              onDelete={handleDeleteLead}
-                              onSetVencimento={(l) => {
-                                setVencimentoLead(l);
-                                setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
-                              }}
-                            />
-                          )}
-                        </Draggable>
-                      ))}
+                      {colLeads.map((lead, idx) => renderLeadCard(lead, idx))}
                       {provided.placeholder}
                     </div>
                   </div>
@@ -677,6 +977,9 @@ export default function Funil() {
           })}
         </div>
       </DragDropContext>
+
+      {/* Modal Histórico de Tratativas */}
+      <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} />
 
       {/* Vencimento Calendar Dialog */}
       <Dialog open={!!vencimentoLead} onOpenChange={(open) => !open && setVencimentoLead(null)}>
@@ -717,10 +1020,7 @@ export default function Funil() {
       </Dialog>
 
       {/* Celebration Dialog */}
-      <Dialog
-        open={!!celebrationLead}
-        onOpenChange={(open) => !open && setCelebrationLead(null)}
-      >
+      <Dialog open={!!celebrationLead} onOpenChange={(open) => !open && setCelebrationLead(null)}>
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
             <DialogTitle className="text-xl sm:text-2xl">
@@ -738,21 +1038,11 @@ export default function Funil() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="grupo">Grupo</Label>
-                <Input
-                  id="grupo"
-                  value={grupo}
-                  onChange={(e) => setGrupo(e.target.value)}
-                  placeholder="Ex: 1234"
-                />
+                <Input id="grupo" value={grupo} onChange={(e) => setGrupo(e.target.value)} placeholder="Ex: 1234" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cota">Cota</Label>
-                <Input
-                  id="cota"
-                  value={cota}
-                  onChange={(e) => setCota(e.target.value)}
-                  placeholder="Ex: 56"
-                />
+                <Input id="cota" value={cota} onChange={(e) => setCota(e.target.value)} placeholder="Ex: 56" />
               </div>
             </div>
             <div className="flex flex-col gap-2">
