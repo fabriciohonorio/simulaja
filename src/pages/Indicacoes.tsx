@@ -334,7 +334,7 @@ export default function Indicacoes() {
         {/* Result */}
         {resultado && (
           <div ref={resultRef} className="rounded-[14px] p-5 mt-5 animate-fade-in" style={{ background: "#0f2044" }}>
-            <div className="text-[0.58rem] uppercase tracking-[0.12em] mb-3 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.38)" }}>
+            <div className="text-[0.58rem] tracking-[0.12em] mb-3 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.38)" }}>
               ✅ Proposta confirmada
               <span className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
             </div>
