@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar as CalendarIcon, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Trash2, Bell } from "lucide-react";
+import {
+  Phone,
+  MapPin,
+  Calendar as CalendarIcon,
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  TrendingUp,
+  Trash2,
+  Bell,
+} from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface Lead {
@@ -79,11 +90,11 @@ const COLUMN_DOT_COLORS: Record<string, string> = {
 };
 
 const TEMP_COLORS: Record<string, string> = {
-  "quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
-  "morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
-  "frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
-  "perdido": "border-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.1)]",
-  "morto": "border-gray-400 bg-gray-50 opacity-75",
+  quente: "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
+  morno: "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
+  frio: "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+  perdido: "border-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.1)]",
+  morto: "border-gray-400 bg-gray-50 opacity-75",
 };
 
 const TEMP_EMOJIS: Record<string, string> = {
@@ -113,51 +124,66 @@ const normalizeStatus = (status: string | null): string => {
   if (!status) return "novo";
   const s = status.toLowerCase().trim();
   const map: Record<string, string> = {
-    "novo": "novo",
-    "contato": "contato",
-    "contatado": "contato",
-    "primeiro_contato": "contato",
-    "qualificacao": "qualificacao",
+    novo: "novo",
+    contato: "contato",
+    contatado: "contato",
+    primeiro_contato: "contato",
+    qualificacao: "qualificacao",
     "qualificação": "qualificacao",
-    "proposta": "proposta",
-    "proposta_enviada": "proposta",
+    proposta: "proposta",
+    proposta_enviada: "proposta",
     "simulação enviada": "proposta",
-    "negociacao": "negociacao",
+    negociacao: "negociacao",
     "negociação": "negociacao",
-    "em_negociacao": "negociacao",
-    "em_negociação": "negociacao",
-    "aguardando_pagamento": "aguardando_pagamento",
+    em_negociacao: "negociacao",
+    "em negociação": "negociacao",
+    aguardando_pagamento: "aguardando_pagamento",
     "aguardando pagamento": "aguardando_pagamento",
-    "fechado": "fechado",
-    "venda_fechada": "fechado",
-    "perdido": "perdido",
-    "desistiu": "perdido",
-    "morto": "morto",
-    "lead_morto": "morto",
+    fechado: "fechado",
+    venda_fechada: "fechado",
+    perdido: "perdido",
+    desistiu: "perdido",
+    morto: "morto",
+    lead_morto: "morto",
   };
   return map[s] || "novo";
 };
 
 const formatCurrency = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+  v.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 0,
+  });
 
+// data_vencimento é DATE (sem timezone); parseISO evita shift de UTC → local (ex: mostrando o dia anterior).
 const isToday = (dateStr: string | null) => {
   if (!dateStr) return false;
-  const d = new Date(dateStr);
+  const d = parseISO(dateStr);
   const today = new Date();
-  return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+  return (
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
+  );
 };
 
 const isPastDue = (dateStr: string | null) => {
   if (!dateStr) return false;
-  const d = new Date(dateStr);
+  const d = parseISO(dateStr);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return d < today;
 };
 
 // Lead card component to avoid duplication
-function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
+function LeadCard({
+  lead,
+  snapshot,
+  provided,
+  onDelete,
+  onSetVencimento,
+}: {
   lead: Lead;
   snapshot: any;
   provided: any;
@@ -173,17 +199,27 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado" ? "border-green-500 bg-green-50 dark:bg-green-950/30" : TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
-        } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${
+        normalizeStatus(lead.status) === "fechado"
+          ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+          : TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border"
+      } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <p className="font-bold truncate text-foreground">{lead.nome}</p>
             {lead.propensity_score !== null && (
-              <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
-                lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
-                }`}>
+              <Badge
+                variant="outline"
+                className={`h-4 px-1 text-[8px] font-black border-2 ${
+                  lead.propensity_score >= 70
+                    ? "text-green-600 border-green-200"
+                    : lead.propensity_score >= 40
+                      ? "text-orange-600 border-orange-200"
+                      : "text-slate-400 border-slate-100"
+                }`}
+              >
                 {lead.propensity_score}%
               </Badge>
             )}
@@ -191,12 +227,17 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
               <Bell className="h-4 w-4 text-amber-500 animate-pulse" />
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+          <span className="text-[10px] text-muted-foreground uppercase font-bold">
+            {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           {isAguardando && (
             <button
-              onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetVencimento(lead);
+              }}
               className="text-amber-500 hover:text-amber-600 shrink-0 p-1 bg-amber-50 rounded-full"
               title="Agendar vencimento"
             >
@@ -204,7 +245,9 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
             </button>
           )}
           <a
-            href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
+            href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(
+              `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`,
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -214,7 +257,10 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
             <MessageCircle className="h-4 w-4" />
           </a>
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(lead.id, lead.nome);
+            }}
             className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
             title="Excluir lead"
           >
@@ -238,19 +284,29 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
             </span>
           )}
         </div>
-        {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
-            <Clock className="h-3 w-3" /> 12h+
-          </span>
-        )}
+        {lead.last_interaction_at &&
+          Date.now() - new Date(lead.last_interaction_at).getTime() >
+            12 * 60 * 60 * 1000 && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
+              <Clock className="h-3 w-3" /> 12h+
+            </span>
+          )}
       </div>
 
       {/* Vencimento info for aguardando_pagamento */}
       {isAguardando && lead.data_vencimento && (
-        <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${vencAtrasado ? "bg-red-100 text-red-700" : vencHoje ? "bg-amber-100 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+        <div
+          className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${
+            vencAtrasado
+              ? "bg-red-100 text-red-700"
+              : vencHoje
+                ? "bg-amber-100 text-amber-700"
+                : "bg-blue-50 text-blue-700"
+          }`}
+        >
           {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
           <CalendarIcon className="h-3 w-3" />
-          Venc: {format(new Date(lead.data_vencimento), "dd/MM/yyyy")}
+          Venc: {format(parseISO(lead.data_vencimento), "dd/MM/yyyy")}
           {vencAtrasado && " — ATRASADO"}
           {vencHoje && " — VENCE HOJE!"}
         </div>
@@ -271,7 +327,10 @@ function LeadCard({ lead, snapshot, provided, onDelete, onSetVencimento }: {
         </div>
         {/* Data de inclusão */}
         <div className="col-span-2 flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-          <Clock className="h-3 w-3" /> Incluído: {lead.created_at ? format(new Date(lead.created_at), "dd/MM/yy", { locale: ptBR }) : "—"}
+          <Clock className="h-3 w-3" /> Incluído:{" "}
+          {lead.created_at
+            ? format(new Date(lead.created_at), "dd/MM/yy", { locale: ptBR })
+            : "—"}
         </div>
       </div>
     </div>
@@ -290,43 +349,55 @@ export default function Funil() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
-    supabase.from("leads").select("*").then(({ data }) => {
-      const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
-        ...lead,
-        status: normalizeStatus(lead.status),
-      }));
-      setLeads(fetchedLeads);
-      setLoading(false);
+    supabase
+      .from("leads")
+      .select("*")
+      .then(({ data }) => {
+        const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
+          ...lead,
+          status: normalizeStatus(lead.status),
+        }));
+        setLeads(fetchedLeads);
+        setLoading(false);
 
-      const now = new Date();
-      fetchedLeads.forEach(async (lead: Lead) => {
-        const finalStatuses = ["fechado", "perdido", "morto"];
-        if (finalStatuses.includes(lead.status || "")) return;
+        const now = new Date();
+        fetchedLeads.forEach(async (lead: Lead) => {
+          const finalStatuses = ["fechado", "perdido", "morto"];
+          if (finalStatuses.includes(lead.status || "")) return;
 
-        const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
-        const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
-        let newTemp = lead.lead_temperatura || "quente";
+          const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
+          const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
+          let newTemp = lead.lead_temperatura || "quente";
 
-        if (hoursDiff > 24 * 7) {
-          newTemp = "frio";
-        } else if (hoursDiff > 24 * 3) {
-          newTemp = "frio";
-        } else if (hoursDiff > 24) {
-          newTemp = "morno";
-        }
+          if (hoursDiff > 24 * 7) {
+            newTemp = "frio";
+          } else if (hoursDiff > 24 * 3) {
+            newTemp = "frio";
+          } else if (hoursDiff > 24) {
+            newTemp = "morno";
+          }
 
-        if (newTemp !== lead.lead_temperatura) {
-          await supabase.from("leads").update({
-            lead_temperatura: newTemp,
-          }).eq("id", lead.id);
+          if (newTemp !== lead.lead_temperatura) {
+            await supabase
+              .from("leads")
+              .update({
+                lead_temperatura: newTemp,
+              })
+              .eq("id", lead.id);
 
-          setLeads(prev => prev.map(l => l.id === lead.id ? {
-            ...l,
-            lead_temperatura: newTemp,
-          } : l));
-        }
+            setLeads((prev) =>
+              prev.map((l) =>
+                l.id === lead.id
+                  ? {
+                      ...l,
+                      lead_temperatura: newTemp,
+                    }
+                  : l,
+              ),
+            );
+          }
+        });
       });
-    });
   }, []);
 
   const getColumnLeads = (colId: string) =>
@@ -349,15 +420,13 @@ export default function Funil() {
     const leadId = result.draggableId;
     const newStatus = result.destination.droppableId;
 
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
-    );
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
 
     const { error } = await supabase
       .from("leads")
       .update({
         status: newStatus,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq("id", leadId);
 
@@ -370,7 +439,7 @@ export default function Funil() {
       const lead = leads.find((l) => l.id === leadId);
       if (lead) {
         setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
-        setSelectedDate(lead.data_vencimento ? new Date(lead.data_vencimento) : undefined);
+        setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
       }
     }
 
@@ -399,11 +468,14 @@ export default function Funil() {
       return;
     }
 
-    setLeads(prev => prev.map(l => l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr } : l));
+    setLeads((prev) =>
+      prev.map((l) => (l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr } : l)),
+    );
+
     toast.success(
       vencimentoLead.data_vencimento
         ? `Agendamento atualizado para ${format(selectedDate, "dd/MM/yyyy")}`
-        : `Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`
+        : `Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`,
     );
     setVencimentoLead(null);
     setSelectedDate(undefined);
@@ -443,13 +515,20 @@ export default function Funil() {
       supabase.from("carteira").delete().eq("lead_id", leadId),
     ]);
     const { error } = await supabase.from("leads").delete().eq("id", leadId);
-    if (error) { toast.error("Erro ao excluir lead"); return; }
-    setLeads(prev => prev.filter(l => l.id !== leadId));
+    if (error) {
+      toast.error("Erro ao excluir lead");
+      return;
+    }
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
     toast.success(`Lead "${leadNome}" excluído`);
   };
 
   if (loading) {
-    return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
   }
 
   const currentCol = COLUMNS[mobileColIdx];
@@ -474,7 +553,9 @@ export default function Funil() {
           </Button>
           <div className="flex-1 bg-card rounded-lg border border-border px-3 py-2 text-center">
             <div className="flex items-center justify-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${COLUMN_DOT_COLORS[currentCol.id]}`} />
+              <span
+                className={`h-2.5 w-2.5 rounded-full shrink-0 ${COLUMN_DOT_COLORS[currentCol.id]}`}
+              />
               <span className="font-semibold text-sm">{currentCol.label}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -497,7 +578,11 @@ export default function Funil() {
             <button
               key={col.id}
               onClick={() => setMobileColIdx(i)}
-              className={`h-2 rounded-full transition-all ${i === mobileColIdx ? `w-6 ${COLUMN_DOT_COLORS[col.id]}` : "w-2 bg-muted-foreground/30"}`}
+              className={`h-2 rounded-full transition-all ${
+                i === mobileColIdx
+                  ? `w-6 ${COLUMN_DOT_COLORS[col.id]}`
+                  : "w-2 bg-muted-foreground/30"
+              }`}
             />
           ))}
         </div>
@@ -508,7 +593,9 @@ export default function Funil() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[200px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[200px] ${
+                  snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
+                }`}
               >
                 <div className="space-y-2">
                   {currentColLeads.map((lead, idx) => (
@@ -521,14 +608,16 @@ export default function Funil() {
                           onDelete={handleDeleteLead}
                           onSetVencimento={(l) => {
                             setVencimentoLead(l);
-                            setSelectedDate(l.data_vencimento ? new Date(l.data_vencimento) : undefined);
+                            setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
                           }}
                         />
                       )}
                     </Draggable>
                   ))}
                   {currentColLeads.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-8">Nenhum lead nesta etapa</p>
+                    <p className="text-center text-sm text-muted-foreground py-8">
+                      Nenhum lead nesta etapa
+                    </p>
                   )}
                   {provided.placeholder}
                 </div>
@@ -551,7 +640,9 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${
+                      snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
+                    }`}
                   >
                     <div className="mb-3">
                       <h3 className="font-semibold text-sm">{col.label}</h3>
@@ -571,7 +662,7 @@ export default function Funil() {
                               onDelete={handleDeleteLead}
                               onSetVencimento={(l) => {
                                 setVencimentoLead(l);
-                                setSelectedDate(l.data_vencimento ? new Date(l.data_vencimento) : undefined);
+                                setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
                               }}
                             />
                           )}
@@ -595,7 +686,8 @@ export default function Funil() {
               <CalendarIcon className="h-5 w-5 text-amber-500" /> Agendar Vencimento
             </DialogTitle>
             <DialogDescription>
-              Marque a data de vencimento do pagamento de <span className="font-bold">{vencimentoLead?.nome}</span>
+              Marque a data de vencimento do pagamento de{" "}
+              <span className="font-bold">{vencimentoLead?.nome}</span>
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-2">
@@ -608,24 +700,32 @@ export default function Funil() {
             />
             {selectedDate && (
               <p className="text-sm text-muted-foreground">
-                Data selecionada: <span className="font-bold text-foreground">{format(selectedDate, "dd/MM/yyyy")}</span>
+                Data selecionada:{" "}
+                <span className="font-bold text-foreground">{format(selectedDate, "dd/MM/yyyy")}</span>
               </p>
             )}
             <div className="flex gap-2 w-full">
               <Button className="flex-1" onClick={handleSaveVencimento} disabled={!selectedDate}>
                 <Bell className="h-4 w-4 mr-2" /> Agendar
               </Button>
-              <Button variant="ghost" onClick={() => setVencimentoLead(null)}>Cancelar</Button>
+              <Button variant="ghost" onClick={() => setVencimentoLead(null)}>
+                Cancelar
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Celebration Dialog */}
-      <Dialog open={!!celebrationLead} onOpenChange={(open) => !open && setCelebrationLead(null)}>
+      <Dialog
+        open={!!celebrationLead}
+        onOpenChange={(open) => !open && setCelebrationLead(null)}
+      >
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
-            <DialogTitle className="text-xl sm:text-2xl">🎉 PARABÉNS! MAIS UMA FANTÁSTICA VENDA!</DialogTitle>
+            <DialogTitle className="text-xl sm:text-2xl">
+              🎉 PARABÉNS! MAIS UMA FANTÁSTICA VENDA!
+            </DialogTitle>
             <DialogDescription className="text-base mt-2">
               <span className="font-bold text-foreground">{celebrationLead?.nome}</span>
               <br />
@@ -638,11 +738,21 @@ export default function Funil() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="grupo">Grupo</Label>
-                <Input id="grupo" value={grupo} onChange={(e) => setGrupo(e.target.value)} placeholder="Ex: 1234" />
+                <Input
+                  id="grupo"
+                  value={grupo}
+                  onChange={(e) => setGrupo(e.target.value)}
+                  placeholder="Ex: 1234"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cota">Cota</Label>
-                <Input id="cota" value={cota} onChange={(e) => setCota(e.target.value)} placeholder="Ex: 56" />
+                <Input
+                  id="cota"
+                  value={cota}
+                  onChange={(e) => setCota(e.target.value)}
+                  placeholder="Ex: 56"
+                />
               </div>
             </div>
             <div className="flex flex-col gap-2">
