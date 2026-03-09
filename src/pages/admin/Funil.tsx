@@ -371,7 +371,7 @@ export default function Funil() {
       const lead = leads.find((l) => l.id === leadId);
       if (lead) {
         setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
-        setSelectedDate(lead.data_vencimento ? new Date(lead.data_vencimento) : undefined);
+        setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
       }
     }
 
