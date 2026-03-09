@@ -522,58 +522,8 @@ export default function Funil() {
                           onDelete={handleDeleteLead}
                           onSetVencimento={(l) => {
                             setVencimentoLead(l);
-                            setSelectedDate(l.data_vencimento ? new Date(l.data_vencimento) : undefined);
+                            setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
                           }}
-                        />
-                      )}
-                    </Draggable>
-                  ))}
-                  {currentColLeads.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-8">Nenhum lead nesta etapa</p>
-                  )}
-                  {provided.placeholder}
-                </div>
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-
-      {/* Desktop: horizontal scroll kanban */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="hidden md:flex gap-4 overflow-x-auto pb-4">
-          {COLUMNS.map((col) => {
-            const colLeads = getColumnLeads(col.id);
-            const totalValor = colLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
-
-            return (
-              <Droppable droppableId={col.id} key={col.id}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-                  >
-                    <div className="mb-3">
-                      <h3 className="font-semibold text-sm">{col.label}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {colLeads.length} leads · {formatCurrency(totalValor)}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2 flex-1 min-h-[100px]">
-                      {colLeads.map((lead, idx) => (
-                        <Draggable draggableId={lead.id} index={idx} key={lead.id}>
-                          {(provided, snapshot) => (
-                            <LeadCard
-                              lead={lead}
-                              snapshot={snapshot}
-                              provided={provided}
-                              onDelete={handleDeleteLead}
-                              onSetVencimento={(l) => {
-                                setVencimentoLead(l);
-                                setSelectedDate(l.data_vencimento ? new Date(l.data_vencimento) : undefined);
-                              }}
                             />
                           )}
                         </Draggable>
