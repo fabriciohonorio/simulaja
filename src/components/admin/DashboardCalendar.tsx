@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, MessageCircle, Bell } from "lucide-react";
-import { format, isSameDay, isToday, isBefore, startOfDay } from "date-fns";
+import { format, isSameDay, isToday, isBefore, startOfDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface Lead {
@@ -25,7 +25,11 @@ const formatCurrency = (v: number) =>
 const openWhatsApp = (lead: Lead, isReminder: boolean) => {
   const phone = lead.celular?.replace(/\D/g, "") || "";
   const msg = isReminder
-    ? encodeURIComponent(`Olá ${lead.nome}! Lembrando que o vencimento do seu consórcio é ${lead.data_vencimento ? format(new Date(lead.data_vencimento), "dd/MM/yyyy") : "em breve"}. Qualquer dúvida estou à disposição!`)
+    ? encodeURIComponent(
+        `Olá ${lead.nome}! Lembrando que o vencimento do seu consórcio é ${
+          lead.data_vencimento ? format(parseISO(lead.data_vencimento), "dd/MM/yyyy") : "em breve"
+        }. Qualquer dúvida estou à disposição!`,
+      )
     : encodeURIComponent(`Olá ${lead.nome}! Vamos conversar sobre seu consórcio?`);
   window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
 };
@@ -35,7 +39,7 @@ export default function DashboardCalendar({ leads }: DashboardCalendarProps) {
 
   const leadsComVencimento = useMemo(
     () => leads.filter((l) => l.data_vencimento && l.status === "aguardando_pagamento"),
-    [leads]
+    [leads],
   );
 
   const datesWithEvents = useMemo(() => {
@@ -49,16 +53,14 @@ export default function DashboardCalendar({ leads }: DashboardCalendarProps) {
 
   const leadsOnSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
-    return leadsComVencimento.filter((l) =>
-      isSameDay(new Date(l.data_vencimento!), selectedDate)
-    );
+    return leadsComVencimento.filter((l) => isSameDay(parseISO(l.data_vencimento!), selectedDate));
   }, [selectedDate, leadsComVencimento]);
 
   const today = startOfDay(new Date());
 
   // Highlight days with events
   const modifiers = useMemo(() => {
-    const eventDays = Array.from(datesWithEvents.keys()).map((d) => new Date(d));
+    const eventDays = Array.from(datesWithEvents.keys()).map((d) => parseISO(d));
     const overdueDays = eventDays.filter((d) => isBefore(d, today) && !isToday(d));
     const todayEvents = eventDays.filter((d) => isToday(d));
     const futureDays = eventDays.filter((d) => !isBefore(d, today) && !isToday(d));
@@ -67,7 +69,12 @@ export default function DashboardCalendar({ leads }: DashboardCalendarProps) {
 
   const modifiersStyles = {
     overdue: { backgroundColor: "hsl(0 84% 60%)", color: "white", borderRadius: "50%" },
-    dueToday: { backgroundColor: "hsl(45 93% 47%)", color: "white", borderRadius: "50%", animation: "pulse 2s infinite" },
+    dueToday: {
+      backgroundColor: "hsl(45 93% 47%)",
+      color: "white",
+      borderRadius: "50%",
+      animation: "pulse 2s infinite",
+    },
     upcoming: { backgroundColor: "hsl(var(--primary))", color: "white", borderRadius: "50%" },
   };
 
@@ -91,9 +98,15 @@ export default function DashboardCalendar({ leads }: DashboardCalendarProps) {
 
         {/* Legend */}
         <div className="flex items-center justify-center gap-4 text-[10px] sm:text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Atrasado</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500" /> Hoje</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-primary" /> Futuro</span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Atrasado
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" /> Hoje
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-primary" /> Futuro
+          </span>
         </div>
 
         {/* Selected date leads */}
@@ -103,19 +116,37 @@ export default function DashboardCalendar({ leads }: DashboardCalendarProps) {
               {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })} — {leadsOnSelectedDate.length} vencimento(s)
             </p>
             {leadsOnSelectedDate.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic text-center py-2">Nenhum vencimento nesta data.</p>
+              <p className="text-xs text-muted-foreground italic text-center py-2">
+                Nenhum vencimento nesta data.
+              </p>
             ) : (
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {leadsOnSelectedDate.map((l) => {
-                  const isOverdue = isBefore(new Date(l.data_vencimento!), today) && !isToday(new Date(l.data_vencimento!));
+                  const vencDate = parseISO(l.data_vencimento!);
+                  const isOverdue = isBefore(vencDate, today) && !isToday(vencDate);
+                  const isDueToday = isToday(vencDate);
+
                   return (
-                    <div key={l.id} className={`flex items-center justify-between p-2 rounded-lg border ${isOverdue ? "bg-red-50 border-red-200" : isToday(new Date(l.data_vencimento!)) ? "bg-amber-50 border-amber-200" : "bg-card border-border"}`}>
+                    <div
+                      key={l.id}
+                      className={`flex items-center justify-between p-2 rounded-lg border ${
+                        isOverdue
+                          ? "bg-red-50 border-red-200"
+                          : isDueToday
+                            ? "bg-amber-50 border-amber-200"
+                            : "bg-card border-border"
+                      }`}
+                    >
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-foreground truncate flex items-center gap-1">
-                          {(isOverdue || isToday(new Date(l.data_vencimento!))) && <Bell className="h-3.5 w-3.5 text-red-500 animate-pulse shrink-0" />}
+                          {(isOverdue || isDueToday) && (
+                            <Bell className="h-3.5 w-3.5 text-red-500 animate-pulse shrink-0" />
+                          )}
                           {l.nome}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">{formatCurrency(Number(l.valor_credito))}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {formatCurrency(Number(l.valor_credito))}
+                        </p>
                       </div>
                       {l.celular && (
                         <Button
