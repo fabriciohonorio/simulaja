@@ -218,7 +218,7 @@ export default function Metas() {
                     { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio" },
                     { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão" },
                     { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários" },
-                    { icon: Clock, color: "text-purple-500", val: "0.0 dias", label: "Tempo Fechamento" },
+                    { icon: Clock, color: "text-purple-500", val: `${diasMes - diaHoje} dias`, label: "Dias p/ Fechar Mês" },
                     { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda" },
                     { icon: BarChart3, color: "text-indigo-500", val: fmt(projecaoMes), label: "Projeção do Mês" },
                     { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d" },
