@@ -316,7 +316,7 @@ export default function Indicacoes() {
         <button
           onClick={simular}
           disabled={bloqueado}
-          className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
+          className="w-full py-4 rounded-[10px] text-base font-extrabold tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
           style={{ background: "#f47920", color: "#fff", border: "none", boxShadow: "0 4px 20px rgba(244,121,32,.35)" }}
         >
           Simule Já
