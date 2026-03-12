@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import {
@@ -160,33 +160,45 @@ const RESULTADO_OPTIONS = [
   { value: "sem_retorno", label: "📵 Sem Retorno", color: "text-gray-600 bg-gray-50 border-gray-200" },
 ];
 
+// Normaliza status para os IDs exatos das colunas do kanban
 const normalizeStatus = (status: string | null): string => {
-  if (!status) return "novo";
+  if (!status) return "novo_lead";
   const s = status.toLowerCase().trim();
   const map: Record<string, string> = {
-    novo: "novo",
-    contato: "contato",
-    contatado: "contato",
-    primeiro_contato: "contato",
+    // novo_lead
+    novo: "novo_lead",
+    novo_lead: "novo_lead",
+    // primeiro_contato
+    contato: "primeiro_contato",
+    contatado: "primeiro_contato",
+    primeiro_contato: "primeiro_contato",
+    // qualificacao
     qualificacao: "qualificacao",
     "qualificação": "qualificacao",
-    proposta: "proposta",
-    proposta_enviada: "proposta",
-    "simulação enviada": "proposta",
+    // simulacao_enviada
+    proposta: "simulacao_enviada",
+    proposta_enviada: "simulacao_enviada",
+    simulacao_enviada: "simulacao_enviada",
+    "simulação enviada": "simulacao_enviada",
+    // negociacao
     negociacao: "negociacao",
     "negociação": "negociacao",
     em_negociacao: "negociacao",
     "em negociação": "negociacao",
+    // aguardando_pagamento
     aguardando_pagamento: "aguardando_pagamento",
     "aguardando pagamento": "aguardando_pagamento",
+    // fechado
     fechado: "fechado",
     venda_fechada: "fechado",
+    // perdido
     perdido: "perdido",
     desistiu: "perdido",
+    // morto
     morto: "morto",
     lead_morto: "morto",
   };
-  return map[s] || "novo";
+  return map[s] || "novo_lead";
 };
 
 const formatCurrency = (v: number | null) => {
@@ -636,8 +648,12 @@ export default function Funil() {
   const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
-  // Cache de última tratativa por lead_id
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
+
+  // Drag-to-scroll no kanban desktop
+  const kanbanRef = useRef<HTMLDivElement>(null);
+  const isDraggingCardRef = useRef(false);
+  const scrollDrag = useRef({ active: false, startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
@@ -730,42 +746,19 @@ export default function Funil() {
       });
   }, [leads.length]);
 
-  const getColumnLeads = (colId: string) => {
-    const validStatus = COLUMNS.map(c => c.id);
-
-    const filtered = leads.filter((l) => {
-      const currentStatus = normalizeStatus(l.status);
-
-      // Se for a primeira coluna (novo/novo_lead), inclui leads com status desconhecido
-      if (colId === "novo_lead" || colId === "novo") {
-        return !validStatus.includes(currentStatus || "") || currentStatus === "novo_lead" || currentStatus === "novo" || currentStatus === "contato";
-      }
-
-      // Mapeamento explícito para as outras colunas (compatibilidade)
-      if (colId === "primeiro_contato" || colId === "contato") return currentStatus === "primeiro_contato" || currentStatus === "contato";
-      if (colId === "simulacao_enviada" || colId === "proposta") return currentStatus === "simulacao_enviada" || currentStatus === "proposta";
-
-      return currentStatus === colId;
-    });
-
-    return filtered.sort((a, b) => {
-      const scoreWeight: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
-      const scoreA = scoreWeight[a.score_final || ""] || 0;
-      const scoreB = scoreWeight[b.score_final || ""] || 0;
-
-      if (scoreA !== scoreB) return scoreB - scoreA;
-
-      const valorWeight: Record<string, number> = { 'premium': 4, 'alto': 3, 'medio': 2, 'baixo': 1 };
-      const valA = valorWeight[a.lead_score_valor || ""] || 0;
-      const valB = valorWeight[b.lead_score_valor || ""] || 0;
-
-      if (valA !== valB) return valB - valA;
-
-      const dateA = new Date(a.created_at || 0).getTime();
-      const dateB = new Date(b.created_at || 0).getTime();
-      return dateB - dateA;
-    });
-  };
+  // getColumnLeads: match direto com os IDs normalizados — sem duplicatas
+  const getColumnLeads = (colId: string) =>
+    leads
+      .filter(l => normalizeStatus(l.status) === colId)
+      .sort((a, b) => {
+        const sw: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 };
+        const vw: Record<string, number> = { premium: 4, alto: 3, medio: 2, baixo: 1 };
+        const sA = sw[a.score_final || ""] || 0, sB = sw[b.score_final || ""] || 0;
+        if (sA !== sB) return sB - sA;
+        const vA = vw[a.lead_score_valor || ""] || 0, vB = vw[b.lead_score_valor || ""] || 0;
+        if (vA !== vB) return vB - vA;
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
@@ -778,6 +771,7 @@ export default function Funil() {
   };
 
   const onDragEnd = async (result: DropResult) => {
+    isDraggingCardRef.current = false;
     if (!result.destination) return;
     const leadId = result.draggableId;
     const newStatus = result.destination.droppableId;
@@ -1000,8 +994,25 @@ export default function Funil() {
       </div>
 
       {/* Desktop: horizontal scroll kanban */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="hidden md:flex gap-4 overflow-x-auto pb-4">
+      <DragDropContext
+        onDragEnd={onDragEnd}
+        onDragStart={() => { isDraggingCardRef.current = true; }}
+      >
+        <div
+          ref={kanbanRef}
+          className="hidden md:flex gap-4 overflow-x-scroll pb-2 no-scrollbar cursor-grab active:cursor-grabbing select-none"
+          onMouseDown={(e) => {
+            if (isDraggingCardRef.current || !kanbanRef.current) return;
+            if ((e.target as HTMLElement).closest("[data-rbd-draggable-id]")) return;
+            scrollDrag.current = { active: true, startX: e.pageX, scrollLeft: kanbanRef.current.scrollLeft };
+          }}
+          onMouseMove={(e) => {
+            if (!scrollDrag.current.active || !kanbanRef.current) return;
+            kanbanRef.current.scrollLeft = scrollDrag.current.scrollLeft - (e.pageX - scrollDrag.current.startX);
+          }}
+          onMouseUp={() => { scrollDrag.current.active = false; }}
+          onMouseLeave={() => { scrollDrag.current.active = false; }}
+        >
           {COLUMNS.map((col) => {
             const colLeads = getColumnLeads(col.id);
             const totalValor = colLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
@@ -1112,19 +1123,12 @@ export default function Funil() {
         </DialogContent>
       </Dialog>
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );
