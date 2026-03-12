@@ -22,8 +22,10 @@ export default function AdminLayout() {
 
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border">
-            <div className="p-6 border-b border-sidebar-border">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">SimulaJá Admin</h1>
+            <div className="p-6 border-b border-sidebar-border text-center overflow-hidden">
+                <a href="https://www.oespecialistaconsorcio.com.br" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent break-words leading-tight hover:opacity-80 transition-opacity">
+                    www.oespecialistaconsorcio.com.br
+                </a>
             </div>
 
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -70,8 +72,8 @@ export default function AdminLayout() {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Mobile Header */}
                 <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-border shadow-sm sticky top-0 z-30">
-                    <div className="flex items-center gap-2">
-                        <h1 className="font-bold text-lg text-primary">SimulaJá</h1>
+                    <div className="flex items-center gap-2 overflow-hidden flex-1">
+                        <span className="font-bold text-sm text-primary truncate max-w-[200px]">www.oespecialistaconsorcio.com.br</span>
                     </div>
 
                     <Sheet open={open} onOpenChange={setOpen}>

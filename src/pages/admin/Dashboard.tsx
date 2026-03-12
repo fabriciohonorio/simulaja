@@ -207,33 +207,76 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Recentes / Quick Links */}
-      <Card className="shadow-sm border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base sm:text-lg">Últimos Leads Registrados</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="divide-y divide-border">
-            {leads.slice(0, 5).map((l) => (
-              <div key={l.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-accent/5 transition-colors">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{l.nome}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(l.created_at || '').toLocaleDateString('pt-BR')}</p>
+      {/* Últimos Leads e Agendas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="shadow-sm border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg">Últimos Leads Registrados</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {leads.slice(0, 5).map((l) => (
+                <div key={l.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-accent/5 transition-colors">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{l.nome}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(l.created_at || '').toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <p className="text-xs sm:text-sm font-medium hidden sm:block">{formatCurrency(Number(l.valor_credito))}</p>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-primary/10 text-primary capitalize shrink-0">
+                      {l.status ?? 'novo'}
+                    </span>
+                    <button onClick={() => openWhatsApp(l)} className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors active:scale-95">
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <p className="text-xs sm:text-sm font-medium hidden sm:block">{formatCurrency(Number(l.valor_credito))}</p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-primary/10 text-primary capitalize shrink-0">
-                    {l.status ?? 'novo'}
-                  </span>
-                  <button onClick={() => openWhatsApp(l)} className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors active:scale-95">
-                    <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Próximas Agendas (Mock) */}
+        <Card className="shadow-sm border-border">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-orange-500" /> Próximos Agendamentos
+            </CardTitle>
+            <span className="text-xs font-semibold text-orange-500 bg-orange-50 px-2 py-1 rounded-full">Top 10</span>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border h-[250px] sm:h-[300px] overflow-y-auto custom-scrollbar">
+              {/* Dados Fictícios */}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((_, idx) => {
+                const data = new Date();
+                data.setDate(data.getDate() + Math.floor(idx / 3));
+                data.setHours(9 + idx, 0, 0);
+                return (
+                  <div key={idx} className="flex items-center justify-between p-3 hover:bg-orange-50/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center justify-center bg-orange-100 text-orange-700 rounded-lg p-2 min-w-[50px]">
+                        <span className="text-xs font-bold leading-none">{data.getDate()}</span>
+                        <span className="text-[10px] uppercase font-semibold">{data.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Lead Fictício {idx + 1}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-full" title="Ver Detalhes">
+                        <Users className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

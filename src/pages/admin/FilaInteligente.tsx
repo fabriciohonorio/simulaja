@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles } from "lucide-react";
+import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -140,6 +140,14 @@ export default function FilaInteligente() {
                                             >
                                                 <Phone className="h-5 w-5" />
                                             </a>
+                                            <button
+                                                type="button"
+                                                onClick={() => alert("Agenda: Funcionalidade em desenvolvimento")}
+                                                className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition-colors"
+                                                title="Agendar"
+                                            >
+                                                <Calendar className="h-5 w-5" />
+                                            </button>
                                             <Button variant="outline" size="sm" className="hidden sm:inline-flex">Ver Detalhes</Button>
                                         </div>
                                     </div>

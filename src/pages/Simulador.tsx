@@ -130,9 +130,7 @@ export default function Simulador() {
         tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
         valor_credito: g.credito,
         prazo_meses: g.prazo,
-        status: "novo",
-        lead_score_valor: leadScoreValor,
-        lead_temperatura: "quente",
+        status: "novo_lead",
       });
     } catch (e) {
       console.warn("Supabase:", e);

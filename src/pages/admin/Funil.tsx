@@ -22,7 +22,7 @@ interface Lead {
   celular: string;
   cidade: string;
   tipo_consorcio: string;
-  valor_credito: number;
+  valor_credito: number | null;
   prazo_meses: number;
   status: string | null;
   created_at: string | null;
@@ -33,39 +33,35 @@ interface Lead {
   last_interaction_at: string | null;
   propensity_score: number | null;
   propensity_reason: string | null;
+  // Novos campos de inteligência (adicionados para compatibilidade)
+  score_final?: string | null;
+  qualidade?: string | null;
+  urgencia?: string | null;
+  temperatura?: string | null;
 }
 
 const COLUMNS = [
-  { id: "novo", label: "🆕 Novo Lead" },
-  { id: "contato", label: "📞 Primeiro Contato" },
+  { id: "novo_lead", label: "🆕 Novo Lead" },
+  { id: "primeiro_contato", label: "📞 Primeiro Contato" },
   { id: "qualificacao", label: "🧠 Qualificação" },
-  { id: "proposta", label: "📊 Simulação Enviada" },
+  { id: "simulacao_enviada", label: "📊 Simulação Enviada" },
   { id: "negociacao", label: "🤝 Negociação" },
-  { id: "fechado", label: "🏆 Venda Fechada" },
-  { id: "perdido", label: "❌ Perdido" },
-  { id: "morto", label: "☠️ Lead Morto" },
 ];
 
-const COLUMN_COLORS: Record<string, string> = {
-  novo: "border-t-blue-500",
-  contato: "border-t-yellow-500",
-  qualificacao: "border-t-orange-500",
-  proposta: "border-t-purple-500",
-  negociacao: "border-t-indigo-500",
-  fechado: "border-t-green-500",
-  perdido: "border-t-red-500",
-  morto: "border-t-gray-500",
+const COLUMN_DOT_COLORS: Record<string, string> = {
+  novo_lead: "bg-blue-500",
+  primeiro_contato: "bg-yellow-500",
+  qualificacao: "bg-orange-500",
+  simulacao_enviada: "bg-purple-500",
+  negociacao: "bg-indigo-500",
 };
 
-const COLUMN_DOT_COLORS: Record<string, string> = {
-  novo: "bg-blue-500",
-  contato: "bg-yellow-500",
-  qualificacao: "bg-orange-500",
-  proposta: "bg-purple-500",
-  negociacao: "bg-indigo-500",
-  fechado: "bg-green-500",
-  perdido: "bg-red-500",
-  morto: "bg-gray-500",
+const COLUMN_COLORS: Record<string, string> = {
+  novo_lead: "border-t-blue-500",
+  primeiro_contato: "border-t-yellow-500",
+  qualificacao: "border-t-orange-500",
+  simulacao_enviada: "border-t-purple-500",
+  negociacao: "border-t-indigo-500",
 };
 
 const TEMP_COLORS: Record<string, string> = {
@@ -89,8 +85,10 @@ const SCORE_LABELS: Record<string, string> = {
   baixo: "🧊 Lead Baixo",
 };
 
-const formatCurrency = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+const formatCurrency = (v: number | null) => {
+  if (v === null || v === undefined) return "Crédito a definir";
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+};
 
 export default function Funil() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -104,10 +102,12 @@ export default function Funil() {
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
       const fetchedLeads = (data as any) ?? [];
+      const validStatus = COLUMNS.map(c => c.id);
+
       setLeads(fetchedLeads);
       setLoading(false);
 
-      // Automations: Temperature and "Dead" status
+      // Automations: Temperature and Status fallback
       const now = new Date();
       fetchedLeads.forEach(async (lead: Lead) => {
         const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
@@ -115,8 +115,13 @@ export default function Funil() {
         let newTemp = lead.lead_temperatura || "quente";
         let newStatus = lead.status;
 
+        // Regra 2: Se status for inválido/antigo, vira novo_lead
+        if (!newStatus || !validStatus.includes(newStatus)) {
+          newStatus = "novo_lead";
+        }
+
+        // Temperatura dinâmica (mantendo a lógica mas sem forçar status 'morto')
         if (hoursDiff > 24 * 7) {
-          newStatus = "morto";
           newTemp = "morto";
         } else if (hoursDiff > 24 * 3) {
           newTemp = "frio";
@@ -124,25 +129,22 @@ export default function Funil() {
           newTemp = "morno";
         }
 
-        // Propensity Calculation
+        // Propensity Calculation (mantendo compatibilidade com lead_score_valor)
         let score = 0;
         let reasons = [];
 
-        // Value (40%)
         if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
         else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
         else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
         else { score += 10; reasons.push("Baixo Potencial"); }
 
-        // Temp (40%)
         if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
         else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
         else if (newTemp === "frio") { score += 5; }
 
-        // Status (20%)
-        if (["proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
+        if (["simulacao_enviada", "negociacao"].includes(newStatus)) { score += 20; reasons.push("Fase Avançada"); }
         else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
-        else if (newStatus === "contato") { score += 10; }
+        else if (newStatus === "primeiro_contato") { score += 10; }
         else { score += 5; }
 
         const newScore = score;
@@ -169,8 +171,47 @@ export default function Funil() {
     });
   }, []);
 
-  const getColumnLeads = (colId: string) =>
-    leads.filter((l) => (l.status ?? "novo") === colId);
+  const getColumnLeads = (colId: string) => {
+    const validStatus = COLUMNS.map(c => c.id);
+
+    // Filtra aplicando o mapeamento de status antigos/nulos para novo_lead se necessário
+    const filtered = leads.filter((l) => {
+      const currentStatus = l.status || "novo_lead";
+
+      // Se for a primeira coluna (novo_lead), inclui leads com status desconhecido
+      if (colId === "novo_lead") {
+        return !validStatus.includes(currentStatus || "") || currentStatus === "novo_lead" || currentStatus === "novo" || currentStatus === "contato";
+      }
+
+      // Mapeamento explícito para as outras colunas (compatibilidade)
+      if (colId === "primeiro_contato") return currentStatus === "primeiro_contato" || currentStatus === "contato";
+      if (colId === "simulacao_enviada") return currentStatus === "simulacao_enviada" || currentStatus === "proposta";
+
+      return currentStatus === colId;
+    });
+
+    // Ordenação: score_final (A->B->C->D) ou lead_score_valor fallback, depois created_at DESC
+    return filtered.sort((a, b) => {
+      // Prioridade por score_final (A, B, C, D)
+      const scoreWeight: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+      const scoreA = scoreWeight[a.score_final || ""] || 0;
+      const scoreB = scoreWeight[b.score_final || ""] || 0;
+
+      if (scoreA !== scoreB) return scoreB - scoreA;
+
+      // Fallback para lead_score_valor se score_final for igual
+      const valorWeight: Record<string, number> = { 'premium': 4, 'alto': 3, 'medio': 2, 'baixo': 1 };
+      const valA = valorWeight[a.lead_score_valor || ""] || 0;
+      const valB = valorWeight[b.lead_score_valor || ""] || 0;
+
+      if (valA !== valB) return valB - valA;
+
+      // Por fim, data de criação
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  };
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
@@ -302,7 +343,7 @@ export default function Funil() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[200px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
               >
                 <div className="space-y-2">
                   {currentColLeads.map((lead, idx) => (
@@ -326,9 +367,27 @@ export default function Funil() {
                                     {lead.propensity_score}%
                                   </Badge>
                                 )}
+                                {lead.score_final && (
+                                  <Badge className="h-4 px-1 text-[10px] bg-primary text-white font-black">
+                                    {lead.score_final}
+                                  </Badge>
+                                )}
                               </div>
-                              <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                                {lead.urgencia && (
+                                  <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase">Urgente</span>
+                                )}
+                              </div>
                             </div>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); toast.info("Agenda: Funcionalidade em desenvolvimento"); }}
+                              className="text-orange-500 hover:text-orange-600 shrink-0 ml-1 p-1 bg-orange-50 rounded-full"
+                              title="Agendar"
+                            >
+                              <Calendar className="h-4 w-4" />
+                            </button>
                             <a
                               href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                               target="_blank"
@@ -342,7 +401,7 @@ export default function Funil() {
 
                           <div className="flex items-center justify-between">
                             <p className="text-primary font-bold text-base">
-                              {formatCurrency(Number(lead.valor_credito))}
+                              {formatCurrency(lead.valor_credito)}
                             </p>
                             {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
                               <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
@@ -393,7 +452,7 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                    className={`min-w-[300px] w-[300px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-220px)] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
                   >
                     <div className="mb-3">
                       <h3 className="font-semibold text-sm">{col.label}</h3>
@@ -402,7 +461,7 @@ export default function Funil() {
                       </p>
                     </div>
 
-                    <div className="space-y-2 flex-1 min-h-[100px]">
+                    <div className="space-y-2 flex-1 overflow-y-auto pr-1 custom-scrollbar">
                       {colLeads.map((lead, idx) => (
                         <Draggable draggableId={lead.id} index={idx} key={lead.id}>
                           {(provided, snapshot) => (
@@ -426,8 +485,18 @@ export default function Funil() {
                                         </Badge>
                                       </div>
                                     )}
+                                    {lead.score_final && (
+                                      <Badge className="h-4 px-1 text-[10px] bg-primary text-white font-black">
+                                        {lead.score_final}
+                                      </Badge>
+                                    )}
                                   </div>
-                                  <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                                    {lead.urgencia && (
+                                      <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase">Urgente</span>
+                                    )}
+                                  </div>
                                 </div>
                                 <a
                                   href="/admin/sdr"
@@ -436,6 +505,14 @@ export default function Funil() {
                                 >
                                   <Sparkles className="h-4 w-4" />
                                 </a>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); toast.info("Agenda: Funcionalidade em desenvolvimento"); }}
+                                  className="text-orange-500 hover:text-orange-600 shrink-0 ml-1 p-1 bg-orange-50 rounded-full"
+                                  title="Agendar"
+                                >
+                                  <Calendar className="h-4 w-4" />
+                                </button>
                                 <a
                                   href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
                                   target="_blank"
@@ -450,7 +527,7 @@ export default function Funil() {
 
                               <div className="flex items-center justify-between">
                                 <p className="text-primary font-bold text-base">
-                                  {formatCurrency(Number(lead.valor_credito))}
+                                  {formatCurrency(lead.valor_credito)}
                                 </p>
                                 {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
                                   <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
@@ -522,6 +599,21 @@ export default function Funil() {
           </div>
         </DialogContent>
       </Dialog>
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}</style>
     </div>
   );
 }
