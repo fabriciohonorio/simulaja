@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD COLUMN data_vencimento date DEFAULT NULL;

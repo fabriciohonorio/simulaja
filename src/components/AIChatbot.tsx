@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import robotAvatar from "@/assets/robot-avatar.png";
+import robotAvatar from "@/assets/ai-assistant-pro.png";
 
 type Step = "welcome" | "objetivo" | "valor" | "conhecimento" | "simulacao" | "whatsapp";
 

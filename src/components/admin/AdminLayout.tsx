@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, Clock, Bot } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Filter, label: "Leads", path: "/admin/leads" },
-    { icon: Bot, label: "Agente SDR IA", path: "/admin/sdr" },
-    { icon: Clock, label: "Fila Inteligente", path: "/admin/fila" },
     { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil" },
     { icon: Users, label: "Carteira Clientes", path: "/admin/carteira" },
     { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes" },
-    { icon: Target, label: "Metas e KPIs", path: "/admin/metas" },
+    { icon: Target, label: "Metas", path: "/admin/metas" },
 ];
 
 export default function AdminLayout() {

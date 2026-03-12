@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar } from "lucide-react";
+import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar, Upload, FileText, Trash2, Send } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface CarteiraItem {
   id: string;
@@ -24,7 +25,9 @@ interface CarteiraItem {
   status: string;
   cota_contemplada: string | null;
   data_contemplacao: string | null;
+  boleto_url: string | null;
   created_at: string;
+  celular?: string | null;
 }
 
 const fmt = (v: number) =>
@@ -37,10 +40,16 @@ export default function Carteira() {
   const [cotaContemplada, setCotaContemplada] = useState("");
   const [dataContemplacao, setDataContemplacao] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchData = async () => {
-    const { data } = await (supabase.from("carteira" as any) as any).select("*").order("created_at", { ascending: false });
-    setItems(data ?? []);
+    const { data } = await (supabase.from("carteira" as any) as any).select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
+    const mapped = (data ?? []).map((item: any) => ({
+      ...item,
+      celular: item.leads?.celular ?? null,
+    }));
+    setItems(mapped);
     setLoading(false);
   };
 
@@ -50,6 +59,80 @@ export default function Carteira() {
   const aguardando = items.filter((i) => i.status === "aguardando").length;
   const contemplados = items.filter((i) => i.status === "contemplada").length;
   const pctContemplacao = total > 0 ? ((contemplados / total) * 100).toFixed(1) : "0";
+
+  const handleUploadBoleto = async (item: CarteiraItem, file: File) => {
+    if (file.type !== "application/pdf") {
+      toast({ title: "Erro", description: "Apenas arquivos PDF são aceitos.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Erro", description: "Arquivo deve ter no máximo 5MB.", variant: "destructive" });
+      return;
+    }
+
+    setUploading(item.id);
+    const filePath = `${item.id}/${Date.now()}_boleto.pdf`;
+
+    // Remove old file if exists
+    if (item.boleto_url) {
+      const oldPath = item.boleto_url.split("/boletos/")[1];
+      if (oldPath) await supabase.storage.from("boletos").remove([oldPath]);
+    }
+
+    const { error: uploadError } = await supabase.storage.from("boletos").upload(filePath, file);
+    if (uploadError) {
+      toast({ title: "Erro no upload", description: uploadError.message, variant: "destructive" });
+      setUploading(null);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(filePath);
+    // Since bucket is private, we store the path and generate signed URLs on demand
+    await (supabase.from("carteira" as any) as any).update({ boleto_url: filePath }).eq("id", item.id);
+
+    toast({ title: "Boleto enviado!", description: `Boleto de ${item.nome} salvo com sucesso.` });
+    setUploading(null);
+    fetchData();
+  };
+
+  const handleViewBoleto = async (item: CarteiraItem) => {
+    if (!item.boleto_url) return;
+    const { data, error } = await supabase.storage.from("boletos").createSignedUrl(item.boleto_url, 300);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Erro", description: "Não foi possível abrir o boleto.", variant: "destructive" });
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  };
+
+  const handleDeleteBoleto = async (item: CarteiraItem) => {
+    if (!item.boleto_url) return;
+    await supabase.storage.from("boletos").remove([item.boleto_url]);
+    await (supabase.from("carteira" as any) as any).update({ boleto_url: null }).eq("id", item.id);
+    toast({ title: "Boleto removido", description: `Boleto de ${item.nome} foi excluído.` });
+    fetchData();
+  };
+
+  const handleSendWhatsApp = async (item: CarteiraItem) => {
+    if (!item.boleto_url) {
+      toast({ title: "Sem boleto", description: "Faça o upload do boleto antes de enviar.", variant: "destructive" });
+      return;
+    }
+    if (!item.celular) {
+      toast({ title: "Sem celular", description: "Este cliente não possui celular cadastrado.", variant: "destructive" });
+      return;
+    }
+    const { data, error } = await supabase.storage.from("boletos").createSignedUrl(item.boleto_url, 86400);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Erro", description: "Não foi possível gerar o link do boleto.", variant: "destructive" });
+      return;
+    }
+    const phone = item.celular.replace(/\D/g, "");
+    const msg = encodeURIComponent(
+      `Olá ${item.nome}! 😊\n\nSegue o link para download do seu boleto:\n${data.signedUrl}\n\n⚠️ Este link é válido por 24 horas.`
+    );
+    window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
+  };
 
   const handleContemplacao = async () => {
     if (!selectedItem) return;
@@ -63,6 +146,45 @@ export default function Carteira() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+
+  const BoletoActions = ({ item }: { item: CarteiraItem }) => (
+    <div className="flex items-center gap-1">
+      <input
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        ref={(el) => { fileInputRefs.current[item.id] = el; }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUploadBoleto(item, file);
+          e.target.value = "";
+        }}
+      />
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-1"
+        disabled={uploading === item.id}
+        onClick={() => fileInputRefs.current[item.id]?.click()}
+      >
+        <Upload className="h-3.5 w-3.5" />
+        {uploading === item.id ? "Enviando..." : item.boleto_url ? "Trocar" : "Boleto"}
+      </Button>
+      {item.boleto_url && (
+        <>
+          <Button size="sm" variant="ghost" onClick={() => handleViewBoleto(item)} title="Ver boleto">
+            <FileText className="h-3.5 w-3.5 text-primary" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleSendWhatsApp(item)} title="Enviar por WhatsApp">
+            <Send className="h-3.5 w-3.5 text-green-600" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleDeleteBoleto(item)} title="Excluir boleto">
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+          </Button>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -98,7 +220,7 @@ export default function Carteira() {
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
-                {["Nome", "Tipo", "Valor", "Grupo", "Cota", "Status", "Ações"].map((h) => (
+                {["Nome", "Tipo", "Valor", "Grupo", "Cota", "Status", "Boleto", "Ações"].map((h) => (
                   <th key={h} className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -119,6 +241,9 @@ export default function Carteira() {
                     )}
                   </td>
                   <td className="px-3 py-2">
+                    <BoletoActions item={item} />
+                  </td>
+                  <td className="px-3 py-2">
                     {item.status === "aguardando" ? (
                       <Button size="sm" variant="outline" onClick={() => { setSelectedItem(item); setCotaContemplada(""); setDataContemplacao(""); }}>
                         Registrar Contemplação
@@ -133,7 +258,7 @@ export default function Carteira() {
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={7} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</td></tr>
+                <tr><td colSpan={8} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</td></tr>
               )}
             </tbody>
           </table>
@@ -181,6 +306,10 @@ export default function Carteira() {
                     </div>
                   </>
                 )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <BoletoActions item={item} />
               </div>
 
               {item.status === "aguardando" && (

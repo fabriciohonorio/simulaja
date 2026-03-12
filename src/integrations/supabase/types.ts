@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       carteira: {
         Row: {
+          boleto_url: string | null
           cota: string | null
           cota_contemplada: string | null
           created_at: string
@@ -30,6 +31,7 @@ export type Database = {
           valor_credito: number | null
         }
         Insert: {
+          boleto_url?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
@@ -44,6 +46,7 @@ export type Database = {
           valor_credito?: number | null
         }
         Update: {
+          boleto_url?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
@@ -104,6 +107,7 @@ export type Database = {
       }
       inadimplentes: {
         Row: {
+          administradora: string | null
           celular: string | null
           cota: string | null
           created_at: string
@@ -118,6 +122,7 @@ export type Database = {
           valor_parcela: number | null
         }
         Insert: {
+          administradora?: string | null
           celular?: string | null
           cota?: string | null
           created_at?: string
@@ -132,6 +137,7 @@ export type Database = {
           valor_parcela?: number | null
         }
         Update: {
+          administradora?: string | null
           celular?: string | null
           cota?: string | null
           created_at?: string
@@ -184,8 +190,13 @@ export type Database = {
           celular: string | null
           cidade: string | null
           created_at: string | null
+          data_vencimento: string | null
           email: string | null
           id: string
+          indicador_celular: string | null
+          indicador_nome: string | null
+          lead_score_valor: string | null
+          lead_temperatura: string | null
           nome: string
           prazo_meses: number | null
           status: string | null
@@ -198,8 +209,13 @@ export type Database = {
           celular?: string | null
           cidade?: string | null
           created_at?: string | null
+          data_vencimento?: string | null
           email?: string | null
           id?: string
+          indicador_celular?: string | null
+          indicador_nome?: string | null
+          lead_score_valor?: string | null
+          lead_temperatura?: string | null
           nome: string
           prazo_meses?: number | null
           status?: string | null
@@ -212,8 +228,13 @@ export type Database = {
           celular?: string | null
           cidade?: string | null
           created_at?: string | null
+          data_vencimento?: string | null
           email?: string | null
           id?: string
+          indicador_celular?: string | null
+          indicador_nome?: string | null
+          lead_score_valor?: string | null
+          lead_temperatura?: string | null
           nome?: string
           prazo_meses?: number | null
           status?: string | null

@@ -14,6 +14,8 @@ import {
 import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
 
 import fabricioReal from "@/assets/fabricio-real.jpg";
+import heroBg from "@/assets/hero-bg.png";
+
 import cardImovel from "@/assets/card-imovel.jpg";
 import cardVeiculo from "@/assets/card-veiculo.jpg";
 import cardMoto from "@/assets/card-moto.jpg";
@@ -206,6 +208,7 @@ const ConsortiumSimulator = () => {
     <div className="min-h-screen flex flex-col bg-background">
       {/* ===== HERO SECTION ===== */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 30%) 100%)" }}>
+        <div className="absolute inset-0" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.1 }} />
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
         <div className="relative container max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20 lg:py-24">
@@ -525,10 +528,10 @@ const ConsortiumSimulator = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
-              { icon: Target, title: "Análise do melhor valor de carta", desc: "Encontramos a carta ideal para o seu objetivo e orçamento." },
-              { icon: Clock, title: "Planejamento de prazo", desc: "Definimos o prazo perfeito para suas parcelas caberem no bolso." },
-              { icon: BarChart3, title: "Estratégia de lance", desc: "Orientação para aumentar suas chances de contemplação." },
-              { icon: Shield, title: "Planejamento patrimonial", desc: "Construa patrimônio de forma estratégica e segura." },
+              { icon: Target, title: "Análise do melhor valor de carta", desc: "Análise do melhor valor de sua carta após a contemplação. Lucratividade com a venda da carta contemplada." },
+              { icon: Clock, title: "Acompanhamento e estratégia de lance", desc: "Garante a agilidade e eficiência na contemplação com a melhor estratégia de lance." },
+              { icon: Shield, title: "Planejamento Patrimonial", desc: "Após reunião e conversa com o cliente, alinhamos o melhor projeto capaz de entregar o bem de acordo com suas necessidades." },
+              { icon: BarChart3, title: "Atendimento Completo", desc: "Atendimento pessoal e online de norte a sul, com as melhores tecnologias." },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-4 bg-card rounded-xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -592,8 +595,7 @@ const ConsortiumSimulator = () => {
               <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Links</h4>
               <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="#simulator" className="hover:text-secondary transition-colors">Simular Consórcio</a></li>
-                <li><a href="https://www.abac.org.br/para-voce" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Para Você</a></li>
-                <li><a href="https://www.abac.org.br/perguntas-frequentes" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — FAQ</a></li>
+                <li><a href="https://www.abac.org.br" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Associação Brasileira de Administradores de Consórcio</a></li>
                 <li><a href="#" className="hover:text-secondary transition-colors">Política de Privacidade</a></li>
               </ul>
             </div>

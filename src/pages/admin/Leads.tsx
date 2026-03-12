@@ -76,7 +76,7 @@ export default function Leads() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      setLeads(data ?? []);
+      setLeads((data as Lead[]) ?? []);
       setLoading(false);
     });
   }, []);
@@ -210,6 +210,17 @@ export default function Leads() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
+              <tr className="bg-muted/30 text-xs font-semibold text-muted-foreground">
+                <td className="px-3 py-1">{filtered.length} leads</td>
+                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1">{formatCurrency(filtered.reduce((s, l) => s + Number(l.valor_credito || 0), 0))}</td>
+                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1"></td>
+              </tr>
               {filtered.map((l) => (
                 <tr key={l.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium whitespace-nowrap">{l.nome}</td>

@@ -1,7 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { Phone, MapPin, Calendar, MessageCircle, ChevronLeft, ChevronRight, Clock, TrendingUp, Sparkles } from "lucide-react";
+import {
+  Phone,
+  MapPin,
+  Calendar as CalendarIcon,
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  TrendingUp,
+  Trash2,
+  Bell,
+  NotebookPen,
+  Plus,
+  CheckCircle2,
+  XCircle,
+  PhoneCall,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +33,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Lead {
   id: string;
@@ -33,11 +56,26 @@ interface Lead {
   last_interaction_at: string | null;
   propensity_score: number | null;
   propensity_reason: string | null;
+<<<<<<< ours
   // Novos campos de inteligência (adicionados para compatibilidade)
   score_final?: string | null;
   qualidade?: string | null;
   urgencia?: string | null;
   temperatura?: string | null;
+=======
+  indicador_nome: string | null;
+  indicador_celular: string | null;
+  data_vencimento: string | null;
+}
+
+interface HistoricoContato {
+  id: string;
+  lead_id: string | null;
+  tipo: string | null;
+  observacao: string | null;
+  resultado: string | null;
+  created_at: string | null;
+>>>>>>> theirs
 }
 
 const COLUMNS = [
@@ -46,14 +84,36 @@ const COLUMNS = [
   { id: "qualificacao", label: "🧠 Qualificação" },
   { id: "simulacao_enviada", label: "📊 Simulação Enviada" },
   { id: "negociacao", label: "🤝 Negociação" },
+<<<<<<< ours
 ];
 
+=======
+  { id: "aguardando_pagamento", label: "🧘 Aguardando Pagamento" },
+  { id: "fechado", label: "🏆 Venda Fechada" },
+  { id: "perdido", label: "❌ Perdido" },
+  { id: "morto", label: "☠️ Lead Morto" },
+];
+
+const COLUMN_COLORS: Record<string, string> = {
+  novo: "border-t-blue-500",
+  contato: "border-t-yellow-500",
+  qualificacao: "border-t-orange-500",
+  proposta: "border-t-purple-500",
+  negociacao: "border-t-indigo-500",
+  aguardando_pagamento: "border-t-amber-500",
+  fechado: "border-t-green-500",
+  perdido: "border-t-red-500",
+  morto: "border-t-gray-500",
+};
+
+>>>>>>> theirs
 const COLUMN_DOT_COLORS: Record<string, string> = {
   novo_lead: "bg-blue-500",
   primeiro_contato: "bg-yellow-500",
   qualificacao: "bg-orange-500",
   simulacao_enviada: "bg-purple-500",
   negociacao: "bg-indigo-500",
+<<<<<<< ours
 };
 
 const COLUMN_COLORS: Record<string, string> = {
@@ -62,20 +122,36 @@ const COLUMN_COLORS: Record<string, string> = {
   qualificacao: "border-t-orange-500",
   simulacao_enviada: "border-t-purple-500",
   negociacao: "border-t-indigo-500",
+=======
+  aguardando_pagamento: "bg-amber-500",
+  fechado: "bg-green-500",
+  perdido: "bg-red-500",
+  morto: "bg-gray-500",
+>>>>>>> theirs
 };
 
 const TEMP_COLORS: Record<string, string> = {
-  "quente": "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
-  "morno": "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
-  "frio": "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
-  "morto": "border-gray-400 bg-gray-50 opacity-75",
+  quente: "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
+  morno: "border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.1)]",
+  frio: "border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.1)]",
+  perdido: "border-orange-600 shadow-[0_0_10px_rgba(234,88,12,0.1)]",
+  morto: "border-gray-400 bg-gray-50 opacity-75",
 };
 
 const TEMP_EMOJIS: Record<string, string> = {
   quente: "🔥",
-  morno: "🌤",
+  morno: "🌤️",
   frio: "❄️",
+  perdido: "💀",
   morto: "☠️",
+};
+
+const TEMP_LABELS: Record<string, string> = {
+  quente: "Quente",
+  morno: "Morno",
+  frio: "Frio",
+  perdido: "Perdido",
+  morto: "Morto",
 };
 
 const SCORE_LABELS: Record<string, string> = {
@@ -85,11 +161,498 @@ const SCORE_LABELS: Record<string, string> = {
   baixo: "🧊 Lead Baixo",
 };
 
+<<<<<<< ours
 const formatCurrency = (v: number | null) => {
   if (v === null || v === undefined) return "Crédito a definir";
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 };
+=======
+const TIPO_CONTATO_OPTIONS = [
+  { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { value: "ligacao", label: "Ligação", icon: PhoneCall },
+  { value: "email", label: "E-mail", icon: Mail },
+  { value: "presencial", label: "Presencial", icon: MessageSquare },
+];
 
+const RESULTADO_OPTIONS = [
+  { value: "positivo", label: "✅ Positivo", color: "text-green-600 bg-green-50 border-green-200" },
+  { value: "neutro", label: "🔄 Neutro", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
+  { value: "negativo", label: "❌ Negativo", color: "text-red-600 bg-red-50 border-red-200" },
+  { value: "sem_retorno", label: "📵 Sem Retorno", color: "text-gray-600 bg-gray-50 border-gray-200" },
+];
+
+const normalizeStatus = (status: string | null): string => {
+  if (!status) return "novo";
+  const s = status.toLowerCase().trim();
+  const map: Record<string, string> = {
+    novo: "novo",
+    contato: "contato",
+    contatado: "contato",
+    primeiro_contato: "contato",
+    qualificacao: "qualificacao",
+    "qualificação": "qualificacao",
+    proposta: "proposta",
+    proposta_enviada: "proposta",
+    "simulação enviada": "proposta",
+    negociacao: "negociacao",
+    "negociação": "negociacao",
+    em_negociacao: "negociacao",
+    "em negociação": "negociacao",
+    aguardando_pagamento: "aguardando_pagamento",
+    "aguardando pagamento": "aguardando_pagamento",
+    fechado: "fechado",
+    venda_fechada: "fechado",
+    perdido: "perdido",
+    desistiu: "perdido",
+    morto: "morto",
+    lead_morto: "morto",
+  };
+  return map[s] || "novo";
+};
+
+const formatCurrency = (v: number) =>
+  v.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 0,
+  });
+
+const isToday = (dateStr: string | null) => {
+  if (!dateStr) return false;
+  const d = parseISO(dateStr);
+  const today = new Date();
+  return (
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
+  );
+};
+
+const isPastDue = (dateStr: string | null) => {
+  if (!dateStr) return false;
+  const d = parseISO(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d < today;
+};
+
+// ─── Lead Card ───────────────────────────────────────────────────────────────
+function LeadCard({
+  lead,
+  snapshot,
+  provided,
+  onDelete,
+  onSetVencimento,
+  onOpenHistorico,
+  ultimaTratativa,
+}: {
+  lead: Lead;
+  snapshot: any;
+  provided: any;
+  onDelete: (id: string, nome: string) => void;
+  onSetVencimento: (lead: Lead) => void;
+  onOpenHistorico: (lead: Lead) => void;
+  ultimaTratativa?: HistoricoContato | null;
+}) {
+  const isAguardando = normalizeStatus(lead.status) === "aguardando_pagamento";
+  const vencHoje = isToday(lead.data_vencimento);
+  const vencAtrasado = isPastDue(lead.data_vencimento);
+>>>>>>> theirs
+
+  return (
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${
+        normalizeStatus(lead.status) === "fechado"
+          ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+          : TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border"
+      } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="font-bold truncate text-foreground">{lead.nome}</p>
+            {lead.propensity_score !== null && (
+              <Badge
+                variant="outline"
+                className={`h-4 px-1 text-[8px] font-black border-2 ${
+                  lead.propensity_score >= 70
+                    ? "text-green-600 border-green-200"
+                    : lead.propensity_score >= 40
+                      ? "text-orange-600 border-orange-200"
+                      : "text-slate-400 border-slate-100"
+                }`}
+              >
+                {lead.propensity_score}%
+              </Badge>
+            )}
+            {isAguardando && (vencHoje || vencAtrasado) && (
+              <Bell className="h-4 w-4 text-amber-500 animate-pulse" />
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground uppercase font-bold">
+            {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          {isAguardando && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetVencimento(lead);
+              }}
+              className="text-amber-500 hover:text-amber-600 shrink-0 p-1 bg-amber-50 rounded-full"
+              title="Agendar vencimento"
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </button>
+          )}
+          {/* Botão Histórico/Notas */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenHistorico(lead);
+            }}
+            className="text-primary/70 hover:text-primary shrink-0 p-1 bg-primary/5 hover:bg-primary/10 rounded-full transition-colors"
+            title="Ver/adicionar tratativas"
+          >
+            <NotebookPen className="h-4 w-4" />
+          </button>
+          <a
+            href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(
+              `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`,
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
+            title="Enviar WhatsApp"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </a>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(lead.id, lead.nome);
+            }}
+            className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
+            title="Excluir lead"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+        <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-primary font-bold text-base">
+            {formatCurrency(Number(lead.valor_credito))}
+          </p>
+          {lead.indicador_nome && (
+            <span className="text-[9px] text-muted-foreground font-medium">
+              via {lead.indicador_nome}
+            </span>
+          )}
+        </div>
+        {lead.last_interaction_at &&
+          Date.now() - new Date(lead.last_interaction_at).getTime() >
+            12 * 60 * 60 * 1000 && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
+              <Clock className="h-3 w-3" /> 12h+
+            </span>
+          )}
+      </div>
+
+      {/* Última tratativa resumida */}
+      {ultimaTratativa ? (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+          className="w-full text-left"
+        >
+          <div className="flex items-start gap-1.5 px-2 py-1.5 rounded bg-muted/50 hover:bg-muted transition-colors">
+            <NotebookPen className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold text-muted-foreground truncate">
+                {ultimaTratativa.observacao || "Sem observação"}
+              </p>
+              <p className="text-[9px] text-muted-foreground/70">
+                {ultimaTratativa.created_at
+                  ? formatDistanceToNow(new Date(ultimaTratativa.created_at), { addSuffix: true, locale: ptBR })
+                  : "—"}
+                {ultimaTratativa.resultado && (
+                  <span className={`ml-1 font-medium ${
+                    ultimaTratativa.resultado === "positivo" ? "text-green-600" :
+                    ultimaTratativa.resultado === "negativo" ? "text-red-500" :
+                    "text-yellow-600"
+                  }`}>
+                    · {RESULTADO_OPTIONS.find(r => r.value === ultimaTratativa.resultado)?.label ?? ultimaTratativa.resultado}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </button>
+      ) : (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+          className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
+        >
+          <Plus className="h-3 w-3" /> Adicionar tratativa
+        </button>
+      )}
+
+      {/* Vencimento info for aguardando_pagamento */}
+      {isAguardando && lead.data_vencimento && (
+        <div
+          className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${
+            vencAtrasado
+              ? "bg-red-100 text-red-700"
+              : vencHoje
+                ? "bg-amber-100 text-amber-700"
+                : "bg-blue-50 text-blue-700"
+          }`}
+        >
+          {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
+          <CalendarIcon className="h-3 w-3" />
+          Venc: {format(parseISO(lead.data_vencimento), "dd/MM/yyyy")}
+          {vencAtrasado && " — ATRASADO"}
+          {vencHoje && " — VENCE HOJE!"}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <CalendarIcon className="h-3 w-3" /> {lead.prazo_meses}m
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
+          {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
+        </div>
+        <div className="col-span-2 flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+          <Clock className="h-3 w-3" /> Incluído:{" "}
+          {lead.created_at
+            ? format(new Date(lead.created_at), "dd/MM/yy", { locale: ptBR })
+            : "—"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Histórico Modal ──────────────────────────────────────────────────────────
+function HistoricoModal({
+  lead,
+  onClose,
+}: {
+  lead: Lead | null;
+  onClose: () => void;
+}) {
+  const [historico, setHistorico] = useState<HistoricoContato[]>([]);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [savingNota, setSavingNota] = useState(false);
+  const [tipoContato, setTipoContato] = useState("whatsapp");
+  const [observacao, setObservacao] = useState("");
+  const [resultado, setResultado] = useState("positivo");
+
+  const fetchHistorico = useCallback(async (leadId: string) => {
+    setLoadingHistorico(true);
+    const { data } = await supabase
+      .from("historico_contatos")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false });
+    setHistorico((data as HistoricoContato[]) ?? []);
+    setLoadingHistorico(false);
+  }, []);
+
+  useEffect(() => {
+    if (lead) fetchHistorico(lead.id);
+  }, [lead, fetchHistorico]);
+
+  const handleSaveNota = async () => {
+    if (!lead || !observacao.trim()) return;
+    setSavingNota(true);
+
+    const { error } = await supabase.from("historico_contatos").insert({
+      lead_id: lead.id,
+      tipo: tipoContato,
+      observacao: observacao.trim(),
+      resultado,
+    });
+
+    if (error) {
+      toast.error("Erro ao salvar tratativa");
+      setSavingNota(false);
+      return;
+    }
+
+    // Atualiza ultimo_contato e last_interaction_at no lead
+    await supabase
+      .from("leads")
+      .update({
+        ultimo_contato: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", lead.id);
+
+    toast.success("Tratativa registrada!");
+    setObservacao("");
+    setResultado("positivo");
+    setTipoContato("whatsapp");
+    await fetchHistorico(lead.id);
+    setSavingNota(false);
+  };
+
+  return (
+    <Dialog open={!!lead} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <NotebookPen className="h-5 w-5 text-primary" />
+            Tratativas — {lead?.nome}
+          </DialogTitle>
+          <DialogDescription>
+            {formatCurrency(Number(lead?.valor_credito))} · {lead?.tipo_consorcio}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Formulário nova tratativa */}
+        <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border">
+          <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Nova Tratativa</p>
+
+          {/* Tipo de contato */}
+          <div className="flex gap-2 flex-wrap">
+            {TIPO_CONTATO_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setTipoContato(opt.value)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  tipoContato === opt.value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                <opt.icon className="h-3 w-3" />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Observação */}
+          <Textarea
+            placeholder="O que foi tratado? Anotações importantes..."
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+            className="min-h-[80px] text-sm resize-none"
+          />
+
+          {/* Resultado */}
+          <div className="flex gap-2 flex-wrap">
+            {RESULTADO_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setResultado(opt.value)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                  resultado === opt.value ? opt.color + " border-current" : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <Button
+            onClick={handleSaveNota}
+            disabled={savingNota || !observacao.trim()}
+            size="sm"
+            className="w-full"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            {savingNota ? "Salvando..." : "Registrar Tratativa"}
+          </Button>
+        </div>
+
+        {/* Timeline de histórico */}
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Histórico ({historico.length})
+          </p>
+
+          {loadingHistorico ? (
+            <div className="flex justify-center py-6">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+            </div>
+          ) : historico.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <NotebookPen className="h-8 w-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Nenhuma tratativa registrada ainda.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {historico.map((h, i) => {
+                const resultadoOpt = RESULTADO_OPTIONS.find(r => r.value === h.resultado);
+                const tipoOpt = TIPO_CONTATO_OPTIONS.find(t => t.value === h.tipo);
+                return (
+                  <div key={h.id} className="flex gap-3">
+                    {/* Timeline dot */}
+                    <div className="flex flex-col items-center">
+                      <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${
+                        h.resultado === "positivo" ? "bg-green-500" :
+                        h.resultado === "negativo" ? "bg-red-500" :
+                        h.resultado === "sem_retorno" ? "bg-gray-400" :
+                        "bg-yellow-500"
+                      }`} />
+                      {i < historico.length - 1 && (
+                        <div className="w-px flex-1 bg-border mt-1" />
+                      )}
+                    </div>
+                    {/* Conteúdo */}
+                    <div className="flex-1 pb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-muted-foreground" />}
+                        <span className="text-[10px] font-semibold text-muted-foreground capitalize">
+                          {tipoOpt?.label ?? h.tipo}
+                        </span>
+                        {resultadoOpt && (
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${resultadoOpt.color}`}>
+                            {resultadoOpt.label}
+                          </span>
+                        )}
+                        <span className="ml-auto text-[9px] text-muted-foreground/60">
+                          {h.created_at
+                            ? formatDistanceToNow(new Date(h.created_at), { addSuffix: true, locale: ptBR })
+                            : "—"}
+                        </span>
+                      </div>
+                      {h.observacao && (
+                        <p className="text-xs text-foreground bg-background rounded px-2 py-1.5 border border-border/50">
+                          {h.observacao}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Funil() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,8 +661,14 @@ export default function Funil() {
   const [cota, setCota] = useState("");
   const [saving, setSaving] = useState(false);
   const [mobileColIdx, setMobileColIdx] = useState(0);
+  const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
+  // Cache de última tratativa por lead_id
+  const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
 
   useEffect(() => {
+<<<<<<< ours
     supabase.from("leads").select("*").then(({ data }) => {
       const fetchedLeads = (data as any) ?? [];
       const validStatus = COLUMNS.map(c => c.id);
@@ -167,10 +736,53 @@ export default function Funil() {
             propensity_reason: newReason
           } : l));
         }
+=======
+    supabase
+      .from("leads")
+      .select("*")
+      .then(({ data }) => {
+        const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
+          ...lead,
+          status: normalizeStatus(lead.status),
+        }));
+        setLeads(fetchedLeads);
+        setLoading(false);
+
+        const now = new Date();
+        fetchedLeads.forEach(async (lead: Lead) => {
+          const finalStatuses = ["fechado", "perdido", "morto"];
+          if (finalStatuses.includes(lead.status || "")) return;
+
+          const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
+          const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
+          let newTemp = lead.lead_temperatura || "quente";
+
+          if (hoursDiff > 24 * 7) {
+            newTemp = "frio";
+          } else if (hoursDiff > 24 * 3) {
+            newTemp = "frio";
+          } else if (hoursDiff > 24) {
+            newTemp = "morno";
+          }
+
+          if (newTemp !== lead.lead_temperatura) {
+            await supabase
+              .from("leads")
+              .update({ lead_temperatura: newTemp })
+              .eq("id", lead.id);
+
+            setLeads((prev) =>
+              prev.map((l) =>
+                l.id === lead.id ? { ...l, lead_temperatura: newTemp } : l,
+              ),
+            );
+          }
+        });
+>>>>>>> theirs
       });
-    });
   }, []);
 
+<<<<<<< ours
   const getColumnLeads = (colId: string) => {
     const validStatus = COLUMNS.map(c => c.id);
 
@@ -212,6 +824,33 @@ export default function Funil() {
       return dateB - dateA;
     });
   };
+=======
+  // Busca última tratativa de todos os leads
+  useEffect(() => {
+    if (leads.length === 0) return;
+    const leadIds = leads.map((l) => l.id);
+    supabase
+      .from("historico_contatos")
+      .select("*")
+      .in("lead_id", leadIds)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, HistoricoContato> = {};
+        (data as HistoricoContato[]).forEach((h) => {
+          if (h.lead_id && !map[h.lead_id]) {
+            map[h.lead_id] = h;
+          }
+        });
+        setUltimasTratativas(map);
+      });
+  }, [leads.length]);
+
+  const getColumnLeads = (colId: string) =>
+    leads
+      .filter((l) => normalizeStatus(l.status) === colId)
+      .sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
+>>>>>>> theirs
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
@@ -228,21 +867,24 @@ export default function Funil() {
     const leadId = result.draggableId;
     const newStatus = result.destination.droppableId;
 
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
-    );
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
 
     const { error } = await supabase
       .from("leads")
-      .update({
-        status: newStatus,
-        status_updated_at: new Date().toISOString()
-      })
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq("id", leadId);
 
     if (error) {
       toast.error("Erro ao atualizar status");
       return;
+    }
+
+    if (newStatus === "aguardando_pagamento") {
+      const lead = leads.find((l) => l.id === leadId);
+      if (lead) {
+        setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
+        setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
+      }
     }
 
     if (newStatus === "fechado") {
@@ -254,6 +896,33 @@ export default function Funil() {
         fireConfetti();
       }
     }
+  };
+
+  const handleSaveVencimento = async () => {
+    if (!vencimentoLead || !selectedDate) return;
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+
+    const { error } = await supabase
+      .from("leads")
+      .update({ data_vencimento: dateStr, updated_at: new Date().toISOString() })
+      .eq("id", vencimentoLead.id);
+
+    if (error) {
+      toast.error("Erro ao salvar data de vencimento");
+      return;
+    }
+
+    setLeads((prev) =>
+      prev.map((l) => (l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr } : l)),
+    );
+
+    toast.success(
+      vencimentoLead.data_vencimento
+        ? `Agendamento atualizado para ${format(selectedDate, "dd/MM/yyyy")}`
+        : `Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`,
+    );
+    setVencimentoLead(null);
+    setSelectedDate(undefined);
   };
 
   const handleSaveCelebration = async () => {
@@ -281,13 +950,69 @@ export default function Funil() {
     setCelebrationLead(null);
   };
 
+  const handleDeleteLead = async (leadId: string, leadNome: string) => {
+    if (!confirm(`Excluir o lead "${leadNome}" permanentemente?`)) return;
+    await Promise.all([
+      supabase.from("interacoes").delete().eq("lead_id", leadId),
+      supabase.from("historico_contatos").delete().eq("lead_id", leadId),
+      supabase.from("propostas").delete().eq("lead_id", leadId),
+      supabase.from("carteira").delete().eq("lead_id", leadId),
+    ]);
+    const { error } = await supabase.from("leads").delete().eq("id", leadId);
+    if (error) {
+      toast.error("Erro ao excluir lead");
+      return;
+    }
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+    toast.success(`Lead "${leadNome}" excluído`);
+  };
+
+  // Ao fechar o modal de histórico, atualiza o cache da última tratativa
+  const handleCloseHistorico = useCallback(async () => {
+    if (!historicoLead) { setHistoricoLead(null); return; }
+    const leadId = historicoLead.id;
+    setHistoricoLead(null);
+    const { data } = await supabase
+      .from("historico_contatos")
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (data && data.length > 0) {
+      setUltimasTratativas((prev) => ({ ...prev, [leadId]: data[0] as HistoricoContato }));
+    }
+  }, [historicoLead]);
+
   if (loading) {
-    return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
   }
 
   const currentCol = COLUMNS[mobileColIdx];
   const currentColLeads = getColumnLeads(currentCol.id);
   const currentColTotal = currentColLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
+
+  const renderLeadCard = (lead: Lead, idx: number) => (
+    <Draggable draggableId={lead.id} index={idx} key={lead.id}>
+      {(provided, snapshot) => (
+        <LeadCard
+          lead={lead}
+          snapshot={snapshot}
+          provided={provided}
+          onDelete={handleDeleteLead}
+          onSetVencimento={(l) => {
+            setVencimentoLead(l);
+            setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
+          }}
+          onOpenHistorico={setHistoricoLead}
+          ultimaTratativa={ultimasTratativas[lead.id] ?? null}
+        />
+      )}
+    </Draggable>
+  );
 
   return (
     <div className="space-y-4">
@@ -325,24 +1050,25 @@ export default function Funil() {
           </Button>
         </div>
 
-        {/* Mobile column dots */}
         <div className="flex justify-center gap-1.5 mb-3">
           {COLUMNS.map((col, i) => (
             <button
               key={col.id}
               onClick={() => setMobileColIdx(i)}
-              className={`h-2 rounded-full transition-all ${i === mobileColIdx ? `w-6 ${COLUMN_DOT_COLORS[col.id]}` : "w-2 bg-muted-foreground/30"}`}
+              className={`h-2 rounded-full transition-all ${
+                i === mobileColIdx ? `w-6 ${COLUMN_DOT_COLORS[col.id]}` : "w-2 bg-muted-foreground/30"
+              }`}
             />
           ))}
         </div>
 
-        {/* Mobile single-column kanban */}
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId={currentCol.id}>
             {(provided, snapshot) => (
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
+<<<<<<< ours
                 className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
               >
                 <div className="space-y-2">
@@ -428,8 +1154,18 @@ export default function Funil() {
                       )}
                     </Draggable>
                   ))}
+=======
+                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[200px] ${
+                  snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
+                }`}
+              >
+                <div className="space-y-2">
+                  {currentColLeads.map((lead, idx) => renderLeadCard(lead, idx))}
+>>>>>>> theirs
                   {currentColLeads.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-8">Nenhum lead nesta etapa</p>
+                    <p className="text-center text-sm text-muted-foreground py-8">
+                      Nenhum lead nesta etapa
+                    </p>
                   )}
                   {provided.placeholder}
                 </div>
@@ -452,7 +1188,13 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
+<<<<<<< ours
                     className={`min-w-[300px] w-[300px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-220px)] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+=======
+                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${
+                      snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
+                    }`}
+>>>>>>> theirs
                   >
                     <div className="mb-3">
                       <h3 className="font-semibold text-sm">{col.label}</h3>
@@ -461,6 +1203,7 @@ export default function Funil() {
                       </p>
                     </div>
 
+<<<<<<< ours
                     <div className="space-y-2 flex-1 overflow-y-auto pr-1 custom-scrollbar">
                       {colLeads.map((lead, idx) => (
                         <Draggable draggableId={lead.id} index={idx} key={lead.id}>
@@ -554,6 +1297,10 @@ export default function Funil() {
                           )}
                         </Draggable>
                       ))}
+=======
+                    <div className="space-y-2 flex-1 min-h-[100px]">
+                      {colLeads.map((lead, idx) => renderLeadCard(lead, idx))}
+>>>>>>> theirs
                       {provided.placeholder}
                     </div>
                   </div>
@@ -564,11 +1311,54 @@ export default function Funil() {
         </div>
       </DragDropContext>
 
+      {/* Modal Histórico de Tratativas */}
+      <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} />
+
+      {/* Vencimento Calendar Dialog */}
+      <Dialog open={!!vencimentoLead} onOpenChange={(open) => !open && setVencimentoLead(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-amber-500" /> Agendar Vencimento
+            </DialogTitle>
+            <DialogDescription>
+              Marque a data de vencimento do pagamento de{" "}
+              <span className="font-bold">{vencimentoLead?.nome}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              locale={ptBR}
+              className="rounded-md border"
+            />
+            {selectedDate && (
+              <p className="text-sm text-muted-foreground">
+                Data selecionada:{" "}
+                <span className="font-bold text-foreground">{format(selectedDate, "dd/MM/yyyy")}</span>
+              </p>
+            )}
+            <div className="flex gap-2 w-full">
+              <Button className="flex-1" onClick={handleSaveVencimento} disabled={!selectedDate}>
+                <Bell className="h-4 w-4 mr-2" /> Agendar
+              </Button>
+              <Button variant="ghost" onClick={() => setVencimentoLead(null)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Celebration Dialog */}
       <Dialog open={!!celebrationLead} onOpenChange={(open) => !open && setCelebrationLead(null)}>
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
-            <DialogTitle className="text-xl sm:text-2xl">🎉 PARABÉNS! MAIS UMA FANTÁSTICA VENDA!</DialogTitle>
+            <DialogTitle className="text-xl sm:text-2xl">
+              🎉 PARABÉNS! MAIS UMA FANTÁSTICA VENDA!
+            </DialogTitle>
             <DialogDescription className="text-base mt-2">
               <span className="font-bold text-foreground">{celebrationLead?.nome}</span>
               <br />

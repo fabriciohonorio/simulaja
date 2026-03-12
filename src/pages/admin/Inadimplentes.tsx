@@ -25,6 +25,7 @@ interface Inadimplente {
   grupo: string | null;
   cota: string | null;
   status: string;
+  administradora: string | null;
 }
 
 const COLUMNS = [
@@ -32,7 +33,7 @@ const COLUMNS = [
   { id: "notificado", label: "Notificado", color: "border-t-yellow-500", dot: "bg-yellow-500" },
   { id: "negociando", label: "Negociando", color: "border-t-orange-500", dot: "bg-orange-500" },
   { id: "regularizado", label: "Regularizado", color: "border-t-green-500", dot: "bg-green-500" },
-  { id: "juridico", label: "Jurídico", color: "border-t-purple-500", dot: "bg-purple-500" },
+  
 ];
 
 const formatCurrency = (v: number) =>
@@ -49,7 +50,7 @@ export default function Inadimplentes() {
   );
   const [form, setForm] = useState({
     nome: "", celular: "", tipo_consorcio: "", valor_parcela: "",
-    parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "",
+    parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -89,13 +90,14 @@ export default function Inadimplentes() {
       parcelas_atrasadas: Number(form.parcelas_atrasadas) || 0,
       grupo: form.grupo,
       cota: form.cota,
+      administradora: form.administradora || null,
       status: "em_atraso",
     });
     setSaving(false);
     if (error) { toast.error("Erro ao adicionar"); return; }
     toast.success("Inadimplente adicionado!");
     setShowAdd(false);
-    setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "" });
+    setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
     fetchData();
   };
 
@@ -241,7 +243,7 @@ export default function Inadimplentes() {
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
+                            {item.administradora ? `${item.administradora} · ` : ""}{item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
                           </p>
                           <p className="text-primary font-bold text-sm">
                             {formatCurrency(item.valor_parcela)}/mês
@@ -319,7 +321,7 @@ export default function Inadimplentes() {
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                {item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
+                                {item.administradora ? `${item.administradora} · ` : ""}{item.tipo_consorcio} · Grupo {item.grupo || "—"} · Cota {item.cota || "—"}
                               </p>
                               <p className="text-primary font-bold text-sm">
                                 {formatCurrency(item.valor_parcela)}/mês
@@ -374,6 +376,10 @@ export default function Inadimplentes() {
             <div className="space-y-1">
               <Label>Cota</Label>
               <Input value={form.cota} onChange={(e) => setForm({ ...form, cota: e.target.value })} />
+            </div>
+            <div className="space-y-1 col-span-2">
+              <Label>Administradora</Label>
+              <Input value={form.administradora} onChange={(e) => setForm({ ...form, administradora: e.target.value })} placeholder="Ex: Magalu, Embracon..." />
             </div>
           </div>
           <Button onClick={handleAdd} disabled={saving || !form.nome} className="mt-2 w-full">

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame } from "lucide-react";
+import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame, Lightbulb, ArrowRight, Star } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Lead {
@@ -14,8 +14,8 @@ interface Lead {
     valor_credito: number;
     created_at: string | null;
     updated_at: string | null;
-    propensity_score: number | null;
-    propensity_reason: string | null;
+    propensity_score?: number | null;
+    propensity_reason?: string | null;
 }
 
 interface Termometro {
@@ -42,7 +42,7 @@ export default function Metas() {
             const { data: leadsData } = await supabase.from("leads").select("*");
             const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
             const { data: termData } = await supabase.from("mercado_termometro").select("*").order("segmento");
-            setLeads(leadsData || []);
+            setLeads((leadsData as Lead[]) || []);
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
@@ -71,15 +71,18 @@ export default function Metas() {
     const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
     const metaMensal = metaAnual / 12;
     const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
-    const fechados = leads.filter(l => l.status === "fechado");
+    const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const realizadoAno = fechados.filter(l => l.created_at?.startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+    const faltaAno = Math.max(0, metaAnual - realizadoAno);
+    const mesesRestantes = Math.max(1, 12 - currentMonth + 1);
+    const necessarioPorMes = faltaAno / mesesRestantes;
     const progressoMes = metaMensal > 0 ? Math.min(100, (realizadoMes / metaMensal) * 100) : 0;
     const progressoAno = metaAnual > 0 ? Math.min(100, (realizadoAno / metaAnual) * 100) : 0;
     const ticketMedio = fechados.length > 0 ? realizadoAno / fechados.length : 0;
     const leadsAno = leads.filter(l => l.created_at?.startsWith(String(currentYear)));
     const taxaConversao = leadsAno.length > 0 ? (fechados.length / leadsAno.length) * 100 : 0;
-    const perdidos = leads.filter(l => l.status === "perdido" || l.status === "desistiu");
+    const perdidos = leads.filter(l => ["perdido", "desistiu"].includes((l.status || "").toLowerCase()));
     const taxaPerda = leadsAno.length > 0 ? (perdidos.length / leadsAno.length) * 100 : 0;
     const faltaMes = Math.max(0, metaMensal - realizadoMes);
     const leadsNecessarios = Math.ceil(ticketMedio > 0 ? faltaMes / ticketMedio : 0);
@@ -177,25 +180,63 @@ export default function Metas() {
                 </Card>
             </div>
 
+            {/* Falta para Meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="bg-amber-50 border-amber-200">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                            <Target className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide">Falta para a Meta Anual</p>
+                            <p className="text-xl sm:text-2xl font-bold text-amber-800">{fmt(faltaAno)}</p>
+                            <p className="text-xs text-amber-600 mt-0.5">
+                                {faltaAno <= 0 ? "🎉 Meta atingida!" : `${(100 - progressoAno).toFixed(1)}% restante`}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-indigo-50 border-indigo-200">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                            <TrendingUp className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-indigo-700 font-semibold uppercase tracking-wide">Necessário por Mês</p>
+                            <p className="text-xl sm:text-2xl font-bold text-indigo-800">{fmt(necessarioPorMes)}</p>
+                            <p className="text-xs text-indigo-600 mt-0.5">
+                                nos {mesesRestantes} {mesesRestantes === 1 ? "mês restante" : "meses restantes"} de {currentYear}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* KPI Grid — 2 cols on phones, 4 on md, 7 on xl */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3">
-                {[
-                    { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio" },
-                    { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão" },
-                    { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários" },
-                    { icon: Clock, color: "text-purple-500", val: "0.0 dias", label: "Tempo Fechamento" },
-                    { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda" },
-                    { icon: BarChart3, color: "text-indigo-500", val: fmt(projecaoMes), label: "Projeção do Mês" },
-                    { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d" },
-                ].map((k, i) => (
-                    <Card key={i} className={i === 6 && semFollowUp > 0 ? "bg-red-50 border-red-200" : ""}>
-                        <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
-                            <k.icon className={`h-5 w-5 ${k.color}`} />
-                            <p className="text-base sm:text-xl font-bold leading-tight">{k.val}</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{k.label}</p>
-                        </CardContent>
-                    </Card>
-                ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3">
+                {(() => {
+                    const faltaMetaMesColor = progressoMes >= 99 ? "text-green-600" : progressoMes >= 70 ? "text-amber-500" : "text-red-500";
+                    const faltaMetaMesBg = progressoMes >= 99 ? "bg-green-50 border-green-200" : progressoMes >= 70 ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200";
+                    const items = [
+                        { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio", cardClass: "" },
+                        { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão", cardClass: "" },
+                        { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários", cardClass: "" },
+                        { icon: Clock, color: "text-purple-500", val: `${diasMes - diaHoje} dias`, label: "Dias p/ Fechar Mês", cardClass: "" },
+                        { icon: Target, color: faltaMetaMesColor, val: fmt(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg },
+                        { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda", cardClass: "" },
+                        { icon: BarChart3, color: "text-indigo-500", val: fmt(projecaoMes), label: "Projeção do Mês", cardClass: "" },
+                        { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-50 border-red-200" : "" },
+                    ];
+                    return items.map((k, i) => (
+                        <Card key={i} className={k.cardClass}>
+                            <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
+                                <k.icon className={`h-5 w-5 ${k.color}`} />
+                                <p className="text-base sm:text-xl font-bold leading-tight">{k.val}</p>
+                                <p className="text-xs text-muted-foreground leading-tight">{k.label}</p>
+                            </CardContent>
+                        </Card>
+                    ));
+                })()}
             </div>
 
             {/* Chart + Thermometer */}
@@ -242,41 +283,112 @@ export default function Metas() {
                 </Card>
             </div>
 
-            {/* Top Leads + Destaque */}
+            {/* Dicas e Sugestões + Destaque */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="md:col-span-2">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm sm:text-base">Ranking de Propensão de Compra</CardTitle>
-                        <Trophy className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                            <Lightbulb className="h-4 w-4 text-amber-500" />
+                            Dicas e Sugestões para Atingir a Meta
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        {topLeads.map((l, i) => (
-                            <div key={l.id} className="space-y-2 p-3 rounded-lg border bg-white shadow-sm">
-                                <div className="flex justify-between items-start gap-2">
+                        {(() => {
+                            const dicas: { icon: typeof Lightbulb; color: string; titulo: string; descricao: string }[] = [];
+
+                            // Dica baseada no termômetro — segmentos quentes
+                            const segQuentes = termometro.filter(t => t.percentual >= 70);
+                            if (segQuentes.length > 0) {
+                                dicas.push({
+                                    icon: Flame,
+                                    color: "text-red-500",
+                                    titulo: `Segmentos em alta: ${segQuentes.map(s => s.segmento).join(", ")}`,
+                                    descricao: `O mercado está aquecido! Aproveite para prospectar clientes nesses segmentos onde a demanda é maior.`,
+                                });
+                            }
+
+                            // Dica baseada em leads sem follow-up
+                            if (semFollowUp > 0) {
+                                dicas.push({
+                                    icon: AlertTriangle,
+                                    color: "text-amber-500",
+                                    titulo: `${semFollowUp} leads sem contato há mais de 7 dias`,
+                                    descricao: `Retome o contato com esses leads. Um follow-up pode reativar o interesse e gerar fechamento.`,
+                                });
+                            }
+
+                            // Dica de ticket médio vs falta
+                            if (faltaMes > 0 && ticketMedio > 0) {
+                                dicas.push({
+                                    icon: Target,
+                                    color: "text-primary",
+                                    titulo: `Faltam aproximadamente ${leadsNecessarios} fechamento(s) para bater a meta do mês`,
+                                    descricao: `Com ticket médio de ${fmt(ticketMedio)}, foque nos leads com maior valor de crédito para atingir os ${fmt(faltaMes)} restantes.`,
+                                });
+                            }
+
+                            // Dica de projeção
+                            if (projecaoMes < metaMensal && metaMensal > 0) {
+                                dicas.push({
+                                    icon: TrendingUp,
+                                    color: "text-indigo-500",
+                                    titulo: `Projeção abaixo da meta: ${fmt(projecaoMes)} de ${fmt(metaMensal)}`,
+                                    descricao: `Intensifique a prospecção nos próximos ${diasMes - diaHoje} dias. Considere oferecer condições especiais para acelerar fechamentos.`,
+                                });
+                            }
+
+                            // Dica de segmentos frios — oportunidade
+                            const segFrios = termometro.filter(t => t.percentual < 40);
+                            if (segFrios.length > 0) {
+                                dicas.push({
+                                    icon: Star,
+                                    color: "text-blue-500",
+                                    titulo: `Oportunidade em segmentos frios: ${segFrios.map(s => s.segmento).join(", ")}`,
+                                    descricao: `Menos concorrência nesses segmentos. Trabalhe leads que já demonstraram interesse para se destacar.`,
+                                });
+                            }
+
+                            // Dica de taxa de perda
+                            if (taxaPerda > 30) {
+                                dicas.push({
+                                    icon: UserX,
+                                    color: "text-red-500",
+                                    titulo: `Taxa de perda alta: ${taxaPerda.toFixed(1)}%`,
+                                    descricao: `Revise o processo de atendimento. Identifique os motivos de desistência e ajuste sua abordagem comercial.`,
+                                });
+                            }
+
+                            if (faltaMes <= 0) {
+                                dicas.push({
+                                    icon: Trophy,
+                                    color: "text-green-600",
+                                    titulo: `🎉 Meta do mês atingida! Parabéns!`,
+                                    descricao: `Continue prospectando para acumular resultados e garantir a meta anual.`,
+                                });
+                            }
+
+                            if (dicas.length === 0) {
+                                dicas.push({
+                                    icon: Lightbulb,
+                                    color: "text-amber-500",
+                                    titulo: "Defina sua meta anual para receber dicas personalizadas",
+                                    descricao: "Configure a meta no campo acima para que o sistema gere sugestões inteligentes de atuação.",
+                                });
+                            }
+
+                            return dicas.map((d, i) => (
+                                <div key={i} className="flex items-start gap-3 p-3 rounded-lg border bg-card shadow-sm">
+                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                                        <d.icon className={`h-4 w-4 ${d.color}`} />
+                                    </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm font-bold truncate">{i + 1}. {l.nome}</p>
-                                        <p className="text-[10px] text-muted-foreground italic truncate">{l.propensity_reason || "Calculando propensão..."}</p>
+                                        <p className="text-sm font-semibold">{d.titulo}</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">{d.descricao}</p>
                                     </div>
-                                    <div className="text-right shrink-0">
-                                        <p className="font-bold text-primary text-sm">{fmt(l.valor_credito || 0)}</p>
-                                        <span className={`text-[10px] font-black ${(l.propensity_score || 0) >= 70 ? "text-green-600" :
-                                            (l.propensity_score || 0) >= 40 ? "text-orange-600" : "text-slate-400"
-                                            }`}>
-                                            {l.propensity_score || 0}% Chance
-                                        </span>
-                                    </div>
+                                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
                                 </div>
-                                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div
-                                        className={`h-full transition-all duration-500 ${(l.propensity_score || 0) >= 70 ? "bg-green-500" :
-                                            (l.propensity_score || 0) >= 40 ? "bg-orange-500" : "bg-slate-300"
-                                            }`}
-                                        style={{ width: `${l.propensity_score || 0}%` }}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                        {topLeads.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum lead em aberto.</p>}
+                            ));
+                        })()}
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-primary/10 to-transparent">
