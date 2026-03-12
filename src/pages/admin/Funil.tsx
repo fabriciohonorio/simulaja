@@ -14,8 +14,6 @@ import {
   Bell,
   NotebookPen,
   Plus,
-  CheckCircle2,
-  XCircle,
   PhoneCall,
   Mail,
   MessageSquare,
@@ -35,7 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -56,16 +54,14 @@ interface Lead {
   last_interaction_at: string | null;
   propensity_score: number | null;
   propensity_reason: string | null;
-<<<<<<< ours
   // Novos campos de inteligência (adicionados para compatibilidade)
   score_final?: string | null;
   qualidade?: string | null;
   urgencia?: string | null;
   temperatura?: string | null;
-=======
-  indicador_nome: string | null;
-  indicador_celular: string | null;
-  data_vencimento: string | null;
+  indicador_nome?: string | null;
+  indicador_celular?: string | null;
+  data_vencimento?: string | null;
 }
 
 interface HistoricoContato {
@@ -75,7 +71,6 @@ interface HistoricoContato {
   observacao: string | null;
   resultado: string | null;
   created_at: string | null;
->>>>>>> theirs
 }
 
 const COLUMNS = [
@@ -84,10 +79,6 @@ const COLUMNS = [
   { id: "qualificacao", label: "🧠 Qualificação" },
   { id: "simulacao_enviada", label: "📊 Simulação Enviada" },
   { id: "negociacao", label: "🤝 Negociação" },
-<<<<<<< ours
-];
-
-=======
   { id: "aguardando_pagamento", label: "🧘 Aguardando Pagamento" },
   { id: "fechado", label: "🏆 Venda Fechada" },
   { id: "perdido", label: "❌ Perdido" },
@@ -95,9 +86,12 @@ const COLUMNS = [
 ];
 
 const COLUMN_COLORS: Record<string, string> = {
+  novo_lead: "border-t-blue-500",
   novo: "border-t-blue-500",
+  primeiro_contato: "border-t-yellow-500",
   contato: "border-t-yellow-500",
   qualificacao: "border-t-orange-500",
+  simulacao_enviada: "border-t-purple-500",
   proposta: "border-t-purple-500",
   negociacao: "border-t-indigo-500",
   aguardando_pagamento: "border-t-amber-500",
@@ -106,28 +100,19 @@ const COLUMN_COLORS: Record<string, string> = {
   morto: "border-t-gray-500",
 };
 
->>>>>>> theirs
 const COLUMN_DOT_COLORS: Record<string, string> = {
   novo_lead: "bg-blue-500",
+  novo: "bg-blue-500",
   primeiro_contato: "bg-yellow-500",
+  contato: "bg-yellow-500",
   qualificacao: "bg-orange-500",
   simulacao_enviada: "bg-purple-500",
+  proposta: "bg-purple-500",
   negociacao: "bg-indigo-500",
-<<<<<<< ours
-};
-
-const COLUMN_COLORS: Record<string, string> = {
-  novo_lead: "border-t-blue-500",
-  primeiro_contato: "border-t-yellow-500",
-  qualificacao: "border-t-orange-500",
-  simulacao_enviada: "border-t-purple-500",
-  negociacao: "border-t-indigo-500",
-=======
   aguardando_pagamento: "bg-amber-500",
   fechado: "bg-green-500",
   perdido: "bg-red-500",
   morto: "bg-gray-500",
->>>>>>> theirs
 };
 
 const TEMP_COLORS: Record<string, string> = {
@@ -161,12 +146,6 @@ const SCORE_LABELS: Record<string, string> = {
   baixo: "🧊 Lead Baixo",
 };
 
-<<<<<<< ours
-const formatCurrency = (v: number | null) => {
-  if (v === null || v === undefined) return "Crédito a definir";
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
-};
-=======
 const TIPO_CONTATO_OPTIONS = [
   { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
   { value: "ligacao", label: "Ligação", icon: PhoneCall },
@@ -210,12 +189,10 @@ const normalizeStatus = (status: string | null): string => {
   return map[s] || "novo";
 };
 
-const formatCurrency = (v: number) =>
-  v.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 0,
-  });
+const formatCurrency = (v: number | null) => {
+  if (v === null || v === undefined) return "Crédito a definir";
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+};
 
 const isToday = (dateStr: string | null) => {
   if (!dateStr) return false;
@@ -257,18 +234,16 @@ function LeadCard({
   const isAguardando = normalizeStatus(lead.status) === "aguardando_pagamento";
   const vencHoje = isToday(lead.data_vencimento);
   const vencAtrasado = isPastDue(lead.data_vencimento);
->>>>>>> theirs
 
   return (
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${
-        normalizeStatus(lead.status) === "fechado"
-          ? "border-green-500 bg-green-50 dark:bg-green-950/30"
-          : TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border"
-      } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado"
+        ? "border-green-500 bg-green-50 dark:bg-green-950/30"
+        : TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border"
+        } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col min-w-0">
@@ -277,13 +252,12 @@ function LeadCard({
             {lead.propensity_score !== null && (
               <Badge
                 variant="outline"
-                className={`h-4 px-1 text-[8px] font-black border-2 ${
-                  lead.propensity_score >= 70
-                    ? "text-green-600 border-green-200"
-                    : lead.propensity_score >= 40
-                      ? "text-orange-600 border-orange-200"
-                      : "text-slate-400 border-slate-100"
-                }`}
+                className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70
+                  ? "text-green-600 border-green-200"
+                  : lead.propensity_score >= 40
+                    ? "text-orange-600 border-orange-200"
+                    : "text-slate-400 border-slate-100"
+                  }`}
               >
                 {lead.propensity_score}%
               </Badge>
@@ -362,7 +336,7 @@ function LeadCard({
         </div>
         {lead.last_interaction_at &&
           Date.now() - new Date(lead.last_interaction_at).getTime() >
-            12 * 60 * 60 * 1000 && (
+          12 * 60 * 60 * 1000 && (
             <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
               <Clock className="h-3 w-3" /> 12h+
             </span>
@@ -386,11 +360,10 @@ function LeadCard({
                   ? formatDistanceToNow(new Date(ultimaTratativa.created_at), { addSuffix: true, locale: ptBR })
                   : "—"}
                 {ultimaTratativa.resultado && (
-                  <span className={`ml-1 font-medium ${
-                    ultimaTratativa.resultado === "positivo" ? "text-green-600" :
+                  <span className={`ml-1 font-medium ${ultimaTratativa.resultado === "positivo" ? "text-green-600" :
                     ultimaTratativa.resultado === "negativo" ? "text-red-500" :
-                    "text-yellow-600"
-                  }`}>
+                      "text-yellow-600"
+                    }`}>
                     · {RESULTADO_OPTIONS.find(r => r.value === ultimaTratativa.resultado)?.label ?? ultimaTratativa.resultado}
                   </span>
                 )}
@@ -410,13 +383,12 @@ function LeadCard({
       {/* Vencimento info for aguardando_pagamento */}
       {isAguardando && lead.data_vencimento && (
         <div
-          className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${
-            vencAtrasado
-              ? "bg-red-100 text-red-700"
-              : vencHoje
-                ? "bg-amber-100 text-amber-700"
-                : "bg-blue-50 text-blue-700"
-          }`}
+          className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${vencAtrasado
+            ? "bg-red-100 text-red-700"
+            : vencHoje
+              ? "bg-amber-100 text-amber-700"
+              : "bg-blue-50 text-blue-700"
+            }`}
         >
           {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
           <CalendarIcon className="h-3 w-3" />
@@ -537,11 +509,10 @@ function HistoricoModal({
               <button
                 key={opt.value}
                 onClick={() => setTipoContato(opt.value)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                  tipoContato === opt.value
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
-                }`}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${tipoContato === opt.value
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                  }`}
               >
                 <opt.icon className="h-3 w-3" />
                 {opt.label}
@@ -563,9 +534,8 @@ function HistoricoModal({
               <button
                 key={opt.value}
                 onClick={() => setResultado(opt.value)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
-                  resultado === opt.value ? opt.color + " border-current" : "bg-background text-muted-foreground border-border hover:border-primary/40"
-                }`}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${resultado === opt.value ? opt.color + " border-current" : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                  }`}
               >
                 {opt.label}
               </button>
@@ -607,12 +577,11 @@ function HistoricoModal({
                   <div key={h.id} className="flex gap-3">
                     {/* Timeline dot */}
                     <div className="flex flex-col items-center">
-                      <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${
-                        h.resultado === "positivo" ? "bg-green-500" :
+                      <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${h.resultado === "positivo" ? "bg-green-500" :
                         h.resultado === "negativo" ? "bg-red-500" :
-                        h.resultado === "sem_retorno" ? "bg-gray-400" :
-                        "bg-yellow-500"
-                      }`} />
+                          h.resultado === "sem_retorno" ? "bg-gray-400" :
+                            "bg-yellow-500"
+                        }`} />
                       {i < historico.length - 1 && (
                         <div className="w-px flex-1 bg-border mt-1" />
                       )}
@@ -668,28 +637,25 @@ export default function Funil() {
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
 
   useEffect(() => {
-<<<<<<< ours
     supabase.from("leads").select("*").then(({ data }) => {
-      const fetchedLeads = (data as any) ?? [];
-      const validStatus = COLUMNS.map(c => c.id);
-
+      const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
+        ...lead,
+        status: normalizeStatus(lead.status),
+      }));
       setLeads(fetchedLeads);
       setLoading(false);
 
-      // Automations: Temperature and Status fallback
       const now = new Date();
       fetchedLeads.forEach(async (lead: Lead) => {
+        const finalStatuses = ["fechado", "perdido", "morto"];
+        if (finalStatuses.includes(lead.status || "")) return;
+
         const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
         const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
         let newTemp = lead.lead_temperatura || "quente";
         let newStatus = lead.status;
 
-        // Regra 2: Se status for inválido/antigo, vira novo_lead
-        if (!newStatus || !validStatus.includes(newStatus)) {
-          newStatus = "novo_lead";
-        }
-
-        // Temperatura dinâmica (mantendo a lógica mas sem forçar status 'morto')
+        // Temperatura dinâmica (mantendo a lógica mas sem forçar status 'morto' para tudo)
         if (hoursDiff > 24 * 7) {
           newTemp = "morto";
         } else if (hoursDiff > 24 * 3) {
@@ -711,9 +677,9 @@ export default function Funil() {
         else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
         else if (newTemp === "frio") { score += 5; }
 
-        if (["simulacao_enviada", "negociacao"].includes(newStatus)) { score += 20; reasons.push("Fase Avançada"); }
+        if (["simulacao_enviada", "proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
         else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
-        else if (newStatus === "primeiro_contato") { score += 10; }
+        else if (newStatus === "primeiro_contato" || newStatus === "contato") { score += 10; }
         else { score += 5; }
 
         const newScore = score;
@@ -736,95 +702,10 @@ export default function Funil() {
             propensity_reason: newReason
           } : l));
         }
-=======
-    supabase
-      .from("leads")
-      .select("*")
-      .then(({ data }) => {
-        const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
-          ...lead,
-          status: normalizeStatus(lead.status),
-        }));
-        setLeads(fetchedLeads);
-        setLoading(false);
-
-        const now = new Date();
-        fetchedLeads.forEach(async (lead: Lead) => {
-          const finalStatuses = ["fechado", "perdido", "morto"];
-          if (finalStatuses.includes(lead.status || "")) return;
-
-          const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
-          const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
-          let newTemp = lead.lead_temperatura || "quente";
-
-          if (hoursDiff > 24 * 7) {
-            newTemp = "frio";
-          } else if (hoursDiff > 24 * 3) {
-            newTemp = "frio";
-          } else if (hoursDiff > 24) {
-            newTemp = "morno";
-          }
-
-          if (newTemp !== lead.lead_temperatura) {
-            await supabase
-              .from("leads")
-              .update({ lead_temperatura: newTemp })
-              .eq("id", lead.id);
-
-            setLeads((prev) =>
-              prev.map((l) =>
-                l.id === lead.id ? { ...l, lead_temperatura: newTemp } : l,
-              ),
-            );
-          }
-        });
->>>>>>> theirs
       });
+    });
   }, []);
 
-<<<<<<< ours
-  const getColumnLeads = (colId: string) => {
-    const validStatus = COLUMNS.map(c => c.id);
-
-    // Filtra aplicando o mapeamento de status antigos/nulos para novo_lead se necessário
-    const filtered = leads.filter((l) => {
-      const currentStatus = l.status || "novo_lead";
-
-      // Se for a primeira coluna (novo_lead), inclui leads com status desconhecido
-      if (colId === "novo_lead") {
-        return !validStatus.includes(currentStatus || "") || currentStatus === "novo_lead" || currentStatus === "novo" || currentStatus === "contato";
-      }
-
-      // Mapeamento explícito para as outras colunas (compatibilidade)
-      if (colId === "primeiro_contato") return currentStatus === "primeiro_contato" || currentStatus === "contato";
-      if (colId === "simulacao_enviada") return currentStatus === "simulacao_enviada" || currentStatus === "proposta";
-
-      return currentStatus === colId;
-    });
-
-    // Ordenação: score_final (A->B->C->D) ou lead_score_valor fallback, depois created_at DESC
-    return filtered.sort((a, b) => {
-      // Prioridade por score_final (A, B, C, D)
-      const scoreWeight: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
-      const scoreA = scoreWeight[a.score_final || ""] || 0;
-      const scoreB = scoreWeight[b.score_final || ""] || 0;
-
-      if (scoreA !== scoreB) return scoreB - scoreA;
-
-      // Fallback para lead_score_valor se score_final for igual
-      const valorWeight: Record<string, number> = { 'premium': 4, 'alto': 3, 'medio': 2, 'baixo': 1 };
-      const valA = valorWeight[a.lead_score_valor || ""] || 0;
-      const valB = valorWeight[b.lead_score_valor || ""] || 0;
-
-      if (valA !== valB) return valB - valA;
-
-      // Por fim, data de criação
-      const dateA = new Date(a.created_at || 0).getTime();
-      const dateB = new Date(b.created_at || 0).getTime();
-      return dateB - dateA;
-    });
-  };
-=======
   // Busca última tratativa de todos os leads
   useEffect(() => {
     if (leads.length === 0) return;
@@ -846,11 +727,42 @@ export default function Funil() {
       });
   }, [leads.length]);
 
-  const getColumnLeads = (colId: string) =>
-    leads
-      .filter((l) => normalizeStatus(l.status) === colId)
-      .sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
->>>>>>> theirs
+  const getColumnLeads = (colId: string) => {
+    const validStatus = COLUMNS.map(c => c.id);
+
+    const filtered = leads.filter((l) => {
+      const currentStatus = normalizeStatus(l.status);
+
+      // Se for a primeira coluna (novo/novo_lead), inclui leads com status desconhecido
+      if (colId === "novo_lead" || colId === "novo") {
+        return !validStatus.includes(currentStatus || "") || currentStatus === "novo_lead" || currentStatus === "novo" || currentStatus === "contato";
+      }
+
+      // Mapeamento explícito para as outras colunas (compatibilidade)
+      if (colId === "primeiro_contato" || colId === "contato") return currentStatus === "primeiro_contato" || currentStatus === "contato";
+      if (colId === "simulacao_enviada" || colId === "proposta") return currentStatus === "simulacao_enviada" || currentStatus === "proposta";
+
+      return currentStatus === colId;
+    });
+
+    return filtered.sort((a, b) => {
+      const scoreWeight: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+      const scoreA = scoreWeight[a.score_final || ""] || 0;
+      const scoreB = scoreWeight[b.score_final || ""] || 0;
+
+      if (scoreA !== scoreB) return scoreB - scoreA;
+
+      const valorWeight: Record<string, number> = { 'premium': 4, 'alto': 3, 'medio': 2, 'baixo': 1 };
+      const valA = valorWeight[a.lead_score_valor || ""] || 0;
+      const valB = valorWeight[b.lead_score_valor || ""] || 0;
+
+      if (valA !== valB) return valB - valA;
+
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  };
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
@@ -1055,9 +967,8 @@ export default function Funil() {
             <button
               key={col.id}
               onClick={() => setMobileColIdx(i)}
-              className={`h-2 rounded-full transition-all ${
-                i === mobileColIdx ? `w-6 ${COLUMN_DOT_COLORS[col.id]}` : "w-2 bg-muted-foreground/30"
-              }`}
+              className={`h-2 rounded-full transition-all ${i === mobileColIdx ? `w-6 ${COLUMN_DOT_COLORS[col.id]}` : "w-2 bg-muted-foreground/30"
+                }`}
             />
           ))}
         </div>
@@ -1068,100 +979,10 @@ export default function Funil() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-<<<<<<< ours
                 className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
               >
                 <div className="space-y-2">
-                  {currentColLeads.map((lead, idx) => (
-                    <Draggable draggableId={lead.id} index={idx} key={lead.id}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
-                            } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex flex-col min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <p className="font-bold truncate text-foreground">{lead.nome}</p>
-                                {lead.propensity_score !== null && (
-                                  <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
-                                    lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
-                                    }`}>
-                                    {lead.propensity_score}%
-                                  </Badge>
-                                )}
-                                {lead.score_final && (
-                                  <Badge className="h-4 px-1 text-[10px] bg-primary text-white font-black">
-                                    {lead.score_final}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
-                                {lead.urgencia && (
-                                  <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase">Urgente</span>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); toast.info("Agenda: Funcionalidade em desenvolvimento"); }}
-                              className="text-orange-500 hover:text-orange-600 shrink-0 ml-1 p-1 bg-orange-50 rounded-full"
-                              title="Agendar"
-                            >
-                              <Calendar className="h-4 w-4" />
-                            </button>
-                            <a
-                              href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1 bg-green-50 rounded-full"
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                            </a>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <p className="text-primary font-bold text-base">
-                              {formatCurrency(lead.valor_credito)}
-                            </p>
-                            {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
-                                <Clock className="h-3 w-3" /> 12h+
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                              {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-=======
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[200px] ${
-                  snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
-                }`}
-              >
-                <div className="space-y-2">
                   {currentColLeads.map((lead, idx) => renderLeadCard(lead, idx))}
->>>>>>> theirs
                   {currentColLeads.length === 0 && (
                     <p className="text-center text-sm text-muted-foreground py-8">
                       Nenhum lead nesta etapa
@@ -1188,13 +1009,7 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-<<<<<<< ours
                     className={`min-w-[300px] w-[300px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-220px)] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-=======
-                    className={`min-w-[260px] w-[260px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col ${
-                      snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""
-                    }`}
->>>>>>> theirs
                   >
                     <div className="mb-3">
                       <h3 className="font-semibold text-sm">{col.label}</h3>
@@ -1203,104 +1018,8 @@ export default function Funil() {
                       </p>
                     </div>
 
-<<<<<<< ours
-                    <div className="space-y-2 flex-1 overflow-y-auto pr-1 custom-scrollbar">
-                      {colLeads.map((lead, idx) => (
-                        <Draggable draggableId={lead.id} index={idx} key={lead.id}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${TEMP_COLORS[lead.lead_temperatura || "🔥 Quente"] || "border-border"
-                                } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex flex-col min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <p className="font-bold truncate text-foreground">{lead.nome}</p>
-                                    {lead.propensity_score !== null && (
-                                      <div className="flex flex-col items-center">
-                                        <Badge variant="outline" className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70 ? "text-green-600 border-green-200" :
-                                          lead.propensity_score >= 40 ? "text-orange-600 border-orange-200" : "text-slate-400 border-slate-100"
-                                          }`}>
-                                          {lead.propensity_score}%
-                                        </Badge>
-                                      </div>
-                                    )}
-                                    {lead.score_final && (
-                                      <Badge className="h-4 px-1 text-[10px] bg-primary text-white font-black">
-                                        {lead.score_final}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] text-muted-foreground uppercase font-bold">{SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
-                                    {lead.urgencia && (
-                                      <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase">Urgente</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <a
-                                  href="/admin/sdr"
-                                  className="bg-primary/10 hover:bg-primary/20 text-primary p-1.5 rounded-lg transition-colors"
-                                  title="Conselho da IA"
-                                >
-                                  <Sparkles className="h-4 w-4" />
-                                </a>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); toast.info("Agenda: Funcionalidade em desenvolvimento"); }}
-                                  className="text-orange-500 hover:text-orange-600 shrink-0 ml-1 p-1 bg-orange-50 rounded-full"
-                                  title="Agendar"
-                                >
-                                  <Calendar className="h-4 w-4" />
-                                </button>
-                                <a
-                                  href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1 bg-green-50 rounded-full"
-                                  title="Enviar WhatsApp"
-                                >
-                                  <MessageCircle className="h-4 w-4" />
-                                </a>
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <p className="text-primary font-bold text-base">
-                                  {formatCurrency(lead.valor_credito)}
-                                </p>
-                                {lead.last_interaction_at && (Date.now() - new Date(lead.last_interaction_at).getTime() > 12 * 60 * 60 * 1000) && (
-                                  <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
-                                    <Clock className="h-3 w-3" /> 12h+
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <Calendar className="h-3 w-3" /> {lead.prazo_meses}m
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-                                  {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-=======
-                    <div className="space-y-2 flex-1 min-h-[100px]">
+                    <div className="space-y-2 flex-1 overflow-y-auto pr-1 custom-scrollbar min-h-[100px]">
                       {colLeads.map((lead, idx) => renderLeadCard(lead, idx))}
->>>>>>> theirs
                       {provided.placeholder}
                     </div>
                   </div>
