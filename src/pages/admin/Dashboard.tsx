@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell } from "lucide-react";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 interface Lead {
@@ -229,7 +230,7 @@ export default function Dashboard() {
           <CardContent className="p-0">
             <div className="divide-y divide-border">
               {leads
-                .filter(l => l.status !== "fechado" && l.status !== "morto")
+                .filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido")
                 .sort((a, b) => Number(b.valor_credito || 0) - Number(a.valor_credito || 0))
                 .slice(0, 7)
                 .map((l, i) => (
@@ -244,7 +245,7 @@ export default function Dashboard() {
                     <p className="text-sm font-bold text-primary shrink-0">{formatCurrency(Number(l.valor_credito))}</p>
                   </div>
                 ))}
-              {leads.filter(l => l.status !== "fechado" && l.status !== "morto").length === 0 && (
+              {leads.filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido").length === 0 && (
                 <p className="text-center text-sm text-muted-foreground py-6">Nenhum lead em negociação.</p>
               )}
             </div>
@@ -284,7 +285,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Próximas Agendas (Mock) */}
+        {/* Próximos Agendamentos — dados reais do Supabase */}
         <Card className="shadow-sm border-border">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
@@ -294,33 +295,51 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-border h-[250px] sm:h-[300px] overflow-y-auto custom-scrollbar">
-              {/* Dados Fictícios */}
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((_, idx) => {
-                const data = new Date();
-                data.setDate(data.getDate() + Math.floor(idx / 3));
-                data.setHours(9 + idx, 0, 0);
-                return (
-                  <div key={idx} className="flex items-center justify-between p-3 hover:bg-orange-50/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-center justify-center bg-orange-100 text-orange-700 rounded-lg p-2 min-w-[50px]">
-                        <span className="text-xs font-bold leading-none">{data.getDate()}</span>
-                        <span className="text-[10px] uppercase font-semibold">{data.toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">Lead Fictício {idx + 1}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
+              {(() => {
+                const agendados = leads
+                  .filter(l => l.data_vencimento)
+                  .sort((a, b) => new Date(a.data_vencimento!).getTime() - new Date(b.data_vencimento!).getTime())
+                  .slice(0, 10);
+
+                if (agendados.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
+                      <Calendar className="h-8 w-8 opacity-30" />
+                      <p className="text-sm">Nenhum agendamento cadastrado.</p>
+                      <p className="text-xs opacity-70">Use o botão 📅 nos cards do funil.</p>
                     </div>
-                    <div className="flex gap-2">
-                      <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-full" title="Ver Detalhes">
-                        <Users className="h-4 w-4" />
-                      </button>
+                  );
+                }
+
+                return agendados.map((l) => {
+                  const data = parseISO(l.data_vencimento!);
+                  const hoje = new Date();
+                  hoje.setHours(0, 0, 0, 0);
+                  const passado = data < hoje;
+                  const eHoje = data.toDateString() === hoje.toDateString();
+                  return (
+                    <div key={l.id} className={`flex items-center justify-between p-3 hover:bg-orange-50/50 transition-colors ${passado ? "opacity-60" : ""}` }>
+                      <div className="flex items-center gap-3">
+                        <div className={`flex flex-col items-center justify-center rounded-lg p-2 min-w-[50px] ${
+                          passado ? "bg-red-100 text-red-700" : eHoje ? "bg-amber-100 text-amber-700" : "bg-orange-100 text-orange-700"
+                        }`}>
+                          <span className="text-xs font-bold leading-none">{format(data, "dd")}</span>
+                          <span className="text-[10px] uppercase font-semibold">{format(data, "MMM", { locale: ptBR }).replace(".", "")}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{l.nome}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 capitalize">
+                            {passado && <span className="text-red-500 font-bold">ATRASADO • </span>}
+                            {eHoje && <span className="text-amber-600 font-bold">HOJE • </span>}
+                            {l.status?.replace(/_/g, " ") ?? "novo"}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-xs font-bold text-primary shrink-0">{formatCurrency(Number(l.valor_credito))}</p>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           </CardContent>
         </Card>

@@ -271,18 +271,21 @@ function LeadCard({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          {isAguardando && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSetVencimento(lead);
-              }}
-              className="text-amber-500 hover:text-amber-600 shrink-0 p-1 bg-amber-50 rounded-full"
-              title="Agendar vencimento"
-            >
-              <CalendarIcon className="h-4 w-4" />
-            </button>
-          )}
+          {/* Botão Agendamento — visível em todos os cards */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSetVencimento(lead);
+            }}
+            className={`shrink-0 p-1 rounded-full transition-colors ${
+              lead.data_vencimento
+                ? "text-amber-500 hover:text-amber-600 bg-amber-50"
+                : "text-muted-foreground/50 hover:text-amber-500 hover:bg-amber-50"
+            }`}
+            title={lead.data_vencimento ? `Agendado: ${lead.data_vencimento}` : "Agendar"}
+          >
+            <CalendarIcon className="h-4 w-4" />
+          </button>
           {/* Botão Histórico/Notas */}
           <button
             onClick={(e) => {
@@ -380,8 +383,8 @@ function LeadCard({
         </button>
       )}
 
-      {/* Vencimento info for aguardando_pagamento */}
-      {isAguardando && lead.data_vencimento && (
+      {/* Agendamento — visível para qualquer lead com data marcada */}
+      {lead.data_vencimento && (
         <div
           className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${vencAtrasado
             ? "bg-red-100 text-red-700"
@@ -392,9 +395,9 @@ function LeadCard({
         >
           {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
           <CalendarIcon className="h-3 w-3" />
-          Venc: {format(parseISO(lead.data_vencimento), "dd/MM/yyyy")}
+          {isAguardando ? "Venc" : "Agend"}: {format(parseISO(lead.data_vencimento), "dd/MM/yyyy")}
           {vencAtrasado && " — ATRASADO"}
-          {vencHoje && " — VENCE HOJE!"}
+          {vencHoje && " — HOJE!"}
         </div>
       )}
 
