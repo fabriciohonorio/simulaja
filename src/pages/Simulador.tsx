@@ -69,6 +69,7 @@ type HistItem = {
 };
 
 export default function Simulador() {
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const refCelular = searchParams.get("ref") || "";
   const refNome = searchParams.get("nome") ? decodeURIComponent(searchParams.get("nome")!) : "";
