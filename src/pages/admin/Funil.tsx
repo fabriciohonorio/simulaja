@@ -993,26 +993,35 @@ export default function Funil() {
         </DragDropContext>
       </div>
 
-      {/* Desktop: horizontal scroll kanban */}
       <DragDropContext
         onDragEnd={onDragEnd}
         onDragStart={() => { isDraggingCardRef.current = true; }}
       >
-        <div
-          ref={kanbanRef}
-          className="hidden md:flex gap-4 overflow-x-scroll pb-2 no-scrollbar cursor-grab active:cursor-grabbing select-none"
-          onMouseDown={(e) => {
-            if (isDraggingCardRef.current || !kanbanRef.current) return;
-            if ((e.target as HTMLElement).closest("[data-rbd-draggable-id]")) return;
-            scrollDrag.current = { active: true, startX: e.pageX, scrollLeft: kanbanRef.current.scrollLeft };
-          }}
-          onMouseMove={(e) => {
-            if (!scrollDrag.current.active || !kanbanRef.current) return;
-            kanbanRef.current.scrollLeft = scrollDrag.current.scrollLeft - (e.pageX - scrollDrag.current.startX);
-          }}
-          onMouseUp={() => { scrollDrag.current.active = false; }}
-          onMouseLeave={() => { scrollDrag.current.active = false; }}
-        >
+        {/* Wrapper com setas de navegação */}
+        <div className="hidden md:block relative">
+          {/* Seta esquerda */}
+          <button
+            onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 320)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-primary text-primary-foreground shadow-xl rounded-full p-2 hover:scale-110 active:scale-95 transition-all -ml-4 border-2 border-background"
+            aria-label="Rolar para esquerda"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+
+          {/* Seta direita */}
+          <button
+            onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 320)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-primary text-primary-foreground shadow-xl rounded-full p-2 hover:scale-110 active:scale-95 transition-all -mr-4 border-2 border-background"
+            aria-label="Rolar para direita"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+
+          {/* Kanban scrollável sem barra visível */}
+          <div
+            ref={kanbanRef}
+            className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-6 scroll-smooth"
+          >
           {COLUMNS.map((col) => {
             const colLeads = getColumnLeads(col.id);
             const totalValor = colLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
@@ -1032,7 +1041,7 @@ export default function Funil() {
                       </p>
                     </div>
 
-                    <div className="space-y-2 flex-1 overflow-y-auto pr-1 custom-scrollbar min-h-[100px]">
+                    <div className="space-y-2 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px]">
                       {colLeads.map((lead, idx) => renderLeadCard(lead, idx))}
                       {provided.placeholder}
                     </div>
@@ -1041,6 +1050,7 @@ export default function Funil() {
               </Droppable>
             );
           })}
+        </div>
         </div>
       </DragDropContext>
 
@@ -1127,8 +1137,8 @@ export default function Funil() {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
       `}</style>
     </div>
   );
