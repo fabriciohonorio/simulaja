@@ -165,8 +165,9 @@ const ConsortiumSimulator = () => {
     else if (g.credito >= 200000) leadScoreValor = "alto";
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
-    // Save to Supabase (CRM)
+    // 1. Save to Supabase (CRM)
     try {
+      console.log("Tentando salvar no CRM...", { nome: simNome, celular: simWpp });
       const { error: dbError } = await supabase.from("leads").insert({
         nome: simNome.trim(),
         celular: simWpp.replace(/\D/g, ""),
@@ -176,21 +177,27 @@ const ConsortiumSimulator = () => {
         status: "novo_lead",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente"
-        // Removido 'origem' pois não existe na tabela leads
       });
 
       if (dbError) {
-        console.error("Erro Detalhado Supabase:", dbError);
+        console.error("❌ ERRO CRM:", dbError);
+        toast({ 
+          title: "Erro ao sincronizar CRM", 
+          description: dbError.message || "Ocorreu um erro ao salvar o lead no banco de dados.",
+          variant: "destructive"
+        });
       } else {
-        console.log("Lead salvo com sucesso no CRM!");
+        console.log("✅ Lead salvo no CRM!");
+        toast({ title: "✅ Lead registrado no CRM com sucesso!" });
       }
-    } catch (e) {
-      console.error("Exception ao salvar no Supabase:", e);
+    } catch (e: any) {
+      console.error("🚨 CRITICAL EXCEPTION CRM:", e);
+      toast({ title: "Erro Crítico", description: e.message, variant: "destructive" });
     }
 
-    // Webhook Make (Telegram/Notificações)
+    // 2. Webhook Make (Telegram/Notificações)
     try {
-      await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
+      const response = await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -199,14 +206,18 @@ const ConsortiumSimulator = () => {
           valor_credito: fmt(g.credito),
           tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
-          origem: utmParams.origem || "Lovable",
-          meio: utmParams.meio,
-          campanha: utmParams.campanha,
+          origem: utmParams.origem || "Lovable Home",
           score: leadScoreValor,
         }),
       });
-      toast({ title: "✅ Simulação enviada! Entraremos em contato em breve." });
-    } catch { /* silent */ }
+      
+      if (response.ok) {
+        console.log("✅ Webhook enviado!");
+        toast({ title: "✅ Notificação enviada ao especialista!" });
+      }
+    } catch (e) {
+      console.error("Webhook Error:", e);
+    }
 
     if (novaConsulta >= MAX_CONSULTAS) setTimeout(() => setBloqueado(true), 700);
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);

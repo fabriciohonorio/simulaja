@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
+import { useToast } from "@/hooks/use-toast";
 
 type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
 
@@ -129,8 +130,9 @@ export default function Simulador() {
     else if (g.credito >= 200000) leadScoreValor = "alto";
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
-    // Save to Supabase (CRM)
+    // 1. Save to Supabase (CRM)
     try {
+      console.log("Simplificador: Salvando lead no CRM...");
       const { error: dbError } = await supabase.from("leads").insert({
         nome: nome.trim(),
         celular: wpp.replace(/\D/g, ""),
@@ -144,13 +146,21 @@ export default function Simulador() {
       });
 
       if (dbError) {
-        console.error("Erro Detalhado CRM (Simulador):", dbError);
+        console.error("❌ ERRO CRM (Simulador):", dbError);
+        toast({ 
+          title: "Erro ao sincronizar CRM", 
+          description: dbError.message || "Ocorreu um erro ao salvar o lead no banco de dados.",
+          variant: "destructive"
+        });
+      } else {
+        console.log("✅ Lead salvo no CRM (Simulador)!");
+        toast({ title: "✅ Lead registrado no CRM com sucesso!" });
       }
     } catch (e) {
-      console.error("Exception CRM:", e);
+      console.error("🚨 Exception CRM:", e);
     }
 
-    // Webhook Make (Telegram/Notificações)
+    // 2. Webhook Make (Telegram/Notificações)
     try {
       await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
         method: "POST",
@@ -161,13 +171,13 @@ export default function Simulador() {
           valor_credito: fmt(g.credito),
           tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
-          origem: new URLSearchParams(window.location.search).get("utm_source") || (isIndicacao ? "indicacao" : "Simulador"),
+          origem: new URLSearchParams(window.location.search).get("utm_source") || (isIndicacao ? "indicacao" : "Página Simulador"),
           score: leadScoreValor,
           indicador_celular: isIndicacao ? refCelular : undefined,
           indicador_nome: isIndicacao ? refNome : undefined,
         }),
       });
-    } catch (e) { console.warn("Webhook:", e); }
+    } catch (e) { console.warn("Webhook Error:", e); }
 
     if (novaConsulta >= MAX_CONSULTAS) {
       setTimeout(() => setBloqueado(true), 700);
