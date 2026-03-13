@@ -760,13 +760,20 @@ export default function Funil() {
     leads
       .filter(l => normalizeStatus(l.status) === colId)
       .sort((a, b) => {
+        // Prioridade 1: Recentes Primeiro (como solicitado pelo usuário)
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        if (dateA !== dateB) return dateB - dateA;
+
+        // Prioridade 2: Inteligência (A, B, C, D)
         const sw: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 };
-        const vw: Record<string, number> = { premium: 4, alto: 3, medio: 2, baixo: 1 };
         const sA = sw[a.score_final || ""] || 0, sB = sw[b.score_final || ""] || 0;
         if (sA !== sB) return sB - sA;
+
+        // Prioridade 3: Valor (Premium, etc)
+        const vw: Record<string, number> = { premium: 4, alto: 3, medio: 2, baixo: 1 };
         const vA = vw[a.lead_score_valor || ""] || 0, vB = vw[b.lead_score_valor || ""] || 0;
-        if (vA !== vB) return vB - vA;
-        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        return vB - vA;
       });
 
   const fireConfetti = () => {
@@ -936,7 +943,7 @@ export default function Funil() {
     <div className="space-y-4 select-none no-scrollbar">
       <div className="flex items-center gap-3">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
-        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-green-100 text-green-700 border-green-200">v2.2 LIVE</Badge>
+        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-green-100 text-green-700 border-green-200">v2.3 LIVE</Badge>
       </div>
 
       {/* Mobile: Column navigator */}
