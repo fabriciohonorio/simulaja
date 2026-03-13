@@ -165,19 +165,35 @@ const ConsortiumSimulator = () => {
     else if (g.credito >= 200000) leadScoreValor = "alto";
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
+    // Save to Supabase (CRM)
     try {
-      await supabase.from("leads").insert({
+      const { error: dbError } = await supabase.from("leads").insert({
         nome: simNome.trim(),
         celular: simWpp.replace(/\D/g, ""),
         tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo_lead",
+        lead_score_valor: leadScoreValor,
+        lead_temperatura: "quente",
+        origem: utmParams.origem || "Lovable"
       });
+
+      if (dbError) {
+        console.error("Erro ao salvar lead no Supabase:", dbError);
+        toast({ 
+          title: "Atenção", 
+          description: "Sua simulação foi gerada, mas houve um erro ao salvar no CRM. Por favor, fale com o especialista pelo WhatsApp.",
+          variant: "destructive"
+        });
+      } else {
+        console.log("Lead salvo com sucesso no CRM!");
+      }
     } catch (e) {
-      console.warn("Supabase:", e);
+      console.error("Exception ao salvar no Supabase:", e);
     }
 
+    // Webhook Make (Telegram/Notificações)
     try {
       await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
         method: "POST",

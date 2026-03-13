@@ -129,22 +129,30 @@ export default function Simulador() {
     else if (g.credito >= 200000) leadScoreValor = "alto";
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
-    // Save to Supabase
+    // Save to Supabase (CRM)
     try {
-      await (supabase.from("leads") as any).insert({
+      const { error: dbError } = await supabase.from("leads").insert({
         nome: nome.trim(),
         celular: wpp.replace(/\D/g, ""),
         tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo_lead",
-        ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : {}),
+        lead_score_valor: leadScoreValor,
+        lead_temperatura: "quente",
+        ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : { origem: "Página Simulador" }),
       });
+
+      if (dbError) {
+        console.error("Erro ao salvar lead no CRM (Página Simulador):", dbError);
+      } else {
+        console.log("Lead salvo no CRM (Página Simulador)!");
+      }
     } catch (e) {
-      console.warn("Supabase:", e);
+      console.error("Exception ao salvar no Supabase:", e);
     }
 
-    // Webhook Make
+    // Webhook Make (Telegram/Notificações)
     try {
       await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
         method: "POST",
