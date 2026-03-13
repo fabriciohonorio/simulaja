@@ -943,7 +943,7 @@ export default function Funil() {
     <div className="space-y-4 select-none no-scrollbar">
       <div className="flex items-center gap-3">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
-        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-green-100 text-green-700 border-green-200">v2.3 LIVE</Badge>
+        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-green-100 text-green-700 border-green-200">v2.4 LIVE</Badge>
       </div>
 
       {/* Mobile: Column navigator */}
