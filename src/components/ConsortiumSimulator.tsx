@@ -10,8 +10,14 @@ import {
   Clock,
   Anchor,
   Award,
+  CircleDollarSign,
+  TrendingDown,
+  Calculator,
+  Info
 } from "lucide-react";
 import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 import fabricioReal from "@/assets/fabricio-real.jpg";
 import heroBg from "@/assets/hero-bg.png";
@@ -103,6 +109,12 @@ const ConsortiumSimulator = () => {
   const [resultado, setResultado] = useState<GrupoItem | null>(null);
   const [historico, setHistorico] = useState<HistItem[]>([]);
   const [bloqueado, setBloqueado] = useState(false);
+  
+  // Novos Estados Fabricio
+  const [lanceDinheiroPct, setLanceDinheiroPct] = useState(0);
+  const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
+  const [incluirComp, setIncluirComp] = useState(true);
+
   const resultRef = useRef<HTMLDivElement>(null);
 
   const [utmParams, setUtmParams] = useState({ origem: "", meio: "", campanha: "" });
@@ -460,9 +472,43 @@ const ConsortiumSimulator = () => {
               disabled={bloqueado}
               className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed bg-secondary hover:bg-secondary/90 text-white shadow-lg"
             >
-              Simule Já
+              Simular Agora
               <ArrowRight className="w-5 h-5" />
             </button>
+
+            {/* Estratégia de Lance (Opcional) */}
+            <div className="mt-8 pt-6 border-t border-border">
+              <div className="flex items-center gap-2 mb-4">
+                <CircleDollarSign className="w-5 h-5 text-secondary" />
+                <h3 className="font-bold text-foreground">Estratégia de Lance (Opcional)</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Lance Dinheiro (%)</label>
+                  <Input 
+                    type="number" 
+                    value={lanceDinheiroPct || ""} 
+                    onChange={(e) => setLanceDinheiroPct(Number(e.target.value))}
+                    placeholder="Ex: 20"
+                    className="rounded-lg bg-muted/50 border-border text-sm font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Lance Embutido (%)</label>
+                  <Input 
+                    type="number" 
+                    value={lanceEmbutidoPct || ""} 
+                    onChange={(e) => setLanceEmbutidoPct(Number(e.target.value))}
+                    placeholder="Ex: 10"
+                    className="rounded-lg bg-muted/50 border-border text-sm font-mono"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-2 italic">
+                * O lance embutido utiliza parte do próprio crédito para contemplação.
+              </p>
+            </div>
 
             <p className="text-center text-xs text-muted-foreground mt-3.5">
               Ao simular, você concorda com nossa <a href="#" className="text-primary underline hover:no-underline font-medium">Política de Privacidade</a>
@@ -470,26 +516,84 @@ const ConsortiumSimulator = () => {
 
             {/* Resultado */}
             {resultado && (
-              <div ref={resultRef} className="rounded-[14px] p-5 mt-5 animate-fade-in" style={{ background: "hsl(213 70% 14%)" }}>
-                <div className="text-[0.58rem] uppercase tracking-[0.12em] mb-3 flex items-center gap-2 text-white/40">
-                  ✅ Proposta confirmada
-                  <span className="flex-1 h-px bg-white/10" />
+              <div ref={resultRef} className="rounded-[18px] p-0 mt-8 animate-fade-in overflow-hidden border-2 border-primary bg-card shadow-xl">
+                <div className="bg-primary p-4 text-white">
+                  <div className="text-[0.6rem] uppercase tracking-[0.15em] mb-1 font-bold flex items-center justify-between opacity-80">
+                    <span>PROPOSTA GERADA POR FABRICIO</span>
+                    <CheckCircle2 className="w-3 h-3 text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-bold">Simulação Detalhada</h3>
                 </div>
-                <div className="grid grid-cols-3 gap-0.5 rounded-[10px] overflow-hidden">
-                  {[
-                    { label: "Parcela 50%", value: fmtFull(resultado.r50), sub: "até contemplação", green: true },
-                    { label: "Crédito", value: fmt(resultado.credito) },
-                    { label: "Prazo", value: `${resultado.prazo} meses` },
-                  ].map((item) => (
-                    <div key={item.label} className="py-3 px-2.5 text-center" style={{ background: item.green ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)" }}>
-                      <p className="text-[0.56rem] uppercase tracking-wider mb-1 text-white/40">{item.label}</p>
-                      <p className={`font-medium ${item.green ? "text-lg" : "text-base"} text-white`} style={{ fontFamily: "monospace", color: item.green ? "#4ade80" : "#fff" }}>{item.value}</p>
-                      {item.sub && <p className="text-[0.52rem] mt-0.5 text-white/20">{item.sub}</p>}
+                
+                <div className="p-5 space-y-4">
+                  {/* Row 1: Parcela Destaque */}
+                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
+                    <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">Parcela Reduzida (50%)</p>
+                    <p className="text-3xl font-black text-[#16a34a]" style={{ fontFamily: "monospace" }}>{fmtFull(resultado.r50)}</p>
+                    <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">Investimento inteligente até a contemplação</p>
+                  </div>
+
+                  {/* Grid: Crédito e Prazo */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
+                      <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1">Crédito</p>
+                      <p className="text-lg font-bold text-foreground">{fmtFull(resultado.credito)}</p>
                     </div>
-                  ))}
-                </div>
-                <div className="mt-2.5 py-2 px-3 rounded-lg text-center text-[0.7rem] bg-white/5 text-white/40">
-                  Para lance e condições especiais <strong style={{ color: "#ffa040" }}>fale com o especialista ✉️</strong>
+                    <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
+                      <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1">Prazo</p>
+                      <p className="text-lg font-bold text-foreground">{resultado.prazo} meses</p>
+                    </div>
+                  </div>
+
+                  {/* Estratégia de Lance (Se existir) */}
+                  {(lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingDown className="w-4 h-4 text-blue-600" />
+                        <span className="text-[0.7rem] font-bold text-blue-800 uppercase">Estratégia de Lance</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm font-bold text-blue-900">
+                        <span>Total do Lance ({lanceDinheiroPct + lanceEmbutidoPct}%)</span>
+                        <span>{fmtFull(g.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comparativo */}
+                  {incluirComp && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calculator className="w-4 h-4 text-secondary" />
+                        <span className="text-[0.7rem] font-bold text-foreground uppercase">Comparativo com Financiamento</span>
+                      </div>
+                      
+                      {(() => {
+                        const isIm = categoria === 'imovel';
+                        const taxaM = isIm ? 0.00887 : 0.025;
+                        const pmtF = g.credito * taxaM / (1 - Math.pow(1 + taxaM, -g.prazo));
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-[11px] text-muted-foreground">
+                              <span>Parcela Banco (Price)</span>
+                              <span className="font-mono line-through opacity-70">~ {fmtFull(pmtF)}</span>
+                            </div>
+                            <div className="flex justify-between text-[11px] font-bold text-[#16a34a] bg-green-50 p-2 rounded-lg">
+                              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Sua Parcela Aqui</span>
+                              <span className="font-mono">{fmtFull(resultado.r50)}</span>
+                            </div>
+                            <div className="flex justify-between text-[12px] font-black text-blue-900 border-t border-dashed border-border pt-2">
+                              <span>Economia Mensal:</span>
+                              <span className="text-lg">+{fmtFull(pmtF - resultado.r50)}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  <div className="pt-2 text-center text-[0.7rem] text-muted-foreground bg-muted/30 p-2 rounded-lg">
+                    Para condições especiais e lances personalizados <strong className="text-secondary">fale com o especialista ✉️</strong>
+                  </div>
                 </div>
               </div>
             )}

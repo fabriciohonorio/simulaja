@@ -16,6 +16,8 @@ import Carteira from "./pages/admin/Carteira";
 import Inadimplentes from "./pages/admin/Inadimplentes";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
+import SimuladorAdmin from "./pages/admin/SimuladorAdmin";
+import Agendamentos from "./pages/admin/Agendamentos";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,8 @@ const App = () => (
           >
             <Route index element={<Dashboard />} />
             <Route path="funil" element={<Funil />} />
+            <Route path="simulador" element={<SimuladorAdmin />} />
+            <Route path="agendamentos" element={<Agendamentos />} />
             <Route path="leads" element={<Leads />} />
             <Route path="metas" element={<Metas />} />
             <Route path="carteira" element={<Carteira />} />

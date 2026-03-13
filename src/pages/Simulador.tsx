@@ -3,6 +3,22 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CRMDrawer } from "@/components/admin/CRMDrawer";
+import { jsPDF } from "jspdf";
+import { 
+  Calculator, 
+  ChevronRight, 
+  TrendingDown, 
+  CircleDollarSign,
+  FileText,
+  Share2,
+  Calendar,
+  CheckCircle2,
+  Info
+} from "lucide-react";
 
 type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
 
@@ -86,6 +102,13 @@ export default function Simulador() {
   const [resultado, setResultado] = useState<GrupoItem | null>(null);
   const [historico, setHistorico] = useState<HistItem[]>([]);
   const [bloqueado, setBloqueado] = useState(false);
+  
+  // Novos Estados (Melhorias Fabricio)
+  const [lanceDinheiroPct, setLanceDinheiroPct] = useState(0);
+  const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
+  const [incluirComp, setIncluirComp] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   const resultRef = useRef<HTMLDivElement>(null);
   const lockRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +208,167 @@ export default function Simulador() {
     }
 
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+  };
+
+  const handleLoadLead = (lead: any) => {
+    setNome(lead.nome || "");
+    setWpp(lead.celular || "");
+    if (lead.tipo_consorcio) {
+      if (lead.tipo_consorcio.toLowerCase().includes("imóvel")) setCategoria("imovel");
+      else if (lead.tipo_consorcio.toLowerCase().includes("veículo")) setCategoria("veiculo");
+      else if (lead.tipo_consorcio.toLowerCase().includes("pesados")) setCategoria("pesados");
+    }
+    toast({ title: `Lead ${lead.nome} carregado!` });
+  };
+
+  const handleSaveSimToCRM = async (leadId: string) => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from("leads").update({
+        valor_credito: g.credito,
+        prazo_meses: g.prazo,
+        tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+        updated_at: new Date().toISOString()
+      }).eq("id", leadId);
+
+      if (error) throw error;
+      toast({ title: "Sincronizado!", description: "Dados salvos no lead selecionado." });
+    } catch (e: any) {
+      toast({ title: "Erro ao salvar", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const isIm = categoria === 'imovel';
+    const blue = [30, 80, 160];
+    const navy = [15, 30, 60];
+    const orange = [244, 121, 32];
+    
+    // Header
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text("FABRICIO | Especialista Consórcio", 20, 25);
+    doc.setFontSize(10);
+    doc.text("simulaja.lovable.app", 20, 32);
+    
+    // Content
+    doc.setTextColor(navy[0], navy[1], navy[2]);
+    doc.setFontSize(16);
+    doc.text("SIMULAÇÃO DE CONSÓRCIO", 20, 55);
+    doc.setFontSize(12);
+    doc.text(`Cliente: ${nome || 'Não informado'}`, 20, 65);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 150, 65);
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 70, 190, 70);
+    
+    // Results
+    let y = 80;
+    const addRow = (label: string, value: string, isBold = false) => {
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
+      doc.text(label, 20, y);
+      doc.text(value, 120, y);
+      y += 10;
+    };
+    
+    addRow("Tipo de Bem:", CATEGORIAS.find(c => c.id === categoria)?.label  || "");
+    addRow("Crédito:", fmt(g.credito), true);
+    addRow("Prazo:", `${g.prazo} meses`);
+    addRow("Grupo:", g.grupo);
+    addRow("Parcela 50% (Até Contemplação):", fmt(g.r50), true);
+    
+    if (lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) {
+      y += 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("ESTRATÉGIA DE LANCE", 20, y);
+      y += 10;
+      doc.setFont("helvetica", "normal");
+      if (lanceDinheiroPct > 0) addRow(`Lance em Dinheiro (${lanceDinheiroPct}%):`, fmt(g.credito * lanceDinheiroPct / 100));
+      if (lanceEmbutidoPct > 0) addRow(`Lance Embutido (${lanceEmbutidoPct}%):`, fmt(g.credito * lanceEmbutidoPct / 100));
+      addRow("Total do Lance:", fmt(g.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100), true);
+    }
+    
+    if (incluirComp) {
+      y += 10;
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, y-5, 170, 45, 'F');
+      
+      doc.setFont("helvetica", "bold");
+      doc.text("COMPARATIVO FINANCEIRO", 25, y+5);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      
+      const taxaM = isIm ? 0.00887 : 0.025;
+      const pmtF = g.credito * taxaM / (1 - Math.pow(1 + taxaM, -g.prazo));
+      
+      y += 15;
+      doc.text("Parcela Financiamento (Banco - Estimado):", 25, y);
+      doc.text(fmt(pmtF), 125, y);
+      y += 8;
+      doc.text("Parcela Consórcio (Especialista):", 25, y);
+      doc.text(fmt(g.r50), 125, y);
+      y += 8;
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(22, 163, 74);
+      doc.text("Economia Estimada por Parcela:", 25, y);
+      doc.text(fmt(pmtF - g.r50), 125, y);
+    }
+    
+    // Footer
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, 280, 210, 17, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.text("FABRICIO - ESPECIALISTA EM CONSÓRCIO | ATENDIMENTO EM TODO O BRASIL", 105, 290, { align: 'center' });
+    
+    doc.save(`simulacao_fabricio_${nome.split(' ')[0] || 'cliente'}.pdf`);
+    toast({ title: "PDF Gerado!", description: "A simulação foi salva em seu dispositivo." });
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!resultado) {
+      toast({ title: "Simule primeiro", description: "Preencha os campos e clique em Simule Já." });
+      return;
+    }
+
+    const lanceTotalPct = lanceDinheiroPct + lanceEmbutidoPct;
+    const lanceTotalRS = g.credito * lanceTotalPct / 100;
+    
+    const isIm = categoria === 'imovel';
+    const taxaM = isIm ? 0.00887 : 0.025;
+    const pmtF = g.credito * taxaM / (1 - Math.pow(1 + taxaM, -g.prazo));
+
+    const text = `*📋 SIMULAÇÃO DE CONSÓRCIO - FABRICIO*
+
+*Cliente:* ${nome || 'Não informado'}
+*Bem:* ${CATEGORIAS.find(c => c.id === categoria)?.label || categoria}
+*Crédito:* ${fmt(g.credito)}
+*Prazo:* ${g.prazo} meses
+*Grupo:* ${g.grupo}
+
+*💰 INVESTIMENTO*
+*Parcela 50%:* ${fmt(g.r50)} (até contemplação)
+
+${lanceTotalPct > 0 ? `*🏹 ESTRATÉGIA DE LANCE*
+• Dinheiro: ${lanceDinheiroPct}%
+• Embutido: ${lanceEmbutidoPct}%
+• Total: *${fmt(lanceTotalRS)}* (${lanceTotalPct}%)
+` : ''}
+${incluirComp ? `*🏦 COMPARATIVO FINANCIAMENTO*
+• Parcela Banco: ~${fmt(pmtF)}
+• Parcela Consórcio: *${fmt(g.r50)}*
+• Economia mensal: *${fmt(pmtF - g.r50)}*
+` : ''}
+_Fabricio Especialista - Realizando seu sonho sem pagar juros!_
+_simulaja.lovable.app_`;
+
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
   const wppLockMsg = historico.map((h, i) => `${i + 1}. ${fmt(h.credito)} — ${fmt(h.r50)} / ${h.prazo}m`).join("\n");
@@ -314,7 +498,7 @@ export default function Simulador() {
         <button
           onClick={confirmar}
           disabled={bloqueado}
-          className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
+          className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed hover:bg-[#f47920]/90 active:scale-[0.98]"
           style={{
             background: "#f47920",
             color: "#fff",
@@ -322,9 +506,43 @@ export default function Simulador() {
             boxShadow: "0 4px 20px rgba(244,121,32,.35)",
           }}
         >
-          Simule Já
-          <span>→</span>
+          Simular Agora
+          <ChevronRight className="w-5 h-5" />
         </button>
+
+        {/* Estratégia de Lance (Opcional) */}
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-4">
+            <CircleDollarSign className="w-5 h-5 text-[#f47920]" />
+            <h3 className="font-bold text-[#0f2044]">Estratégia de Lance (Opcional)</h3>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-gray-400 uppercase">Lance Dinheiro (%)</label>
+              <Input 
+                type="number" 
+                value={lanceDinheiroPct || ""} 
+                onChange={(e) => setLanceDinheiroPct(Number(e.target.value))}
+                placeholder="Ex: 20"
+                className="rounded-lg bg-gray-50 border-gray-100 text-sm font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-gray-400 uppercase">Lance Embutido (%)</label>
+              <Input 
+                type="number" 
+                value={lanceEmbutidoPct || ""} 
+                onChange={(e) => setLanceEmbutidoPct(Number(e.target.value))}
+                placeholder="Ex: 10"
+                className="rounded-lg bg-gray-50 border-gray-100 text-sm font-mono"
+              />
+            </div>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2 italic">
+            * O lance embutido utiliza parte do próprio crédito para contemplação.
+          </p>
+        </div>
 
         <p className="text-center text-xs mt-3.5" style={{ color: "#6b7a99" }}>
           Ao simular, você concorda com nossa <a href="#" className="underline" style={{ color: "#0057a8" }}>Política de Privacidade</a>
@@ -332,30 +550,96 @@ export default function Simulador() {
 
         {/* Resultado */}
         {resultado && (
-          <div ref={resultRef} className="rounded-[14px] p-5 mt-5 animate-fade-in" style={{ background: "#0f2044" }}>
-            <div className="text-[0.58rem] uppercase tracking-[0.12em] mb-3 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.38)" }}>
-              ✅ Proposta confirmada
-              <span className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
-            </div>
-            <div className="grid grid-cols-1 gap-2 rounded-[10px] overflow-hidden">
-              <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(74,222,128,0.12)" }}>
-                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Parcela 50%</p>
-                <p className="text-2xl font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#4ade80" }}>{fmt(resultado.r50)}</p>
-                <p className="text-[0.6rem] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>até contemplação</p>
+          <div ref={resultRef} className="rounded-[18px] p-0 mt-8 animate-fade-in overflow-hidden border-2 border-[#0f2044] bg-white shadow-xl">
+            <div className="bg-[#0f2044] p-4 text-white">
+              <div className="text-[0.6rem] uppercase tracking-[0.15em] mb-1 font-bold flex items-center justify-between opacity-80">
+                <span>PROPOSTA GERADA POR FABRICIO</span>
+                <CheckCircle2 className="w-3 h-3 text-green-400" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Crédito</p>
-                  <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{fmt(resultado.credito)}</p>
+              <h3 className="text-lg font-bold">Simulação Detalhada</h3>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              {/* Row 1: Parcela Destaque */}
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
+                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">Parcela Reduzida (50%)</p>
+                <p className="text-3xl font-black text-[#16a34a]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(resultado.r50)}</p>
+                <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">Investimento inteligente até a contemplação</p>
+              </div>
+
+              {/* Grid: Crédito e Prazo */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+                  <p className="text-[0.6rem] uppercase font-bold text-gray-400 mb-1">Crédito</p>
+                  <p className="text-lg font-bold text-[#0f2044]">{fmt(resultado.credito)}</p>
                 </div>
-                <div className="py-3 px-3 text-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-semibold" style={{ color: "#fff" }}>Prazo</p>
-                  <p className="text-base font-bold" style={{ fontFamily: "'DM Mono', monospace", color: "#fff" }}>{resultado.prazo} meses</p>
+                <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+                  <p className="text-[0.6rem] uppercase font-bold text-gray-400 mb-1">Prazo</p>
+                  <p className="text-lg font-bold text-[#0f2044]">{resultado.prazo} meses</p>
                 </div>
               </div>
-            </div>
-            <div className="mt-3 py-2.5 px-3 rounded-lg text-center text-xs font-semibold" style={{ background: "rgba(255,255,255,0.08)", color: "#fff" }}>
-              👨‍💼 Você será atendido pelo Especialista
+
+              {/* Estratégia de Lance (Se existir) */}
+              {(lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingDown className="w-4 h-4 text-blue-600" />
+                    <span className="text-[0.7rem] font-bold text-blue-800 uppercase">Estratégia de Lance</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-bold text-blue-900">
+                    <span>Total do Lance ({lanceDinheiroPct + lanceEmbutidoPct}%)</span>
+                    <span>{fmt(g.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Botões de Ação */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button 
+                  onClick={handleExportPDF}
+                  className="bg-white hover:bg-gray-50 text-[#0f2044] border-2 border-[#0f2044] font-bold text-xs h-11"
+                >
+                  <FileText className="w-4 h-4 mr-2" /> PDF PARA CLIENTE
+                </Button>
+                <Button 
+                  onClick={handleShareWhatsApp}
+                  className="bg-[#25D366] hover:bg-[#1fb355] text-white font-bold text-xs h-11 border-none shadow-md shadow-green-100"
+                >
+                  <Share2 className="w-4 h-4 mr-2" /> WHATSAPP
+                </Button>
+              </div>
+
+              {/* Comparativo (Toggle opcional no futuro, fixo por agora) */}
+              {incluirComp && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calculator className="w-4 h-4 text-orange-500" />
+                    <span className="text-[0.7rem] font-bold text-[#0f2044] uppercase">Comparativo com Financiamento</span>
+                  </div>
+                  
+                  {(() => {
+                    const isIm = categoria === 'imovel';
+                    const taxaM = isIm ? 0.00887 : 0.025;
+                    const pmtF = g.credito * taxaM / (1 - Math.pow(1 + taxaM, -g.prazo));
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[11px] text-gray-500">
+                          <span>Parcela Banco (Price)</span>
+                          <span className="font-mono strike-through opacity-70">~ {fmt(pmtF)}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] font-bold text-[#16a34a] bg-green-50 p-2 rounded-lg">
+                          <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Sua Parcela Aqui</span>
+                          <span className="font-mono">{fmt(resultado.r50)}</span>
+                        </div>
+                        <div className="flex justify-between text-[12px] font-black text-blue-900 border-t border-dashed pt-2">
+                          <span>Economia Mensal:</span>
+                          <span className="text-lg">+{fmt(pmtF - resultado.r50)}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -409,12 +693,18 @@ export default function Simulador() {
         href={`https://wa.me/55${wppDestino}?text=${encodeURIComponent(isIndicacao ? `Olá! Vi o simulador pela indicação de ${nomeIndicador} e gostaria de saber mais sobre consórcio.` : "Ola Fabricio! Gostaria de saber mais sobre consorcio.")}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed right-5 bottom-5 z-50 w-14 h-14 rounded-full flex items-center justify-center animate-pulse"
+        className="fixed left-5 bottom-5 z-50 w-14 h-14 rounded-full flex items-center justify-center animate-pulse"
         style={{ background: "#25D366", boxShadow: "0 4px 16px rgba(37,211,102,.5)" }}
         title={isIndicacao ? `Falar com ${nomeIndicador}` : "Falar com Fabricio"}
       >
         <WhatsAppIcon className="w-6 h-6 text-white" />
       </a>
+
+      {/* CRM Drawer (Fabricio Enhancements) */}
+      <CRMDrawer 
+        onLoadLead={handleLoadLead} 
+        onSaveSim={handleSaveSimToCRM} 
+      />
     </div>
   );
 }

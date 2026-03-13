@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FABRICIO | Especialista Consórcio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f4fa;
+    --surface: #ffffff;
+    --card: #ffffff;
+    --border: #d0d8ea;
+    --accent: #1e50a0;
+    --accent2: #c8900a;
+    --text: #1a2340;
+    --muted: #5a6478;
+    --green: #168c50;
+    --red: #c0392b;
+    --navy: #0f1e3c;
+    --blue-light: #e8eef8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+    background: var(--navy);
+    padding: 28px 16px 24px;
+    box-shadow: 0 4px 20px rgba(15,30,60,0.15);
+  }
+
+  header::after {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent2), var(--accent2), transparent);
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    letter-spacing: 0.12em;
+    color: #ffffff;
+    line-height: 1;
+  }
+
+  .logo span {
+    color: rgba(200,144,10,0.9);
+    font-size: 0.45em;
+    letter-spacing: 0.25em;
+    display: block;
+    margin-top: 5px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(15,30,60,0.06);
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .card:hover { border-color: rgba(30,80,160,0.35); box-shadow: 0 4px 16px rgba(30,80,160,0.08); }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    color: var(--navy);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .field { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  input, select {
+    width: 100%;
+    background: #f7f9fd;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(30,80,160,0.12);
+  }
+
+  select option { background: #ffffff; color: var(--text); }
+
+  .row { display: flex; gap: 12px; }
+  .row .field { flex: 1; }
+
+  .result-card {
+    background: linear-gradient(135deg, #e8eef8 0%, #f0f4fa 100%);
+    border: 1px solid rgba(30,80,160,0.2);
+    border-radius: 12px;
+    padding: 24px;
+    grid-column: 1 / -1;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .result-card .card-title { color: var(--navy); }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 4px;
+  }
+
+  .result-item {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .result-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .result-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .result-value.large { font-size: 1.6rem; color: var(--green); }
+  .result-value.secondary { font-size: 1.1rem; color: var(--text); }
+
+  .lance-section {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .lance-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+
+  .lance-table th {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--navy);
+  }
+
+  .lance-table td {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.92rem;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lance-table tr:last-child td { border-bottom: none; }
+  .lance-table tr:hover td { background: var(--blue-light); }
+  .lance-table tr:nth-child(even) td { background: #f7f9fd; }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .tag-normal { background: rgba(22,140,80,0.12); color: var(--green); }
+  .tag-25     { background: rgba(200,144,10,0.12); color: var(--accent2); }
+  .tag-30     { background: rgba(30,80,160,0.10);  color: var(--accent); }
+  .tag-50     { background: rgba(192,57,43,0.10);  color: var(--red); }
+
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+  .inline-pair {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .inline-pair .lbl { font-size: 0.78rem; color: var(--muted); }
+  .inline-pair .val { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--text); }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 16px;
+    background: var(--navy);
+    font-size: 0.75rem;
+    color: rgba(180,195,220,0.85);
+    letter-spacing: 0.05em;
+  }
+
+  footer a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+  footer a:hover { text-decoration: underline; }
+
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 32px auto 16px;
+    max-width: 900px;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  }
+
+  .btn:hover { transform: translateY(-2px); opacity: 0.92; }
+  .btn:active { transform: translateY(0); }
+
+  .btn-pdf {
+    background: linear-gradient(135deg, #1e50a0 0%, #0f1e3c 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 20px rgba(30,80,160,0.3);
+  }
+
+  .btn-wpp {
+    background: #25D366;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+  }
+
+  @media print {
+    body { background: #fff; color: #000; padding: 16px; }
+    .action-bar, footer, .comp-fin-header label { display: none; }
+    .card, .result-card, .lance-section { border: 1px solid #ccc; box-shadow: none; background: #fff !important; }
+    .logo { font-size: 1.5rem; }
+    input, select { border-color: #ccc; background: #f5f5f5; color: #111; }
+    .comp-fin-section { border: 1px solid #ccc !important; box-shadow: none !important; }
+  }
+
+  .date-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(200,215,240,0.9);
+    margin-bottom: 24px;
+  }
+
+  .input-prefix { position: relative; }
+  .input-prefix span {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.85rem; pointer-events: none;
+  }
+  .input-prefix input { padding-left: 28px; }
+
+  .input-suffix { position: relative; }
+  .input-suffix span {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.85rem; pointer-events: none;
+  }
+  .input-suffix input { padding-right: 30px; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .client-field {
+    background: linear-gradient(135deg, #e8eef8, #f0f5ff);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+
+  .client-field label { color: var(--accent); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.12em; }
+
+  .client-field input {
+    background: transparent; border: none;
+    border-bottom: 1.5px solid rgba(30,80,160,0.3); border-radius: 0;
+    padding: 6px 4px; font-family: 'DM Sans', sans-serif; font-size: 1.05rem;
+    font-weight: 600; color: var(--navy); letter-spacing: 0.02em;
+  }
+
+  .client-field input:focus { border-bottom-color: var(--accent); box-shadow: none; }
+  .client-field input::placeholder { font-weight: 400; color: var(--muted); font-size: 0.9rem; }
+
+  .client-icon {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; background: var(--accent); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+  }
+
+  .cta-bar { margin-top: 10px; display: inline-block; }
+  .cta-text { font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 400; color: rgba(255,255,255,0.82); letter-spacing: 0.01em; line-height: 1.5; }
+  .cta-text strong { color: #c8900a; font-weight: 700; }
+
+  /* ═══════════════════════════════════════════
+     COMPARATIVO COM FINANCIAMENTO
+  ═══════════════════════════════════════════ */
+  .comp-fin-section {
+    grid-column: 1 / -1;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,30,60,0.06);
+    animation: fadeIn 0.4s ease both;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+
+  .comp-fin-section.destacado {
+    border: 2px solid #25D366;
+    box-shadow: 0 0 0 4px rgba(37,211,102,0.12);
+  }
+
+  .comp-fin-header {
+    background: var(--navy);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .comp-fin-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .comp-fin-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .comp-fin-badge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: rgba(200,144,10,0.2);
+    color: var(--accent2);
+    border: 1px solid rgba(200,144,10,0.35);
+    border-radius: 4px;
+    padding: 2px 8px;
+    text-transform: uppercase;
+  }
+
+  /* Checkbox "Enviar ao cliente" */
+  .comp-check-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .comp-check-wrap input[type="checkbox"] { display: none; }
+
+  .comp-check-box {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 5px;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .comp-check-wrap input:checked ~ .comp-check-box {
+    background: #25D366;
+    border-color: #25D366;
+  }
+
+  .comp-check-wrap input:checked ~ .comp-check-box::after {
+    content: '✓';
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .comp-check-label {
+    font-size: 0.78rem;
+    color: rgba(200,215,240,0.85);
+    font-weight: 500;
+  }
+
+  /* Info bar */
+  .comp-info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: var(--blue-light);
+  }
+
+  .comp-info-item {
+    flex: 1;
+    min-width: 130px;
+    padding: 10px 16px;
+    border-right: 1px solid var(--border);
+  }
+
+  .comp-info-item:last-child { border-right: none; }
+  .comp-info-lbl { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px; }
+  .comp-info-val { font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 700; color: var(--navy); }
+
+  /* Tabela comparativa */
+  .comp-table-wrap { overflow-x: auto; }
+
+  .comp-table { width: 100%; border-collapse: collapse; min-width: 540px; }
+  .comp-table thead tr { background: var(--blue-light); }
+  .comp-table thead th {
+    padding: 9px 14px; text-align: left;
+    font-size: 0.62rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .comp-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .comp-table tbody tr:last-child { border-bottom: none; }
+  .comp-table tbody tr:hover { background: var(--blue-light); }
+  .comp-table tbody td { padding: 11px 14px; font-size: 0.82rem; vertical-align: middle; }
+  .comp-table .mono { font-family: 'DM Mono', monospace; font-size: 0.8rem; }
+  .row-cons { background: rgba(30,80,160,0.03); }
+  .row-fin  { background: rgba(22,140,80,0.03); }
+  .row-alt  { background: rgba(245,247,252,0.8); }
+
+  .cpill {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 700; white-space: nowrap;
+  }
+
+  .cp-blue  { background: rgba(30,80,160,0.1);  color: var(--accent);  }
+  .cp-green { background: rgba(22,140,80,0.1);   color: var(--green);   }
+  .cp-gold  { background: rgba(200,144,10,0.12); color: var(--accent2); }
+  .cp-red   { background: rgba(192,57,43,0.1);   color: var(--red);     }
+  .cp-navy  { background: rgba(15,30,60,0.08);   color: var(--navy);    }
+
+  /* Conclusão azul bebê */
+  .comp-conclusao {
+    background: #dbeafe;
+    border-top: 1px solid #93c5fd;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .comp-conc-item {
+    background: rgba(255,255,255,0.72);
+    border-radius: 8px;
+    padding: 13px;
+    border: 1px solid rgba(147,197,253,0.5);
+  }
+
+  .comp-conc-label {
+    font-size: 0.65rem; font-weight: 700;
+    color: #1d4ed8; text-transform: uppercase;
+    letter-spacing: 0.05em; margin-bottom: 5px;
+  }
+
+  .comp-conc-text { font-size: 0.78rem; color: #1e3a6e; line-height: 1.65; }
+  .comp-conc-text strong { color: #1e293b; }
+
+  @media (max-width: 600px) {
+    .comp-info-bar { flex-direction: column; }
+    .comp-info-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .comp-conclusao { grid-template-columns: 1fr; }
+    .comp-fin-header { flex-direction: column; align-items: flex-start; }
+  }
+  /* ═══════════════════════════════════════════
+     CRM DRAWER STYLES
+  ═══════════════════════════════════════════ */
+  .crm-btn-float {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 65px;
+    height: 65px;
+    background: var(--navy);
+    border: 2px solid var(--accent2);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+  }
+  .crm-btn-float:hover { transform: scale(1.05); }
+  .crm-btn-float svg { width: 30px; height: 30px; }
+  .crm-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--accent2);
+    color: var(--navy);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 2px solid var(--navy);
+  }
+
+  .drawer-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(6, 15, 30, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .drawer-overlay.active { display: block; opacity: 1; }
+
+  .drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 380px;
+    background: #ffffff;
+    z-index: 1002;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+  }
+  @media (max-width: 400px) { .drawer { width: 100%; } }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    background: #060f1e;
+    padding: 24px 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--accent2);
+  }
+  .drawer-header .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; letter-spacing: 0.05em; font-weight: 700; color: #fff; }
+  .drawer-header .logo span { color: var(--accent2); font-family: 'Outfit', sans-serif; font-size: 1.1rem; }
+  .close-drawer {
+    background: transparent; border: none; color: #fff; cursor: pointer; padding: 5px;
+  }
+
+  .drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8fafc;
+  }
+
+  .crm-section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin: 20px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .crm-form-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .crm-field { margin-bottom: 12px; }
+  .crm-field label { font-size: 0.65rem; color: var(--muted); margin-bottom: 4px; display: block; }
+  .crm-field input, .crm-field select, .crm-field textarea {
+    width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-family: 'Outfit', sans-serif; font-size: 0.9rem; background: #fdfdfd;
+  }
+
+  .crm-actions { display: flex; gap: 8px; margin-top: 15px; }
+  .btn-save { background: var(--navy); color: #fff; flex: 1; padding: 10px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer; }
+  .btn-cancel { background: #e2e8f0; color: var(--text); padding: 10px; border-radius: 6px; border: none; cursor: pointer; }
+
+  .crm-search {
+    position: sticky; top: -20px; z-index: 10;
+    margin-bottom: 15px; background: #f8fafc; padding: 5px 0;
+  }
+  .crm-search input {
+    width: 100%; padding: 10px 35px 10px 15px; border-radius: 20px; border: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+
+  .client-list { display: flex; flex-direction: column; gap: 12px; }
+  .client-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+  }
+  .client-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .client-card.active { border-color: var(--accent2); background: #fffdf5; }
+
+  .cc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .cc-name { font-weight: 700; color: var(--navy); font-size: 0.95rem; }
+  .cc-status { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+  
+  .status-novo { background: #dbeafe; color: #1e40af; }
+  .status-contato { background: #fef9c3; color: #854d0e; }
+  .status-qualificacao { background: #ffedd5; color: #9a3412; }
+  .status-simulacao { background: #f3e8ff; color: #6b21a8; }
+  .status-negociacao { background: #e0e7ff; color: #3730a3; }
+  .status-pagamento { background: #fef3c7; color: #92400e; }
+  .status-fechado { background: #dcfce7; color: #166534; }
+  .status-perdido { background: #fee2e2; color: #991b1b; }
+  .status-morto { background: #f1f5f9; color: #475569; }
+
+  .cc-info { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .cc-info span { display: flex; align-items: center; gap: 4px; }
+
+  .cc-actions { display: flex; border-top: 1px solid #f1f5f9; padding-top: 10px; gap: 8px; }
+  .cc-btn {
+    padding: 6px; border-radius: 4px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  .btn-wpp-sm { background: #25D366; color: #fff; }
+  .btn-edit { background: #f1f5f9; color: var(--navy); }
+  .btn-del { background: #fee2e2; color: #991b1b; }
+  .btn-sim { background: var(--blue-light); color: var(--accent); font-size: 0.7rem; font-weight: 700; padding: 6px 10px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    FABRICIO | Especialista Consórcio
+    <span>simulaja.lovable.app</span>
+  </div>
+  <div class="date-badge" id="dateBadge"></div>
+  <div class="cta-bar">
+    <p class="cta-text">Você está a um passo de realizar <strong>o seu sonho</strong>. Vamos juntos? 🚀</p>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- BEM ADQUIRIDO -->
+  <div class="card">
+    <div class="card-title">📦 Bem Adquirido</div>
+
+    <div class="client-field">
+      <label>NOME DO CLIENTE</label>
+      <input type="text" id="nomeCliente" placeholder="Ex: João da Silva">
+      <div class="client-icon">👤</div>
+    </div>
+
+    <div class="field">
+      <label>Tipo de Aquisição</label>
+      <select id="tipoAquisicao">
+        <option value="VEÍCULO">Veículo</option>
+        <option value="IMÓVEL">Imóvel</option>
+        <option value="MOTO">Moto</option>
+        <option value="SERVIÇOS">Serviços</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Número do Grupo</label>
+      <input type="number" id="numGrupo" value="6025">
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:16px;">💳 Carta de Crédito</div>
+
+    <div class="field">
+      <label>Crédito (R$)</label>
+      <div class="input-prefix">
+        <span>R$</span>
+        <input type="number" id="credito" value="150000" step="1000">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Taxa Adm (%)</label>
+        <div class="input-suffix">
+          <span>%</span>
+          <input type="number" id="taxaAdm" value="16" step="0.1">
+        </div>
+      </div>
+      <div class="field">
+        <label>Fundo Reserva (%)</label>
+        <div class="input-suffix">
+          <span>%</span>
+          <input type="number" id="fundoReserva" value="2" step="0.1">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Seguro (%)</label>
+      <div class="input-suffix">
+        <span>%</span>
+        <input type="number" id="seguro" value="0" step="0.01">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Prazo (meses)</label>
+      <input type="number" id="prazo" value="100" min="1">
+    </div>
+  </div>
+
+  <!-- PARCELA E LANCE -->
+  <div class="card">
+    <div class="card-title">📊 Parcela</div>
+
+    <div class="field">
+      <label>Tipo de Parcela</label>
+      <select id="tipoParcela">
+        <option value="Normal">Normal</option>
+        <option value="Reduzida 25%">Reduzida 25%</option>
+        <option value="Reduzida 30%">Reduzida 30%</option>
+        <option value="Reduzida 50%">Reduzida 50%</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Parcelas até Contemplar</label>
+      <input type="number" id="parcelasContemplar" value="1" min="0">
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:16px;">🏹 Simulação de Lance</div>
+
+    <div class="field">
+      <label>Dinheiro (proporção)</label>
+      <div class="input-suffix">
+        <span>%</span>
+        <input type="number" id="lanceDinheiro" value="0" step="1" min="0" max="100">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Embutido (proporção)</label>
+      <div class="input-suffix">
+        <span>%</span>
+        <input type="number" id="lanceEmbutido" value="25" step="1" min="0" max="100">
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="inline-pair">
+        <span class="lbl">Dinheiro (R$)</span>
+        <span class="val" id="lancedinheiroRS">—</span>
+      </div>
+      <div class="inline-pair">
+        <span class="lbl">Embutido (R$)</span>
+        <span class="val" id="lanceEmbutidoRS">—</span>
+      </div>
+      <div class="inline-pair" style="border-top: 1px solid var(--border); padding-top:10px; margin-top:4px;">
+        <span class="lbl" style="font-weight:600; color: var(--text);">TOTAL Lance (%)</span>
+        <span class="val" style="color: var(--accent); font-weight:600;" id="lanceTotalPct">—</span>
+      </div>
+      <div class="inline-pair">
+        <span class="lbl" style="font-weight:600; color: var(--text);">TOTAL Lance (R$)</span>
+        <span class="val" style="color: var(--accent); font-weight:600;" id="lanceTotalRS">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="result-card">
+    <div class="card-title">✅ Resultados</div>
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="result-label">Valor da Parcela</div>
+        <div class="result-value large" id="resValorParcela">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Crédito Disponível</div>
+        <div class="result-value secondary" id="resCreditoDisponivel">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Saldo Devedor</div>
+        <div class="result-value secondary" id="resSaldoDevedor">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Prazo Restante</div>
+        <div class="result-value secondary" id="resPrazoRestante">—</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Parcela Pós-Contempl.</div>
+        <div class="result-value" id="resParcelaPosContemp">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELA PARCELAS -->
+  <div class="lance-section" style="grid-column: 1 / -1;">
+    <div class="card-title">📋 Tipos de Parcela</div>
+    <table class="lance-table">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Valor Mensal (R$)</th>
+          <th>Redução</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaParcelas"></tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       COMPARATIVO COM FINANCIAMENTO
+  ═══════════════════════════════════════════ -->
+  <div class="comp-fin-section" id="compFinSection">
+
+    <!-- Header com checkbox -->
+    <div class="comp-fin-header">
+      <div class="comp-fin-title-row">
+        <div class="comp-fin-title">
+          <span id="compFinIcon">🏦</span>
+          Comparativo com Financiamento
+        </div>
+        <span class="comp-fin-badge" id="compFinBadge">CEF — Imóvel</span>
+      </div>
+
+      <label class="comp-check-wrap" title="Incluir comparativo ao enviar pelo WhatsApp">
+        <input type="checkbox" id="compEnviarCliente" onchange="toggleCompDestaque()">
+        <div class="comp-check-box"></div>
+        <span class="comp-check-label">📲 Incluir no envio ao cliente</span>
+      </label>
+    </div>
+
+    <!-- Barra de informações -->
+    <div class="comp-info-bar">
+      <div class="comp-info-item">
+        <span class="comp-info-lbl">Tipo de Bem</span>
+        <span class="comp-info-val" id="compTipoBem">—</span>
+      </div>
+      <div class="comp-info-item">
+        <span class="comp-info-lbl">Taxa Referência</span>
+        <span class="comp-info-val" id="compTaxaRef">—</span>
+      </div>
+      <div class="comp-info-item">
+        <span class="comp-info-lbl">Valor Financiado</span>
+        <span class="comp-info-val" id="compValFin">—</span>
+      </div>
+      <div class="comp-info-item">
+        <span class="comp-info-lbl">Prazo Consórcio</span>
+        <span class="comp-info-val" id="compPrazo">—</span>
+      </div>
+    </div>
+
+    <!-- Tabela comparativa -->
+    <div class="comp-table-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Modalidade</th>
+            <th>Prazo</th>
+            <th>Parcela Mensal</th>
+            <th>Total Pago</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody id="compTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Conclusão azul bebê -->
+    <div class="comp-conclusao" id="compConclusao"></div>
+
+  </div><!-- /comp-fin-section -->
+
+</div><!-- /grid -->
+
+<div class="action-bar">
+  <button class="btn btn-pdf" onclick="gerarPDF()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Gerar PDF
+  </button>
+  <button class="btn btn-wpp" onclick="enviarWhatsApp()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+    Enviar no WhatsApp
+  </button>
+</div>
+
+<footer>
+  FABRICIO &nbsp;·&nbsp; Especialista Consórcio &nbsp;|&nbsp; <a href="https://simulaja.lovable.app" target="_blank">simulaja.lovable.app</a>
+</footer>
+<!-- CRM COMPONENTS -->
+<button class="crm-btn-float" onclick="toggleCRM()">
+  <span id="crmCount" class="crm-badge">0</span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+</button>
+
+<div class="drawer-overlay" id="crmOverlay" onclick="toggleCRM()"></div>
+<div class="drawer" id="crmDrawer">
+  <div class="drawer-header">
+    <div class="logo" style="margin:0; font-size:1.2rem;">FABRICIO | <span>CRM</span></div>
+    <button class="close-drawer" onclick="toggleCRM()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  
+  <div class="drawer-content">
+    <div class="crm-section-title">👤 Novo Cliente</div>
+    <div class="crm-form-card">
+      <input type="hidden" id="clientId">
+      <div class="crm-field">
+        <label>NOME COMPLETO</label>
+        <input type="text" id="cName" placeholder="João Exemplo">
+      </div>
+      <div class="crm-form-row" style="display:flex; gap:10px;">
+        <div class="crm-field" style="flex:1;">
+          <label>WHATSAPP</label>
+          <input type="text" id="cPhone" placeholder="(00) 00000-0000">
+        </div>
+        <div class="crm-field" style="flex:1;">
+          <label>E-MAIL</label>
+          <input type="email" id="cEmail" placeholder="joao@email.com">
+        </div>
+      </div>
+      <div class="crm-form-row" style="display:flex; gap:10px;">
+        <div class="crm-field" style="flex:1;">
+          <label>CIDADE</label>
+          <input type="text" id="cCity" placeholder="Cidade/UF">
+        </div>
+        <div class="crm-field" style="flex:1;">
+          <label>VALOR CARTA (R$)</label>
+          <input type="number" id="cValue" placeholder="100.000">
+        </div>
+      </div>
+      <div class="crm-form-row" style="display:flex; gap:10px;">
+        <div class="crm-field" style="flex:1;">
+          <label>TIPO BEM</label>
+          <select id="cType">
+            <option value="IMÓVEL">Imóvel</option>
+            <option value="VEÍCULO">Veículo</option>
+            <option value="MOTO">Moto</option>
+            <option value="CAMINHÃO">Caminhão</option>
+            <option value="OUTRO">Outro</option>
+          </select>
+        </div>
+        <div class="crm-field" style="flex:1;">
+          <label>STATUS</label>
+          <select id="cStatus">
+            <option value="novo">Novo Lead</option>
+            <option value="contato">Primeiro Contato</option>
+            <option value="qualificacao">Qualificação</option>
+            <option value="simulacao">Simulação Enviada</option>
+            <option value="negociacao">Negociação</option>
+            <option value="pagamento">Aguardando Pagamento</option>
+            <option value="fechado">Venda Fechada</option>
+            <option value="perdido">Perdido</option>
+            <option value="morto">Lead Morto</option>
+          </select>
+        </div>
+      </div>
+      <div class="crm-field">
+        <label>OBSERVAÇÕES</label>
+        <textarea id="cObs" rows="2" placeholder="Notas sobre o atendimento..."></textarea>
+      </div>
+      <div class="crm-actions">
+        <button class="btn-save" onclick="saveClient()">Salvar Cliente</button>
+        <button class="btn-cancel" onclick="clearCRMForm()">Limpar</button>
+      </div>
+    </div>
+
+    <div class="crm-search">
+      <input type="text" id="crmSearch" placeholder="Buscar por nome ou status..." oninput="renderClients()">
+    </div>
+
+    <div class="crm-section-title">📋 Lista de Clientes</div>
+    <div class="client-list" id="clientList">
+      <!-- Clients injected here -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+  const el  = (id) => document.getElementById(id);
+
+  // Data
+  el('dateBadge').textContent = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+
+  // ── CALCULATE PRINCIPAL ──────────────────────────────────────────────
+  function calculate() {
+    const credito          = parseFloat(el('credito').value) || 0;
+    const taxaAdmPct       = parseFloat(el('taxaAdm').value) / 100 || 0;
+    const fundoReservaPct  = parseFloat(el('fundoReserva').value) / 100 || 0;
+    const seguroPct        = parseFloat(el('seguro').value) / 100 || 0;
+    const prazo            = parseInt(el('prazo').value) || 100;
+    const tipoParcela      = el('tipoParcela').value;
+    const parcelasContemp  = parseFloat(el('parcelasContemplar').value) || 0;
+    const lanceDinheiroPct = parseFloat(el('lanceDinheiro').value) / 100 || 0;
+    const lanceEmbutidoPct = parseFloat(el('lanceEmbutido').value) / 100 || 0;
+
+    const seguroTotal        = credito * seguroPct;
+    const taxaAdmTotal       = credito * taxaAdmPct;
+    const fundoReservaTotal  = credito * fundoReservaPct;
+    const seguroTotalGeral   = seguroTotal * prazo;
+    const saldo Devedor       = credito + taxaAdmTotal + fundoReservaTotal + seguroTotalGeral;
+
+    const parcelaNormal = saldoDevedor / prazo;
+    const parcelaRed25  = ((saldoDevedor - credito) + (credito * 0.75)) / prazo;
+    const parcelaRed30  = ((saldoDevedor - credito) + (credito * 0.70)) / prazo;
+    const parcelaRed50  = ((saldoDevedor - credito) + (credito * 0.50)) / prazo;
+
+    const parcelaMap = { 'Normal': parcelaNormal, 'Reduzida 25%': parcelaRed25, 'Reduzida 30%': parcelaRed30, 'Reduzida 50%': parcelaRed50 };
+    const valorParcela = parcelaMap[tipoParcela];
+
+    const lancedinheiroRS  = credito * lanceDinheiroPct;
+    const lanceEmbutidoRS  = credito * lanceEmbutidoPct;
+    const lanceTotalPct    = lanceDinheiroPct + lanceEmbutidoPct;
+    const lanceTotalRS     = lancedinheiroRS + lanceEmbutidoRS;
+
+    const creditoDisponivel    = credito - lanceEmbutidoRS;
+    const prazoRestanteCalc    = prazo - parcelasContemp;
+    const saldoDevedorPosLance = saldoDevedor - parcelasContemp * valorParcela - lanceTotalRS;
+    const parcelaPosContemp    = prazoRestanteCalc > 0 ? saldoDevedorPosLance / prazoRestanteCalc : 0;
+
+    el('lancedinheiroRS').textContent = fmt(lancedinheiroRS);
+    el('lanceEmbutidoRS').textContent = fmt(lanceEmbutidoRS);
+    el('lanceTotalPct').textContent   = (lanceTotalPct * 100).toFixed(1) + '%';
+    el('lanceTotalRS').textContent    = fmt(lanceTotalRS);
+
+    el('resValorParcela').textContent      = fmt(valorParcela);
+    el('resCreditoDisponivel').textContent = fmt(creditoDisponivel);
+    el('resSaldoDevedor').textContent      = fmt(saldoDevedorPosLance > 0 ? saldoDevedorPosLance : saldoDevedor);
+    el('resPrazoRestante').textContent     = Math.round(prazoRestanteCalc) + ' x';
+    el('resParcelaPosContemp').textContent = fmt(parcelaPosContemp > 0 ? parcelaPosContemp : valorParcela);
+
+    const tipos = [
+      { label: 'Normal',       val: parcelaNormal, cls: 'tag-normal', reducao: '—'    },
+      { label: 'Reduzida 25%', val: parcelaRed25,  cls: 'tag-25',     reducao: '-25%' },
+      { label: 'Reduzida 30%', val: parcelaRed30,  cls: 'tag-30',     reducao: '-30%' },
+      { label: 'Reduzida 50%', val: parcelaRed50,  cls: 'tag-50',     reducao: '-50%' },
+    ];
+
+    el('tabelaParcelas').innerHTML = tipos.map(t => `
+      <tr>
+        <td><span class="tag ${t.cls}">${t.label}</span></td>
+        <td>${fmt(t.val)}</td>
+        <td>${t.reducao}</td>
+      </tr>`).join('');
+
+    // Dispara comparativo
+    calcComparativo(credito, saldoDevedor, prazo, valorParcela);
+  }
+
+  // ── COMPARATIVO COM FINANCIAMENTO ─────────────────────────────────────
+  function calcComparativo(credito, totalConsorcio, prazo, parcelaConsorcio) {
+    const tipo    = el('tipoAquisicao').value;
+    const isImovel = tipo === 'IMÓVEL';
+    const isMoto   = tipo === 'MOTO';
+    const isServico = tipo === 'SERVIÇOS';
+
+    // Taxas de referência
+    let taxaM, taxaAnual, labelBanco, icone;
+
+    if (isImovel) {
+      taxaM     = 0.00887; // CEF: 11,19% a.a. → ~0,887% a.m.
+      taxaAnual = 11.19;
+      labelBanco = 'Financ. CEF';
+      icone      = '🏠';
+    } else if (isMoto) {
+      taxaM     = 0.025;
+      taxaAnual = (Math.pow(1.025, 12) - 1) * 100;
+      labelBanco = 'Financ. Banco (Moto)';
+      icone      = '🏍️';
+    } else if (isServico) {
+      // Serviços: sem financiamento bancário claro, usamos crédito pessoal ~3% a.m.
+      taxaM     = 0.030;
+      taxaAnual = (Math.pow(1.030, 12) - 1) * 100;
+      labelBanco = 'Crédito Pessoal';
+      icone      = '🔧';
+    } else {
+      // VEÍCULO
+      taxaM     = 0.025;
+      taxaAnual = (Math.pow(1.025, 12) - 1) * 100;
+      labelBanco = 'Financ. Banco (Veículo)';
+      icone      = '🚗';
+    }
+
+    const badgeTexto = isImovel
+      ? 'CEF — Imóvel'
+      : isMoto ? 'Banco — Moto 2,5% a.m.'
+      : isServico ? 'Crédito Pessoal 3% a.m.'
+      : 'Banco — Veículo 2,5% a.m.';
+
+    // Atualiza header
+    el('compFinIcon').textContent  = icone;
+    el('compFinBadge').textContent = badgeTexto;
+    el('compTipoBem').textContent  = tipo;
+    el('compTaxaRef').textContent  = taxaAnual.toFixed(2) + '% a.a. (' + (taxaM*100).toFixed(3) + '% a.m.)';
+    el('compValFin').textContent   = fmt(credito);
+    el('compPrazo').textContent    = prazo + ' meses';
+
+    // Parcela financiamento mesmo prazo
+    const pmtFin0   = credito * taxaM / (1 - Math.pow(1 + taxaM, -prazo));
+    const totalFin0 = pmtFin0 * prazo;
+
+    // Prazos alternativos
+    const prazosAlt = isImovel ? [240, 360] : [48, 60];
+
+    let rows = `
+      <tr class="row-cons">
+        <td><span class="cpill cp-blue">Consórcio</span></td>
+        <td class="mono">${prazo} meses (${(prazo/12).toFixed(1).replace('.0','')} anos)</td>
+        <td class="mono"><strong>${fmt(parcelaConsorcio)}</strong></td>
+        <td class="mono" style="color:var(--accent)"><strong>${fmt(totalConsorcio)}</strong></td>
+        <td><span class="cpill cp-gold">Sem juros bancários</span></td>
+      </tr>
+      <tr class="row-fin">
+        <td><span class="cpill cp-green">${labelBanco}</span></td>
+        <td class="mono">${prazo} meses (${(prazo/12).toFixed(1).replace('.0','')} anos)</td>
+        <td class="mono"><strong style="color:${pmtFin0 < parcelaConsorcio ? 'var(--green)' : 'var(--red)'}">${fmt(pmtFin0)}</strong></td>
+        <td class="mono" style="color:${totalFin0 < totalConsorcio ? 'var(--green)' : 'var(--red)'}"><strong>${fmt(totalFin0)}</strong></td>
+        <td>${totalFin0 < totalConsorcio
+          ? `<span class="cpill cp-green">💰 ${fmt(totalConsorcio - totalFin0)} mais barato</span>`
+          : `<span class="cpill cp-red">📈 ${fmt(totalFin0 - totalConsorcio)} mais caro</span>`}</td>
+      </tr>`;
+
+    prazosAlt.forEach(np => {
+      const p = credito * taxaM / (1 - Math.pow(1+taxaM, -np));
+      const t = p * np;
+      const maisExp = t > totalConsorcio;
+      rows += `<tr class="row-alt">
+        <td><span class="cpill cp-green">${labelBanco}</span></td>
+        <td class="mono">${np} meses (${np/12} anos)</td>
+        <td class="mono">${fmt(p)}</td>
+        <td class="mono" style="color:${maisExp ? 'var(--red)' : 'var(--green)'}">${fmt(t)}</td>
+        <td>${maisExp
+          ? `<span class="cpill cp-red">📈 ${fmt(t - totalConsorcio)} mais caro</span>`
+          : `<span class="cpill cp-green">💰 ${fmt(totalConsorcio - t)} mais barato</span>`}</td>
+      </tr>`;
+    });
+
+    el('compTableBody').innerHTML = rows;
+
+    // Conclusão
+    const difParcela = parcelaConsorcio - pmtFin0;
+    const difTotal   = totalConsorcio - totalFin0;
+
+    const txtTotal = difTotal > 0
+      ? `Financiamento no mesmo prazo é <strong>${fmt(Math.abs(difTotal))} mais barato</strong> em valor nominal. Porém, considere a taxa de juros embutida ao longo do tempo.`
+      : `O consórcio é <strong>${fmt(Math.abs(difTotal))} mais econômico no total</strong> em comparação com o financiamento no mesmo prazo.`;
+
+    const txtParcela = difParcela > 0
+      ? `Parcela do financiamento (<strong>${fmt(pmtFin0)}</strong>) é <strong>${fmt(Math.abs(difParcela))} menor</strong> mensalmente. Mas o custo de juros vai aumentar o total.`
+      : `Parcela do consórcio (<strong>${fmt(parcelaConsorcio)}</strong>) é igual ou inferior à do financiamento neste prazo.`;
+
+    const txtQuando = isImovel
+      ? 'O consórcio supera o financiamento de <strong>20 a 30 anos</strong>, onde juros e TR encarecem muito o total. Ideal também para quem tem dificuldade de aprovação bancária.'
+      : 'Com juros de <strong>2,5% a.m. (~34,5% a.a.)</strong>, o financiamento de veículo/moto é um dos mais caros. O consórcio elimina esses juros, sendo vantajoso no médio prazo.';
+
+    const txtTaxa = isImovel
+      ? 'Taxa CEF: <strong>11,19% a.a. (0,887% a.m.) + TR</strong>. Verifique também Bradesco, Itaú e Santander para comparar condições do seu perfil de crédito.'
+      : `Taxa média mercado: <strong>${(taxaM*100).toFixed(1)}% a.m. ≈ ${taxaAnual.toFixed(1)}% a.a.</strong> (BV Financeira, Bradesco, Santander, bancos de montadoras). Pode variar conforme perfil.`;
+
+    el('compConclusao').innerHTML = `
+      <div class="comp-conc-item">
+        <div class="comp-conc-label">📊 Comparativo Total</div>
+        <div class="comp-conc-text">${txtTotal}</div>
+      </div>
+      <div class="comp-conc-item">
+        <div class="comp-conc-label">💳 Parcela Mensal</div>
+        <div class="comp-conc-text">${txtParcela}</div>
+      </div>
+      <div class="comp-conc-item">
+        <div class="comp-conc-label">✅ Quando o Consórcio Vale</div>
+        <div class="comp-conc-text">${txtQuando}</div>
+      </div>
+      <div class="comp-conc-item">
+        <div class="comp-conc-label">🏦 Taxa de Referência</div>
+        <div class="comp-conc-text">${txtTaxa}</div>
+      </div>`;
+  }
+
+  // ── CHECKBOX DESTAQUE ─────────────────────────────────────────────────
+  function toggleCompDestaque() {
+    const checked = el('compEnviarCliente').checked;
+    const sec = el('compFinSection');
+    sec.classList.toggle('destacado', checked);
+  }
+
+  // ── LISTENERS ─────────────────────────────────────────────────────────
+  ['credito','taxaAdm','fundoReserva','seguro','prazo','tipoParcela',
+   'parcelasContemplar','lanceDinheiro','lanceEmbutido','tipoAquisicao','numGrupo','nomeCliente']
+    .forEach(id => el(id).addEventListener('input', calculate));
+
+  calculate(); // Cálculo inicial
+
+  // ── GERAR PDF ─────────────────────────────────────────────────────────
+  function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, m = 18;
+    let y = 0;
+
+    const navy=[15,30,60], blue=[30,80,160], gold=[200,140,20], lightBg=[245,247,252];
+    const dark=[20,30,50], grayTxt=[90,100,120], greenV=[22,140,80], rowAlt=[235,240,252], lineClr=[200,210,230];
+
+    // HEADER
+    doc.setFillColor(...navy); doc.rect(0, 0, W, 38, 'F');
+    doc.setFillColor(...gold); doc.rect(0, 36, W, 2, 'F');
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(255,255,255);
+    doc.text('FABRICIO | Especialista Consorcio', W/2, 15, { align:'center' });
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(180,195,220);
+    doc.text('SIMULADOR DE CONSORCIO', W/2, 22, { align:'center' });
+    doc.setFontSize(7.5); doc.setTextColor(150,170,200);
+    doc.text('Data: ' + new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}), W/2, 30, {align:'center'});
+
+    doc.setFillColor(255,248,225); doc.setDrawColor(...gold); doc.setLineWidth(0.4);
+    doc.rect(0,38,W,10,'FD');
+    doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(120,80,0);
+    doc.text('Voce esta a um passo de realizar o seu sonho. Vamos juntos?', W/2, 44.5, {align:'center'});
+    y = 56;
+
+    const section = (title) => {
+      doc.setFillColor(...blue); doc.rect(m,y,W-m*2,8,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+      doc.text(title, m+4, y+5.5); y+=11;
+    };
+
+    const dataRow = (label, value, isAlt, valColor) => {
+      if(isAlt){ doc.setFillColor(...rowAlt); doc.rect(m,y-1,W-m*2,7,'F'); }
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...grayTxt);
+      doc.text(label, m+4, y+4);
+      doc.setFont('helvetica','bold'); doc.setTextColor(...(valColor||dark));
+      doc.text(String(value), W-m-4, y+4, {align:'right'});
+      doc.setDrawColor(...lineClr); doc.setLineWidth(0.1); doc.line(m,y+6,W-m,y+6); y+=7;
+    };
+
+    const nomeCliente = el('nomeCliente').value.trim();
+    if(nomeCliente){
+      doc.setFillColor(232,238,252); doc.setDrawColor(...blue); doc.setLineWidth(0.4);
+      doc.roundedRect(m,y,W-m*2,13,3,3,'FD');
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...grayTxt); doc.text('CLIENTE', m+5, y+5);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...navy); doc.text(nomeCliente, m+5, y+11);
+      y+=18;
+    }
+
+    section('BEM ADQUIRIDO');
+    dataRow('Tipo de Aquisicao', el('tipoAquisicao').value, false);
+    dataRow('Numero do Grupo', el('numGrupo').value, true);
+    y+=3;
+
+    section('CARTA DE CREDITO');
+    const cred = parseFloat(el('credito').value)||0;
+    dataRow('Credito', 'R$ '+cred.toLocaleString('pt-BR',{minimumFractionDigits:2}), false);
+    dataRow('Taxa Administrativa', el('taxaAdm').value+'%', true);
+    dataRow('Fundo de Reserva', el('fundoReserva').value+'%', false);
+    dataRow('Seguro', el('seguro').value+'%', true);
+    dataRow('Prazo', el('prazo').value+' meses', false);
+    y+=3;
+
+    section('SIMULACAO DE LANCE');
+    dataRow('Tipo de Parcela', el('tipoParcela').value, false);
+    dataRow('Parcelas ate Contemplar', el('parcelasContemplar').value, true);
+    dataRow('Lance Dinheiro', el('lanceDinheiro').value+'%', false);
+    dataRow('Lance Embutido', el('lanceEmbutido').value+'%', true);
+    dataRow('Total Lance (%)', el('lanceTotalPct').textContent, false, gold);
+    dataRow('Total Lance (R$)', el('lanceTotalRS').textContent, true, gold);
+    y+=5;
+
+    // Resultados box
+    doc.setFillColor(...lightBg); doc.setDrawColor(...blue); doc.setLineWidth(0.6);
+    doc.roundedRect(m,y,W-m*2,58,3,3,'FD');
+    doc.setFillColor(...blue); doc.roundedRect(m,y,4,58,2,2,'F');
+    y+=7;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...navy);
+    doc.text('RESULTADOS', m+10, y); y+=8;
+
+    const resultRow = (label, value, isMain) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...grayTxt); doc.text(label, m+10, y);
+      doc.setFont('helvetica','bold'); doc.setFontSize(isMain?11.5:9); doc.setTextColor(...(isMain?greenV:dark));
+      doc.text(value, W-m-6, y, {align:'right'}); y+=8;
+    };
+
+    resultRow('Valor da Parcela', el('resValorParcela').textContent, true);
+    resultRow('Credito Disponivel', el('resCreditoDisponivel').textContent, false);
+    resultRow('Saldo Devedor', el('resSaldoDevedor').textContent, false);
+    resultRow('Prazo Restante', el('resPrazoRestante').textContent, false);
+    resultRow('Parcela Pos-Contemplacao', el('resParcelaPosContemp').textContent, false);
+    y+=8;
+
+    section('TIPOS DE PARCELA');
+    doc.setFillColor(...navy); doc.rect(m,y-1,W-m*2,7,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+    doc.text('TIPO', m+4, y+4); doc.text('VALOR MENSAL', W/2, y+4,{align:'center'}); doc.text('REDUCAO', W-m-4, y+4,{align:'right'});
+    y+=8;
+
+    const tiposLabel = ['Normal','Reduzida 25%','Reduzida 30%','Reduzida 50%'];
+    document.querySelectorAll('#tabelaParcelas tr').forEach((tr,i)=>{
+      const cells = tr.querySelectorAll('td');
+      if(cells.length<2)return;
+      if(i%2===1){doc.setFillColor(...rowAlt);doc.rect(m,y-1,W-m*2,7,'F');}
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...(i===0?blue:dark));
+      doc.text(tiposLabel[i]||'',m+4,y+4);
+      doc.setFont('helvetica','normal');doc.setTextColor(...dark);doc.text(cells[1].textContent,W/2,y+4,{align:'center'});
+      doc.setTextColor(...(i===0?greenV:gold));doc.text(cells[2].textContent,W-m-4,y+4,{align:'right'});
+      doc.setDrawColor(...lineClr);doc.setLineWidth(0.1);doc.line(m,y+6,W-m,y+6);y+=7;
+    });
+
+    // Comparativo no PDF se checkbox marcado
+    if(el('compEnviarCliente').checked){
+      y+=6;
+      if(y > 240){ doc.addPage(); y=20; }
+      section('COMPARATIVO COM FINANCIAMENTO');
+      const tipoAq = el('tipoAquisicao').value;
+      const isIm = tipoAq==='IMÓVEL';
+      const taxaM = isIm ? 0.00887 : 0.025;
+      const taxaA = isIm ? 11.19 : (Math.pow(1.025,12)-1)*100;
+      const cr = parseFloat(el('credito').value)||0;
+      const pr = parseInt(el('prazo').value)||100;
+      const pmtF = cr*taxaM/(1-Math.pow(1+taxaM,-pr));
+      const totF = pmtF*pr;
+      dataRow('Referencia', isIm?'CEF '+taxaA.toFixed(2)+'% a.a.':'Banco '+taxaA.toFixed(1)+'% a.a. (2,5% a.m.)', false);
+      dataRow('Parcela Financiamento (mesmo prazo)', 'R$'+pmtF.toLocaleString('pt-BR',{minimumFractionDigits:2}), true, isIm?blue:dark);
+      dataRow('Total Financiamento', 'R$'+totF.toLocaleString('pt-BR',{minimumFractionDigits:2}), false);
+      dataRow('Parcela Consorcio', el('resValorParcela').textContent, true, greenV);
+    }
+
+    // FOOTER
+    y=284;
+    doc.setFillColor(...navy);doc.rect(0,y,W,13,'F');
+    doc.setFont('helvetica','italic');doc.setFontSize(7.5);doc.setTextColor(180,195,220);
+    doc.text('FABRICIO  |  Especialista Consorcio  |  simulaja.lovable.app', W/2, y+8, {align:'center'});
+
+    doc.save('simulacao_consorcio_' + (nomeCliente||'fabricio').replace(/\s+/g,'_') + '.pdf');
+  }
+
+  // ── ENVIAR WHATSAPP ────────────────────────────────────────────────────
+  function enviarWhatsApp() {
+    const tipo      = el('tipoAquisicao').value;
+    const grupo     = el('numGrupo').value;
+    const credito   = el('credito').value;
+    const tipoPar   = el('tipoParcela').value;
+    const prazo     = el('prazo').value;
+    const lanceD    = el('lanceDinheiro').value;
+    const lanceE    = el('lanceEmbutido').value;
+    const parcela   = el('resValorParcela').textContent;
+    const saldo     = el('resSaldoDevedor').textContent;
+    const credDisp  = el('resCreditoDisponivel').textContent;
+    const prazoR    = el('resPrazoRestante').textContent;
+    const parcelPos = el('resParcelaPosContemp').textContent;
+    const lanceRS   = el('lanceTotalRS').textContent;
+    const lancePct  = el('lanceTotalPct').textContent;
+    const nome      = el('nomeCliente').value.trim();
+    const inclComp  = el('compEnviarCliente').checked;
+
+    const lines = [
+      ...(nome ? ['*Cliente: ' + nome + '*', ''] : []),
+      '*📋 SIMULAÇÃO DE CONSÓRCIO*',
+      '',
+      'Bem: ' + tipo + ' | Grupo ' + grupo,
+      'Carta de Crédito: R$ ' + Number(credito).toLocaleString('pt-BR'),
+      'Tipo de Parcela: ' + tipoPar,
+      'Prazo: ' + prazo + ' meses',
+      '',
+      '*🏹 LANCE*',
+      'Dinheiro: ' + lanceD + '% | Embutido: ' + lanceE + '%',
+      'Total do Lance: ' + lancePct + ' → ' + lanceRS,
+      '',
+      '*✅ RESULTADOS*',
+      'Valor da Parcela: *' + parcela + '*',
+      'Crédito Disponível: ' + credDisp,
+      'Saldo Devedor: ' + saldo,
+      'Prazo Restante: ' + prazoR,
+      'Parcela Pós-Contemplação: ' + parcelPos,
+    ];
+
+    if(inclComp){
+      const isIm = tipo==='IMÓVEL';
+      const isMoto = tipo==='MOTO';
+      const taxaM = isIm ? 0.00887 : 0.025;
+      const taxaA = isIm ? 11.19 : (Math.pow(1.025,12)-1)*100;
+      const cr = parseFloat(credito)||0;
+      const pr = parseInt(prazo)||100;
+      const pmtF = cr*taxaM/(1-Math.pow(1+taxaM,-pr));
+      const totF = pmtF*pr;
+      const totC = parseFloat(el('resValorParcela').textContent.replace(/[^\d,]/g,'').replace(',','.')) * pr;
+
+      lines.push('');
+      lines.push('━━━━━━━━━━━━━━━━━━');
+      lines.push('*🏦 COMPARATIVO COM FINANCIAMENTO*');
+      lines.push('Referência: ' + (isIm ? 'CEF ' + taxaA.toFixed(2) + '% a.a.' : (isMoto?'Banco Moto ':'Banco Veículo ') + taxaA.toFixed(1) + '% a.a. (2,5% a.m.)'));
+      lines.push('');
+      lines.push('Financiamento — mesmo prazo (' + prazo + ' meses):');
+      lines.push('• Parcela: R$ ' + pmtF.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+      lines.push('• Total pago: R$ ' + totF.toLocaleString('pt-BR',{minimumFractionDigits:2}));
+      lines.push('');
+      lines.push('✅ Consórcio: sem juros bancários, sem IOF');
+      lines.push('⚠️ Consórcio: contemplação não é imediata');
+    }
+
+    lines.push('');
+    lines.push('_Simulação por *FABRICIO* — Especialista Consórcio_');
+    lines.push('_simulaja.lovable.app_');
+
+    window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+  }
+
+  // ── CRM LOGIC ──────────────────────────────────────────────────────────
+  let clients = [];
+  const STORAGE_KEY = 'fabricio_crm_clientes';
+
+  function initCRM() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try { clients = JSON.parse(saved); } catch (e) { clients = []; }
+    }
+    renderClients();
+  }
+
+  function toggleCRM() {
+    const drawer = el('crmDrawer');
+    const overlay = el('crmOverlay');
+    if (!drawer || !overlay) return;
+    drawer.classList.toggle('open');
+    overlay.classList.toggle('active');
+  }
+
+  function saveClient() {
+    const id    = el('clientId').value || Date.now().toString();
+    const name  = el('cName').value.trim();
+    const phone = el('cPhone').value.trim();
+    const email = el('cEmail').value.trim();
+    const city  = el('cCity').value.trim();
+    const type  = el('cType').value;
+    const value = el('cValue').value;
+    const status = el('cStatus').value;
+    const obs   = el('cObs').value.trim();
+    
+    if (!name) return alert('Por favor, informe o nome.');
+
+    const idx = clients.findIndex(c => c.id === id);
+    const newClient = {
+      id, name, phone, email, city, type, value, status, obs,
+      updatedAt: new Date().toISOString(),
+      simData: idx >= 0 ? clients[idx].simData : null
+    };
+
+    if (idx >= 0) clients[idx] = newClient;
+    else clients.push(newClient);
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+    clearCRMForm();
+    renderClients();
+  }
+
+  function deleteClient(id, e) {
+    if (e) e.stopPropagation();
+    if (!confirm('Excluir este cliente?')) return;
+    clients = clients.filter(c => c.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+    renderClients();
+  }
+
+  function editClient(id, e) {
+    if (e) e.stopPropagation();
+    const c = clients.find(c => c.id === id);
+    if (!c) return;
+    el('clientId').value = c.id;
+    el('cName').value = c.name;
+    el('cPhone').value = c.phone || '';
+    el('cEmail').value = c.email || '';
+    el('cCity').value = c.city || '';
+    el('cType').value = c.type;
+    el('cValue').value = c.value || '';
+    el('cStatus').value = c.status;
+    el('cObs').value = c.obs || '';
+  }
+
+  function clearCRMForm() {
+    el('clientId').value = '';
+    el('cName').value = '';
+    el('cPhone').value = '';
+    el('cEmail').value = '';
+    el('cCity').value = '';
+    el('cType').value = 'IMÓVEL';
+    el('cValue').value = '';
+    el('cStatus').value = 'novo';
+    el('cObs').value = '';
+  }
+
+  function loadToSimulator(id) {
+    const c = clients.find(c => c.id === id);
+    if (!c) return;
+    el('nomeCliente').value = c.name;
+    
+    // Mapear tipos
+    const validTypes = ['IMÓVEL','VEÍCULO','MOTO','SERVIÇOS'];
+    if (validTypes.includes(c.type)) {
+      el('tipoAquisicao').value = c.type;
+    }
+
+    if (c.simData) {
+      el('credito').value = c.simData.credito;
+      el('prazo').value = c.simData.prazo;
+      el('tipoParcela').value = c.simData.tipoParcela;
+      if (el('numGrupo')) el('numGrupo').value = c.simData.numGrupo || '6025';
+    }
+    calculate();
+    toggleCRM();
+  }
+
+  function saveSimToClient(id, e) {
+    if (e) e.stopPropagation();
+    const cIdx = clients.findIndex(c => c.id === id);
+    if (cIdx < 0) return;
+    
+    clients[cIdx].simData = {
+      credito: el('credito').value,
+      prazo: el('prazo').value,
+      tipoParcela: el('tipoParcela').value,
+      numGrupo: el('numGrupo').value,
+      resParcela: el('resValorParcela').textContent
+    };
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+    renderClients();
+    alert('Simulação salva em: ' + clients[cIdx].name);
+  }
+
+  function renderClients() {
+    const searchEl = el('crmSearch');
+    const search = searchEl ? searchEl.value.toLowerCase() : '';
+    const filtered = clients.filter(c => 
+      c.name.toLowerCase().includes(search) || 
+      c.status.toLowerCase().includes(search) ||
+      c.type.toLowerCase().includes(search)
+    ).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    const countEl = el('crmCount');
+    if (countEl) countEl.textContent = clients.length;
+    
+    const listEl = el('clientList');
+    if (!listEl) return;
+
+    listEl.innerHTML = filtered.map(c => `
+      <div class="client-card" onclick="loadToSimulator('${c.id}')">
+        <div class="cc-header">
+          <span class="cc-name">${c.name}</span>
+          <span class="cc-status status-${c.status}">${c.status}</span>
+        </div>
+        <div class="cc-info">
+          <span>📍 ${c.city || 'Sem cidade'}</span>
+          <span>📦 ${c.type}</span>
+          ${c.value ? `<span>💰 R$ ${Number(c.value).toLocaleString('pt-BR')}</span>` : ''}
+          ${c.simData ? `<span>💳 ${c.simData.resParcela}</span>` : ''}
+        </div>
+        ${c.obs ? `<div style="font-size:0.7rem; color:var(--muted); font-style:italic; margin-bottom:8px;">"${c.obs}"</div>` : ''}
+        <div class="cc-actions">
+          <button class="cc-btn btn-sim" onclick="saveSimToClient('${c.id}', event)" title="Salvar simulação atual">💾 Simulação</button>
+          <button class="cc-btn btn-edit" style="background:#fde68a; color:#92400e" onclick="pdfFromClient('${c.id}', event)" title="Gerar PDF">📄 PDF</button>
+          <button class="cc-btn btn-wpp-sm" onclick="wppClient('${c.phone}', event)">
+             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          </button>
+          <button class="cc-btn btn-edit" onclick="editClient('${c.id}', event)">✎</button>
+          <button class="cc-btn btn-del" onclick="deleteClient('${c.id}', event)">🗑</button>
+        </div>
+      </div>
+    `).join('') || '<div style="text-align:center; padding:20px; color:#cbd5e1; font-size:0.8rem;">Puxa! Nada por aqui ainda.</div>';
+  }
+
+  function pdfFromClient(id, e) {
+    if (e) e.stopPropagation();
+    loadToSimulator(id);
+    // Pequeno delay para garantir que o simulador calculou os valores antes de gerar o PDF
+    setTimeout(() => {
+      if (typeof gerarPDF === 'function') {
+        gerarPDF();
+      } else {
+        alert('Erro ao gerar PDF: Função não encontrada.');
+      }
+    }, 500);
+  }
+
+  function wppClient(phone, e) {
+    if (e) e.stopPropagation();
+    if (!phone) return alert('Cliente sem WhatsApp cadastrado.');
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.open(`https://wa.me/55${cleanPhone}`, '_blank');
+  }
+
+  window.addEventListener('load', initCRM);
+
+</script>
+</body>
+</html>

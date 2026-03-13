@@ -234,6 +234,7 @@ function LeadCard({
   onSetVencimento,
   onOpenHistorico,
   ultimaTratativa,
+  compact = false,
 }: {
   lead: Lead;
   snapshot: any;
@@ -242,6 +243,7 @@ function LeadCard({
   onSetVencimento: (lead: Lead) => void;
   onOpenHistorico: (lead: Lead) => void;
   ultimaTratativa?: HistoricoContato | null;
+  compact?: boolean;
 }) {
   const isAguardando = normalizeStatus(lead.status) === "aguardando_pagamento";
   const vencHoje = isToday(lead.data_vencimento);
@@ -252,19 +254,21 @@ function LeadCard({
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`bg-background border-2 rounded-md p-3 text-sm space-y-1.5 transition-all ${normalizeStatus(lead.status) === "fechado"
+      className={`bg-background border-2 rounded-md transition-all ${
+        compact ? "p-1.5 space-y-1 text-[11px]" : "p-3 space-y-1.5 text-sm"
+      } ${normalizeStatus(lead.status) === "fechado"
         ? "border-green-500 bg-green-50 dark:bg-green-950/30"
         : TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border"
         } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="font-bold truncate text-foreground">{lead.nome}</p>
+      <div className="flex items-center justify-between gap-1">
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <p className={`font-bold truncate text-foreground ${compact ? "text-[11px]" : ""}`}>{lead.nome}</p>
             {lead.propensity_score !== null && (
               <Badge
                 variant="outline"
-                className={`h-4 px-1 text-[8px] font-black border-2 ${lead.propensity_score >= 70
+                className={`${compact ? "h-3 px-0.5 text-[7px]" : "h-4 px-1 text-[8px]"} font-black border-2 ${lead.propensity_score >= 70
                   ? "text-green-600 border-green-200"
                   : lead.propensity_score >= 40
                     ? "text-orange-600 border-orange-200"
@@ -275,39 +279,38 @@ function LeadCard({
               </Badge>
             )}
             {isAguardando && (vencHoje || vencAtrasado) && (
-              <Bell className="h-4 w-4 text-amber-500 animate-pulse" />
+              <Bell className={`${compact ? "h-3 w-3" : "h-4 w-4"} text-amber-500 animate-pulse`} />
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground uppercase font-bold">
-            {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}
-          </span>
+          {compact ? (
+            <div className="flex items-center gap-1">
+               <span className="text-primary font-bold text-[10px]">
+                {formatCurrency(Number(lead.valor_credito))}
+              </span>
+              <span className="text-[9px] text-muted-foreground">· {TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-muted-foreground uppercase font-bold truncate">
+              {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1">
-          {/* Botão Agendamento — visível em todos os cards */}
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onSetVencimento(lead);
             }}
-            className={`shrink-0 p-1 rounded-full transition-colors ${
+            className={`shrink-0 rounded-full transition-colors ${
+              compact ? "p-0.5 border border-amber-100" : "p-1"
+            } ${
               lead.data_vencimento
                 ? "text-amber-500 hover:text-amber-600 bg-amber-50"
-                : "text-muted-foreground/50 hover:text-amber-500 hover:bg-amber-50"
+                : "text-muted-foreground/30 hover:text-amber-500 hover:bg-amber-50"
             }`}
             title={lead.data_vencimento ? `Agendado: ${lead.data_vencimento}` : "Agendar"}
           >
-            <CalendarIcon className="h-4 w-4" />
-          </button>
-          {/* Botão Histórico/Notas */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenHistorico(lead);
-            }}
-            className="text-primary/70 hover:text-primary shrink-0 p-1 bg-primary/5 hover:bg-primary/10 rounded-full transition-colors"
-            title="Ver/adicionar tratativas"
-          >
-            <NotebookPen className="h-4 w-4" />
+            <CalendarIcon className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
           </button>
           <a
             href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(
@@ -316,40 +319,56 @@ function LeadCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="text-green-500 hover:text-green-600 shrink-0 p-1 bg-green-50 rounded-full"
-            title="Enviar WhatsApp"
+            className={`text-green-500 hover:text-green-600 shrink-0 bg-green-50 rounded-full ${compact ? "p-0.5 border border-green-100" : "p-1"}`}
+            title="WhatsApp"
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
           </a>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(lead.id, lead.nome);
-            }}
-            className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
-            title="Excluir lead"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          {!compact && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenHistorico(lead);
+                }}
+                className="text-primary/70 hover:text-primary shrink-0 p-1 bg-primary/5 hover:bg-primary/10 rounded-full transition-colors"
+                title="Ver tratativas"
+              >
+                <NotebookPen className="h-4 w-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(lead.id, lead.nome);
+                }}
+                className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
+                title="Excluir"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-        <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
-      </div>
+      {!compact && (
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-primary font-bold text-base">
+        <div className="flex items-center gap-1">
+          <p className={`text-primary font-bold ${compact ? "text-xs" : "text-base"}`}>
             {formatCurrency(Number(lead.valor_credito))}
           </p>
-          {lead.indicador_nome && (
-            <span className="text-[9px] text-muted-foreground font-medium">
+          {!compact && lead.indicador_nome && (
+            <span className="text-[9px] text-muted-foreground font-medium truncate max-w-[60px]">
               via {lead.indicador_nome}
             </span>
           )}
         </div>
-        {lead.last_interaction_at &&
+        {!compact && lead.last_interaction_at &&
           Date.now() - new Date(lead.last_interaction_at).getTime() >
           12 * 60 * 60 * 1000 && (
             <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
@@ -358,35 +377,22 @@ function LeadCard({
           )}
       </div>
 
-      {/* Última tratativa resumida */}
+      {/* Última tratativa resumida - Menor no modo compact */}
       {ultimaTratativa ? (
         <button
           onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
           className="w-full text-left"
         >
-          <div className="flex items-start gap-1.5 px-2 py-1.5 rounded bg-muted/50 hover:bg-muted transition-colors">
-            <NotebookPen className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+          <div className={`flex items-start gap-1 rounded bg-muted/50 hover:bg-muted transition-colors ${compact ? "px-1 py-0.5" : "px-2 py-1.5"}`}>
+            <NotebookPen className={`text-muted-foreground mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold text-muted-foreground truncate">
+              <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-semibold text-muted-foreground truncate`}>
                 {ultimaTratativa.observacao || "Sem observação"}
-              </p>
-              <p className="text-[9px] text-muted-foreground/70">
-                {ultimaTratativa.created_at
-                  ? formatDistanceToNow(new Date(ultimaTratativa.created_at), { addSuffix: true, locale: ptBR })
-                  : "—"}
-                {ultimaTratativa.resultado && (
-                  <span className={`ml-1 font-medium ${ultimaTratativa.resultado === "positivo" ? "text-green-600" :
-                    ultimaTratativa.resultado === "negativo" ? "text-red-500" :
-                      "text-yellow-600"
-                    }`}>
-                    · {RESULTADO_OPTIONS.find(r => r.value === ultimaTratativa.resultado)?.label ?? ultimaTratativa.resultado}
-                  </span>
-                )}
               </p>
             </div>
           </div>
         </button>
-      ) : (
+      ) : !compact && (
         <button
           onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
           className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
@@ -398,41 +404,37 @@ function LeadCard({
       {/* Agendamento — visível para qualquer lead com data marcada */}
       {lead.data_vencimento && (
         <div
-          className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${vencAtrasado
+          className={`flex items-center gap-1 font-bold rounded ${
+            compact ? "text-[8px] px-1 py-0.5" : "text-[10px] px-2 py-1"
+          } ${vencAtrasado
             ? "bg-red-100 text-red-700"
             : vencHoje
               ? "bg-amber-100 text-amber-700"
               : "bg-blue-50 text-blue-700"
             }`}
         >
-          {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-bounce" />}
-          <CalendarIcon className="h-3 w-3" />
-          {isAguardando ? "Venc" : "Agend"}: {format(parseISO(lead.data_vencimento), "dd/MM/yyyy")}
-          {vencAtrasado && " — ATRASADO"}
-          {vencHoje && " — HOJE!"}
+          {(vencHoje || vencAtrasado) && <Bell className={`${compact ? "h-2 w-2" : "h-3 w-3"} animate-bounce`} />}
+          <CalendarIcon className={`${compact ? "h-2 w-2" : "h-3 w-3"}`} />
+          {format(parseISO(lead.data_vencimento), "dd/MM")} {vencAtrasado && !compact && " — ATRASADO"}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+      {!compact && (
+        <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
+            {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <CalendarIcon className="h-3 w-3" /> {lead.prazo_meses}m
+          </div>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
-        </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <CalendarIcon className="h-3 w-3" /> {lead.prazo_meses}m
-        </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-          {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
-        </div>
-        <div className="col-span-2 flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-          <Clock className="h-3 w-3" /> Incluído:{" "}
-          {lead.created_at
-            ? format(new Date(lead.created_at), "dd/MM/yy", { locale: ptBR })
-            : "—"}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -649,6 +651,56 @@ export default function Funil() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
+  
+  // Wide CRM View Unified States
+  const [isWideView, setIsWideView] = useState(() => {
+    return localStorage.getItem("crm_wide_view") === "true";
+  });
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem("crm_column_widths");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Erro ao carregar larguras das colunas", e);
+      }
+    }
+    return {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem("crm_wide_view", String(isWideView));
+  }, [isWideView]);
+
+  useEffect(() => {
+    localStorage.setItem("crm_column_widths", JSON.stringify(columnWidths));
+  }, [columnWidths]);
+
+  const resizingRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
+
+  const startResizing = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    resizingRef.current = {
+      id,
+      startX: e.pageX,
+      startWidth: columnWidths[id] || (isWideView ? 200 : 280),
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", stopResizing);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!resizingRef.current) return;
+    const { id, startX, startWidth } = resizingRef.current;
+    const newWidth = Math.max(150, Math.min(600, startWidth + (e.pageX - startX)));
+    setColumnWidths((prev) => ({ ...prev, [id]: newWidth }));
+  };
+
+  const stopResizing = () => {
+    resizingRef.current = null;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", stopResizing);
+  };
 
   // Drag-to-scroll no kanban desktop
   const kanbanRef = useRef<HTMLDivElement>(null);
@@ -843,7 +895,7 @@ export default function Funil() {
     toast.success(
       vencimentoLead.data_vencimento
         ? `Agendamento atualizado para ${format(selectedDate, "dd/MM/yyyy")}`
-        : `Vencimento agendado para ${format(selectedDate, "dd/MM/yyyy")}`,
+        : `Ação agendada para ${format(selectedDate, "dd/MM/yyyy")}`,
     );
     setVencimentoLead(null);
     setSelectedDate(undefined);
@@ -933,16 +985,33 @@ export default function Funil() {
           }}
           onOpenHistorico={setHistoricoLead}
           ultimaTratativa={ultimasTratativas[lead.id] ?? null}
+          compact={isWideView}
         />
       )}
     </Draggable>
   );
 
   return (
-    <div className="space-y-4 select-none no-scrollbar">
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
-        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v2.7 FINAL</Badge>
+    <div className="space-y-4 select-none no-scrollbar w-full">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
+          <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v2.9 WIDE</Badge>
+        </div>
+        <div className="hidden md:flex items-center bg-muted/30 p-1 rounded-lg border border-border">
+          <button
+            onClick={() => setIsWideView(false)}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isWideView ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Padrão
+          </button>
+          <button
+            onClick={() => setIsWideView(true)}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isWideView ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Wide CRM
+          </button>
+        </div>
       </div>
 
       {/* Mobile: Column navigator */}
@@ -1035,11 +1104,13 @@ export default function Funil() {
             <ChevronRight className="h-8 w-8" />
           </button>
 
-          {/* Kanban scrollável sem barra visível */}
           <div
             ref={kanbanRef}
-            className="flex gap-4 overflow-x-auto pb-10 no-scrollbar px-10 scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className={`flex gap-4 overflow-x-auto pb-10 no-scrollbar px-2 lg:px-4 scroll-smooth ${isWideView ? '' : 'justify-start'}`}
+            style={{ 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none'
+            }}
           >
           {COLUMNS.map((col) => {
             const colLeads = getColumnLeads(col.id);
@@ -1051,14 +1122,23 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-w-[300px] w-[300px] rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-220px)] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                    className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-220px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                    style={{ width: columnWidths[col.id] || (isWideView ? 200 : 280), minWidth: isWideView ? 150 : 280 }}
                   >
-                    <div className="mb-3">
-                      <h3 className="font-semibold text-sm">{col.label}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {colLeads.length} leads · {formatCurrency(totalValor)}
-                      </p>
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className={`font-semibold text-sm truncate ${isWideView ? "text-[12px]" : ""}`}>{col.label}</h3>
+                        <p className="text-[10px] text-muted-foreground">
+                          {colLeads.length} leads · {formatCurrency(totalValor)}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Resize handle */}
+                    <div
+                      onMouseDown={(e) => startResizing(col.id, e)}
+                      className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-10"
+                    />
 
                     <div className="space-y-2 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px]">
                       {colLeads.map((lead, idx) => renderLeadCard(lead, idx))}
@@ -1081,10 +1161,10 @@ export default function Funil() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-amber-500" /> Agendar Vencimento
+              <CalendarIcon className="h-5 w-5 text-amber-500" /> Agendar Próxima Ação
             </DialogTitle>
             <DialogDescription>
-              Marque a data de vencimento do pagamento de{" "}
+              Agende o próximo contato, reunião ou vencimento para{" "}
               <span className="font-bold">{vencimentoLead?.nome}</span>
             </DialogDescription>
           </DialogHeader>
