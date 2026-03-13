@@ -140,16 +140,14 @@ export default function Simulador() {
         status: "novo_lead",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
-        ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : { origem: "Página Simulador" }),
+        ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : {}),
       });
 
       if (dbError) {
-        console.error("Erro ao salvar lead no CRM (Página Simulador):", dbError);
-      } else {
-        console.log("Lead salvo no CRM (Página Simulador)!");
+        console.error("Erro Detalhado CRM (Simulador):", dbError);
       }
     } catch (e) {
-      console.error("Exception ao salvar no Supabase:", e);
+      console.error("Exception CRM:", e);
     }
 
     // Webhook Make (Telegram/Notificações)

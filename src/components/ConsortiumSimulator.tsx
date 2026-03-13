@@ -175,17 +175,12 @@ const ConsortiumSimulator = () => {
         prazo_meses: g.prazo,
         status: "novo_lead",
         lead_score_valor: leadScoreValor,
-        lead_temperatura: "quente",
-        origem: utmParams.origem || "Lovable"
+        lead_temperatura: "quente"
+        // Removido 'origem' pois não existe na tabela leads
       });
 
       if (dbError) {
-        console.error("Erro ao salvar lead no Supabase:", dbError);
-        toast({ 
-          title: "Atenção", 
-          description: "Sua simulação foi gerada, mas houve um erro ao salvar no CRM. Por favor, fale com o especialista pelo WhatsApp.",
-          variant: "destructive"
-        });
+        console.error("Erro Detalhado Supabase:", dbError);
       } else {
         console.log("Lead salvo com sucesso no CRM!");
       }
