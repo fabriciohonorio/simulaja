@@ -13,8 +13,8 @@ interface Lead {
     valor_credito: number;
     lead_score_valor: string | null;
     lead_temperatura: string | null;
-    last_interaction_at: string | null;
-    origem: string | null;
+    last_interaction_at?: string | null;
+    origem?: string | null;
 }
 
 const TEMP_EMOJIS: Record<string, string> = {
@@ -42,7 +42,7 @@ export default function FilaInteligente() {
         supabase.from("leads").select("*")
             .not("status", "in", '("fechado", "perdido", "morto")')
             .then(({ data }) => {
-                setLeads((data as any) ?? []);
+                setLeads((data as Lead[]) ?? []);
                 setLoading(false);
             });
     }, []);

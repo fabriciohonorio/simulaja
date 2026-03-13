@@ -44,10 +44,10 @@ export default function Carteira() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchData = async () => {
-    const { data } = await (supabase.from("carteira" as any) as any).select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
+    const { data } = await supabase.from("carteira").select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
     const mapped = (data ?? []).map((item: any) => ({
       ...item,
-      celular: item.leads?.celular ?? null,
+      celular: (item.leads as any)?.celular ?? null,
     }));
     setItems(mapped);
     setLoading(false);
@@ -88,7 +88,7 @@ export default function Carteira() {
 
     const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(filePath);
     // Since bucket is private, we store the path and generate signed URLs on demand
-    await (supabase.from("carteira" as any) as any).update({ boleto_url: filePath }).eq("id", item.id);
+    await supabase.from("carteira").update({ boleto_url: filePath }).eq("id", item.id);
 
     toast({ title: "Boleto enviado!", description: `Boleto de ${item.nome} salvo com sucesso.` });
     setUploading(null);
@@ -108,7 +108,7 @@ export default function Carteira() {
   const handleDeleteBoleto = async (item: CarteiraItem) => {
     if (!item.boleto_url) return;
     await supabase.storage.from("boletos").remove([item.boleto_url]);
-    await (supabase.from("carteira" as any) as any).update({ boleto_url: null }).eq("id", item.id);
+    await supabase.from("carteira").update({ boleto_url: null }).eq("id", item.id);
     toast({ title: "Boleto removido", description: `Boleto de ${item.nome} foi excluído.` });
     fetchData();
   };
@@ -137,7 +137,7 @@ export default function Carteira() {
   const handleContemplacao = async () => {
     if (!selectedItem) return;
     setSaving(true);
-    await (supabase.from("carteira" as any) as any)
+    await supabase.from("carteira")
       .update({ status: "contemplada", cota_contemplada: cotaContemplada, data_contemplacao: dataContemplacao })
       .eq("id", selectedItem.id);
     setSaving(false);
