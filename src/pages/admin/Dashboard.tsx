@@ -35,7 +35,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      setLeads((data as any) ?? []);
+      setLeads((data as Lead[]) ?? []);
       setLoading(false);
     });
   }, []);

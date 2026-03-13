@@ -504,7 +504,7 @@ function HistoricoModal({
   };
 
   return (
-    <Dialog open={!!lead} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={!!lead} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -541,7 +541,7 @@ function HistoricoModal({
           <Textarea
             placeholder="O que foi tratado? Anotações importantes..."
             value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setObservacao(e.target.value)}
             className="min-h-[80px] text-sm resize-none"
           />
 
@@ -709,9 +709,9 @@ export default function Funil() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      const raw = (data as any) ?? [];
+      const raw = (data as Lead[]) ?? [];
       // De-duplicar por ID para evitar problemas de estado
-      const uniqueRaw = raw.filter((v: any, i: any, a: any) => a.findIndex((t: any) => t.id === v.id) === i);
+      const uniqueRaw = raw.filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
       
       if (raw.length !== uniqueRaw.length) {
         console.error("DUPLICADOS DETECTADOS NO BANCO:", raw.length - uniqueRaw.length, "leads com IDs repetidos.");
@@ -1157,7 +1157,7 @@ export default function Funil() {
       <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} />
 
       {/* Vencimento Calendar Dialog */}
-      <Dialog open={!!vencimentoLead} onOpenChange={(open) => !open && setVencimentoLead(null)}>
+      <Dialog open={!!vencimentoLead} onOpenChange={(open: boolean) => !open && setVencimentoLead(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1195,7 +1195,7 @@ export default function Funil() {
       </Dialog>
 
       {/* Celebration Dialog */}
-      <Dialog open={!!celebrationLead} onOpenChange={(open) => !open && setCelebrationLead(null)}>
+      <Dialog open={!!celebrationLead} onOpenChange={(open: boolean) => !open && setCelebrationLead(null)}>
         <DialogContent className="sm:max-w-md text-center">
           <DialogHeader>
             <DialogTitle className="text-xl sm:text-2xl">
@@ -1213,11 +1213,11 @@ export default function Funil() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="grupo">Grupo</Label>
-                <Input id="grupo" value={grupo} onChange={(e) => setGrupo(e.target.value)} placeholder="Ex: 1234" />
+                <Input id="grupo" value={grupo} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGrupo(e.target.value)} placeholder="Ex: 1234" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cota">Cota</Label>
-                <Input id="cota" value={cota} onChange={(e) => setCota(e.target.value)} placeholder="Ex: 56" />
+                <Input id="cota" value={cota} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCota(e.target.value)} placeholder="Ex: 56" />
               </div>
             </div>
             <div className="flex flex-col gap-2">

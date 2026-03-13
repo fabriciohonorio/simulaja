@@ -128,7 +128,7 @@ export default function Metas() {
                                 <Input
                                     type="number"
                                     value={metaInput}
-                                    onChange={(e: any) => setMetaInput(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaInput(e.target.value)}
                                     className="flex-1 h-9 text-right font-bold"
                                 />
                                 <Button size="sm" onClick={salvarMeta} className="shrink-0">Salvar</Button>
@@ -270,7 +270,7 @@ export default function Metas() {
                                         <span className="text-sm font-medium truncate">{item.segmento}</span>
                                         <div className="flex items-center gap-1 shrink-0">
                                             <span className={`text-xs font-bold ${txt}`}>{label}</span>
-                                            <Input type="number" value={item.percentual} onChange={(e: any) => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-7 text-xs text-center p-1" min="0" max="100" />
+                                            <Input type="number" value={item.percentual} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-7 text-xs text-center p-1" min="0" max="100" />
                                             <span className="text-xs">%</span>
                                         </div>
                                     </div>
