@@ -661,11 +661,15 @@ export default function Funil() {
       // De-duplicar por ID para evitar problemas de estado
       const uniqueRaw = raw.filter((v: any, i: any, a: any) => a.findIndex((t: any) => t.id === v.id) === i);
       
+      if (raw.length !== uniqueRaw.length) {
+        console.error("DUPLICADOS DETECTADOS NO BANCO:", raw.length - uniqueRaw.length, "leads com IDs repetidos.");
+      }
+
       const fetchedLeads = uniqueRaw.map((lead: any) => ({
         ...lead,
         status: normalizeStatus(lead.status),
       }));
-      console.log("Kanban v2.1 Loaded - Leads:", fetchedLeads.length);
+      console.log("Kanban v2.2 Loaded - Leads:", fetchedLeads.length);
       setLeads(fetchedLeads);
       setLoading(false);
 
@@ -929,10 +933,10 @@ export default function Funil() {
   );
 
   return (
-    <div className="space-y-4 select-none">
+    <div className="space-y-4 select-none no-scrollbar">
       <div className="flex items-center gap-3">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
-        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse">v2.1 LIVE</Badge>
+        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-green-100 text-green-700 border-green-200">v2.2 LIVE</Badge>
       </div>
 
       {/* Mobile: Column navigator */}
@@ -984,7 +988,7 @@ export default function Funil() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto no-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
               >
                 <div className="space-y-2">
                   {currentColLeads.map((lead, idx) => renderLeadCard(lead, idx))}
@@ -1142,12 +1146,10 @@ export default function Funil() {
         </DialogContent>
       </Dialog>
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        /* Ultra aggressive scrollbar removal - Global and Class based */
+        *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+        * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
         
-        /* Ultra aggressive scrollbar removal */
         .no-scrollbar { 
           scrollbar-width: none !important; 
           -ms-overflow-style: none !important; 
