@@ -657,10 +657,15 @@ export default function Funil() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      const fetchedLeads = ((data as any) ?? []).map((lead: any) => ({
+      const raw = (data as any) ?? [];
+      // De-duplicar por ID para evitar problemas de estado
+      const uniqueRaw = raw.filter((v: any, i: any, a: any) => a.findIndex((t: any) => t.id === v.id) === i);
+      
+      const fetchedLeads = uniqueRaw.map((lead: any) => ({
         ...lead,
         status: normalizeStatus(lead.status),
       }));
+      console.log("Kanban v2.1 Loaded - Leads:", fetchedLeads.length);
       setLeads(fetchedLeads);
       setLoading(false);
 
@@ -924,8 +929,11 @@ export default function Funil() {
   );
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
+    <div className="space-y-4 select-none">
+      <div className="flex items-center gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
+        <Badge variant="secondary" className="h-5 text-[10px] animate-pulse">v2.1 LIVE</Badge>
+      </div>
 
       {/* Mobile: Column navigator */}
       <div className="md:hidden">
@@ -997,30 +1005,31 @@ export default function Funil() {
         onDragEnd={onDragEnd}
         onDragStart={() => { isDraggingCardRef.current = true; }}
       >
-        {/* Wrapper com setas de navegação */}
-        <div className="hidden md:block relative">
+        {/* Wrapper com setas de navegação desktop */}
+        <div className="hidden md:block relative group">
           {/* Seta esquerda */}
           <button
             onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 320)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-primary text-primary-foreground shadow-xl rounded-full p-2 hover:scale-110 active:scale-95 transition-all -ml-4 border-2 border-background"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all -ml-6 border-4 border-background"
             aria-label="Rolar para esquerda"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-8 w-8" />
           </button>
 
           {/* Seta direita */}
           <button
             onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 320)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-primary text-primary-foreground shadow-xl rounded-full p-2 hover:scale-110 active:scale-95 transition-all -mr-4 border-2 border-background"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all -mr-6 border-4 border-background"
             aria-label="Rolar para direita"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-8 w-8" />
           </button>
 
           {/* Kanban scrollável sem barra visível */}
           <div
             ref={kanbanRef}
-            className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-6 scroll-smooth"
+            className="flex gap-4 overflow-x-auto pb-10 no-scrollbar px-10 scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
           {COLUMNS.map((col) => {
             const colLeads = getColumnLeads(col.id);
@@ -1137,8 +1146,20 @@ export default function Funil() {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-        .no-scrollbar { scrollbar-width: none !important; -ms-overflow-style: none !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+        
+        /* Ultra aggressive scrollbar removal */
+        .no-scrollbar { 
+          scrollbar-width: none !important; 
+          -ms-overflow-style: none !important; 
+          overflow: -moz-scrollbars-none !important;
+        }
+        .no-scrollbar::-webkit-scrollbar { 
+          display: none !important; 
+          width: 0 !important; 
+          height: 0 !important; 
+          background: transparent !important;
+          -webkit-appearance: none !important;
+        }
       `}</style>
     </div>
   );
