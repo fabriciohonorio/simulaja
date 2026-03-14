@@ -19,6 +19,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -33,10 +34,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { formatCurrency } from "@/lib/utils";
 
 interface Lead {
   id: string;
@@ -706,12 +705,12 @@ export default function Funil() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      const raw = (data as Lead[]) ?? [];
+        setLeads((data as any[]) || []);
       // De-duplicar por ID para evitar problemas de estado
-      const uniqueRaw = raw.filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
+      const uniqueRaw = (data as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
       
-      if (raw.length !== uniqueRaw.length) {
-        console.error("DUPLICADOS DETECTADOS NO BANCO:", raw.length - uniqueRaw.length, "leads com IDs repetidos.");
+      if ((data as Lead[]).length !== uniqueRaw.length) {
+        console.error("DUPLICADOS DETECTADOS NO BANCO:", (data as Lead[]).length - uniqueRaw.length, "leads com IDs repetidos.");
       }
 
       const fetchedLeads = uniqueRaw.map((lead: any) => ({

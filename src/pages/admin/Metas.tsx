@@ -105,6 +105,8 @@ export default function Metas() {
         return { name: new Date(currentYear, i, 1).toLocaleString("pt-BR", { month: "short" }), realizado: r, meta: metaMensal };
     });
 
+    const fmt = (v: number) => formatCurrency(v);
+
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
     return (

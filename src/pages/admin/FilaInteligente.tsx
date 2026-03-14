@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles, Calendar } from "lucide-react";
+import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles, Calendar, Users, Shield, Zap, Target, Search, Filter, ChevronRight, DollarSign, ArrowUpDown } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -30,9 +31,6 @@ const SCORE_LABELS: Record<string, string> = {
     medio: "⚡ Lead Médio",
     baixo: "🧊 Lead Baixo",
 };
-
-const formatCurrency = (v: number) =>
-    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
 export default function FilaInteligente() {
     const [leads, setLeads] = useState<Lead[]>([]);

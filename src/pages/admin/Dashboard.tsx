@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
-import { formatCurrency } from "@/lib/utils";
 
 interface Lead {
   id: string;
@@ -34,7 +34,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-      setLeads((data as Lead[]) ?? []);
+      setLeads((data as any[]) ?? []);
       setLoading(false);
     });
   }, []);

@@ -4,6 +4,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea
 import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatCurrency } from "@/lib/utils";
 
 interface Inadimplente {
   id: string;

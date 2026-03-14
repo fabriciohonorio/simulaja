@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Sparkles, MessageCircle, Phone, Copy, Check, AlertCircle, Zap, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+import { Users, Phone, MessageSquare, ClipboardList, TrendingUp, AlertCircle, Clock, CheckCircle2, Search, Filter, ChevronRight, MessageCircle, DollarSign, Calendar, UserPlus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Lead {
     id: string;
