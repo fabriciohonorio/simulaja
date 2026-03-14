@@ -5,8 +5,72 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
-import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame, Lightbulb, ArrowRight, Star } from "lucide-react";
+import { 
+    Target, 
+    TrendingUp, 
+    DollarSign, 
+    Clock, 
+    Users, 
+    AlertTriangle, 
+    Trophy, 
+    UserX, 
+    BarChart3, 
+    Flame, 
+    Lightbulb, 
+    ArrowRight, 
+    Star,
+    TrendingDown, 
+    Home, 
+    Car, 
+    Bike, 
+    Truck, 
+    AlertCircle 
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+
+export interface TermometroMercado {
+  id: string;
+  mes_referencia: string;
+  participantes_ativos: number;
+  participantes_ativos_variacao: number;
+  vendas_cotas: number;
+  vendas_cotas_variacao: number;
+  creditos_comercializados: number;
+  creditos_comercializados_variacao: number;
+  ticket_medio: number;
+  ticket_medio_variacao: number;
+  contemplacoes: number;
+  contemplacoes_variacao: number;
+  creditos_disponibilizados: number;
+  creditos_disponibilizados_variacao: number;
+  temperatura: 'quente' | 'morno' | 'frio';
+  temperatura_score: number;
+}
+
+export interface DicaEstrategica {
+  id: string;
+  termometro_id: string;
+  categoria: string;
+  prioridade: number;
+  titulo: string;
+  descricao: string;
+  emoji: string;
+  ativo: boolean;
+}
+
+export interface MetricaSegmento {
+  segmento: 'imoveis' | 'veiculos' | 'motos' | 'investimentos' | 'pesados';
+  total_leads: number;
+  total_vendas: number;
+  valor_total: number;
+  ticket_medio: number;
+  taxa_conversao: number;
+  meta_vendas: number;
+  progresso_meta: number;
+}
 
 interface Lead {
     id: string;
@@ -19,18 +83,14 @@ interface Lead {
     propensity_reason?: string | null;
 }
 
-interface Termometro {
-    id: number;
-    segmento: string;
-    percentual: number;
-}
-
 export default function Metas() {
     const { toast } = useToast();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
     const [metaInput, setMetaInput] = useState<string>("0");
-    const [termometro, setTermometro] = useState<Termometro[]>([]);
+    const [termometro, setTermometro] = useState<TermometroMercado | null>(null);
+    const [dicas, setDicas] = useState<DicaEstrategica[]>([]);
+    const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
     const [loading, setLoading] = useState(true);
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
@@ -42,13 +102,17 @@ export default function Metas() {
             setLoading(true);
             const { data: leadsData } = await supabase.from("leads").select("*");
             const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
-            const { data: termData } = await supabase.from("mercado_termometro").select("*").order("segmento");
+            
             setLeads((leadsData as Lead[]) || []);
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
             }
-            setTermometro(termData || []);
+            
+            await Promise.all([
+                fetchTermometro(),
+                fetchSegmentos()
+            ]);
         } catch (err) {
             console.error(err);
         } finally {
@@ -56,17 +120,56 @@ export default function Metas() {
         }
     };
 
+    async function fetchTermometro() {
+        const { data, error } = await supabase
+            .from('termometro_mercado')
+            .select('*')
+            .order('mes_referencia', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error) {
+            console.error('Erro ao buscar termômetro:', error);
+            return;
+        }
+
+        setTermometro(data as TermometroMercado);
+    }
+
+    async function fetchDicas(termometroId: string) {
+        const { data, error } = await supabase
+            .from('dicas_estrategicas')
+            .select('*')
+            .eq('termometro_id', termometroId)
+            .eq('ativo', true)
+            .order('prioridade')
+            .order('created_at');
+
+        if (!error) setDicas(data || []);
+    }
+
+    async function fetchSegmentos() {
+        const { data, error } = await supabase
+            .from('metricas_segmentos')
+            .select('*')
+            .order('mes_referencia', { ascending: false })
+            .limit(5);
+
+        if (!error) setSegmentos(data || []);
+    }
+
+    useEffect(() => {
+        if (termometro) {
+            fetchDicas(termometro.id);
+        }
+    }, [termometro]);
+
     const salvarMeta = async () => {
         const novoValor = parseFloat(metaInput);
         if (isNaN(novoValor)) return;
         await supabase.from("meta").upsert({ ano: currentYear, meta_anual: novoValor }, { onConflict: "ano" });
         setMetaAnual(novoValor);
         toast({ title: "Meta salva com sucesso!" });
-    };
-
-    const updateTermometro = async (id: number, novoValor: number) => {
-        await supabase.from("mercado_termometro").update({ percentual: novoValor }).eq("id", id);
-        setTermometro(prev => prev.map(t => t.id === id ? { ...t, percentual: novoValor } : t));
     };
 
         const metaMensal = metaAnual / 12;
@@ -260,149 +363,174 @@ export default function Metas() {
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader><CardTitle className="text-sm sm:text-base flex items-center gap-2"><Flame className="h-5 w-5 text-orange-500" />Termômetro de Mercado</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        {termometro.map(item => {
-                            const cor = item.percentual >= 70 ? "bg-red-500" : item.percentual >= 40 ? "bg-orange-500" : "bg-blue-500";
-                            const txt = item.percentual >= 70 ? "text-red-600" : item.percentual >= 40 ? "text-orange-600" : "text-blue-600";
-                            const label = item.percentual >= 70 ? "Quente" : item.percentual >= 40 ? "Morno" : "Frio";
-                            return (
-                                <div key={item.id} className="space-y-1">
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-sm font-medium truncate">{item.segmento}</span>
-                                        <div className="flex items-center gap-1 shrink-0">
-                                            <span className={`text-xs font-bold ${txt}`}>{label}</span>
-                                            <Input type="number" value={item.percentual} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateTermometro(item.id, Number(e.target.value))} className="w-14 h-7 text-xs text-center p-1" min="0" max="100" />
-                                            <span className="text-xs">%</span>
-                                        </div>
+                    <CardHeader>
+                        <CardTitle className="text-sm sm:text-base flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Flame className={`h-5 w-5 ${termometro?.temperatura === 'quente' ? 'text-red-500' : termometro?.temperatura === 'morno' ? 'text-yellow-500' : 'text-blue-500'}`} />
+                                Termômetro de Mercado
+                            </div>
+                            {termometro && (
+                                <Badge variant="secondary" className={`${
+                                    termometro.temperatura === 'quente' ? 'bg-red-100 text-red-700 border-red-200' : 
+                                    termometro.temperatura === 'morno' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 
+                                    'bg-blue-100 text-blue-700 border-blue-200'
+                                }`}>
+                                    {termometro.temperatura.toUpperCase()}
+                                </Badge>
+                            )}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {termometro ? (
+                            <>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm font-medium">
+                                        <span>Temperatura do Mercado</span>
+                                        <span>{termometro.temperatura_score}/100</span>
                                     </div>
-                                    <div className="w-full bg-secondary rounded-full h-1.5"><div className={`${cor} h-full rounded-full`} style={{ width: `${item.percentual}%` }} /></div>
+                                    <Progress value={termometro.temperatura_score} className={`h-3 ${
+                                        termometro.temperatura === 'quente' ? '[&>div]:bg-red-500' : 
+                                        termometro.temperatura === 'morno' ? '[&>div]:bg-yellow-500' : 
+                                        '[&>div]:bg-blue-500'
+                                    }`} />
                                 </div>
-                            );
-                        })}
-                        {termometro.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum segmento configurado.</p>}
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {[
+                                        { label: 'Créditos Comercializados', val: `R$ ${termometro.creditos_comercializados} bi`, var: termometro.creditos_comercializados_variacao },
+                                        { label: 'Vendas de Cotas', val: `${(termometro.vendas_cotas / 1000).toFixed(2)} mil`, var: termometro.vendas_cotas_variacao },
+                                        { label: 'Ticket Médio', val: `R$ ${termometro.ticket_medio} mil`, var: termometro.ticket_medio_variacao },
+                                        { label: 'Participantes Ativos', val: `${termometro.participantes_ativos}M`, var: termometro.participantes_ativos_variacao },
+                                        { label: 'Contemplações', val: `${(termometro.contemplacoes / 1000).toFixed(2)} mil`, var: termometro.contemplacoes_variacao },
+                                        { label: 'Créditos Disponíveis', val: `R$ ${termometro.creditos_disponibilizados} bi`, var: termometro.creditos_disponibilizados_variacao },
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-secondary/10 border border-secondary/20">
+                                            <span className="text-xs text-muted-foreground">{item.label}</span>
+                                            <div className="text-right">
+                                                <div className="text-sm font-bold">{item.val}</div>
+                                                <div className={`text-[10px] flex items-center justify-end gap-1 ${item.var >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {item.var >= 0 ? <TrendingUp className="h-2 w-2" /> : <TrendingDown className="h-2 w-2" />}
+                                                    {Math.abs(item.var)}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-sm text-center text-muted-foreground">Carregando dados do mercado...</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Dicas e Sugestões + Destaque */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                <Card className="md:col-span-2">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                            <Lightbulb className="h-4 w-4 text-amber-500" />
-                            Dicas e Sugestões para Atingir a Meta
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {(() => {
-                            const dicas: { icon: typeof Lightbulb; color: string; titulo: string; descricao: string }[] = [];
+            {/* Dicas Estratégicas */}
+            <div className="mt-6">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-yellow-500" />
+                    💡 Dicas Estratégicas do Mês
+                </h3>
+                
+                <div className="grid gap-4">
+                    {dicas.map(dica => (
+                        <Alert key={dica.id} className={dica.prioridade === 1 ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}>
+                            <AlertCircle className={`h-4 w-4 ${dica.prioridade === 1 ? 'text-red-600' : 'text-blue-600'}`} />
+                            <AlertTitle className="flex items-center gap-2">
+                                <span className="text-xl">{dica.emoji}</span>
+                                <span className="font-bold">{dica.titulo}</span>
+                                <Badge variant="outline" className={`ml-auto ${dica.prioridade === 1 ? 'border-red-300 text-red-700' : 'border-blue-300 text-blue-700'}`}>
+                                    Prioridade {dica.prioridade}
+                                </Badge>
+                            </AlertTitle>
+                            <AlertDescription className="mt-2 text-sm leading-relaxed">
+                                {dica.descricao}
+                            </AlertDescription>
+                        </Alert>
+                    ))}
+                    {dicas.length === 0 && (
+                        <p className="text-sm text-center text-muted-foreground py-8 bg-muted/10 rounded-lg border border-dashed">
+                            Nenhuma dica estratégica disponível para este mês.
+                        </p>
+                    )}
+                </div>
+            </div>
 
-                            // Dica baseada no termômetro — segmentos quentes
-                            const segQuentes = termometro.filter(t => t.percentual >= 70);
-                            if (segQuentes.length > 0) {
-                                dicas.push({
-                                    icon: Flame,
-                                    color: "text-red-500",
-                                    titulo: `Segmentos em alta: ${segQuentes.map(s => s.segmento).join(", ")}`,
-                                    descricao: `O mercado está aquecido! Aproveite para prospectar clientes nesses segmentos onde a demanda é maior.`,
-                                });
-                            }
+            {/* Performance por Segmento */}
+            <div className="mt-8">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    📊 Performance por Segmento
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {segmentos.map((seg) => {
+                        const config: Record<string, { icon: any, color: string, label: string }> = {
+                            imoveis: { icon: Home, color: 'from-blue-500 to-blue-700', label: 'Imóveis' },
+                            veiculos: { icon: Car, color: 'from-green-500 to-green-700', label: 'Veículos' },
+                            motos: { icon: Bike, color: 'from-orange-500 to-orange-700', label: 'Motos' },
+                            investimentos: { icon: TrendingUp, color: 'from-purple-500 to-purple-700', label: 'Investimentos' },
+                            pesados: { icon: Truck, color: 'from-gray-600 to-gray-800', label: 'Pesados' }
+                        };
+                        const { icon: Icon, color, label } = config[seg.segmento] || { icon: BarChart3, color: 'from-gray-500 to-gray-700', label: seg.segmento };
 
-                            // Dica baseada em leads sem follow-up
-                            if (semFollowUp > 0) {
-                                dicas.push({
-                                    icon: AlertTriangle,
-                                    color: "text-amber-500",
-                                    titulo: `${semFollowUp} leads sem contato há mais de 7 dias`,
-                                    descricao: `Retome o contato com esses leads. Um follow-up pode reativar o interesse e gerar fechamento.`,
-                                });
-                            }
-
-                            // Dica de ticket médio vs falta
-                            if (faltaMes > 0 && ticketMedio > 0) {
-                                dicas.push({
-                                    icon: Target,
-                                    color: "text-primary",
-                                    titulo: `Faltam aproximadamente ${leadsNecessarios} fechamento(s) para bater a meta do mês`,
-                                    descricao: `Com ticket médio de ${formatCurrency(ticketMedio)}, foque nos leads com maior valor de crédito para atingir os ${formatCurrency(faltaMes)} restantes.`,
-                                });
-                            }
-
-                            // Dica de projeção
-                            if (projecaoMes < metaMensal && metaMensal > 0) {
-                                dicas.push({
-                                    icon: TrendingUp,
-                                    color: "text-indigo-500",
-                                    titulo: `Projeção abaixo da meta: ${formatCurrency(projecaoMes)} de ${formatCurrency(metaMensal)}`,
-                                    descricao: `Intensifique a prospecção nos próximos ${diasMes - diaHoje} dias. Considere oferecer condições especiais para acelerar fechamentos.`,
-                                });
-                            }
-
-                            // Dica de segmentos frios — oportunidade
-                            const segFrios = termometro.filter(t => t.percentual < 40);
-                            if (segFrios.length > 0) {
-                                dicas.push({
-                                    icon: Star,
-                                    color: "text-blue-500",
-                                    titulo: `Oportunidade em segmentos frios: ${segFrios.map(s => s.segmento).join(", ")}`,
-                                    descricao: `Menos concorrência nesses segmentos. Trabalhe leads que já demonstraram interesse para se destacar.`,
-                                });
-                            }
-
-                            // Dica de taxa de perda
-                            if (taxaPerda > 30) {
-                                dicas.push({
-                                    icon: UserX,
-                                    color: "text-red-500",
-                                    titulo: `Taxa de perda alta: ${taxaPerda.toFixed(1)}%`,
-                                    descricao: `Revise o processo de atendimento. Identifique os motivos de desistência e ajuste sua abordagem comercial.`,
-                                });
-                            }
-
-                            if (faltaMes <= 0) {
-                                dicas.push({
-                                    icon: Trophy,
-                                    color: "text-green-600",
-                                    titulo: `🎉 Meta do mês atingida! Parabéns!`,
-                                    descricao: `Continue prospectando para acumular resultados e garantir a meta anual.`,
-                                });
-                            }
-
-                            if (dicas.length === 0) {
-                                dicas.push({
-                                    icon: Lightbulb,
-                                    color: "text-amber-500",
-                                    titulo: "Defina sua meta anual para receber dicas personalizadas",
-                                    descricao: "Configure a meta no campo acima para que o sistema gere sugestões inteligentes de atuação.",
-                                });
-                            }
-
-                            return dicas.map((d, i) => (
-                                <div key={i} className="flex items-start gap-3 p-3 rounded-lg border bg-card shadow-sm">
-                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                                        <d.icon className={`h-4 w-4 ${d.color}`} />
+                        return (
+                            <Card key={seg.segmento} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
+                                <div className={`bg-gradient-to-br ${color} p-5 text-white h-full flex flex-col`}>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="text-lg font-bold capitalize">{label}</h4>
+                                        <Icon className="h-8 w-8 opacity-80" />
                                     </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-semibold">{d.titulo}</p>
-                                        <p className="text-xs text-muted-foreground mt-0.5">{d.descricao}</p>
+                                    <div className="space-y-3 text-sm flex-1">
+                                        <div className="flex justify-between">
+                                            <span className="opacity-80">Leads</span>
+                                            <span className="font-bold">{seg.total_leads}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="opacity-80">Vendas</span>
+                                            <span className="font-bold">{seg.total_vendas}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="opacity-80">Ticket</span>
+                                            <span className="font-bold">R$ {(Number(seg.ticket_medio) / 1000).toFixed(0)}k</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="opacity-80">Conversão</span>
+                                            <span className="font-bold">{seg.taxa_conversao}%</span>
+                                        </div>
+                                        <div className="mt-auto pt-4 space-y-1.5">
+                                            <div className="flex justify-between items-center text-[10px] uppercase tracking-wider opacity-90">
+                                                <span>Progresso Meta</span>
+                                                <span className="font-bold">{seg.progresso_meta}%</span>
+                                            </div>
+                                            <Progress value={seg.progresso_meta} className="h-1.5 bg-white/20 [&>div]:bg-white" />
+                                        </div>
                                     </div>
-                                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
                                 </div>
-                            ));
-                        })()}
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-primary/10 to-transparent">
-                    <CardHeader><CardTitle className="text-sm sm:text-base text-center">Destaque do Ano</CardTitle></CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4 py-4 sm:py-6">
-                        <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-primary/20 flex items-center justify-center">
-                            <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                            </Card>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Destaque do Ano */}
+            <div className="mt-8">
+                <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/10">
+                    <CardHeader className="pb-2 text-center">
+                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Destaque do Ano</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center gap-4 py-6">
+                        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center shadow-inner">
+                            <Trophy className="h-10 w-10 text-primary" />
                         </div>
                         <div className="text-center">
-                            <p className="text-sm text-muted-foreground">Melhor Mês</p>
-                            <p className="text-xl sm:text-2xl font-bold text-primary">{monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.name}</p>
-                            <p className="text-sm font-bold mt-1">{fmt(monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.realizado || 0)}</p>
+                            <p className="text-sm text-muted-foreground font-medium">Melhor Mês de Vendas</p>
+                            <p className="text-2xl font-black text-primary mt-1">
+                                {monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.name}
+                            </p>
+                            <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm">
+                                <DollarSign className="h-3.5 w-3.5" />
+                                {fmt(monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.realizado || 0)}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
