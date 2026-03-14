@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bot, Sparkles, MessageCircle, Phone, Copy, Check, AlertCircle, Zap, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 interface Lead {
     id: string;
@@ -45,7 +46,7 @@ export default function SDRPanel() {
 
     const generateAIScript = (lead: Lead) => {
         const firstName = lead.nome.split(" ")[0];
-        const valor = lead.valor_credito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        const valor = formatCurrency(lead.valor_credito);
         const cidade = lead.cidade ? ` em ${lead.cidade}` : "";
 
         if (lead.lead_score_valor === "premium") {

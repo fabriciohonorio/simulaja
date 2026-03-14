@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, MessageCircle, ArrowUpDown } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface Lead {
   id: string;
@@ -53,8 +54,6 @@ const TIPO_OPTIONS = [
   { value: "investimento", label: "Investimento" },
 ];
 
-const formatCurrency = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
 const openWhatsApp = (lead: Lead) => {
   const msg = encodeURIComponent(

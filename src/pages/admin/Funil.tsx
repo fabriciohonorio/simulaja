@@ -36,6 +36,7 @@ import { Calendar } from "@/components/ui/calendar";
 
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatCurrency } from "@/lib/utils";
 
 interface Lead {
   id: string;
@@ -201,10 +202,6 @@ const normalizeStatus = (status: string | null): string => {
   return map[s] || "novo_lead";
 };
 
-const formatCurrency = (v: number | null) => {
-  if (v === null || v === undefined) return "Crédito a definir";
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
-};
 
 const isToday = (dateStr: string | null) => {
   if (!dateStr) return false;
@@ -314,7 +311,7 @@ function LeadCard({
           </button>
           <a
             href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(
-              `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de R$ ${Number(lead.valor_credito).toLocaleString("pt-BR")}...`,
+              `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de ${formatCurrency(lead.valor_credito)}...`,
             )}`}
             target="_blank"
             rel="noopener noreferrer"

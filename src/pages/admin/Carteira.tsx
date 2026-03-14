@@ -11,8 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Clock, Trophy, TrendingUp, CheckCircle, Calendar, Upload, FileText, Trash2, Send } from "lucide-react";
+import {
+  Users,
+  Clock,
+  Trophy,
+  TrendingUp,
+  CheckCircle,
+  Calendar,
+  Upload,
+  FileText,
+  Trash2,
+  Send,
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 interface CarteiraItem {
   id: string;
@@ -30,8 +42,6 @@ interface CarteiraItem {
   celular?: string | null;
 }
 
-const fmt = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
 
 export default function Carteira() {
   const [items, setItems] = useState<CarteiraItem[]>([]);
@@ -230,7 +240,7 @@ export default function Carteira() {
                 <tr key={item.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium">{item.nome}</td>
                   <td className="px-3 py-2">{item.tipo_consorcio}</td>
-                  <td className="px-3 py-2">{fmt(Number(item.valor_credito || 0))}</td>
+                  <td className="px-3 py-2">{formatCurrency(Number(item.valor_credito || 0))}</td>
                   <td className="px-3 py-2">{item.grupo || "—"}</td>
                   <td className="px-3 py-2">{item.cota || "—"}</td>
                   <td className="px-3 py-2">
@@ -288,7 +298,7 @@ export default function Carteira() {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Valor</p>
-                  <p className="font-medium text-primary">{fmt(Number(item.valor_credito || 0))}</p>
+                  <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Grupo / Cota</p>

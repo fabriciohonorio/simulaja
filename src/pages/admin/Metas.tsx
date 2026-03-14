@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { formatCurrency } from "@/lib/utils";
 import { Target, TrendingUp, DollarSign, Clock, Users, AlertTriangle, Trophy, UserX, BarChart3, Flame, Lightbulb, ArrowRight, Star } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -68,8 +69,7 @@ export default function Metas() {
         setTermometro(prev => prev.map(t => t.id === id ? { ...t, percentual: novoValor } : t));
     };
 
-    const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
-    const metaMensal = metaAnual / 12;
+        const metaMensal = metaAnual / 12;
     const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
     const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
@@ -149,8 +149,8 @@ export default function Metas() {
                     <CardContent>
                         <div className="flex justify-between items-end mb-2">
                             <div>
-                                <p className="text-xl sm:text-2xl font-bold text-primary">{fmt(realizadoMes)}</p>
-                                <p className="text-xs text-muted-foreground">de {fmt(metaMensal)}</p>
+                                <p className="text-xl sm:text-2xl font-bold text-primary">{formatCurrency(realizadoMes)}</p>
+                                <p className="text-xs text-muted-foreground">de {formatCurrency(metaMensal)}</p>
                             </div>
                             <span className="text-lg sm:text-xl font-bold">{progressoMes.toFixed(1)}%</span>
                         </div>
@@ -168,8 +168,8 @@ export default function Metas() {
                     <CardContent>
                         <div className="flex justify-between items-end mb-2">
                             <div>
-                                <p className="text-xl sm:text-2xl font-bold text-green-600">{fmt(realizadoAno)}</p>
-                                <p className="text-xs text-muted-foreground">de {fmt(metaAnual)}</p>
+                                <p className="text-xl sm:text-2xl font-bold text-green-600">{formatCurrency(realizadoAno)}</p>
+                                <p className="text-xs text-muted-foreground">de {formatCurrency(metaAnual)}</p>
                             </div>
                             <span className="text-lg sm:text-xl font-bold text-green-600">{progressoAno.toFixed(1)}%</span>
                         </div>
@@ -189,7 +189,7 @@ export default function Metas() {
                         </div>
                         <div>
                             <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide">Falta para a Meta Anual</p>
-                            <p className="text-xl sm:text-2xl font-bold text-amber-800">{fmt(faltaAno)}</p>
+                            <p className="text-xl sm:text-2xl font-bold text-amber-800">{formatCurrency(faltaAno)}</p>
                             <p className="text-xs text-amber-600 mt-0.5">
                                 {faltaAno <= 0 ? "🎉 Meta atingida!" : `${(100 - progressoAno).toFixed(1)}% restante`}
                             </p>
@@ -203,7 +203,7 @@ export default function Metas() {
                         </div>
                         <div>
                             <p className="text-xs text-indigo-700 font-semibold uppercase tracking-wide">Necessário por Mês</p>
-                            <p className="text-xl sm:text-2xl font-bold text-indigo-800">{fmt(necessarioPorMes)}</p>
+                            <p className="text-xl sm:text-2xl font-bold text-indigo-800">{formatCurrency(necessarioPorMes)}</p>
                             <p className="text-xs text-indigo-600 mt-0.5">
                                 nos {mesesRestantes} {mesesRestantes === 1 ? "mês restante" : "meses restantes"} de {currentYear}
                             </p>
@@ -218,13 +218,13 @@ export default function Metas() {
                     const faltaMetaMesColor = progressoMes >= 99 ? "text-green-600" : progressoMes >= 70 ? "text-amber-500" : "text-red-500";
                     const faltaMetaMesBg = progressoMes >= 99 ? "bg-green-50 border-green-200" : progressoMes >= 70 ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200";
                     const items = [
-                        { icon: DollarSign, color: "text-blue-500", val: fmt(ticketMedio), label: "Ticket Médio", cardClass: "" },
+                        { icon: DollarSign, color: "text-blue-500", val: formatCurrency(ticketMedio), label: "Ticket Médio", cardClass: "" },
                         { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão", cardClass: "" },
                         { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários", cardClass: "" },
                         { icon: Clock, color: "text-purple-500", val: `${diasMes - diaHoje} dias`, label: "Dias p/ Fechar Mês", cardClass: "" },
-                        { icon: Target, color: faltaMetaMesColor, val: fmt(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg },
+                        { icon: Target, color: faltaMetaMesColor, val: formatCurrency(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg },
                         { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda", cardClass: "" },
-                        { icon: BarChart3, color: "text-indigo-500", val: fmt(projecaoMes), label: "Projeção do Mês", cardClass: "" },
+                        { icon: BarChart3, color: "text-indigo-500", val: formatCurrency(projecaoMes), label: "Projeção do Mês", cardClass: "" },
                         { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-50 border-red-200" : "" },
                     ];
                     return items.map((k, i) => (
@@ -249,7 +249,7 @@ export default function Metas() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                                 <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 11 }} />
-                                <Tooltip formatter={(v: number) => fmt(v)} />
+                                <Tooltip formatter={(v: number) => formatCurrency(v)} />
                                 <Legend wrapperStyle={{ fontSize: '12px' }} />
                                 <Bar dataKey="meta" name="Meta" fill="hsl(215,20%,65%)" radius={[4, 4, 0, 0]} />
                                 <Bar dataKey="realizado" name="Realizado" fill="hsl(207,90%,35%)" radius={[4, 4, 0, 0]} />
@@ -323,7 +323,7 @@ export default function Metas() {
                                     icon: Target,
                                     color: "text-primary",
                                     titulo: `Faltam aproximadamente ${leadsNecessarios} fechamento(s) para bater a meta do mês`,
-                                    descricao: `Com ticket médio de ${fmt(ticketMedio)}, foque nos leads com maior valor de crédito para atingir os ${fmt(faltaMes)} restantes.`,
+                                    descricao: `Com ticket médio de ${formatCurrency(ticketMedio)}, foque nos leads com maior valor de crédito para atingir os ${formatCurrency(faltaMes)} restantes.`,
                                 });
                             }
 
@@ -332,7 +332,7 @@ export default function Metas() {
                                 dicas.push({
                                     icon: TrendingUp,
                                     color: "text-indigo-500",
-                                    titulo: `Projeção abaixo da meta: ${fmt(projecaoMes)} de ${fmt(metaMensal)}`,
+                                    titulo: `Projeção abaixo da meta: ${formatCurrency(projecaoMes)} de ${formatCurrency(metaMensal)}`,
                                     descricao: `Intensifique a prospecção nos próximos ${diasMes - diaHoje} dias. Considere oferecer condições especiais para acelerar fechamentos.`,
                                 });
                             }

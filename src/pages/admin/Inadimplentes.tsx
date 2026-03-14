@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatCurrency } from "@/lib/utils";
 
 interface Inadimplente {
   id: string;
@@ -36,8 +37,6 @@ const COLUMNS = [
   
 ];
 
-const formatCurrency = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
 export default function Inadimplentes() {
   const [data, setData] = useState<Inadimplente[]>([]);
