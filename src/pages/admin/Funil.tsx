@@ -86,33 +86,27 @@ const COLUMNS = [
 ];
 
 const COLUMN_COLORS: Record<string, string> = {
-  novo_lead: "border-t-blue-500",
-  novo: "border-t-blue-500",
-  primeiro_contato: "border-t-yellow-500",
-  contato: "border-t-yellow-500",
-  qualificacao: "border-t-orange-500",
-  simulacao_enviada: "border-t-purple-500",
-  proposta: "border-t-purple-500",
-  negociacao: "border-t-indigo-500",
-  aguardando_pagamento: "border-t-amber-500",
-  fechado: "border-t-green-500",
-  perdido: "border-t-red-500",
-  morto: "border-t-gray-500",
+  novo_lead: "border-t-blue-500 bg-blue-50/10",
+  primeiro_contato: "border-t-yellow-500 bg-yellow-50/10",
+  qualificacao: "border-t-orange-500 bg-orange-50/10",
+  simulacao_enviada: "border-t-purple-500 bg-purple-50/10",
+  negociacao: "border-t-emerald-500 bg-emerald-50/10",
+  aguardando_pagamento: "border-t-amber-500 bg-amber-50/10",
+  fechado: "border-t-green-600 bg-green-50/10",
+  perdido: "border-t-red-500 bg-red-50/10",
+  morto: "border-t-slate-400 bg-slate-50/10",
 };
 
 const COLUMN_DOT_COLORS: Record<string, string> = {
   novo_lead: "bg-blue-500",
-  novo: "bg-blue-500",
   primeiro_contato: "bg-yellow-500",
-  contato: "bg-yellow-500",
   qualificacao: "bg-orange-500",
   simulacao_enviada: "bg-purple-500",
-  proposta: "bg-purple-500",
-  negociacao: "bg-indigo-500",
+  negociacao: "bg-emerald-500",
   aguardando_pagamento: "bg-amber-500",
-  fechado: "bg-green-500",
+  fechado: "bg-green-600",
   perdido: "bg-red-500",
-  morto: "bg-gray-500",
+  morto: "bg-slate-400",
 };
 
 const TEMP_COLORS: Record<string, string> = {
@@ -1111,7 +1105,7 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-140px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                    className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 backdrop-blur-sm p-3 flex flex-col h-[calc(100vh-210px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
                     style={{ width: columnWidths[col.id] || (isWideView ? 200 : 280), minWidth: isWideView ? 150 : 280 }}
                   >
                     <div className="mb-3 flex items-center justify-between">
@@ -1141,6 +1135,41 @@ export default function Funil() {
         </div>
         </div>
       </DragDropContext>
+
+      {/* Legenda de Cores e Temperatura */}
+      <div className="hidden md:flex items-center justify-center gap-8 p-4 bg-white/50 backdrop-blur-md rounded-2xl border border-dashed border-primary/20 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-700">
+          <div className="flex items-center gap-2 pr-4 border-r border-border/50">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Legenda de Temperatura</span>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 group cursor-help transition-transform hover:scale-105">
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+              <span className="text-xs font-bold text-slate-600">🔥 Quente (Ativo)</span>
+            </div>
+            <div className="flex items-center gap-2 group cursor-help transition-transform hover:scale-105">
+              <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]" />
+              <span className="text-xs font-bold text-slate-600">☀️ Morno (Aguardando)</span>
+            </div>
+            <div className="flex items-center gap-2 group cursor-help transition-transform hover:scale-105">
+              <div className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+              <span className="text-xs font-bold text-slate-600">❄️ Frio (Parado)</span>
+            </div>
+            <div className="flex items-center gap-2 group cursor-help transition-transform hover:scale-105">
+              <div className="h-2.5 w-2.5 rounded-full bg-orange-600 shadow-[0_0_8px_rgba(234,88,12,0.4)]" />
+              <span className="text-xs font-bold text-slate-600">💀 Perdido</span>
+            </div>
+            <div className="flex items-center gap-2 group cursor-help transition-transform hover:scale-105">
+              <div className="h-2.5 w-2.5 rounded-full bg-slate-400" />
+              <span className="text-xs font-bold text-slate-600">☠️ Lead Morto</span>
+            </div>
+          </div>
+
+          <div className="ml-auto flex items-center gap-3 pl-4 border-l border-border/50">
+              <Badge variant="outline" className="bg-primary/5 text-[10px] py-0 border-primary/20">Identificador Inteligente v3.0</Badge>
+          </div>
+      </div>
 
       {/* Modal Histórico de Tratativas */}
       <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} />
