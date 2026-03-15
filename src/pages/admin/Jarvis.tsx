@@ -45,11 +45,35 @@ interface Lead {
     tipo_consorcio: string | null;
 }
 
+interface Inadimplente {
+    id: string;
+    nome: string;
+    valor_parcela: number;
+    parcelas_atrasadas: number;
+    status: string;
+}
+
+interface MetricaSegmento {
+    segmento: string;
+    total_leads: number;
+    total_vendas: number;
+    valor_total: number;
+    meta_vendas: number;
+}
+
+interface GrupoItem {
+    grupo: string;
+    credito: number;
+    r50: number;
+    prazo: number;
+}
+
 interface JarvisAnalysis {
     metaTotal: number;
     realizado: number;
     pipeline: number;
     projecao: number;
+    inadimplencia: number;
     recomendacao: string;
     detalhes: string[];
 }
@@ -60,6 +84,8 @@ export default function Jarvis() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysis, setAnalysis] = useState<JarvisAnalysis | null>(null);
     const [leads, setLeads] = useState<Lead[]>([]);
+    const [inadimplentes, setInadimplentes] = useState<Inadimplente[]>([]);
+    const [segmentMetas, setSegmentMetas] = useState<MetricaSegmento[]>([]);
     const [metaAnual, setMetaAnual] = useState(0);
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState<Message[]>([
@@ -131,33 +157,112 @@ export default function Jarvis() {
         }
     };
 
+    // Motor de Simulação Portado do ConsortiumSimulator
+    const GRUPOS: Record<string, GrupoItem[]> = {
+        imovel: [
+            { grupo: "6041", credito: 110000, r50: 405.9, prazo: 216 },
+            { grupo: "6041", credito: 150000, r50: 553.49, prazo: 216 },
+            { grupo: "6041", credito: 200000, r50: 737.99, prazo: 216 },
+            { grupo: "6030", credito: 300000, r50: 1130.06, prazo: 199 },
+            { grupo: "6039", credito: 500000, r50: 1672.7, prazo: 230 },
+            { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
+        ],
+        veiculo: [
+            { grupo: "5293", credito: 25000, r50: 264.63, prazo: 77 },
+            { grupo: "5294", credito: 50000, r50: 370.25, prazo: 100 },
+            { grupo: "5295", credito: 100000, r50: 740.49, prazo: 100 },
+        ],
+        pesados: [
+            { grupo: "5996", credito: 200000, r50: 1036.26, prazo: 135 },
+            { grupo: "5996", credito: 500000, r50: 2590.66, prazo: 135 },
+        ],
+    };
+
+    const findParcela = (valor: number, segmento: string) => {
+        const seg = segmento.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        let key = "imovel";
+        if (seg.includes("veic") || seg.includes("carro") || seg.includes("moto")) key = "veiculo";
+        else if (seg.includes("pesad") || seg.includes("caminh") || seg.includes("agro")) key = "pesados";
+
+        const lista = GRUPOS[key] || GRUPOS.imovel;
+        // Encontra o mais próximo
+        return lista.reduce((prev, curr) => {
+            return (Math.abs(curr.credito - valor) < Math.abs(prev.credito - valor) ? curr : prev);
+        });
+    };
+
     const suggestedQuestions = [
         "Bom dia Jarvis, quais as novidades de hoje",
-        "Quem devo ligar agora",
-        "Estou no ritmo da meta",
-        "Quais leads têm maior chance de fechar",
-        "Que conteúdo devo postar hoje"
+        "Qual a situação da inadimplência",
+        "Quanto custa a parcela de 200 mil em imóveis",
+        "Como estão as metas por segmento",
+        "Quais leads têm maior chance de fechar"
     ];
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [leadsRes, metaRes] = await Promise.all([
+                const [leadsRes, metaRes, inadRes] = await Promise.all([
                     supabase.from("leads").select("*"),
-                    supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).maybeSingle()
+                    supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).maybeSingle(),
+                    supabase.from("inadimplentes").select("*")
                 ]);
 
+                let allLeads: Lead[] = [];
                 if (leadsRes.data) {
-                    const lData = leadsRes.data as Lead[];
-                    setLeads(lData);
+                    allLeads = leadsRes.data as Lead[];
+                    setLeads(allLeads);
                     
                     // Saudação automática ao carregar (após carregar os dados)
                     setTimeout(() => {
-                        const prioritarios = lData.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
+                        const prioritarios = allLeads.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
                         speak(`Bom dia Fabrício. Você tem ${prioritarios} leads em negociação no seu funil hoje.`);
                     }, 1000);
                 }
-                if (metaRes.data) setMetaAnual(metaRes.data.meta_anual || 0);
+
+                if (inadRes.data) {
+                    setInadimplentes(inadRes.data as Inadimplente[]);
+                }
+
+                if (metaRes.data) {
+                    setMetaAnual(metaRes.data.meta_anual || 0);
+                    
+                    // Calcular métricas por segmento baseadas no Metas.tsx
+                    const currentMonthStr = new Date().toISOString().substring(0, 7);
+                    const monthlyMetas: Record<string, number> = {
+                        imoveis: Number(metaRes.data.meta_imoveis || 500000),
+                        veiculos: Number(metaRes.data.meta_veiculos || 100000),
+                        motos: Number(metaRes.data.meta_motos || 100000),
+                        pesados: Number(metaRes.data.meta_pesados || 180000),
+                        investimentos: Number(metaRes.data.meta_investimentos || 120000)
+                    };
+
+                    const segConfig = [
+                        { id: 'imoveis', keywords: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'] },
+                        { id: 'veiculos', keywords: ['veiculo', 'veículo', 'carro', 'auto', 'automovel', 'automóvel'] },
+                        { id: 'motos', keywords: ['moto', 'motocicleta'] },
+                        { id: 'pesados', keywords: ['pesados', 'agricolas', 'caminhao', 'caminhão', 'trator', 'maquina', 'máquina'] },
+                        { id: 'investimentos', keywords: ['investimento', 'capitalizacao', 'aposentadoria', 'investimentos'] }
+                    ];
+
+                    const segs: MetricaSegmento[] = segConfig.map(config => {
+                        const segmentLeads = allLeads.filter(l => {
+                            const type = (l.tipo_consorcio || "").toLowerCase();
+                            return config.keywords.some(kw => type.includes(kw));
+                        });
+                        const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado" && l.created_at?.startsWith(currentMonthStr));
+                        const valorTotal = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                        
+                        return {
+                            segmento: config.id,
+                            total_leads: segmentLeads.length,
+                            total_vendas: segmentVendas.length,
+                            valor_total: valorTotal,
+                            meta_vendas: monthlyMetas[config.id]
+                        };
+                    });
+                    setSegmentMetas(segs);
+                }
             } catch (err) {
                 console.error("Erro ao carregar dados para o Jarvis:", err);
             } finally {
@@ -178,12 +283,16 @@ export default function Jarvis() {
 
         // Simulando processamento inteligente
         setTimeout(() => {
-            const queryLower = query.toLowerCase();
-            const currentMonthStr = new Date().toISOString().split('T')[0].substring(0, 7);
+            const queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const currentMonthStr = new Date().toISOString().substring(0, 7);
             const metaMensal = metaAnual / 12;
             
             const fechadosMes = leads.filter(l => (l.status || "").toLowerCase() === "fechado" && l.created_at?.startsWith(currentMonthStr));
             const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+            
+            const currentYear = new Date().getFullYear().toString();
+            const realizadoAno = leads.filter(l => (l.status || "").toLowerCase() === "fechado" && l.created_at?.startsWith(currentYear)).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+            const progressoAno = metaAnual > 0 ? (realizadoAno / metaAnual) * 100 : 0;
             
             const emNegociacao = leads.filter(l => !["fechado", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));
             const pipelineValue = emNegociacao.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
@@ -191,38 +300,47 @@ export default function Jarvis() {
             const diaHoje = new Date().getDate();
             const projecao = diaHoje > 0 ? (realizadoMes / diaHoje) * diasNoMes : 0;
 
+            // Inadimplência
+            const dividaTotal = inadimplentes.filter(i => i.status !== "regularizado").reduce((acc, i) => acc + (i.valor_parcela * i.parcelas_atrasadas), 0);
+            const inadCount = inadimplentes.filter(i => i.status !== "regularizado").length;
+
             let responseContent = "";
             let newAnalysis: JarvisAnalysis | null = null;
 
-            if (queryLower.includes("bom dia") || queryLower.includes("novidades")) {
-                const hotLeads = emNegociacao.filter(l => (l as any).score_final === "A" || (l as any).score_final === "B").slice(0, 2);
-                const coldLeads = emNegociacao.filter(l => {
-                    const last = l.updated_at || l.created_at || "";
-                    if (!last) return false;
-                    return (Date.now() - new Date(last).getTime()) > 3 * 24 * 60 * 60 * 1000;
-                }).slice(0, 2);
-                const compromissos = leads.filter(l => (l as any).data_vencimento && isToday(parseISO((l as any).data_vencimento)));
-
-                responseContent = `Bom dia Fabrício! Aqui estão as novidades do seu CRM hoje:\n\n` +
-                    `📊 *Resumo*: Você realizou ${formatCurrency(realizadoMes)} este mês. Seu pipeline está em ${formatCurrency(pipelineValue)}.\n` +
-                    `🔥 *Leads Quentes*: ${hotLeads.length > 0 ? hotLeads.map(l => (l as any).nome || "Lead").join(", ") : "Nenhum no momento"}.\n` +
-                    `❄️ *Sem Interação*: ${coldLeads.length > 0 ? coldLeads.map(l => (l as any).nome || "Lead").join(", ") : "Todos em dia"}.\n` +
-                    `📅 *Compromissos*: Você tem ${compromissos.length} ação(ões) agendada(s) para hoje.\n` +
-                    `🚀 *Sugestão*: Fabrício, foque no fechamento dos leads quentes para atingir sua projeção de ${formatCurrency(projecao)}.`;
+            // Lógica de FAQ Dinâmica / Simulação
+            if ((queryLower.includes("parcela") || queryLower.includes("quanto custa")) && (queryLower.includes("mil") || queryLower.includes("m") || /\d/.test(query))) {
+                const valorMatch = query.match(/(\d+)/g);
+                const valor = valorMatch ? parseInt(valorMatch.join("")) : 0;
+                if (valor > 0) {
+                    const sim = findParcela(valor * (queryLower.includes("mil") ? 1000 : 1), queryLower);
+                    responseContent = `Para um crédito de ${formatCurrency(sim.credito)}, a parcela reduzida é de *${formatCurrency(sim.r50)}* no prazo de ${sim.prazo} meses (Grupo ${sim.grupo}). Esta é a melhor opção estratégica hoje.`;
+                }
+            } else if (queryLower.includes("inadimplencia") || queryLower.includes("devendo") || queryLower.includes("pagar")) {
+                responseContent = `Atualmente temos ${inadCount} clientes com parcelas em atraso, totalizando *${formatCurrency(dividaTotal)}* pendentes. Recomendo uma ação de cobrança imediata para os 3 maiores valores.`;
+            } else if (queryLower.includes("segmento") || queryLower.includes("setor")) {
+                const resumoSeg = segmentMetas.map(s => `${s.segmento.toUpperCase()}: ${Math.round((s.valor_total/s.meta_vendas)*100)}% da meta`).join("\n");
+                responseContent = `Aqui está o desempenho por segmento este mês:\n\n${resumoSeg}\n\nO setor de ${segmentMetas.sort((a,b) => (a.valor_total/a.meta_vendas) - (b.valor_total/b.meta_vendas))[0].segmento} é o que mais precisa de atenção agora.`;
+            } else if (queryLower.includes("bom dia") || queryLower.includes("novidades") || queryLower.includes("resumo")) {
+                const hotLeads = emNegociacao.filter(l => (l as any).lead_score_valor === "premium" || (l as any).lead_score_valor === "alto").slice(0, 2);
+                
+                responseContent = `Bom dia Fabrício! Aqui está o "afinamento" do seu CRM hoje:\n\n` +
+                    `💰 *Financeiro*: Realizado ${formatCurrency(realizadoMes)} vs Meta ${formatCurrency(metaMensal)}. Inadimplência total em ${formatCurrency(dividaTotal)}.\n` +
+                    `🔥 *Oportunidades*: Foque em ${hotLeads.length > 0 ? hotLeads.map(l => (l as any).nome || "Lead").join(", ") : "leads de alto ticket"}.\n` +
+                    `📉 *Atenção*: Temos ${segmentMetas.filter(s => (s.valor_total/s.meta_vendas) < 0.5).length} segmentos abaixo de 50% da meta.\n\n` +
+                    `🚀 *Sugestão Jarvis*: Sua projeção de ${formatCurrency(projecao)} está saudável, mas recuperar ${formatCurrency(dividaTotal / 2)} da inadimplência daria um fôlego extra no caixa este mês.`;
                 
                 newAnalysis = {
                     metaTotal: metaMensal, realizado: realizadoMes, pipeline: pipelineValue,
-                    projecao: projecao, recomendacao: "FOCO TOTAL EM FECHAMENTO",
-                    detalhes: ["Priorizar leads quentes", "Reativar leads sem contato", "Finalizar compromissos do dia"]
+                    projecao: projecao, inadimplencia: dividaTotal,
+                    recomendacao: projecao >= metaMensal ? "EXPANSÃO E COBRANÇA" : "RECUPERAÇÃO DE VENDAS",
+                    detalhes: [
+                        `Inadimplência em ${formatCurrency(dividaTotal)}`,
+                        `${Math.round(progressoAno || 0)}% da meta anual atingida`,
+                        `${emNegociacao.length} leads ativos no pipeline`
+                    ]
                 };
-            } else if (queryLower.includes("ligar") || queryLower.includes("quem")) {
-                const prioritarios = emNegociacao.sort((a, b) => (b.valor_credito || 0) - (a.valor_credito || 0)).slice(0, 3);
-                responseContent = `Fabrício, identifiquei que os leads com maior prioridade agora são: ${prioritarios.map(l => (l as any).nome || "Lead").join(", ")}. Eles representam um potencial de ${formatCurrency(prioritarios.reduce((s,l) => s+Number(l.valor_credito), 0))}.`;
-            } else if (queryLower.includes("ritmo") || queryLower.includes("meta")) {
-                const status = projecao >= metaMensal ? "excelente" : "que exige atenção";
-                responseContent = `Fabrício, atualmente você está em um ritmo ${status}. Sua projeção para o fim do mês é de ${formatCurrency(projecao)}, contra uma meta de ${formatCurrency(metaAnual/12)}.`;
             } else {
-                responseContent = "Entendi sua dúvida. Analisando os dados, recomendo focar na movimentação do pipeline, que hoje soma um valor estratégico considerável.";
+                responseContent = "Fabrício, analisando seu CRM por completo: seu pipeline está saudável, mas recomendo olhar para a inadimplência e para o fechamento de leads premium para garantir o batimento das metas este mês.";
             }
 
             const jarvisMsg: Message = {
