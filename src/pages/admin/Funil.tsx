@@ -351,13 +351,25 @@ function LeadCard({
             </span>
           )}
         </div>
-        {!compact && lead.last_interaction_at &&
-          Date.now() - new Date(lead.last_interaction_at).getTime() >
-          12 * 60 * 60 * 1000 && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 animate-pulse">
-              <Clock className="h-3 w-3" /> 12h+
+        
+        {/* Indicador de dias sem contato */}
+        {(() => {
+          const lastDate = lead.last_interaction_at || lead.created_at || new Date().toISOString();
+          const dias = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24));
+          const isEmergency = dias >= 3;
+          const isWarning = dias >= 2;
+
+          return (
+            <span className={`flex items-center gap-1 font-bold ${compact ? "text-[8px]" : "text-[10px]"} ${
+              isEmergency ? "text-red-500 animate-pulse" : 
+              isWarning ? "text-orange-500" : 
+              "text-muted-foreground/60"
+            }`}>
+              <Clock className={compact ? "h-2 w-2" : "h-3 w-3"} />
+              {dias === 0 ? "Hoje" : `${dias}d`}
             </span>
-          )}
+          );
+        })()}
       </div>
 
       {/* Última tratativa resumida - Menor no modo compact */}
