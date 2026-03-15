@@ -119,7 +119,16 @@ export default function Jarvis() {
                     supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).maybeSingle()
                 ]);
 
-                if (leadsRes.data) setLeads(leadsRes.data as Lead[]);
+                if (leadsRes.data) {
+                    const lData = leadsRes.data as Lead[];
+                    setLeads(lData);
+                    
+                    // Saudação automática ao carregar (após carregar os dados)
+                    setTimeout(() => {
+                        const prioritarios = lData.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
+                        speak(`Bom dia Fabrício. Você tem ${prioritarios} leads em negociação no seu funil hoje.`);
+                    }, 1000);
+                }
                 if (metaRes.data) setMetaAnual(metaRes.data.meta_anual || 0);
             } catch (err) {
                 console.error("Erro ao carregar dados para o Jarvis:", err);
