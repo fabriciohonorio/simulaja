@@ -132,6 +132,7 @@ export default function Metas() {
                 setMetaInput(String(metaData.meta_anual || 0));
             }
             
+            // Metas Mensais Pessoais (Fixas conforme solicitado)
             const monthlyMetas: Record<string, number> = {
                 imoveis: 500000,
                 veiculos: 100000,
@@ -158,14 +159,8 @@ export default function Metas() {
                 
                 const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
                 
-                // Fallback robusto para metas
-                let metaValue = monthlyMetas[config.segmento];
-                if (metaData) {
-                    const dbMeta = metaData[`meta_${config.segmento}` as keyof typeof metaData];
-                    if (dbMeta !== undefined && dbMeta !== null && Number(dbMeta) > 0) {
-                        metaValue = Number(dbMeta);
-                    }
-                }
+                // Meta fixa mensal (pessoal) conforme solicitado pelo usuário
+                const metaValue = monthlyMetas[config.segmento];
                 
                 const vendasCount = currentMonthVendas.length;
                 const leadsCount = currentMonthLeads.length;
@@ -588,27 +583,26 @@ export default function Metas() {
 
                         return (
                             <Card key={seg.segmento} className="overflow-hidden shadow-md border-none hover:shadow-lg transition-all duration-300">
-                                <CardHeader className={`${color} text-white p-3`}>
+                                <CardHeader className={`${color} text-white p-2`}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="p-1.5 bg-white/20 rounded-md backdrop-blur-sm">
+                                            <div className="p-1 bg-white/20 rounded backdrop-blur-sm">
                                                 <Icon className="h-4 w-4" />
                                             </div>
-                                            <CardTitle className="text-sm font-bold truncate max-w-[80px]">{label}</CardTitle>
+                                            <CardTitle className="text-[13px] font-bold">{label}</CardTitle>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[8px] uppercase font-bold opacity-80">Meta</p>
-                                            <p className="text-xs font-black">{formatCurrency(seg.meta_vendas)}</p>
+                                            <p className="text-[9px] font-black uppercase bg-white/20 px-1.5 py-0.5 rounded">Meta: {formatCurrency(seg.meta_vendas).replace(',00', '')}</p>
                                         </div>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="p-3 space-y-3">
+                                <CardContent className="p-2.5 space-y-2.5">
                                     <div className="space-y-1">
                                         <div className="flex justify-between items-end">
-                                            <span className="text-[10px] font-medium text-muted-foreground uppercase">Progresso</span>
-                                            <span className={`text-sm font-black ${alertColor}`}>{seg.progresso_meta.toFixed(1).replace('.', ',')}%</span>
+                                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Realizado Mês</span>
+                                            <span className={`text-xs font-black ${alertColor}`}>{seg.progresso_meta.toFixed(1).replace('.', ',')}%</span>
                                         </div>
-                                        <div className="w-full bg-secondary/30 rounded-full h-1.5">
+                                        <div className="w-full bg-secondary/30 rounded-full h-1.5 overflow-hidden">
                                             <div className={`${progressColor} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${Math.min(100, seg.progresso_meta)}%` }} />
                                         </div>
                                     </div>
