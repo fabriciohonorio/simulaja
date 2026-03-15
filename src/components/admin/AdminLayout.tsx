@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-    { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis" },
-    { icon: Filter, label: "Leads", path: "/admin/leads" },
-    { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil" },
-    { icon: Calculator, label: "Simulador", path: "/admin/simulador" },
-    { icon: CalendarDays, label: "Agendamentos", path: "/admin/agendamentos" },
-    { icon: Users, label: "Carteira Clientes", path: "/admin/carteira" },
-    { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes" },
-    { icon: Target, label: "Metas", path: "/admin/metas" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/admin", color: "text-blue-500" },
+    { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis", color: "text-purple-500" },
+    { icon: Filter, label: "Leads", path: "/admin/leads", color: "text-orange-500" },
+    { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil", color: "text-emerald-500" },
+    { icon: Calculator, label: "Simulador", path: "/admin/simulador", color: "text-cyan-500" },
+    { icon: CalendarDays, label: "Agendamentos", path: "/admin/agendamentos", color: "text-indigo-500" },
+    { icon: Users, label: "Carteira Clientes", path: "/admin/carteira", color: "text-blue-600" },
+    { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes", color: "text-red-500" },
+    { icon: Target, label: "Metas", path: "/admin/metas", color: "text-amber-500" },
 ];
 
 export default function AdminLayout() {
@@ -52,14 +52,14 @@ export default function AdminLayout() {
                         end={item.path === "/admin"}
                         title={collapsed ? item.label : ""}
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
-                                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                                : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground"
+                            `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
+                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
+                                : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
                             } ${collapsed ? 'justify-center px-0' : ''}`
                         }
                     >
-                        <item.icon className={`h-5 w-5 shrink-0 ${collapsed ? 'h-6 w-6' : ''}`} />
-                        {!collapsed && <span className="font-medium">{item.label}</span>}
+                        <item.icon className={`h-5 w-5 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
+                        {!collapsed && <span className="font-semibold tracking-tight">{item.label}</span>}
                     </NavLink>
                 ))}
             </nav>
