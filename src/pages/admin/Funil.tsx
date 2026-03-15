@@ -456,10 +456,13 @@ function HistoricoModal({
     if (!lead || !observacao.trim()) return;
     setSavingNota(true);
 
+    const dataHoje = format(new Date(), "dd/MM");
+    const observacaoComData = `[${dataHoje}] ${observacao.trim()}`;
+
     const { error } = await supabase.from("historico_contatos").insert({
       lead_id: lead.id,
       tipo: tipoContato,
-      observacao: observacao.trim(),
+      observacao: observacaoComData,
       resultado,
     });
 
