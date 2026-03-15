@@ -22,6 +22,18 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { format, isToday, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Mic, MicOff, Volume2, User, Bot, Trash2 } from "lucide-react";
+
+interface Message {
+    id: string;
+    role: "user" | "jarvis";
+    content: string;
+    timestamp: Date;
+    type?: "text" | "analysis";
+    data?: JarvisAnalysis;
+}
 
 interface Lead {
     id: string;
@@ -42,22 +54,54 @@ interface JarvisAnalysis {
 }
 
 export default function Jarvis() {
-    const { toast } = useToast();
-    const [question, setQuestion] = useState("");
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysis, setAnalysis] = useState<JarvisAnalysis | null>(null);
-    const [leads, setLeads] = useState<Lead[]>([]);
-    const [metaAnual, setMetaAnual] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [messages, setMessages] = useState<Message[]>([
+        {
+            id: "1",
+            role: "jarvis",
+            content: "Olá! Sou o Jarvis, seu assistente estratégico. Como posso ajudar no seu desempenho comercial hoje?",
+            timestamp: new Date()
+        }
+    ]);
+    const [isListening, setIsListening] = useState(false);
+
+    const speak = (text: string) => {
+        if (!process.browser) return;
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "pt-BR";
+        msg.rate = 1.0;
+        msg.pitch = 1.0;
+        window.speechSynthesis.speak(msg);
+    };
+
+    const startVoiceRecognition = () => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            toast({ title: "Erro", description: "Reconhecimento de voz não suportado neste navegador.", variant: "destructive" });
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = "pt-BR";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setQuestion(transcript);
+            handleAnalyze(transcript);
+        };
+
+        recognition.start();
+    };
 
     const suggestedQuestions = [
+        "Bom dia Jarvis, quais as novidades de hoje",
         "Quem devo ligar agora",
         "Estou no ritmo da meta",
         "Quais leads têm maior chance de fechar",
-        "Qual meu gargalo de vendas",
-        "Quantas propostas tenho abertas",
-        "Que conteúdo devo postar hoje",
-        "Que segmento devo prospectar hoje"
+        "Que conteúdo devo postar hoje"
     ];
 
     useEffect(() => {
@@ -80,15 +124,17 @@ export default function Jarvis() {
         fetchData();
     }, []);
 
-    const handleAnalyze = (query: string = question) => {
+    const handleAnalyze = async (query: string = question) => {
         if (!query.trim()) return;
         
         setIsAnalyzing(true);
-        setQuestion(query);
+        const userMsg: Message = { id: Date.now().toString(), role: "user", content: query, timestamp: new Date() };
+        setMessages(prev => [...prev, userMsg]);
+        setQuestion("");
 
-        // Simulando processamento do Jarvis
+        // Simulando processamento inteligente
         setTimeout(() => {
-            const currentMonth = new Date().getMonth() + 1;
+            const queryLower = query.toLowerCase();
             const currentMonthStr = new Date().toISOString().split('T')[0].substring(0, 7);
             const metaMensal = metaAnual / 12;
             
@@ -97,94 +143,57 @@ export default function Jarvis() {
             
             const emNegociacao = leads.filter(l => !["fechado", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));
             const pipelineValue = emNegociacao.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-            
-            const diasNoMes = new Date(new Date().getFullYear(), currentMonth, 0).getDate();
+            const diasNoMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
             const diaHoje = new Date().getDate();
             const projecao = diaHoje > 0 ? (realizadoMes / diaHoje) * diasNoMes : 0;
-            
-            let recomendacao = "";
-            let detalhes: string[] = [];
 
-            const queryLower = query.toLowerCase();
+            let responseContent = "";
+            let newAnalysis: JarvisAnalysis | null = null;
 
-            if (queryLower.includes("ligar") || queryLower.includes("quem")) {
-                const prioritarios = emNegociacao
-                    .sort((a, b) => (b.valor_credito || 0) - (a.valor_credito || 0))
-                    .slice(0, 3);
+            if (queryLower.includes("bom dia") || queryLower.includes("novidades")) {
+                const hotLeads = emNegociacao.filter(l => (l as any).score_final === "A" || (l as any).score_final === "B").slice(0, 2);
+                const coldLeads = emNegociacao.filter(l => {
+                    const last = l.updated_at || l.created_at || "";
+                    if (!last) return false;
+                    return (Date.now() - new Date(last).getTime()) > 3 * 24 * 60 * 60 * 1000;
+                }).slice(0, 2);
+                const compromissos = leads.filter(l => (l as any).data_vencimento && isToday(parseISO((l as any).data_vencimento)));
+
+                responseContent = `Bom dia! Aqui estão as novidades do seu CRM hoje:\n\n` +
+                    `📊 *Resumo*: Você realizou ${formatCurrency(realizadoMes)} este mês. Seu pipeline está em ${formatCurrency(pipelineValue)}.\n` +
+                    `🔥 *Leads Quentes*: ${hotLeads.length > 0 ? hotLeads.map(l => (l as any).nome || "Lead").join(", ") : "Nenhum no momento"}.\n` +
+                    `❄️ *Sem Interação*: ${coldLeads.length > 0 ? coldLeads.map(l => (l as any).nome || "Lead").join(", ") : "Todos em dia"}.\n` +
+                    `📅 *Compromissos*: Você tem ${compromissos.length} ação(ões) agendada(s) para hoje.\n` +
+                    `🚀 *Sugestão*: Foque no fechamento dos leads quentes para atingir sua projeção de ${formatCurrency(projecao)}.`;
                 
-                recomendacao = "FOCO EM FECHAMENTO: Você tem leads de alto valor que precisam de atenção imediata.";
-                detalhes = prioritarios.length > 0 
-                    ? prioritarios.map(l => `Lead interessado em ${l.tipo_consorcio || 'Consórcio'} (R$ ${formatCurrency(l.valor_credito)}) - Status: ${l.status}`)
-                    : ["Nenhum lead prioritário no momento. Excelente hora para prospectar novos negócios!"];
-            } else if (queryLower.includes("meta") || queryLower.includes("ritmo")) {
-                const status = projecao >= metaMensal ? "EXCELENTE" : "ATENÇÃO";
-                recomendacao = `${status}: Sua projeção de fechamento é de ${formatCurrency(projecao)}.`;
-                detalhes = [
-                    projecao >= metaMensal 
-                        ? "Você está superando o ritmo necessário. Foque em manter a qualidade do atendimento."
-                        : `Para bater a meta mensal de ${formatCurrency(metaMensal)}, você precisa converter mais ${formatCurrency(metaMensal - realizadoMes)} este mês.`,
-                    `Faltam ${diasNoMes - diaHoje} dias para o fechamento do mês.`
-                ];
-            } else if (queryLower.includes("chance") || queryLower.includes("fechar")) {
-                const altaProbabilidade = emNegociacao.filter(l => ["proposta", "negociacao", "reuniao"].includes((l.status || "").toLowerCase()));
-                recomendacao = "PROBABILIDADE DE FECHAMENTO: Identifiquei oportunidades quentes.";
-                detalhes = altaProbabilidade.length > 0
-                    ? altaProbabilidade.slice(0, 3).map(l => `Oportunidade de ${formatCurrency(l.valor_credito)} em estágio de ${l.status}.`)
-                    : ["Não há leads em estágio avançado. Foque em mover os leads do topo do funil para 'Proposta'."];
-            } else if (queryLower.includes("gargalo")) {
-                const novosLeads = leads.filter(l => (l.status || "").toLowerCase() === "novo").length;
-                recomendacao = "ANÁLISE DE GARGALOS: Foco na velocidade de resposta.";
-                detalhes = [
-                    novosLeads > 5 
-                        ? `Você tem ${novosLeads} leads 'Novos'. O maior gargalo hoje é o primeiro contato.`
-                        : "O funil está fluindo bem, mas o volume de propostas enviadas poderia ser 20% maior.",
-                    "Dica: Automatize o primeiro contato para ganhar tração."
-                ];
-            } else if (queryLower.includes("propostas") || queryLower.includes("abertas")) {
-                const propostasCount = leads.filter(l => (l.status || "").toLowerCase().includes("proposta")).length;
-                recomendacao = `INVENTÁRIO COMERCIAL: Você tem ${propostasCount} propostas em aberto.`;
-                detalhes = [
-                    `Valor total em propostas: ${formatCurrency(leads.filter(l => (l.status || "").toLowerCase().includes("proposta")).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0))}`,
-                    "Agende follow-ups para estas propostas nas próximas 48 horas."
-                ];
-            } else if (queryLower.includes("conteúdo") || queryLower.includes("postar")) {
-                const sugestoes = [
-                    "Como usar o consórcio para comprar o segundo imóvel sem descapitalizar.",
-                    "A verdade sobre o lance embutido: como funciona na prática.",
-                    "Depoimento do cliente que economizou 40% em juros bancários usando consórcio."
-                ];
-                recomendacao = "ESTRATÉGIA DE CONTEÚDO: Gere autoridade técnica hoje.";
-                detalhes = sugestoes;
-            } else if (queryLower.includes("segmento") || queryLower.includes("prospectar")) {
-                recomendacao = "OPORTUNIDADE DE MERCADO: O setor de agronegócio está em alta.";
-                detalhes = [
-                    "Foque em Veículos Pesados (Caminhões e Implementos).",
-                    "Segmento sugerido: Médicos e Profissionais Liberais para Investimentos.",
-                    "O ticket médio de Pesados é 2.5x maior que o de automóveis leves."
-                ];
+                newAnalysis = {
+                    metaTotal: metaMensal, realizado: realizadoMes, pipeline: pipelineValue,
+                    projecao: projecao, recomendacao: "FOCO TOTAL EM FECHAMENTO",
+                    detalhes: ["Priorizar leads quentes", "Reativar leads sem contato", "Finalizar compromissos do dia"]
+                };
+            } else if (queryLower.includes("ligar") || queryLower.includes("quem")) {
+                const prioritarios = emNegociacao.sort((a, b) => (b.valor_credito || 0) - (a.valor_credito || 0)).slice(0, 3);
+                responseContent = `Identifiquei que os leads com maior prioridade agora são: ${prioritarios.map(l => (l as any).nome || "Lead").join(", ")}. Eles representam um potencial de ${formatCurrency(prioritarios.reduce((s,l) => s+Number(l.valor_credito), 0))}.`;
+            } else if (queryLower.includes("ritmo") || queryLower.includes("meta")) {
+                const status = projecao >= metaMensal ? "excelente" : "que exige atenção";
+                responseContent = `Atualmente você está em um ritmo ${status}. Sua projeção para o fim do mês é de ${formatCurrency(projecao)}, contra uma meta de ${formatCurrency(metaMensal)}.`;
             } else {
-                recomendacao = "ANÁLISE COMPLETA: Visão estratégica do seu CRM.";
-                detalhes = [
-                    `Seu pipeline total é de ${formatCurrency(pipelineValue)}.`,
-                    "Converta 10% do seu pipeline para bater a meta hoje.",
-                    "Dica do Jarvis: O tempo médio de fechamento caiu 5% na última semana."
-                ];
+                responseContent = "Entendi sua dúvida. Analisando os dados, recomendo focar na movimentação do pipeline, que hoje soma um valor estratégico considerável.";
             }
 
-            setAnalysis({
-                metaTotal: metaMensal,
-                realizado: realizadoMes,
-                pipeline: pipelineValue,
-                projecao: projecao,
-                recomendacao: recomendacao,
-                detalhes: detalhes
-            });
+            const jarvisMsg: Message = {
+                id: (Date.now()+1).toString(),
+                role: "jarvis",
+                content: responseContent,
+                timestamp: new Date(),
+                type: newAnalysis ? "analysis" : "text",
+                data: newAnalysis || undefined
+            };
+
+            setMessages(prev => [...prev, jarvisMsg]);
+            setAnalysis(newAnalysis);
             setIsAnalyzing(false);
-            
-            toast({
-                title: "Jarvis analisou os dados",
-                description: "Confira as recomendações estratégicas abaixo.",
-            });
+            speak(responseContent);
         }, 1500);
     };
 
@@ -206,46 +215,80 @@ export default function Jarvis() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Coluna de Pergunta e Sugestões */}
-                <div className="lg:col-span-2 space-y-8">
-                    <Card className="border-none shadow-xl bg-white overflow-hidden">
-                        <CardHeader className="bg-slate-50/50 border-b">
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <MessageSquare className="h-5 w-5 text-primary" /> Como posso ajudar?
+                <div className="lg:col-span-2 space-y-6 flex flex-col h-[600px]">
+                    <Card className="border-none shadow-xl bg-white overflow-hidden flex-1 flex flex-col">
+                        <CardHeader className="bg-slate-50/50 border-b py-4">
+                            <CardTitle className="flex items-center justify-between text-lg">
+                                <div className="flex items-center gap-2">
+                                    <MessageSquare className="h-5 w-5 text-primary" /> Chat com Jarvis
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setMessages([{ id: "1", role: "jarvis", content: "Chat resetado. Como posso ajudar?", timestamp: new Date() }])} title="Limpar chat">
+                                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                </Button>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6 space-y-6">
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
+                        <CardContent className="p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/30">
+                            <ScrollArea className="flex-1 p-4">
+                                <div className="space-y-4 pb-4">
+                                    {messages.map((msg) => (
+                                        <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start animate-in slide-in-from-left-2"}`}>
+                                            <div className={`max-w-[85%] flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+                                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.role === "user" ? "bg-primary text-white" : "bg-slate-900 text-white"}`}>
+                                                    {msg.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                                                </div>
+                                                <div className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed ${msg.role === "user" ? "bg-primary text-white rounded-tr-none" : "bg-white text-slate-700 border rounded-tl-none"}`}>
+                                                    <div className="whitespace-pre-wrap font-medium">{msg.content}</div>
+                                                    <p className={`text-[10px] mt-2 opacity-60 ${msg.role === "user" ? "text-right" : ""}`}>
+                                                        {format(msg.timestamp, "HH:mm")}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isAnalyzing && (
+                                        <div className="flex justify-start animate-pulse">
+                                            <div className="bg-white border p-3 rounded-2xl flex gap-2 items-center">
+                                                <div className="h-2 w-2 bg-primary rounded-full animate-bounce" />
+                                                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                                                <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                            
+                            <div className="p-4 bg-white border-t space-y-4">
+                                <div className="flex gap-2">
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className={`h-12 w-12 shrink-0 rounded-full transition-all ${isListening ? "bg-red-50 border-red-500 text-red-500 animate-pulse" : "hover:bg-primary/5 hover:text-primary"}`}
+                                        onClick={startVoiceRecognition}
+                                    >
+                                        {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                                    </Button>
                                     <Input 
-                                        placeholder="Exemplo: Quem devo ligar hoje? Estou no ritmo da meta? Que conteúdo postar hoje?"
-                                        className="h-14 pl-10 text-base shadow-sm border-2 focus-visible:ring-primary/30"
+                                        placeholder="Fale ou digite sua pergunta..."
+                                        className="h-12 text-base border-muted focus-visible:ring-primary/20 rounded-xl"
                                         value={question}
                                         onChange={(e) => setQuestion(e.target.value)}
                                         onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
                                     />
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Button 
+                                        className="h-12 w-12 shrink-0 rounded-full shadow-lg shadow-primary/20"
+                                        onClick={() => handleAnalyze()}
+                                        disabled={isAnalyzing || !question.trim()}
+                                    >
+                                        <Send className="h-5 w-5" />
+                                    </Button>
                                 </div>
-                                <Button 
-                                    className="h-14 px-8 font-bold gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
-                                    onClick={() => handleAnalyze()}
-                                    disabled={isAnalyzing}
-                                >
-                                    {isAnalyzing ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Zap className="h-5 w-5" />}
-                                    Analisar
-                                </Button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <p className="text-sm font-bold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
-                                    <Sparkles className="h-4 w-4 text-amber-400" /> Perguntas Sugeridas
-                                </p>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5 overflow-x-auto no-scrollbar pb-1">
                                     {suggestedQuestions.map((q, i) => (
                                         <Button 
                                             key={i} 
-                                            variant="outline" 
+                                            variant="ghost" 
                                             size="sm" 
-                                            className="rounded-full hover:bg-primary/5 hover:border-primary transition-all text-xs sm:text-sm font-medium"
+                                            className="rounded-full bg-slate-100/50 hover:bg-primary/5 hover:text-primary text-[10px] h-7 whitespace-nowrap"
                                             onClick={() => handleAnalyze(q)}
                                         >
                                             {q}
@@ -255,67 +298,6 @@ export default function Jarvis() {
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* Resposta do Jarvis */}
-                    {analysis && (
-                        <Card className="border-none shadow-2xl bg-gradient-to-br from-white to-slate-50 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-                            <CardHeader className="pb-2">
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-lg"><Sparkles className="h-6 w-6 text-primary" /></div>
-                                        Análise do Jarvis
-                                    </CardTitle>
-                                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">Gerado agora</Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-8">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="p-4 rounded-xl bg-white border shadow-sm">
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Meta do Período</p>
-                                        <p className="text-lg font-black">{formatCurrency(analysis.metaTotal)}</p>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-white border shadow-sm">
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Realizado</p>
-                                        <p className="text-lg font-black text-green-600">{formatCurrency(analysis.realizado)}</p>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-white border shadow-sm">
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Pipeline Atual</p>
-                                        <p className="text-lg font-black text-blue-600">{formatCurrency(analysis.pipeline)}</p>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 shadow-sm ring-2 ring-primary/10">
-                                        <p className="text-[10px] font-bold text-primary uppercase">Projeção Estimada</p>
-                                        <p className="text-lg font-black text-primary">{formatCurrency(analysis.projecao)}</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div className="p-5 rounded-2xl bg-slate-900 text-white shadow-lg space-y-2">
-                                        <h4 className="font-black text-lg flex items-center gap-2">
-                                            <Lightbulb className="h-5 w-5 text-amber-400" /> Insight Principal
-                                        </h4>
-                                        <p className="text-slate-300 leading-relaxed font-medium">
-                                            {analysis.recomendacao}
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <h4 className="font-bold text-slate-700 underline decoration-primary decoration-4 underline-offset-4">Recomendações Práticas:</h4>
-                                        <div className="grid gap-3">
-                                            {analysis.detalhes.map((d, i) => (
-                                                <div key={i} className="flex gap-3 items-start p-4 rounded-xl border bg-white hover:border-primary/50 transition-colors">
-                                                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                                                        <span className="text-primary font-bold text-xs">{i+1}</span>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 font-medium">{d}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
 
                 {/* Sidebar com Sugestões do Dia */}
