@@ -105,35 +105,69 @@ export default function Jarvis() {
             let recomendacao = "";
             let detalhes: string[] = [];
 
-            if (query.toLowerCase().includes("ligar") || query.toLowerCase().includes("quem")) {
+            const queryLower = query.toLowerCase();
+
+            if (queryLower.includes("ligar") || queryLower.includes("quem")) {
                 const prioritarios = emNegociacao
                     .sort((a, b) => (b.valor_credito || 0) - (a.valor_credito || 0))
                     .slice(0, 3);
                 
                 recomendacao = "FOCO EM FECHAMENTO: Você tem leads de alto valor que precisam de atenção imediata.";
-                detalhes = prioritarios.map(l => `Lead interestado em ${l.tipo_consorcio || 'Consórcio'} (R$ ${formatCurrency(l.valor_credito)}) - Status: ${l.status}`);
-                if (detalhes.length === 0) detalhes.push("Nenhum lead prioritário encontrado no momento. Prospecção é a chave!");
-            } else if (query.toLowerCase().includes("meta") || query.toLowerCase().includes("ritmo")) {
+                detalhes = prioritarios.length > 0 
+                    ? prioritarios.map(l => `Lead interessado em ${l.tipo_consorcio || 'Consórcio'} (R$ ${formatCurrency(l.valor_credito)}) - Status: ${l.status}`)
+                    : ["Nenhum lead prioritário no momento. Excelente hora para prospectar novos negócios!"];
+            } else if (queryLower.includes("meta") || queryLower.includes("ritmo")) {
                 const status = projecao >= metaMensal ? "EXCELENTE" : "ATENÇÃO";
                 recomendacao = `${status}: Sua projeção de fechamento é de ${formatCurrency(projecao)}.`;
                 detalhes = [
                     projecao >= metaMensal 
-                        ? "Você está no caminho certo para bater a meta. Mantenha o acompanhamento dos leads no funil."
-                        : `A meta mensal é de ${formatCurrency(metaMensal)}. Faltam ${formatCurrency(metaMensal - realizadoMes)} para atingir o objetivo.`
+                        ? "Você está superando o ritmo necessário. Foque em manter a qualidade do atendimento."
+                        : `Para bater a meta mensal de ${formatCurrency(metaMensal)}, você precisa converter mais ${formatCurrency(metaMensal - realizadoMes)} este mês.`,
+                    `Faltam ${diasNoMes - diaHoje} dias para o fechamento do mês.`
                 ];
-            } else if (query.toLowerCase().includes("conteúdo") || query.toLowerCase().includes("postar")) {
-                recomendacao = "ESTRATÉGIA DE CONTEÚDO: Foque em autoridade e provas sociais.";
+            } else if (queryLower.includes("chance") || queryLower.includes("fechar")) {
+                const altaProbabilidade = emNegociacao.filter(l => ["proposta", "negociacao", "reuniao"].includes((l.status || "").toLowerCase()));
+                recomendacao = "PROBABILIDADE DE FECHAMENTO: Identifiquei oportunidades quentes.";
+                detalhes = altaProbabilidade.length > 0
+                    ? altaProbabilidade.slice(0, 3).map(l => `Oportunidade de ${formatCurrency(l.valor_credito)} em estágio de ${l.status}.`)
+                    : ["Não há leads em estágio avançado. Foque em mover os leads do topo do funil para 'Proposta'."];
+            } else if (queryLower.includes("gargalo")) {
+                const novosLeads = leads.filter(l => (l.status || "").toLowerCase() === "novo").length;
+                recomendacao = "ANÁLISE DE GARGALOS: Foco na velocidade de resposta.";
                 detalhes = [
-                    "Poste um vídeo explicando como o consórcio ajuda na alavancagem patrimonial.",
-                    "Compartilhe um depoimento de cliente que contemplou recentemente.",
-                    "Destaque o segmento de Imóveis, que está com alta demanda este mês."
+                    novosLeads > 5 
+                        ? `Você tem ${novosLeads} leads 'Novos'. O maior gargalo hoje é o primeiro contato.`
+                        : "O funil está fluindo bem, mas o volume de propostas enviadas poderia ser 20% maior.",
+                    "Dica: Automatize o primeiro contato para ganhar tração."
+                ];
+            } else if (queryLower.includes("propostas") || queryLower.includes("abertas")) {
+                const propostasCount = leads.filter(l => (l.status || "").toLowerCase().includes("proposta")).length;
+                recomendacao = `INVENTÁRIO COMERCIAL: Você tem ${propostasCount} propostas em aberto.`;
+                detalhes = [
+                    `Valor total em propostas: ${formatCurrency(leads.filter(l => (l.status || "").toLowerCase().includes("proposta")).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0))}`,
+                    "Agende follow-ups para estas propostas nas próximas 48 horas."
+                ];
+            } else if (queryLower.includes("conteúdo") || queryLower.includes("postar")) {
+                const sugestoes = [
+                    "Como usar o consórcio para comprar o segundo imóvel sem descapitalizar.",
+                    "A verdade sobre o lance embutido: como funciona na prática.",
+                    "Depoimento do cliente que economizou 40% em juros bancários usando consórcio."
+                ];
+                recomendacao = "ESTRATÉGIA DE CONTEÚDO: Gere autoridade técnica hoje.";
+                detalhes = sugestoes;
+            } else if (queryLower.includes("segmento") || queryLower.includes("prospectar")) {
+                recomendacao = "OPORTUNIDADE DE MERCADO: O setor de agronegócio está em alta.";
+                detalhes = [
+                    "Foque em Veículos Pesados (Caminhões e Implementos).",
+                    "Segmento sugerido: Médicos e Profissionais Liberais para Investimentos.",
+                    "O ticket médio de Pesados é 2.5x maior que o de automóveis leves."
                 ];
             } else {
-                recomendacao = "ANÁLISE GERAL: O pipeline atual suporta 60% da meta de conversão ideal.";
+                recomendacao = "ANÁLISE COMPLETA: Visão estratégica do seu CRM.";
                 detalhes = [
-                    "Aumentar o volume de leads no início do funil.",
-                    "Reduzir o tempo médio de resposta para leads 'Novos'.",
-                    "Focar nos segmentos de Veículos Pesados para ticket maior."
+                    `Seu pipeline total é de ${formatCurrency(pipelineValue)}.`,
+                    "Converta 10% do seu pipeline para bater a meta hoje.",
+                    "Dica do Jarvis: O tempo médio de fechamento caiu 5% na última semana."
                 ];
             }
 
