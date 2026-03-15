@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
@@ -33,10 +34,25 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from("leads").select("*").then(({ data }) => {
-      setLeads((data as any[]) ?? []);
-      setLoading(false);
-    });
+    const fetchData = () => {
+      supabase.from("leads").select("*").then(({ data }) => {
+        setLeads((data as any[]) ?? []);
+        setLoading(false);
+      });
+    };
+
+    fetchData();
+
+    const channel = supabase
+      .channel('dashboard-leads-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const totalLeads = leads.length;
@@ -77,14 +93,38 @@ export default function Dashboard() {
     { label: "Avg Contact", value: `${avgContactTime.toFixed(1)}h`, icon: Clock, color: "text-emerald-500", bg: "bg-emerald-50" },
   ];
 
-  // Dados fictícios para o gráfico (agrupados por dia/mês nas próximas iterações)
-  const chartData = [
-    { name: "Seg", leads: 4, volume: 450000 },
-    { name: "Ter", leads: 7, volume: 820000 },
-    { name: "Qua", leads: 5, volume: 590000 },
-    { name: "Qui", leads: 12, volume: 1400000 },
-    { name: "Sex", leads: 8, volume: 920000 },
-  ];
+  // Calcular Performance Semanal Real
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toISOString().split('T')[0];
+  });
+
+  const chartData = last7Days.map(date => {
+    const dayLeads = leads.filter(l => l.created_at?.startsWith(date));
+    return {
+      name: format(parseISO(date), "EEE", { locale: ptBR }),
+      leads: dayLeads.length,
+      volume: dayLeads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0)
+    };
+  });
+
+  // Meta vs Realizado Data for Dashboard
+  const [metaAnual, setMetaAnual] = useState(0);
+  useEffect(() => {
+    supabase.from("meta").select("meta_anual").order("ano", { ascending: false }).limit(1).maybeSingle().then(({ data }) => {
+      if (data) setMetaAnual(data.meta_anual || 0);
+    });
+  }, []);
+
+  const metaMensal = metaAnual / 12;
+  const currentMonthStr = format(new Date(), "yyyy-MM");
+  const realizadoMes = leads
+    .filter(l => l.status === "fechado" && l.created_at?.startsWith(currentMonthStr))
+    .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+  
+  const progressoMes = metaMensal > 0 ? (realizadoMes / metaMensal) * 100 : 0;
+
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -123,26 +163,65 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Gráfico de Evolução */}
         <Card className="lg:col-span-2 shadow-sm border-border">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" /> Performance Semanal
+              <TrendingUp className="h-5 w-5 text-primary" /> Performance Semanal (Novos Leads)
             </CardTitle>
+            <Badge variant="outline" className="text-[10px] uppercase font-bold">Últimos 7 dias</Badge>
           </CardHeader>
           <CardContent className="h-[220px] sm:h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip
                   cursor={{ fill: 'hsl(var(--accent)/0.5)' }}
                   contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  formatter={(value: any) => [value, "Leads"]}
                 />
-                <Bar dataKey="leads" name="Leads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={30} />
+                <Bar dataKey="leads" name="Leads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Card Meta x Realizado no Dashboard */}
+        <Card className="shadow-sm border-border bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" /> Meta x Realizado
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col justify-center h-[220px] sm:h-[300px] space-y-6">
+            <div className="text-center">
+                <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Status do Mês</p>
+                <p className="text-3xl font-black text-primary">{progressoMes.toFixed(2).replace('.', ',')}%</p>
+            </div>
+            
+            <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold uppercase">
+                    <span>Realizado</span>
+                    <span>Meta</span>
+                </div>
+                <div className="w-full bg-primary/10 rounded-full h-4 overflow-hidden border border-primary/20">
+                    <div 
+                        className="bg-primary h-full transition-all duration-1000" 
+                        style={{ width: `${Math.min(100, progressoMes)}%` }} 
+                    />
+                </div>
+                <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
+                    <span>{formatCurrency(realizadoMes)}</span>
+                    <span>{formatCurrency(metaMensal)}</span>
+                </div>
+            </div>
+
+            <div className={`p-3 rounded-lg border text-center ${progressoMes >= 100 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+                <p className="text-xs font-bold uppercase">
+                    {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatCurrency(Math.max(0, metaMensal - realizadoMes))}`}
+                </p>
+            </div>
           </CardContent>
         </Card>
 

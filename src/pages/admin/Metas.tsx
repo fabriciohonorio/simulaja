@@ -83,12 +83,12 @@ interface Lead {
 }
 
 
-const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, label: string }> = {
-    imoveis: { icon: Home, color: 'from-blue-500 to-blue-700', label: 'Imóveis' },
-    veiculos: { icon: Car, color: 'from-green-500 to-green-700', label: 'Veículos' },
-    motos: { icon: Bike, color: 'from-orange-500 to-orange-700', label: 'Motos' },
-    investimentos: { icon: TrendingUp, color: 'from-purple-500 to-purple-700', label: 'Investimentos' },
-    pesados: { icon: Truck, color: 'from-gray-600 to-gray-800', label: 'Pesados' }
+const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, textColor: string, label: string }> = {
+    imoveis: { icon: Home, color: 'bg-blue-600', textColor: 'text-blue-600', label: 'Imóveis' },
+    veiculos: { icon: Car, color: 'bg-green-600', textColor: 'text-green-600', label: 'Carros' },
+    motos: { icon: Bike, color: 'bg-orange-500', textColor: 'text-orange-500', label: 'Motos' },
+    pesados: { icon: Truck, color: 'bg-purple-600', textColor: 'text-purple-600', label: 'Pesados' },
+    investimentos: { icon: TrendingUp, color: 'bg-yellow-600', textColor: 'text-yellow-600', label: 'Investimentos' }
 };
 
 export default function Metas() {
@@ -103,7 +103,20 @@ export default function Metas() {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => { 
+        fetchData(); 
+        
+        const channel = supabase
+            .channel('metas-leads-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
 
     const fetchData = async () => {
         try {
@@ -119,40 +132,61 @@ export default function Metas() {
                 setMetaInput(String(metaData.meta_anual || 0));
             }
             
-            // Calculate segment metrics
+            const monthlyMetas: Record<string, number> = {
+                imoveis: 500000,
+                motos: 100000,
+                veiculos: 100000,
+                pesados: 180000,
+                investimentos: 120000
+            };
+
             const segs: MetricaSegmento[] = [
-                { segmento: 'imoveis', metaField: 'meta_imoveis' },
-                { segmento: 'veiculos', metaField: 'meta_veiculos' },
-                { segmento: 'motos', metaField: 'meta_motos' },
-                { segmento: 'investimentos', metaField: 'meta_outros', splitMeta: 0.5 },
-                { segmento: 'pesados', metaField: 'meta_outros', splitMeta: 0.5 }
+                { segmento: 'imoveis', keywords: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'] },
+                { segmento: 'veiculos', keywords: ['veiculo', 'veículo', 'carro', 'auto', 'automovel', 'automóvel'] },
+                { segmento: 'motos', keywords: ['moto', 'motocicleta'] },
+                { segmento: 'pesados', keywords: ['pesados', 'agricolas', 'caminhao', 'caminhão', 'trator', 'maquina', 'máquina'] },
+                { segmento: 'investimentos', keywords: ['investimento', 'capitalizacao', 'aposentadoria', 'investimentos'] }
             ].map(config => {
-                const leadTypeMap: Record<string, string[]> = {
-                    imoveis: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'],
-                    veiculos: ['veiculo', 'veículo', 'carro', 'auto', 'automovel', 'automóvel'],
-                    motos: ['moto', 'motocicleta'],
-                    investimentos: ['investimento', 'capitalizacao', 'aposentadoria'],
-                    pesados: ['pesados', 'agricolas', 'caminhao', 'caminhão', 'trator', 'maquina', 'máquina']
-                };
-                
                 const segmentLeads = allLeads.filter(l => {
                     const type = (l.tipo_consorcio || "").toLowerCase();
-                    return leadTypeMap[config.segmento].some(keyword => type.includes(keyword));
+                    return config.keywords.some(keyword => type.includes(keyword));
                 });
-                const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado");
-                const valorTotal = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-                const metaValue = metaData ? (Number(metaData[config.metaField as keyof typeof metaData] || 0) * (config.splitMeta || 1)) : 0;
                 
+                const currentMonthLeads = segmentLeads.filter(l => l.created_at?.startsWith(mesStr));
+                const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado");
+                const currentMonthVendas = segmentVendas.filter(l => l.created_at?.startsWith(mesStr));
+                
+                const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                const metaValue = metaData ? (Number(metaData[`meta_${config.segmento}` as keyof typeof metaData] || monthlyMetas[config.segmento])) : monthlyMetas[config.segmento];
+                
+                const vendasCount = currentMonthVendas.length;
+                const leadsCount = currentMonthLeads.length;
+                const conversao = leadsCount > 0 ? (vendasCount / leadsCount) * 100 : 0;
+                
+                // Using historical ticket médio for planning if current month has few sales
+                const historicalVendas = segmentVendas.length;
+                const historicalValor = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                const ticketMedioRef = historicalVendas > 0 ? historicalValor / historicalVendas : (valorTotal / (vendasCount || 1)) || 100000;
+                
+                const previsao = leadsCount * (conversao / 100) * ticketMedioRef;
+                const progresso = metaValue > 0 ? (valorTotal / metaValue) * 100 : 0;
+                
+                const leadsNeeded = (conversao > 0 && ticketMedioRef > 0) 
+                    ? Math.ceil(metaValue / ((conversao / 100) * ticketMedioRef))
+                    : 0;
+
                 return {
                     segmento: config.segmento as any,
-                    total_leads: segmentLeads.length,
-                    total_vendas: segmentVendas.length,
+                    total_leads: leadsCount,
+                    total_vendas: vendasCount,
                     valor_total: valorTotal,
-                    ticket_medio: segmentVendas.length > 0 ? valorTotal / segmentVendas.length : 0,
-                    taxa_conversao: segmentLeads.length > 0 ? (segmentVendas.length / segmentLeads.length) * 100 : 0,
+                    ticket_medio: ticketMedioRef,
+                    taxa_conversao: conversao,
                     meta_vendas: metaValue,
-                    progresso_meta: metaValue > 0 ? Math.min(100, (valorTotal / metaValue) * 100) : 0
-                };
+                    progresso_meta: progresso,
+                    full_previsao: previsao,
+                    leads_necessarios_total: leadsNeeded
+                } as any;
             });
 
             setSegmentos(segs);
@@ -537,54 +571,92 @@ export default function Metas() {
                     📊 Performance por Segmento
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {segmentos.map((seg) => {
-                        const { icon: Icon, color, label } = SEGMENT_CONFIG[seg.segmento] || { icon: BarChart3, color: 'from-gray-500 to-gray-700', label: seg.segmento };
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {segmentos.map((seg: any) => {
+                        const { icon: Icon, color, textColor, label } = SEGMENT_CONFIG[seg.segmento] || { icon: BarChart3, color: 'bg-gray-600', textColor: 'text-gray-600', label: seg.segmento };
                         
-                        const status = seg.total_leads === 0 ? 'critical' : (seg.taxa_conversao < 2 ? 'warning' : 'healthy');
-                        const statusColor = status === 'critical' ? 'bg-red-400' : status === 'warning' ? 'bg-orange-400' : 'bg-green-400';
+                        const alertColor = seg.progresso_meta >= 70 ? 'text-green-600' : seg.progresso_meta >= 40 ? 'text-yellow-600' : 'text-red-600';
+                        const progressColor = seg.progresso_meta >= 70 ? 'bg-green-600' : seg.progresso_meta >= 40 ? 'bg-yellow-500' : 'bg-red-500';
 
                         return (
-                            <Card key={seg.segmento} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow relative">
-                                <div className={`bg-gradient-to-br ${color} p-5 text-white h-full flex flex-col`}>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex flex-col">
-                                            <h4 className="text-lg font-bold capitalize">{label}</h4>
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                <div className={`h-2 w-2 rounded-full ${statusColor} animate-pulse`} />
-                                                <span className="text-[10px] uppercase font-bold opacity-90">
-                                                    {status === 'critical' ? 'Crítico' : status === 'warning' ? 'Atenção' : 'Saudável'}
-                                                </span>
+                            <Card key={seg.segmento} className="overflow-hidden shadow-lg border-none hover:shadow-xl transition-all duration-300">
+                                <CardHeader className={`${color} text-white py-4`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                                                <Icon className="h-6 w-6" />
                                             </div>
+                                            <CardTitle className="text-xl font-bold">{label}</CardTitle>
                                         </div>
-                                        <Icon className="h-8 w-8 opacity-80" />
-                                    </div>
-                                    <div className="space-y-3 text-sm flex-1">
-                                        <div className="flex justify-between">
-                                            <span className="opacity-80">Leads</span>
-                                            <span className="font-bold">{seg.total_leads}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="opacity-80">Vendas</span>
-                                            <span className="font-bold">{seg.total_vendas}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="opacity-80">Ticket</span>
-                                            <span className="font-bold">R$ {(Number(seg.ticket_medio) / 1000).toFixed(0)}k</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="opacity-80">Conversão</span>
-                                            <span className="font-bold">{seg.taxa_conversao}%</span>
-                                        </div>
-                                        <div className="mt-auto pt-4 space-y-1.5">
-                                            <div className="flex justify-between items-center text-[10px] uppercase tracking-wider opacity-90">
-                                                <span>Progresso Meta</span>
-                                                <span className="font-bold">{seg.progresso_meta}%</span>
-                                            </div>
-                                            <Progress value={seg.progresso_meta} className="h-1.5 bg-white/20 [&>div]:bg-white" />
+                                        <div className="text-right">
+                                            <p className="text-[10px] uppercase font-bold opacity-80">Meta Mensal</p>
+                                            <p className="text-lg font-black">{formatCurrency(seg.meta_vendas)}</p>
                                         </div>
                                     </div>
-                                </div>
+                                </CardHeader>
+                                <CardContent className="p-6 space-y-5">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-sm font-medium text-muted-foreground uppercase">Progresso da Meta</span>
+                                            <span className={`text-2xl font-black ${alertColor}`}>{seg.progresso_meta.toFixed(2).replace('.', ',')}%</span>
+                                        </div>
+                                        <div className="w-full bg-secondary/30 rounded-full h-3">
+                                            <div className={`${progressColor} h-3 rounded-full transition-all duration-500`} style={{ width: `${Math.min(100, seg.progresso_meta)}%` }} />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-2">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Valor Vendido</p>
+                                            <p className="text-sm font-bold text-foreground">{formatCurrency(seg.valor_total)}</p>
+                                        </div>
+                                        <div className="space-y-1 text-right">
+                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Total Leads</p>
+                                            <p className="text-sm font-bold text-foreground">{seg.total_leads}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Vendas</p>
+                                            <p className="text-sm font-bold text-foreground">{seg.total_vendas}</p>
+                                        </div>
+                                        <div className="space-y-1 text-right">
+                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Conversão</p>
+                                            <p className="text-sm font-bold text-foreground">{seg.taxa_conversao.toFixed(2).replace('.', ',')}%</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-border pt-4">
+                                        <div className="flex justify-between mb-1">
+                                            <span className="text-[11px] font-bold text-muted-foreground uppercase">Previsão de Faturamento</span>
+                                            <span className="text-[11px] font-bold text-primary uppercase">Mês</span>
+                                        </div>
+                                        <p className="text-lg font-bold text-primary">{formatCurrency(seg.full_previsao)}</p>
+                                        <p className="text-[10px] text-muted-foreground mt-1">Baseado na conversão atual e volume de leads</p>
+                                    </div>
+
+                                    <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">Leads Necessários</span>
+                                            <Users className="h-3 w-3 text-muted-foreground" />
+                                        </div>
+                                        <p className="text-xl font-black text-foreground">{seg.leads_necessarios_total}</p>
+                                        <p className="text-[9px] text-muted-foreground">Volume estimado para bater a meta mensal</p>
+                                    </div>
+
+                                    <div className="pt-2 space-y-2">
+                                        {seg.taxa_conversao < 10 && seg.total_leads > 0 && (
+                                            <div className="flex items-center gap-2 text-red-600 bg-red-50 p-2 rounded border border-red-100 animate-pulse">
+                                                <AlertCircle className="h-4 w-4" />
+                                                <span className="text-[11px] font-bold uppercase">Conversão abaixo do ideal</span>
+                                            </div>
+                                        )}
+                                        {seg.full_previsao < seg.meta_vendas && (
+                                            <div className="flex items-center gap-2 text-orange-600 bg-orange-50 p-2 rounded border border-orange-100">
+                                                <AlertTriangle className="h-4 w-4" />
+                                                <span className="text-[11px] font-bold uppercase">Volume de leads insuficiente para atingir meta mensal</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
                             </Card>
                         );
                     })}

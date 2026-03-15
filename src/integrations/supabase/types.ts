@@ -273,9 +273,16 @@ export type Database = {
           id: number
           meta_anual: number | null
           meta_imoveis: number | null
+          meta_investimentos: number | null
           meta_motos: number | null
           meta_outros: number | null
+          meta_pesados: number | null
           meta_veiculos: number | null
+          ticket_medio_imoveis: number | null
+          ticket_medio_investimentos: number | null
+          ticket_medio_motos: number | null
+          ticket_medio_pesados: number | null
+          ticket_medio_veiculos: number | null
         }
         Insert: {
           ano?: number | null
@@ -283,9 +290,16 @@ export type Database = {
           id?: number
           meta_anual?: number | null
           meta_imoveis?: number | null
+          meta_investimentos?: number | null
           meta_motos?: number | null
           meta_outros?: number | null
+          meta_pesados?: number | null
           meta_veiculos?: number | null
+          ticket_medio_imoveis?: number | null
+          ticket_medio_investimentos?: number | null
+          ticket_medio_motos?: number | null
+          ticket_medio_pesados?: number | null
+          ticket_medio_veiculos?: number | null
         }
         Update: {
           ano?: number | null
@@ -293,9 +307,16 @@ export type Database = {
           id?: number
           meta_anual?: number | null
           meta_imoveis?: number | null
+          meta_investimentos?: number | null
           meta_motos?: number | null
           meta_outros?: number | null
+          meta_pesados?: number | null
           meta_veiculos?: number | null
+          ticket_medio_imoveis?: number | null
+          ticket_medio_investimentos?: number | null
+          ticket_medio_motos?: number | null
+          ticket_medio_pesados?: number | null
+          ticket_medio_veiculos?: number | null
         }
         Relationships: []
       }
