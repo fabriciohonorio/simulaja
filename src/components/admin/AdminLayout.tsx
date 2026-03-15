@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+    { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis" },
     { icon: Filter, label: "Leads", path: "/admin/leads" },
     { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil" },
     { icon: Calculator, label: "Simulador", path: "/admin/simulador" },

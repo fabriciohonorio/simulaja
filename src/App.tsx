@@ -18,6 +18,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import SimuladorAdmin from "./pages/admin/SimuladorAdmin";
 import Agendamentos from "./pages/admin/Agendamentos";
+import Jarvis from "./pages/admin/Jarvis";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="agendamentos" element={<Agendamentos />} />
             <Route path="leads" element={<Leads />} />
             <Route path="metas" element={<Metas />} />
+            <Route path="jarvis" element={<Jarvis />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
           </Route>
