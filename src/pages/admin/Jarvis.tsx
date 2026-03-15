@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,8 @@ import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mic, MicOff, Volume2, User, Bot, Trash2 } from "lucide-react";
+import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon } from "lucide-react";
+import JarvisHero from "@/components/admin/JarvisHero";
 
 interface Message {
     id: string;
@@ -73,34 +74,61 @@ export default function Jarvis() {
 
     const speak = (text: string) => {
         if (typeof window === "undefined") return;
-        const msg = new SpeechSynthesisUtterance(text);
+        
+        // Humanização: remover markdown (ex: *bold*, _italic_), emojis e caracteres especiais
+        const cleanText = text
+            .replace(/\*|_|#/g, '') // Remove md symbols
+            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}]/gu, '') // Remove emojis
+            .replace(/\s+/g, ' ') // Remove double spaces
+            .trim();
+
+        const msg = new SpeechSynthesisUtterance(cleanText);
         msg.lang = "pt-BR";
         msg.rate = 1.0;
         msg.pitch = 1.0;
         window.speechSynthesis.speak(msg);
     };
 
-    const startVoiceRecognition = () => {
+    const recognitionRef = useRef<any>(null);
+
+    const startRecording = () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            toast({ title: "Erro", description: "Reconhecimento de voz não suportado neste navegador.", variant: "destructive" });
+            toast({ title: "Erro", description: "Reconhecimento de voz não suportado.", variant: "destructive" });
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = "pt-BR";
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        if (!recognitionRef.current) {
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.lang = "pt-BR";
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
 
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setQuestion(transcript);
-            handleAnalyze(transcript);
-        };
+            recognitionRef.current.onresult = (event: any) => {
+                const transcript = Array.from(event.results)
+                    .map((result: any) => result[0])
+                    .map((result: any) => result.transcript)
+                    .join('');
+                setQuestion(transcript);
+            };
 
-        recognition.start();
+            recognitionRef.current.onstart = () => setIsListening(true);
+            recognitionRef.current.onend = () => setIsListening(false);
+        }
+
+        recognitionRef.current.start();
+    };
+
+    const stopRecording = () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            // Pequeno delay para garantir que o último transcript foi capturado
+            setTimeout(() => {
+                if (question.trim()) {
+                    handleAnalyze(question);
+                }
+            }, 500);
+        }
     };
 
     const suggestedQuestions = [
@@ -217,15 +245,24 @@ export default function Jarvis() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
-            {/* Header com estilo futurista */}
-            <div className="flex flex-col md:flex-row items-center gap-6 bg-gradient-to-r from-slate-900 to-primary/40 p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 relative z-10">
-                    <BrainCircuit className="h-12 w-12 text-primary-foreground animate-pulse" />
-                </div>
-                <div className="relative z-10 text-center md:text-left">
-                    <h1 className="text-3xl font-black tracking-tight mb-2">Pergunte ao Jarvis</h1>
-                    <p className="text-primary-foreground/80 font-medium">Sua inteligência artificial dedicada à estratégia comercial e análise do CRM.</p>
+            {/* Header com estilo futurista e visual 3D */}
+            <div className="flex flex-col md:flex-row items-center gap-6 bg-slate-950/90 p-8 rounded-[40px] text-white shadow-2xl relative overflow-hidden border border-white/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-purple-900/40 opacity-50" />
+                
+                {/* Visual Premium Gerado */}
+                <JarvisHero />
+
+                <div className="relative z-10 text-center md:text-left space-y-4 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+                        <Zap className="h-4 w-4 text-primary animate-pulse" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-primary-foreground/90">Estrategista Comercial v2.0</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
+                        Sistema Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Jarvis</span>
+                    </h1>
+                    <p className="text-lg text-primary-foreground/70 font-medium leading-relaxed">
+                        Gerenciando o cérebro das suas vendas com foco em mobilidade (carro/moto) e patrimônio (casas). Sua inteligência artificial dedicada.
+                    </p>
                 </div>
             </div>
 
@@ -274,18 +311,29 @@ export default function Jarvis() {
                             </ScrollArea>
                             
                             <div className="p-4 bg-white border-t space-y-4">
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 p-1 bg-slate-50/50 rounded-2xl border border-slate-100">
                                     <Button 
                                         variant="outline" 
                                         size="icon" 
-                                        className={`h-12 w-12 shrink-0 rounded-full transition-all ${isListening ? "bg-red-50 border-red-500 text-red-500 animate-pulse" : "hover:bg-primary/5 hover:text-primary"}`}
-                                        onClick={startVoiceRecognition}
+                                        className={`h-14 w-14 shrink-0 rounded-[20px] transition-all relative ${isListening ? "bg-red-500 text-white border-red-400 scale-110 shadow-lg shadow-red-500/20" : "hover:bg-primary/10 hover:text-primary active:scale-90"}`}
+                                        onMouseDown={startRecording}
+                                        onMouseUp={stopRecording}
+                                        onMouseLeave={isListening ? stopRecording : undefined}
+                                        onTouchStart={(e: React.TouchEvent<HTMLButtonElement>) => { e.preventDefault(); startRecording(); }}
+                                        onTouchEnd={(e: React.TouchEvent<HTMLButtonElement>) => { e.preventDefault(); stopRecording(); }}
                                     >
-                                        {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                                        {isListening ? (
+                                            <>
+                                                <MicOff className="h-6 w-6 animate-pulse" />
+                                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap animate-bounce shadow-xl">
+                                                    Gravando...
+                                                </div>
+                                            </>
+                                        ) : <Mic className="h-6 w-6" />}
                                     </Button>
                                     <Input 
-                                        placeholder="Fale ou digite sua pergunta..."
-                                        className="h-12 text-base border-muted focus-visible:ring-primary/20 rounded-xl"
+                                        placeholder="Clique e segure para falar, ou digite aqui..."
+                                        className="h-14 text-base border-none bg-transparent focus-visible:ring-0 rounded-xl"
                                         value={question}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuestion(e.target.value)}
                                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleAnalyze()}
