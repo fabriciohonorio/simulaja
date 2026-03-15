@@ -54,18 +54,25 @@ interface JarvisAnalysis {
 }
 
 export default function Jarvis() {
+    const { toast } = useToast();
+    const [question, setQuestion] = useState("");
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysis, setAnalysis] = useState<JarvisAnalysis | null>(null);
+    const [leads, setLeads] = useState<Lead[]>([]);
+    const [metaAnual, setMetaAnual] = useState(0);
+    const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "1",
             role: "jarvis",
-            content: "Olá! Sou o Jarvis, seu assistente estratégico. Como posso ajudar no seu desempenho comercial hoje?",
+            content: "Olá Fabrício! Sou o Jarvis, seu assistente estratégico. Como posso ajudar no seu desempenho comercial hoje?",
             timestamp: new Date()
         }
     ]);
     const [isListening, setIsListening] = useState(false);
 
     const speak = (text: string) => {
-        if (!process.browser) return;
+        if (typeof window === "undefined") return;
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = "pt-BR";
         msg.rate = 1.0;
@@ -159,12 +166,12 @@ export default function Jarvis() {
                 }).slice(0, 2);
                 const compromissos = leads.filter(l => (l as any).data_vencimento && isToday(parseISO((l as any).data_vencimento)));
 
-                responseContent = `Bom dia! Aqui estão as novidades do seu CRM hoje:\n\n` +
+                responseContent = `Bom dia Fabrício! Aqui estão as novidades do seu CRM hoje:\n\n` +
                     `📊 *Resumo*: Você realizou ${formatCurrency(realizadoMes)} este mês. Seu pipeline está em ${formatCurrency(pipelineValue)}.\n` +
                     `🔥 *Leads Quentes*: ${hotLeads.length > 0 ? hotLeads.map(l => (l as any).nome || "Lead").join(", ") : "Nenhum no momento"}.\n` +
                     `❄️ *Sem Interação*: ${coldLeads.length > 0 ? coldLeads.map(l => (l as any).nome || "Lead").join(", ") : "Todos em dia"}.\n` +
                     `📅 *Compromissos*: Você tem ${compromissos.length} ação(ões) agendada(s) para hoje.\n` +
-                    `🚀 *Sugestão*: Foque no fechamento dos leads quentes para atingir sua projeção de ${formatCurrency(projecao)}.`;
+                    `🚀 *Sugestão*: Fabrício, foque no fechamento dos leads quentes para atingir sua projeção de ${formatCurrency(projecao)}.`;
                 
                 newAnalysis = {
                     metaTotal: metaMensal, realizado: realizadoMes, pipeline: pipelineValue,
@@ -173,10 +180,10 @@ export default function Jarvis() {
                 };
             } else if (queryLower.includes("ligar") || queryLower.includes("quem")) {
                 const prioritarios = emNegociacao.sort((a, b) => (b.valor_credito || 0) - (a.valor_credito || 0)).slice(0, 3);
-                responseContent = `Identifiquei que os leads com maior prioridade agora são: ${prioritarios.map(l => (l as any).nome || "Lead").join(", ")}. Eles representam um potencial de ${formatCurrency(prioritarios.reduce((s,l) => s+Number(l.valor_credito), 0))}.`;
+                responseContent = `Fabrício, identifiquei que os leads com maior prioridade agora são: ${prioritarios.map(l => (l as any).nome || "Lead").join(", ")}. Eles representam um potencial de ${formatCurrency(prioritarios.reduce((s,l) => s+Number(l.valor_credito), 0))}.`;
             } else if (queryLower.includes("ritmo") || queryLower.includes("meta")) {
                 const status = projecao >= metaMensal ? "excelente" : "que exige atenção";
-                responseContent = `Atualmente você está em um ritmo ${status}. Sua projeção para o fim do mês é de ${formatCurrency(projecao)}, contra uma meta de ${formatCurrency(metaMensal)}.`;
+                responseContent = `Fabrício, atualmente você está em um ritmo ${status}. Sua projeção para o fim do mês é de ${formatCurrency(projecao)}, contra uma meta de ${formatCurrency(metaAnual/12)}.`;
             } else {
                 responseContent = "Entendi sua dúvida. Analisando os dados, recomendo focar na movimentação do pipeline, que hoje soma um valor estratégico considerável.";
             }
@@ -340,7 +347,7 @@ export default function Jarvis() {
                             </div>
                             <div className="space-y-1">
                                 <h4 className="font-bold text-muted-foreground">Evoluindo o Jarvis...</h4>
-                                <p className="text-[10px] text-muted-foreground px-4 uppercase tracking-tighter">Em breve: Comando por Voz, Chat Conversacional e Previsão de Probabilidade.</p>
+                                <p className="text-[10px] text-muted-foreground px-4 uppercase tracking-tighter">O Jarvis aprende com cada interação para ser seu braço direito nas vendas.</p>
                             </div>
                         </CardContent>
                     </Card>
