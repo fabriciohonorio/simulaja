@@ -280,9 +280,6 @@ function LeadCard({
           </div>
           {compact ? (
             <div className="flex items-center gap-1">
-               <span className="text-primary font-bold text-[10px]">
-                {formatCurrency(Number(lead.valor_credito))}
-              </span>
               <span className="text-[9px] text-muted-foreground">· {TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
             </div>
           ) : (
@@ -320,30 +317,26 @@ function LeadCard({
           >
             <MessageCircle className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
           </a>
-          {!compact && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenHistorico(lead);
-                }}
-                className="text-primary/70 hover:text-primary shrink-0 p-1 bg-primary/5 hover:bg-primary/10 rounded-full transition-colors"
-                title="Ver tratativas"
-              >
-                <NotebookPen className="h-4 w-4" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(lead.id, lead.nome);
-                }}
-                className="text-destructive/60 hover:text-destructive shrink-0 p-1 hover:bg-destructive/10 rounded-full transition-colors"
-                title="Excluir"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenHistorico(lead);
+            }}
+            className={`text-primary/70 hover:text-primary shrink-0 transition-colors rounded-full ${compact ? "p-0.5" : "p-1 bg-primary/5 hover:bg-primary/10"}`}
+            title="Ver tratativas"
+          >
+            <NotebookPen className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(lead.id, lead.nome);
+            }}
+            className={`text-destructive/60 hover:text-destructive shrink-0 transition-colors rounded-full ${compact ? "p-0.5" : "p-1 hover:bg-destructive/10"}`}
+            title="Excluir"
+          >
+            <Trash2 className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
+          </button>
         </div>
       </div>
 
@@ -1102,7 +1095,7 @@ export default function Funil() {
 
           <div
             ref={kanbanRef}
-            className={`flex gap-4 overflow-x-auto pb-10 no-scrollbar px-2 lg:px-4 scroll-smooth ${isWideView ? '' : 'justify-start'}`}
+            className={`flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2 lg:px-4 scroll-smooth ${isWideView ? '' : 'justify-start'}`}
             style={{ 
               scrollbarWidth: 'none', 
               msOverflowStyle: 'none'
@@ -1118,7 +1111,7 @@ export default function Funil() {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-220px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                    className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id]} bg-card p-3 flex flex-col h-[calc(100vh-140px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
                     style={{ width: columnWidths[col.id] || (isWideView ? 200 : 280), minWidth: isWideView ? 150 : 280 }}
                   >
                     <div className="mb-3 flex items-center justify-between">
