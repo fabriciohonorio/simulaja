@@ -287,8 +287,8 @@ export default function Jarvis() {
                                         placeholder="Fale ou digite sua pergunta..."
                                         className="h-12 text-base border-muted focus-visible:ring-primary/20 rounded-xl"
                                         value={question}
-                                        onChange={(e) => setQuestion(e.target.value)}
-                                        onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuestion(e.target.value)}
+                                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleAnalyze()}
                                     />
                                     <Button 
                                         className="h-12 w-12 shrink-0 rounded-full shadow-lg shadow-primary/20"
