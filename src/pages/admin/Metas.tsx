@@ -134,8 +134,8 @@ export default function Metas() {
             
             const monthlyMetas: Record<string, number> = {
                 imoveis: 500000,
-                motos: 100000,
                 veiculos: 100000,
+                motos: 100000,
                 pesados: 180000,
                 investimentos: 120000
             };
@@ -157,7 +157,15 @@ export default function Metas() {
                 const currentMonthVendas = segmentVendas.filter(l => l.created_at?.startsWith(mesStr));
                 
                 const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-                const metaValue = metaData ? (Number(metaData[`meta_${config.segmento}` as keyof typeof metaData] || monthlyMetas[config.segmento])) : monthlyMetas[config.segmento];
+                
+                // Fallback robusto para metas
+                let metaValue = monthlyMetas[config.segmento];
+                if (metaData) {
+                    const dbMeta = metaData[`meta_${config.segmento}` as keyof typeof metaData];
+                    if (dbMeta !== undefined && dbMeta !== null && Number(dbMeta) > 0) {
+                        metaValue = Number(dbMeta);
+                    }
+                }
                 
                 const vendasCount = currentMonthVendas.length;
                 const leadsCount = currentMonthLeads.length;
@@ -571,7 +579,7 @@ export default function Metas() {
                     📊 Performance por Segmento
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                     {segmentos.map((seg: any) => {
                         const { icon: Icon, color, textColor, label } = SEGMENT_CONFIG[seg.segmento] || { icon: BarChart3, color: 'bg-gray-600', textColor: 'text-gray-600', label: seg.segmento };
                         
@@ -579,80 +587,77 @@ export default function Metas() {
                         const progressColor = seg.progresso_meta >= 70 ? 'bg-green-600' : seg.progresso_meta >= 40 ? 'bg-yellow-500' : 'bg-red-500';
 
                         return (
-                            <Card key={seg.segmento} className="overflow-hidden shadow-lg border-none hover:shadow-xl transition-all duration-300">
-                                <CardHeader className={`${color} text-white py-4`}>
+                            <Card key={seg.segmento} className="overflow-hidden shadow-md border-none hover:shadow-lg transition-all duration-300">
+                                <CardHeader className={`${color} text-white p-3`}>
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                                                <Icon className="h-6 w-6" />
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-white/20 rounded-md backdrop-blur-sm">
+                                                <Icon className="h-4 w-4" />
                                             </div>
-                                            <CardTitle className="text-xl font-bold">{label}</CardTitle>
+                                            <CardTitle className="text-sm font-bold truncate max-w-[80px]">{label}</CardTitle>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] uppercase font-bold opacity-80">Meta Mensal</p>
-                                            <p className="text-lg font-black">{formatCurrency(seg.meta_vendas)}</p>
+                                            <p className="text-[8px] uppercase font-bold opacity-80">Meta</p>
+                                            <p className="text-xs font-black">{formatCurrency(seg.meta_vendas)}</p>
                                         </div>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="p-6 space-y-5">
-                                    <div className="space-y-2">
+                                <CardContent className="p-3 space-y-3">
+                                    <div className="space-y-1">
                                         <div className="flex justify-between items-end">
-                                            <span className="text-sm font-medium text-muted-foreground uppercase">Progresso da Meta</span>
-                                            <span className={`text-2xl font-black ${alertColor}`}>{seg.progresso_meta.toFixed(2).replace('.', ',')}%</span>
+                                            <span className="text-[10px] font-medium text-muted-foreground uppercase">Progresso</span>
+                                            <span className={`text-sm font-black ${alertColor}`}>{seg.progresso_meta.toFixed(1).replace('.', ',')}%</span>
                                         </div>
-                                        <div className="w-full bg-secondary/30 rounded-full h-3">
-                                            <div className={`${progressColor} h-3 rounded-full transition-all duration-500`} style={{ width: `${Math.min(100, seg.progresso_meta)}%` }} />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 pt-2">
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Valor Vendido</p>
-                                            <p className="text-sm font-bold text-foreground">{formatCurrency(seg.valor_total)}</p>
-                                        </div>
-                                        <div className="space-y-1 text-right">
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Total Leads</p>
-                                            <p className="text-sm font-bold text-foreground">{seg.total_leads}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Vendas</p>
-                                            <p className="text-sm font-bold text-foreground">{seg.total_vendas}</p>
-                                        </div>
-                                        <div className="space-y-1 text-right">
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Conversão</p>
-                                            <p className="text-sm font-bold text-foreground">{seg.taxa_conversao.toFixed(2).replace('.', ',')}%</p>
+                                        <div className="w-full bg-secondary/30 rounded-full h-1.5">
+                                            <div className={`${progressColor} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${Math.min(100, seg.progresso_meta)}%` }} />
                                         </div>
                                     </div>
 
-                                    <div className="border-t border-border pt-4">
-                                        <div className="flex justify-between mb-1">
-                                            <span className="text-[11px] font-bold text-muted-foreground uppercase">Previsão de Faturamento</span>
-                                            <span className="text-[11px] font-bold text-primary uppercase">Mês</span>
+                                    <div className="grid grid-cols-2 gap-2 pt-1 border-b border-border/50 pb-2">
+                                        <div className="space-y-0.5">
+                                            <p className="text-[8px] text-muted-foreground uppercase font-bold">Vendido</p>
+                                            <p className="text-[11px] font-bold text-foreground">{formatCurrency(seg.valor_total).replace(',00', '')}</p>
                                         </div>
-                                        <p className="text-lg font-bold text-primary">{formatCurrency(seg.full_previsao)}</p>
-                                        <p className="text-[10px] text-muted-foreground mt-1">Baseado na conversão atual e volume de leads</p>
+                                        <div className="space-y-0.5 text-right">
+                                            <p className="text-[8px] text-muted-foreground uppercase font-bold">Conversão</p>
+                                            <p className="text-[11px] font-bold text-foreground">{seg.taxa_conversao.toFixed(1).replace('.', ',')}%</p>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <p className="text-[8px] text-muted-foreground uppercase font-bold">Leads</p>
+                                            <p className="text-[11px] font-bold text-foreground">{seg.total_leads}</p>
+                                        </div>
+                                        <div className="space-y-0.5 text-right">
+                                            <p className="text-[8px] text-muted-foreground uppercase font-bold">Vendas</p>
+                                            <p className="text-[11px] font-bold text-foreground">{seg.total_vendas}</p>
+                                        </div>
                                     </div>
 
-                                    <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">Leads Necessários</span>
-                                            <Users className="h-3 w-3 text-muted-foreground" />
+                                    <div className="pt-1">
+                                        <div className="flex justify-between mb-0.5">
+                                            <span className="text-[8px] font-bold text-muted-foreground uppercase">Previsão</span>
+                                            <span className="text-[8px] font-bold text-primary uppercase">Mês</span>
                                         </div>
-                                        <p className="text-xl font-black text-foreground">{seg.leads_necessarios_total}</p>
-                                        <p className="text-[9px] text-muted-foreground">Volume estimado para bater a meta mensal</p>
+                                        <p className="text-sm font-bold text-primary">{formatCurrency(seg.full_previsao).replace(',00', '')}</p>
                                     </div>
 
-                                    <div className="pt-2 space-y-2">
+                                    <div className="bg-muted/30 p-2 rounded-md border border-border/50">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[8px] font-bold text-muted-foreground uppercase">Leads Necessários</span>
+                                        </div>
+                                        <p className="text-sm font-black text-foreground">{seg.leads_necessarios_total}</p>
+                                    </div>
+
+                                    <div className="pt-1 space-y-1">
                                         {seg.taxa_conversao < 10 && seg.total_leads > 0 && (
-                                            <div className="flex items-center gap-2 text-red-600 bg-red-50 p-2 rounded border border-red-100 animate-pulse">
-                                                <AlertCircle className="h-4 w-4" />
-                                                <span className="text-[11px] font-bold uppercase">Conversão abaixo do ideal</span>
+                                            <div className="flex items-center gap-1 text-red-600 bg-red-50 p-1 rounded border border-red-100">
+                                                <AlertCircle className="h-3 w-3" />
+                                                <span className="text-[8px] font-bold uppercase">Meta de Conv. Baixa</span>
                                             </div>
                                         )}
-                                        {seg.full_previsao < seg.meta_vendas && (
-                                            <div className="flex items-center gap-2 text-orange-600 bg-orange-50 p-2 rounded border border-orange-100">
-                                                <AlertTriangle className="h-4 w-4" />
-                                                <span className="text-[11px] font-bold uppercase">Volume de leads insuficiente para atingir meta mensal</span>
+                                        {seg.full_previsao < seg.meta_vendas && seg.total_leads > 0 && (
+                                            <div className="flex items-center gap-1 text-orange-600 bg-orange-50 p-1 rounded border border-orange-100">
+                                                <AlertTriangle className="h-3 w-3" />
+                                                <span className="text-[8px] font-bold uppercase">Volume Crítico</span>
                                             </div>
                                         )}
                                     </div>
