@@ -24,8 +24,8 @@ interface Lead {
 
 const openWhatsApp = (lead: Lead) => {
   const msg = encodeURIComponent(`Olá ${lead.nome}! Vi que você tem interesse em um consórcio. Vamos conversar?`);
-  const phone = "5511999999999"; // Exemplo
-  window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+  const phone = lead.celular ? lead.celular.replace(/\D/g, "") : "";
+  window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
 };
 
 export default function Dashboard() {

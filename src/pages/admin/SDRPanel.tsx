@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Phone, MessageSquare, ClipboardList, TrendingUp, AlertCircle, Clock, CheckCircle2, Search, Filter, ChevronRight, MessageCircle, DollarSign, Calendar, UserPlus } from "lucide-react";
+import { Users, Phone, MessageSquare, ClipboardList, TrendingUp, AlertCircle, Clock, CheckCircle2, Search, Filter, ChevronRight, MessageCircle, DollarSign, Calendar, UserPlus, Bot, Zap, Sparkles, ShieldCheck, Check, Copy } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -36,7 +36,7 @@ export default function SDRPanel() {
     useEffect(() => {
         supabase.from("leads")
             .select("*")
-            .not("status", "in", '("fechado", "perdido", "morto")')
+            .not("status", "in", ["fechado", "perdido", "morto"])
             .order("propensity_score", { ascending: false })
             .then(({ data }) => {
                 setLeads((data as any) ?? []);

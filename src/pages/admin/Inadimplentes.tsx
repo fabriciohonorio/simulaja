@@ -104,11 +104,11 @@ export default function Inadimplentes() {
     const atrasados = data.filter((d) => d.status !== "regularizado");
     return atrasados.map((d) =>
       copyTemplate
-        .replace("{nome}", d.nome)
-        .replace("{cota}", d.cota || "—")
-        .replace("{grupo}", d.grupo || "—")
-        .replace("{parcelas_atrasadas}", String(d.parcelas_atrasadas))
-        .replace("{valor_parcela}", formatCurrency(d.valor_parcela))
+        .replace(/\{nome\}/g, d.nome)
+        .replace(/\{cota\}/g, d.cota || "—")
+        .replace(/\{grupo\}/g, d.grupo || "—")
+        .replace(/\{parcelas_atrasadas\}/g, String(d.parcelas_atrasadas))
+        .replace(/\{valor_parcela\}/g, formatCurrency(d.valor_parcela))
     );
   };
 

@@ -17,14 +17,14 @@ import {
     BarChart3, 
     Flame, 
     Lightbulb, 
-    ArrowRight, 
-    Star,
     TrendingDown, 
     Home, 
     Car, 
     Bike, 
     Truck, 
-    AlertCircle 
+    AlertCircle,
+    CheckCircle2,
+    LucideIcon
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -74,14 +74,22 @@ export interface MetricaSegmento {
 
 interface Lead {
     id: string;
-    nome: string;
     status: string | null;
     valor_credito: number;
     created_at: string | null;
     updated_at: string | null;
+    tipo_consorcio: string | null;
     propensity_score?: number | null;
-    propensity_reason?: string | null;
 }
+
+
+const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, label: string }> = {
+    imoveis: { icon: Home, color: 'from-blue-500 to-blue-700', label: 'Imóveis' },
+    veiculos: { icon: Car, color: 'from-green-500 to-green-700', label: 'Veículos' },
+    motos: { icon: Bike, color: 'from-orange-500 to-orange-700', label: 'Motos' },
+    investimentos: { icon: TrendingUp, color: 'from-purple-500 to-purple-700', label: 'Investimentos' },
+    pesados: { icon: Truck, color: 'from-gray-600 to-gray-800', label: 'Pesados' }
+};
 
 export default function Metas() {
     const { toast } = useToast();
@@ -103,15 +111,54 @@ export default function Metas() {
             const { data: leadsData } = await supabase.from("leads").select("*");
             const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
             
-            setLeads((leadsData as Lead[]) || []);
+            const allLeads = (leadsData as Lead[]) || [];
+            setLeads(allLeads);
+            
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
             }
             
+            // Calculate segment metrics
+            const segs: MetricaSegmento[] = [
+                { segmento: 'imoveis', metaField: 'meta_imoveis' },
+                { segmento: 'veiculos', metaField: 'meta_veiculos' },
+                { segmento: 'motos', metaField: 'meta_motos' },
+                { segmento: 'investimentos', metaField: 'meta_outros', splitMeta: 0.5 },
+                { segmento: 'pesados', metaField: 'meta_outros', splitMeta: 0.5 }
+            ].map(config => {
+                const leadTypeMap: Record<string, string[]> = {
+                    imoveis: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'],
+                    veiculos: ['veiculo', 'veículo', 'carro', 'auto', 'automovel', 'automóvel'],
+                    motos: ['moto', 'motocicleta'],
+                    investimentos: ['investimento', 'capitalizacao', 'aposentadoria'],
+                    pesados: ['pesados', 'agricolas', 'caminhao', 'caminhão', 'trator', 'maquina', 'máquina']
+                };
+                
+                const segmentLeads = allLeads.filter(l => {
+                    const type = (l.tipo_consorcio || "").toLowerCase();
+                    return leadTypeMap[config.segmento].some(keyword => type.includes(keyword));
+                });
+                const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado");
+                const valorTotal = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                const metaValue = metaData ? (Number(metaData[config.metaField as keyof typeof metaData] || 0) * (config.splitMeta || 1)) : 0;
+                
+                return {
+                    segmento: config.segmento as any,
+                    total_leads: segmentLeads.length,
+                    total_vendas: segmentVendas.length,
+                    valor_total: valorTotal,
+                    ticket_medio: segmentVendas.length > 0 ? valorTotal / segmentVendas.length : 0,
+                    taxa_conversao: segmentLeads.length > 0 ? (segmentVendas.length / segmentLeads.length) * 100 : 0,
+                    meta_vendas: metaValue,
+                    progresso_meta: metaValue > 0 ? Math.min(100, (valorTotal / metaValue) * 100) : 0
+                };
+            });
+
+            setSegmentos(segs);
+            
             await Promise.all([
-                fetchTermometro(),
-                fetchSegmentos()
+                fetchTermometro()
             ]);
         } catch (err) {
             console.error(err);
@@ -121,8 +168,7 @@ export default function Metas() {
     };
 
     async function fetchTermometro() {
-        const { data, error } = await supabase
-            .from('termometro_mercado')
+        const { data, error } = await (supabase.from('termometro_mercado' as any) as any)
             .select('*')
             .order('mes_referencia', { ascending: false })
             .limit(1)
@@ -133,30 +179,20 @@ export default function Metas() {
             return;
         }
 
-        setTermometro(data as TermometroMercado);
+        setTermometro(data as unknown as TermometroMercado);
     }
 
     async function fetchDicas(termometroId: string) {
-        const { data, error } = await supabase
-            .from('dicas_estrategicas')
+        const { data, error } = await (supabase.from('dicas_estrategicas' as any) as any)
             .select('*')
             .eq('termometro_id', termometroId)
             .eq('ativo', true)
             .order('prioridade')
             .order('created_at');
 
-        if (!error) setDicas(data || []);
+        if (!error) setDicas((data as unknown as DicaEstrategica[]) || []);
     }
 
-    async function fetchSegmentos() {
-        const { data, error } = await supabase
-            .from('metricas_segmentos')
-            .select('*')
-            .order('mes_referencia', { ascending: false })
-            .limit(5);
-
-        if (!error) setSegmentos(data || []);
-    }
 
     useEffect(() => {
         if (termometro) {
@@ -198,17 +234,12 @@ export default function Metas() {
         const u = l.updated_at ? new Date(l.updated_at) : new Date(l.created_at || "");
         return u < seteDias;
     }).length;
-    const topLeads = leads
-        .filter(l => !["fechado", "perdido", "desistiu", "morto"].includes(l.status || ""))
-        .sort((a, b) => Number(b.propensity_score || 0) - Number(a.propensity_score || 0))
-        .slice(0, 5);
     const monthsData = Array.from({ length: 12 }, (_, i) => {
         const m = `${currentYear}-${(i + 1).toString().padStart(2, "0")}`;
         const r = fechados.filter(l => l.created_at?.startsWith(m)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
         return { name: new Date(currentYear, i, 1).toLocaleString("pt-BR", { month: "short" }), realizado: r, meta: metaMensal };
     });
 
-    const fmt = (v: number) => formatCurrency(v);
 
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
@@ -330,7 +361,7 @@ export default function Metas() {
                         { icon: Target, color: faltaMetaMesColor, val: formatCurrency(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg },
                         { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda", cardClass: "" },
                         { icon: BarChart3, color: "text-indigo-500", val: formatCurrency(projecaoMes), label: "Projeção do Mês", cardClass: "" },
-                        { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-500" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-50 border-red-200" : "" },
+                        { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-600" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-100 border-red-400 border-2 shadow-sm scale-105 transition-all" : "" },
                     ];
                     return items.map((k, i) => (
                         <Card key={i} className={k.cardClass}>
@@ -424,6 +455,50 @@ export default function Metas() {
                 </Card>
             </div>
 
+            {/* Alertas de Desempenho Segmentado */}
+            <div className="mt-6">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-orange-500" />
+                    🚨 Alertas de Desempenho por Segmento
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {segmentos.map(seg => {
+                        const alerts = [];
+                        if (seg.total_leads === 0) {
+                            alerts.push({ title: `Zero Leads: ${SEGMENT_CONFIG[seg.segmento].label}`, desc: "Este segmento não recebeu nenhum lead. Verifique as campanhas de marketing.", variant: "destructive" });
+                        } else if (seg.taxa_conversao < 2 && seg.total_leads > 10) {
+                            alerts.push({ title: `Baixa Conversão: ${SEGMENT_CONFIG[seg.segmento].label}`, desc: `Taxa de ${seg.taxa_conversao.toFixed(1)}% está abaixo da média esperada.`, variant: "warning" });
+                        }
+                        if (seg.progresso_meta < 50 && currentMonth > 6) {
+                            alerts.push({ title: `Meta em Risco: ${SEGMENT_CONFIG[seg.segmento].label}`, desc: `Apenas ${seg.progresso_meta.toFixed(1)}% da meta atingida no segundo semestre.`, variant: "warning" });
+                        }
+
+                        return alerts.map((alert, i) => (
+                            <Alert key={`${seg.segmento}-${i}`} variant={alert.variant === "destructive" ? "destructive" : "default"} className={alert.variant === "warning" ? "border-orange-200 bg-orange-50" : ""}>
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle className="font-bold">{alert.title}</AlertTitle>
+                                <AlertDescription>{alert.desc}</AlertDescription>
+                            </Alert>
+                        ));
+                    })}
+                    {semFollowUp > 0 && (
+                        <Alert variant="destructive" className="border-red-600 bg-red-50 animate-pulse">
+                            <Clock className="h-4 w-4 text-red-600" />
+                            <AlertTitle className="font-bold text-red-700">Atenção: Leads Negligenciados</AlertTitle>
+                            <AlertDescription className="text-red-600">
+                                Existem <b>{semFollowUp} leads</b> sem contato há mais de 7 dias. Priorize o atendimento para evitar a perda dessas oportunidades.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    {segmentos.every(seg => seg.total_leads > 0 && seg.taxa_conversao >= 2) && (
+                        <div className="md:col-span-2 p-8 bg-green-50 border border-dashed border-green-200 rounded-lg text-center">
+                            <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                            <p className="text-sm text-green-700 font-medium">Todos os segmentos estão operando dentro das métricas saudáveis!</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* Dicas Estratégicas */}
             <div className="mt-6">
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -464,20 +539,24 @@ export default function Metas() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     {segmentos.map((seg) => {
-                        const config: Record<string, { icon: any, color: string, label: string }> = {
-                            imoveis: { icon: Home, color: 'from-blue-500 to-blue-700', label: 'Imóveis' },
-                            veiculos: { icon: Car, color: 'from-green-500 to-green-700', label: 'Veículos' },
-                            motos: { icon: Bike, color: 'from-orange-500 to-orange-700', label: 'Motos' },
-                            investimentos: { icon: TrendingUp, color: 'from-purple-500 to-purple-700', label: 'Investimentos' },
-                            pesados: { icon: Truck, color: 'from-gray-600 to-gray-800', label: 'Pesados' }
-                        };
-                        const { icon: Icon, color, label } = config[seg.segmento] || { icon: BarChart3, color: 'from-gray-500 to-gray-700', label: seg.segmento };
+                        const { icon: Icon, color, label } = SEGMENT_CONFIG[seg.segmento] || { icon: BarChart3, color: 'from-gray-500 to-gray-700', label: seg.segmento };
+                        
+                        const status = seg.total_leads === 0 ? 'critical' : (seg.taxa_conversao < 2 ? 'warning' : 'healthy');
+                        const statusColor = status === 'critical' ? 'bg-red-400' : status === 'warning' ? 'bg-orange-400' : 'bg-green-400';
 
                         return (
-                            <Card key={seg.segmento} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
+                            <Card key={seg.segmento} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow relative">
                                 <div className={`bg-gradient-to-br ${color} p-5 text-white h-full flex flex-col`}>
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-lg font-bold capitalize">{label}</h4>
+                                        <div className="flex flex-col">
+                                            <h4 className="text-lg font-bold capitalize">{label}</h4>
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                <div className={`h-2 w-2 rounded-full ${statusColor} animate-pulse`} />
+                                                <span className="text-[10px] uppercase font-bold opacity-90">
+                                                    {status === 'critical' ? 'Crítico' : status === 'warning' ? 'Atenção' : 'Saudável'}
+                                                </span>
+                                            </div>
+                                        </div>
                                         <Icon className="h-8 w-8 opacity-80" />
                                     </div>
                                     <div className="space-y-3 text-sm flex-1">
@@ -529,7 +608,7 @@ export default function Metas() {
                             </p>
                             <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm">
                                 <DollarSign className="h-3.5 w-3.5" />
-                                {fmt(monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.realizado || 0)}
+                                {formatCurrency(monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.realizado || 0)}
                             </div>
                         </div>
                     </CardContent>
