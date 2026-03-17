@@ -818,9 +818,18 @@ export default function Funil() {
     leads
       .filter(l => normalizeStatus(l.status) === colId)
       .sort((a, b) => {
-        // Prioridade: Recentemente atualizados no TOPO
-        const timeA = new Date(a.status_updated_at || a.updated_at || a.created_at || 0).getTime();
-        const timeB = new Date(b.status_updated_at || b.updated_at || b.created_at || 0).getTime();
+        // Prioridade: Recentemente atualizados (Status ou Interaction) no TOPO
+        const timeA = new Date(Math.max(
+          new Date(a.status_updated_at || 0).getTime(),
+          new Date(a.last_interaction_at || 0).getTime(),
+          new Date(a.created_at || 0).getTime()
+        )).getTime();
+        
+        const timeB = new Date(Math.max(
+          new Date(b.status_updated_at || 0).getTime(),
+          new Date(b.last_interaction_at || 0).getTime(),
+          new Date(b.created_at || 0).getTime()
+        )).getTime();
         
         if (timeA !== timeB) return timeB - timeA;
 
@@ -1040,16 +1049,16 @@ export default function Funil() {
       {(provided, snapshot) => {
         const style = {
           ...provided.draggableProps.style,
-          zIndex: snapshot.isDragging ? 9999 : "auto",
+          zIndex: snapshot.isDragging ? 99999 : "auto",
         };
 
-        const cardElement = (
+        const cardContent = (
           <div
+            ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            ref={provided.innerRef}
             style={style}
-            className={snapshot.isDragging ? "pointer-events-none" : ""}
+            className={snapshot.isDragging ? "shadow-2xl brightness-105 pointer-events-none scale-105 transition-transform duration-200" : ""}
           >
             <LeadCard
               lead={lead}
@@ -1067,11 +1076,11 @@ export default function Funil() {
           </div>
         );
 
-        if (snapshot.isDragging) {
-          return createPortal(cardElement, document.body);
+        if (snapshot.isDragging && typeof document !== "undefined") {
+          return createPortal(cardContent, document.body);
         }
 
-        return cardElement;
+        return cardContent;
       }}
     </Draggable>
   );
