@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ interface CarteiraItem {
 
 
 export default function Carteira() {
+  const { profile } = useAuth();
   const [items, setItems] = useState<CarteiraItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<CarteiraItem | null>(null);
@@ -54,7 +56,11 @@ export default function Carteira() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchData = async () => {
-    const { data } = await supabase.from("carteira").select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
+    if (!profile?.organizacao_id) return;
+    const { data } = await supabase.from("carteira")
+      .select("*, leads:lead_id(celular)")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("created_at", { ascending: false });
     const mapped = (data ?? []).map((item: any) => ({
       ...item,
       celular: (item.leads as any)?.celular ?? null,
@@ -63,7 +69,13 @@ export default function Carteira() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    if (profile?.organizacao_id) {
+      fetchData();
+    } else if (profile) {
+      setLoading(false);
+    }
+  }, [profile?.organizacao_id]);
 
   const total = items.length;
   const aguardando = items.filter((i) => i.status === "aguardando").length;
@@ -98,7 +110,9 @@ export default function Carteira() {
 
     const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(filePath);
     // Since bucket is private, we store the path and generate signed URLs on demand
-    await supabase.from("carteira").update({ boleto_url: filePath }).eq("id", item.id);
+    await supabase.from("carteira")
+      .update({ boleto_url: filePath, organizacao_id: profile?.organizacao_id })
+      .eq("id", item.id);
 
     toast({ title: "Boleto enviado!", description: `Boleto de ${item.nome} salvo com sucesso.` });
     setUploading(null);
@@ -118,7 +132,7 @@ export default function Carteira() {
   const handleDeleteBoleto = async (item: CarteiraItem) => {
     if (!item.boleto_url) return;
     await supabase.storage.from("boletos").remove([item.boleto_url]);
-    await supabase.from("carteira").update({ boleto_url: null }).eq("id", item.id);
+    await supabase.from("carteira").update({ boleto_url: null, organizacao_id: profile?.organizacao_id }).eq("id", item.id);
     toast({ title: "Boleto removido", description: `Boleto de ${item.nome} foi excluído.` });
     fetchData();
   };
@@ -148,7 +162,12 @@ export default function Carteira() {
     if (!selectedItem) return;
     setSaving(true);
     await supabase.from("carteira")
-      .update({ status: "contemplada", cota_contemplada: cotaContemplada, data_contemplacao: dataContemplacao })
+      .update({ 
+        status: "contemplada", 
+        cota_contemplada: cotaContemplada, 
+        data_contemplacao: dataContemplacao,
+        organizacao_id: profile?.organizacao_id
+      })
       .eq("id", selectedItem.id);
     setSaving(false);
     setSelectedItem(null);

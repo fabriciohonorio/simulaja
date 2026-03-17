@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,7 @@ const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, textColo
 };
 
 export default function Metas() {
+    const { profile } = useAuth();
     const { toast } = useToast();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
@@ -103,12 +105,22 @@ export default function Metas() {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
-    useEffect(() => { 
-        fetchData(); 
+    useEffect(() => {
+        if (!profile?.organizacao_id) {
+            if (profile) setLoading(false);
+            return;
+        }
+
+        fetchData();
         
         const channel = supabase
             .channel('metas-leads-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+            .on('postgres_changes', { 
+                event: '*', 
+                schema: 'public', 
+                table: 'leads',
+                filter: `organizacao_id=eq.${profile.organizacao_id}`
+            }, () => {
                 fetchData();
             })
             .subscribe();
@@ -116,13 +128,20 @@ export default function Metas() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [profile?.organizacao_id]);
 
     const fetchData = async () => {
+        if (!profile?.organizacao_id) return;
         try {
             setLoading(true);
-            const { data: leadsData } = await supabase.from("leads").select("*");
-            const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
+            const { data: leadsData } = await supabase.from("leads")
+                .select("*")
+                .eq("organizacao_id", profile.organizacao_id);
+            const { data: metaData } = await supabase.from("meta")
+                .select("*")
+                .eq("ano", currentYear)
+                .eq("organizacao_id", profile.organizacao_id)
+                .maybeSingle();
             
             const allLeads = (leadsData as Lead[]) || [];
             setLeads(allLeads);
@@ -238,9 +257,14 @@ export default function Metas() {
     }, [termometro]);
 
     const salvarMeta = async () => {
+        if (!profile?.organizacao_id) return;
         const novoValor = parseFloat(metaInput);
         if (isNaN(novoValor)) return;
-        await supabase.from("meta").upsert({ ano: currentYear, meta_anual: novoValor }, { onConflict: "ano" });
+        await supabase.from("meta").upsert({ 
+            ano: currentYear, 
+            meta_anual: novoValor,
+            organizacao_id: profile.organizacao_id
+        }, { onConflict: "ano,organizacao_id" as any });
         setMetaAnual(novoValor);
         toast({ title: "Meta salva com sucesso!" });
     };

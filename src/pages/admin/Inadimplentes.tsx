@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ const COLUMNS = [
 
 
 export default function Inadimplentes() {
+  const { profile } = useAuth();
   const [data, setData] = useState<Inadimplente[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -54,12 +56,21 @@ export default function Inadimplentes() {
   const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
-    const { data: rows } = await (supabase.from("inadimplentes" as any) as any).select("*");
+    if (!profile?.organizacao_id) return;
+    const { data: rows } = await (supabase.from("inadimplentes" as any) as any)
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id);
     setData(rows ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    if (profile?.organizacao_id) {
+      fetchData();
+    } else if (profile) {
+      setLoading(false);
+    }
+  }, [profile?.organizacao_id]);
 
   const getColumnItems = (colId: string) => data.filter((d) => d.status === colId);
 
@@ -71,7 +82,7 @@ export default function Inadimplentes() {
     setData((prev) => prev.map((d) => (d.id === id ? { ...d, status: newStatus } : d)));
 
     const { error } = await (supabase.from("inadimplentes" as any) as any)
-      .update({ status: newStatus })
+      .update({ status: newStatus, organizacao_id: profile?.organizacao_id })
       .eq("id", id);
 
     if (error) toast.error("Erro ao atualizar status");
@@ -91,6 +102,7 @@ export default function Inadimplentes() {
       cota: form.cota,
       administradora: form.administradora || null,
       status: "em_atraso",
+      organizacao_id: profile?.organizacao_id
     });
     setSaving(false);
     if (error) { toast.error("Erro ao adicionar"); return; }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles, Calendar, Users, Shield, Zap, Target, Search, Filter, ChevronRight, DollarSign, ArrowUpDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -33,17 +34,24 @@ const SCORE_LABELS: Record<string, string> = {
 };
 
 export default function FilaInteligente() {
+    const { profile } = useAuth();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!profile?.organizacao_id) {
+            if (profile) setLoading(false);
+            return;
+        }
+
         supabase.from("leads").select("*")
+            .eq("organizacao_id", profile.organizacao_id)
             .not("status", "in", '("fechado", "perdido", "morto")')
             .then(({ data }) => {
                 setLeads((data as Lead[]) ?? []);
                 setLoading(false);
             });
-    }, []);
+    }, [profile?.organizacao_id]);
 
     const getPriorityScore = (lead: Lead) => {
         let score = 0;

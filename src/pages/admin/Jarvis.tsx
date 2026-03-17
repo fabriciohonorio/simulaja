@@ -26,6 +26,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon } from "lucide-react";
 import JarvisHero from "@/components/admin/JarvisHero";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
     id: string;
@@ -79,6 +80,7 @@ interface JarvisAnalysis {
 }
 
 export default function Jarvis() {
+    const { profile } = useAuth();
     const { toast } = useToast();
     const [question, setQuestion] = useState("");
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -201,11 +203,16 @@ export default function Jarvis() {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!profile?.organizacao_id) {
+                if (profile) setLoading(false);
+                return;
+            }
+
             try {
                 const [leadsRes, metaRes, inadRes] = await Promise.all([
-                    supabase.from("leads").select("*"),
-                    supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).maybeSingle(),
-                    supabase.from("inadimplentes").select("*")
+                    supabase.from("leads").select("*").eq("organizacao_id", profile.organizacao_id),
+                    supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).eq("organizacao_id", profile.organizacao_id).maybeSingle(),
+                    supabase.from("inadimplentes").select("*").eq("organizacao_id", profile.organizacao_id)
                 ]);
 
                 let allLeads: Lead[] = [];
@@ -216,7 +223,7 @@ export default function Jarvis() {
                     // Saudação automática ao carregar (após carregar os dados)
                     setTimeout(() => {
                         const prioritarios = allLeads.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
-                        speak(`Bom dia Fabrício. Você tem ${prioritarios} leads em negociação no seu funil hoje.`);
+                        speak(`Bom dia ${profile.nome_completo || 'Fabrício'}. Você tem ${prioritarios} leads em negociação no seu funil hoje.`);
                     }, 1000);
                 }
 
@@ -269,9 +276,9 @@ export default function Jarvis() {
                 setLoading(false);
             }
         };
-
+    
         fetchData();
-    }, []);
+    }, [profile?.organizacao_id]);
 
     const handleAnalyze = async (query: string = question) => {
         if (!query.trim()) return;

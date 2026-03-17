@@ -5,9 +5,11 @@ import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTria
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
+import { useAuth } from "@/hooks/useAuth";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
+import { toast } from "sonner";
 
 interface Lead {
   id: string;
@@ -22,7 +24,6 @@ interface Lead {
   celular: string | null;
 }
 
-
 const openWhatsApp = (lead: Lead) => {
   const msg = encodeURIComponent(`Olá ${lead.nome}! Vi que você tem interesse em um consórcio. Vamos conversar?`);
   const phone = lead.celular ? lead.celular.replace(/\D/g, "") : "";
@@ -30,22 +31,43 @@ const openWhatsApp = (lead: Lead) => {
 };
 
 export default function Dashboard() {
+  const { profile } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!profile?.organizacao_id) {
+      if (profile) setLoading(false);
+      return;
+    }
+
     const fetchData = () => {
-      supabase.from("leads").select("*").then(({ data }) => {
-        setLeads((data as any[]) ?? []);
-        setLoading(false);
-      });
+      supabase.from("leads")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Erro ao carregar dashboard:", error);
+            if (error.message.includes("column") && error.message.includes("organizacao_id")) {
+                toast.error("Erro de Versão: A coluna 'organizacao_id' não foi encontrada no Dashboard.");
+            }
+            return;
+          }
+          setLeads((data as any[]) ?? []);
+          setLoading(false);
+        });
     };
 
     fetchData();
 
     const channel = supabase
       .channel('dashboard-leads-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'leads',
+        filter: `organizacao_id=eq.${profile.organizacao_id}`
+      }, () => {
         fetchData();
       })
       .subscribe();
@@ -53,7 +75,7 @@ export default function Dashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [profile?.organizacao_id]);
 
   const totalLeads = leads.length;
   const leadsNovos = leads.filter(l => l.status === "novo").length;

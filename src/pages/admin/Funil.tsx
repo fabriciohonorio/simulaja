@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import {
   Phone,
@@ -63,6 +64,7 @@ interface Lead {
   indicador_nome?: string | null;
   indicador_celular?: string | null;
   data_vencimento?: string | null;
+  organizacao_id?: string | null;
 }
 
 interface HistoricoContato {
@@ -443,6 +445,7 @@ function HistoricoModal({
   lead: Lead | null;
   onClose: () => void;
 }) {
+  const { profile } = useAuth();
   const [historico, setHistorico] = useState<HistoricoContato[]>([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
   const [savingNota, setSavingNota] = useState(false);
@@ -477,6 +480,7 @@ function HistoricoModal({
       tipo: tipoContato,
       observacao: observacaoComData,
       resultado,
+      organizacao_id: lead.organizacao_id || profile?.organizacao_id
     });
 
     if (error) {
@@ -490,6 +494,7 @@ function HistoricoModal({
       .from("leads")
       .update({
         ultimo_contato: new Date().toISOString(),
+        last_interaction_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", lead.id);
@@ -639,6 +644,7 @@ function HistoricoModal({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Funil() {
+  const { profile } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [celebrationLead, setCelebrationLead] = useState<Lead | null>(null);
@@ -715,7 +721,23 @@ export default function Funil() {
   const scrollDrag = useRef({ active: false, startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
-    supabase.from("leads").select("*").then(({ data }) => {
+    if (!profile?.organizacao_id) {
+      if (profile) setLoading(false);
+      return;
+    }
+
+    supabase.from("leads")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Erro ao carregar kanban:", error);
+          if (error.message.includes("column") && error.message.includes("organizacao_id")) {
+                toast.error("Erro de Versão: A coluna 'organizacao_id' não foi encontrada no Funil.");
+          }
+          setLoading(false);
+          return;
+        }
         setLeads((data as any[]) || []);
       // De-duplicar por ID para evitar problemas de estado
       const uniqueRaw = (data as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
@@ -778,7 +800,8 @@ export default function Funil() {
             status: newStatus,
             status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
             propensity_score: newScore,
-            propensity_reason: newReason
+            propensity_reason: newReason,
+            organizacao_id: lead.organizacao_id || profile?.organizacao_id
           }).eq("id", lead.id);
 
           setLeads(prev => prev.map(l => l.id === lead.id ? {
@@ -919,6 +942,7 @@ export default function Funil() {
       tipo: "sistema",
       observacao: `[${format(new Date(), "dd/MM")}] ${logEntry}`,
       resultado: "neutro",
+      organizacao_id: lead.organizacao_id || profile?.organizacao_id
     });
 
     // Refresh last interaction in state

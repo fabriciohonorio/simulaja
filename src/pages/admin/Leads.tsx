@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Lead {
   id: string;
@@ -73,12 +75,32 @@ export default function Leads() {
   const [sortKey, setSortKey] = useState<keyof Lead>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  const { profile } = useAuth();
+  
   useEffect(() => {
-    supabase.from("leads").select("*").then(({ data }) => {
-      setLeads((data as Lead[]) ?? []);
-      setLoading(false);
-    });
-  }, []);
+    if (!profile?.organizacao_id) {
+      if (profile) setLoading(false); // No org, but profile loaded
+      return;
+    }
+
+    supabase.from("leads")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Erro ao carregar leads:", error);
+          if (error.message.includes("column") && error.message.includes("organizacao_id")) {
+            toast.error("Erro de Versão: A coluna 'organizacao_id' não foi encontrada. Por favor, execute o script MASTER_MIGRATION no Supabase.");
+          } else {
+            toast.error("Erro ao carregar dados do CRM. Verifique as permissões de RLS.");
+          }
+          setLoading(false);
+          return;
+        }
+        setLeads((data as Lead[]) ?? []);
+        setLoading(false);
+      });
+  }, [profile?.organizacao_id]);
 
   const toggleSort = (key: keyof Lead) => {
     if (sortKey === key) {

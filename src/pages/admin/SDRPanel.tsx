@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,21 +29,28 @@ const SCORE_LABELS: Record<string, string> = {
 };
 
 export default function SDRPanel() {
+    const { profile } = useAuth();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
+        if (!profile?.organizacao_id) {
+            if (profile) setLoading(false);
+            return;
+        }
+
         supabase.from("leads")
             .select("*")
+            .eq("organizacao_id", profile.organizacao_id)
             .not("status", "in", ["fechado", "perdido", "morto"])
             .order("propensity_score", { ascending: false })
             .then(({ data }) => {
                 setLeads((data as any) ?? []);
                 setLoading(false);
             });
-    }, []);
+    }, [profile?.organizacao_id]);
 
     const generateAIScript = (lead: Lead) => {
         const firstName = lead.nome.split(" ")[0];
