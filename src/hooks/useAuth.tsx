@@ -20,13 +20,20 @@ export function useAuth() {
       .maybeSingle(); // Better for handling "not found"
     
     if (profileError) {
-      console.error("Erro ao buscar perfil:", profileError);
-      setAuthError("Erro ao carregar seu perfil de acesso.");
+      console.warn("Profile fetch warning (expected in emergency mode):", profileError);
+      // Em modo de emergência, não bloqueamos o usuário
+      setProfile(null);
+      setPermissions([]); // Keep as array based on type UsuarioPermissao[]
+      setLoading(false);
       return;
     }
 
     if (!profileData) {
-      setAuthError("Perfil não encontrado. Sua conta ainda não foi vinculada a uma organização.");
+      console.warn("No profile found for user. Using emergency access.");
+      // Em modo de emergência, não bloqueamos o usuário
+      setProfile(null);
+      setPermissions([]); // Keep as array based on type UsuarioPermissao[]
+      setLoading(false);
       return;
     }
 

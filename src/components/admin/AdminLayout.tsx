@@ -15,7 +15,7 @@ const menuItems = [
     { icon: Users, label: "Carteira Clientes", path: "/admin/carteira", color: "text-blue-600" },
     { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes", color: "text-red-500" },
     { icon: Target, label: "Metas", path: "/admin/metas", color: "text-amber-500" },
-    { icon: Shield, label: "Acessos", path: "/admin/auth", color: "text-slate-700" },
+    // { icon: Shield, label: "Acessos", path: "/admin/auth", color: "text-slate-700" },
 ];
 
 export default function AdminLayout() {
@@ -128,19 +128,7 @@ export default function AdminLayout() {
 
                 {/* Dynamic Page Content */}
                 <main className={`flex-1 overflow-auto bg-slate-50/50 relative ${isFunilPage ? 'p-0 sm:p-0 md:p-0' : 'p-4 sm:p-6 md:p-8'}`}>
-                    {authError && (
-                        <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-                            <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
-                            <div className="space-y-1">
-                                <p className="font-bold text-amber-900">Atenção: Configuração Pendente</p>
-                                <p className="text-sm text-amber-800 leading-relaxed">
-                                    {authError} 
-                                    <br />
-                                    Para resolver, você deve executar o script <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-xs">promote_admin.sql</code> no seu editor de SQL do Supabase, substituindo pelo seu e-mail.
-                                </p>
-                            </div>
-                        </div>
-                    )}
+          {/* Removido o banner de diagnóstico para modo de restauração de emergência */}
                     
                     {!authError && !profile?.organizacao_id && (
                         <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
