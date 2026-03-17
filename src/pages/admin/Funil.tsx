@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import {
@@ -847,13 +847,57 @@ export default function Funil() {
     isDraggingCardRef.current = false;
     if (!result.destination) return;
     const leadId = result.draggableId;
+    const oldStatus = result.source.droppableId;
     const newStatus = result.destination.droppableId;
 
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
+    if (oldStatus === newStatus) return;
 
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+
+    // Calcule a nova temperatura e score baseada no novo status
+    let newTemp = lead.lead_temperatura || "quente";
+    if (newStatus === "morto") newTemp = "morto";
+    else if (newStatus === "perdido") newTemp = "perdido";
+    else if (["novo_lead", "simulacao_enviada", "negociacao"].includes(newStatus)) newTemp = "quente";
+
+    // Re-calculo simplificado de propensity baseado no que vi no useEffect de carga
+    let score = 0;
+    if (lead.lead_score_valor === "premium") score += 40;
+    else if (lead.lead_score_valor === "alto") score += 30;
+    else if (lead.lead_score_valor === "medio") score += 20;
+    else score += 10;
+
+    if (newTemp === "quente") score += 40;
+    else if (newTemp === "morno") score += 20;
+
+    if (["simulacao_enviada", "negociacao"].includes(newStatus)) score += 20;
+    else if (newStatus === "qualificacao") score += 15;
+    else if (newStatus === "primeiro_contato") score += 10;
+
+    // Local update
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { 
+      ...l, 
+      status: newStatus, 
+      lead_temperatura: newTemp,
+      propensity_score: score,
+      last_interaction_at: new Date().toISOString() 
+    } : l)));
+
+    const statusLabel = COLUMNS.find(c => c.id === newStatus)?.label || newStatus;
+    const logEntry = `Mudança de etapa: ${statusLabel}`;
+
+    // Database update
     const { error } = await supabase
       .from("leads")
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .update({ 
+        status: newStatus, 
+        lead_temperatura: newTemp,
+        propensity_score: score,
+        status_updated_at: new Date().toISOString(),
+        last_interaction_at: new Date().toISOString(),
+        updated_at: new Date().toISOString() 
+      })
       .eq("id", leadId);
 
     if (error) {
@@ -861,22 +905,37 @@ export default function Funil() {
       return;
     }
 
+    // Auto-create interaction log
+    await supabase.from("historico_contatos").insert({
+      lead_id: leadId,
+      tipo: "sistema",
+      observacao: `[${format(new Date(), "dd/MM")}] ${logEntry}`,
+      resultado: "neutro",
+    });
+
+    // Refresh last interaction in state
+    setUltimasTratativas(prev => ({
+      ...prev,
+      [leadId]: {
+        id: "temp-" + Date.now(),
+        lead_id: leadId,
+        tipo: "sistema",
+        observacao: `[${format(new Date(), "dd/MM")}] ${logEntry}`,
+        resultado: "neutro",
+        created_at: new Date().toISOString()
+      } as HistoricoContato
+    }));
+
     if (newStatus === "aguardando_pagamento") {
-      const lead = leads.find((l) => l.id === leadId);
-      if (lead) {
-        setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
-        setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
-      }
+      setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
+      setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
     }
 
     if (newStatus === "fechado") {
-      const lead = leads.find((l) => l.id === leadId);
-      if (lead) {
-        setCelebrationLead({ ...lead, status: "fechado" });
-        setGrupo("");
-        setCota("");
-        fireConfetti();
-      }
+      setCelebrationLead({ ...lead, status: "fechado" });
+      setGrupo("");
+      setCota("");
+      fireConfetti();
     }
   };
 
@@ -979,21 +1038,42 @@ export default function Funil() {
 
   const renderLeadCard = (lead: Lead, idx: number) => (
     <Draggable draggableId={lead.id} index={idx} key={lead.id}>
-      {(provided, snapshot) => (
-        <LeadCard
-          lead={lead}
-          snapshot={snapshot}
-          provided={provided}
-          onDelete={handleDeleteLead}
-          onSetVencimento={(l) => {
-            setVencimentoLead(l);
-            setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
-          }}
-          onOpenHistorico={setHistoricoLead}
-          ultimaTratativa={ultimasTratativas[lead.id] ?? null}
-          compact={isWideView}
-        />
-      )}
+      {(provided, snapshot) => {
+        const style = {
+          ...provided.draggableProps.style,
+          zIndex: snapshot.isDragging ? 9999 : "auto",
+        };
+
+        const cardElement = (
+          <div
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            ref={provided.innerRef}
+            style={style}
+            className={snapshot.isDragging ? "pointer-events-none" : ""}
+          >
+            <LeadCard
+              lead={lead}
+              snapshot={snapshot}
+              provided={{ ...provided, draggableProps: { style: {} }, dragHandleProps: {} }} // Prevent double props
+              onDelete={handleDeleteLead}
+              onSetVencimento={(l) => {
+                setVencimentoLead(l);
+                setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
+              }}
+              onOpenHistorico={setHistoricoLead}
+              ultimaTratativa={ultimasTratativas[lead.id] ?? null}
+              compact={isWideView}
+            />
+          </div>
+        );
+
+        if (snapshot.isDragging) {
+          return createPortal(cardElement, document.body);
+        }
+
+        return cardElement;
+      }}
     </Draggable>
   );
 
