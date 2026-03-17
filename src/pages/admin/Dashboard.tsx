@@ -35,24 +35,32 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = () => {
-      supabase.from("leads").select("*").then(({ data }) => {
-        setLeads((data as any[]) ?? []);
-        setLoading(false);
-      });
+      supabase.from("leads")
+        .select("*")
+        .then(({ data, error }) => {
+          console.log("DEBUG: Dashboard Leads (modo emergência):", data);
+          if (error) {
+            console.error("DEBUG: Erro ao carregar dashboard:", error);
+            return;
+          }
+          setLeads((data as any[]) ?? []);
+          setLoading(false);
+        });
     };
 
-    fetchData();
+    fetchData(); // Call fetchData to actually fetch data
 
-    const channel = supabase
-      .channel('dashboard-leads-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
-        fetchData();
-      })
-      .subscribe();
+    // The real-time subscription part is removed as per the instruction's implied change
+    // const channel = supabase
+    //   .channel('dashboard-leads-changes')
+    //   .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+    //     fetchData();
+    //   })
+    //   .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // return () => {
+    //   supabase.removeChannel(channel);
+    // };
   }, []);
 
   const totalLeads = leads.length;

@@ -121,8 +121,11 @@ export default function Metas() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const { data: leadsData } = await supabase.from("leads").select("*");
-            const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
+            const { data: leadsData, error: leadsError } = await supabase.from("leads").select("*");
+            const { data: metaData, error: metaError } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
+            
+            console.log("DEBUG: Metas Leads:", leadsData, "Error:", leadsError);
+            console.log("DEBUG: Metas Config:", metaData, "Error:", metaError);
             
             const allLeads = (leadsData as Lead[]) || [];
             setLeads(allLeads);
