@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -813,21 +814,19 @@ export default function Funil() {
       });
   }, [leads.length]);
 
-  // getColumnLeads: match direto com os IDs normalizados — sem duplicatas
   const getColumnLeads = (colId: string) =>
     leads
       .filter(l => normalizeStatus(l.status) === colId)
       .sort((a, b) => {
-        // Prioridade ABSOLUTA: Recentes Primeiro (Mais novos no TOPO)
-        const timeA = new Date(a.created_at || 0).getTime();
-        const timeB = new Date(b.created_at || 0).getTime();
+        // Prioridade: Recentemente atualizados no TOPO
+        const timeA = new Date(a.status_updated_at || a.updated_at || a.created_at || 0).getTime();
+        const timeB = new Date(b.status_updated_at || b.updated_at || b.created_at || 0).getTime();
         
-        // Se as datas forem diferentes, o mais novo (maior timestamp) vem primeiro
         if (timeA !== timeB) return timeB - timeA;
 
-        // Empate técnico de data? Usa o Score como desempate
-        const sw: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 };
-        const sA = sw[a.score_final || ""] || 0, sB = sw[b.score_final || ""] || 0;
+        // Score como desempate
+        const sw: Record<string, number> = { premium: 4, alto: 3, medio: 2, baixo: 1 };
+        const sA = sw[a.lead_score_valor || ""] || 0, sB = sw[b.lead_score_valor || ""] || 0;
         if (sA !== sB) return sB - sA;
 
         return 0;
