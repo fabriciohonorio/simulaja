@@ -130,6 +130,8 @@ export default function Indicacoes() {
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
     try {
+      const { data: orgData } = await supabase.from('organizacoes').select('id').eq('slug', 'admin-principal').maybeSingle();
+      
       await (supabase.from("leads") as any).insert({
         nome: nomeCliente.trim(),
         celular: wppCliente.replace(/\D/g, ""),
@@ -141,6 +143,7 @@ export default function Indicacoes() {
         lead_temperatura: "quente",
         indicador_nome: pNome.trim(),
         indicador_celular: pWpp.replace(/\D/g, ""),
+        organizacao_id: orgData?.id
       });
     } catch (e) { console.warn("Supabase:", e); }
 
