@@ -650,6 +650,14 @@ export default function Funil() {
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
   
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Wide CRM View Unified States
   const [isWideView, setIsWideView] = useState(() => {
     return localStorage.getItem("crm_wide_view") === "true";
@@ -1013,7 +1021,8 @@ export default function Funil() {
       </div>
 
       {/* Mobile: Column navigator */}
-      <div className="md:hidden">
+      {isMobile ? (
+      <div className="flex flex-col w-full">
         <div className="flex items-center gap-2 mb-3">
           <Button
             variant="outline"
@@ -1077,13 +1086,13 @@ export default function Funil() {
           </Droppable>
         </DragDropContext>
       </div>
-
+      ) : (
       <DragDropContext
         onDragEnd={onDragEnd}
         onDragStart={() => { isDraggingCardRef.current = true; }}
       >
         {/* Wrapper com setas de navegação desktop */}
-        <div className="hidden md:block relative group">
+        <div className="relative group w-full">
           {/* Seta esquerda */}
           <button
             onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 320)}
@@ -1150,6 +1159,7 @@ export default function Funil() {
         </div>
         </div>
       </DragDropContext>
+      )}
 
       {/* Legenda de Cores e Temperatura */}
       <div className="hidden md:flex items-center justify-center gap-8 p-4 bg-white/50 backdrop-blur-md rounded-2xl border border-dashed border-primary/20 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-700">
