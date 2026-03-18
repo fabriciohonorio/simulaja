@@ -19,7 +19,6 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 import SimuladorAdmin from "./pages/admin/SimuladorAdmin";
 import Agendamentos from "./pages/admin/Agendamentos";
 import Jarvis from "./pages/admin/Jarvis";
-// import AuthSettings from "./pages/admin/AuthSettings";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +51,6 @@ const App = () => (
             <Route path="jarvis" element={<Jarvis />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
-{/* <Route path="auth" element={<AuthSettings />} /> */}
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

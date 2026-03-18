@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -814,28 +813,21 @@ export default function Funil() {
       });
   }, [leads.length]);
 
+  // getColumnLeads: match direto com os IDs normalizados — sem duplicatas
   const getColumnLeads = (colId: string) =>
     leads
       .filter(l => normalizeStatus(l.status) === colId)
       .sort((a, b) => {
-        // Prioridade: Recentemente atualizados (Status ou Interaction) no TOPO
-        const timeA = new Date(Math.max(
-          new Date(a.status_updated_at || 0).getTime(),
-          new Date(a.last_interaction_at || 0).getTime(),
-          new Date(a.created_at || 0).getTime()
-        )).getTime();
+        // Prioridade ABSOLUTA: Recentes Primeiro (Mais novos no TOPO)
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
         
-        const timeB = new Date(Math.max(
-          new Date(b.status_updated_at || 0).getTime(),
-          new Date(b.last_interaction_at || 0).getTime(),
-          new Date(b.created_at || 0).getTime()
-        )).getTime();
-        
+        // Se as datas forem diferentes, o mais novo (maior timestamp) vem primeiro
         if (timeA !== timeB) return timeB - timeA;
 
-        // Score como desempate
-        const sw: Record<string, number> = { premium: 4, alto: 3, medio: 2, baixo: 1 };
-        const sA = sw[a.lead_score_valor || ""] || 0, sB = sw[b.lead_score_valor || ""] || 0;
+        // Empate técnico de data? Usa o Score como desempate
+        const sw: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 };
+        const sA = sw[a.score_final || ""] || 0, sB = sw[b.score_final || ""] || 0;
         if (sA !== sB) return sB - sA;
 
         return 0;
@@ -1049,16 +1041,16 @@ export default function Funil() {
       {(provided, snapshot) => {
         const style = {
           ...provided.draggableProps.style,
-          zIndex: snapshot.isDragging ? 99999 : "auto",
+          zIndex: snapshot.isDragging ? 9999 : "auto",
         };
 
-        const cardContent = (
+        const cardElement = (
           <div
-            ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
+            ref={provided.innerRef}
             style={style}
-            className={snapshot.isDragging ? "shadow-2xl brightness-105 pointer-events-none scale-105 transition-transform duration-200" : ""}
+            className={snapshot.isDragging ? "pointer-events-none" : ""}
           >
             <LeadCard
               lead={lead}
@@ -1076,11 +1068,11 @@ export default function Funil() {
           </div>
         );
 
-        if (snapshot.isDragging && typeof document !== "undefined") {
-          return createPortal(cardContent, document.body);
+        if (snapshot.isDragging) {
+          return createPortal(cardElement, document.body);
         }
 
-        return cardContent;
+        return cardElement;
       }}
     </Draggable>
   );

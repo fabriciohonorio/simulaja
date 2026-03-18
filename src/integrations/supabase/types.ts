@@ -29,7 +29,6 @@ export type Database = {
           tipo_consorcio: string | null
           updated_at: string
           valor_credito: number | null
-          organizacao_id: string | null
         }
         Insert: {
           boleto_url?: string | null
@@ -45,7 +44,6 @@ export type Database = {
           tipo_consorcio?: string | null
           updated_at?: string
           valor_credito?: number | null
-          organizacao_id?: string | null
         }
         Update: {
           boleto_url?: string | null
@@ -61,7 +59,6 @@ export type Database = {
           tipo_consorcio?: string | null
           updated_at?: string
           valor_credito?: number | null
-          organizacao_id?: string | null
         }
         Relationships: [
           {
@@ -71,13 +68,6 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "carteira_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
         ]
       }
       historico_contatos: {
@@ -88,7 +78,6 @@ export type Database = {
           observacao: string | null
           resultado: string | null
           tipo: string | null
-          organizacao_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -97,7 +86,6 @@ export type Database = {
           observacao?: string | null
           resultado?: string | null
           tipo?: string | null
-          organizacao_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -106,7 +94,6 @@ export type Database = {
           observacao?: string | null
           resultado?: string | null
           tipo?: string | null
-          organizacao_id?: string | null
         }
         Relationships: [
           {
@@ -116,13 +103,6 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "historico_contatos_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
         ]
       }
       inadimplentes: {
@@ -140,7 +120,6 @@ export type Database = {
           tipo_consorcio: string | null
           updated_at: string
           valor_parcela: number | null
-          organizacao_id: string | null
         }
         Insert: {
           administradora?: string | null
@@ -156,7 +135,6 @@ export type Database = {
           tipo_consorcio?: string | null
           updated_at?: string
           valor_parcela?: number | null
-          organizacao_id?: string | null
         }
         Update: {
           administradora?: string | null
@@ -172,17 +150,8 @@ export type Database = {
           tipo_consorcio?: string | null
           updated_at?: string
           valor_parcela?: number | null
-          organizacao_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "inadimplentes_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       interacoes: {
         Row: {
@@ -191,7 +160,6 @@ export type Database = {
           id: string
           lead_id: string | null
           tipo: string
-          organizacao_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -199,7 +167,6 @@ export type Database = {
           id?: string
           lead_id?: string | null
           tipo: string
-          organizacao_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -207,7 +174,6 @@ export type Database = {
           id?: string
           lead_id?: string | null
           tipo?: string
-          organizacao_id?: string | null
         }
         Relationships: [
           {
@@ -217,13 +183,6 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "interacoes_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
         ]
       }
       leads: {
@@ -245,12 +204,6 @@ export type Database = {
           ultimo_contato: string | null
           updated_at: string | null
           valor_credito: number | null
-          organizacao_id: string | null
-          origem: string | null
-          status_updated_at: string | null
-          last_interaction_at: string | null
-          propensity_score: number | null
-          propensity_reason: string | null
         }
         Insert: {
           celular?: string | null
@@ -270,12 +223,6 @@ export type Database = {
           ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
-          organizacao_id?: string | null
-          origem?: string | null
-          status_updated_at?: string | null
-          last_interaction_at?: string | null
-          propensity_score?: number | null
-          propensity_reason?: string | null
         }
         Update: {
           celular?: string | null
@@ -295,22 +242,8 @@ export type Database = {
           ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
-          organizacao_id?: string | null
-          origem?: string | null
-          status_updated_at?: string | null
-          last_interaction_at?: string | null
-          propensity_score?: number | null
-          propensity_reason?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "leads_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       mercado_termometro: {
         Row: {
@@ -350,7 +283,6 @@ export type Database = {
           ticket_medio_motos: number | null
           ticket_medio_pesados: number | null
           ticket_medio_veiculos: number | null
-          organizacao_id: string | null
         }
         Insert: {
           ano?: number | null
@@ -368,7 +300,6 @@ export type Database = {
           ticket_medio_motos?: number | null
           ticket_medio_pesados?: number | null
           ticket_medio_veiculos?: number | null
-          organizacao_id?: string | null
         }
         Update: {
           ano?: number | null
@@ -386,17 +317,8 @@ export type Database = {
           ticket_medio_motos?: number | null
           ticket_medio_pesados?: number | null
           ticket_medio_veiculos?: number | null
-          organizacao_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "meta_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       Prompts: {
         Row: {
@@ -426,7 +348,6 @@ export type Database = {
           valor_credito: number
           valor_parcela: number
           valor_total: number
-          organizacao_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -440,7 +361,6 @@ export type Database = {
           valor_credito: number
           valor_parcela: number
           valor_total: number
-          organizacao_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -454,7 +374,6 @@ export type Database = {
           valor_credito?: number
           valor_parcela?: number
           valor_total?: number
-          organizacao_id?: string | null
         }
         Relationships: [
           {
@@ -464,13 +383,6 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "propostas_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
         ]
       }
       user_roles: {
@@ -520,194 +432,6 @@ export type Database = {
           senha_hash?: string
         }
         Relationships: []
-      }
-      organizacoes: {
-        Row: {
-          ativo: boolean
-          created_at: string
-          id: string
-          logo_url: string | null
-          max_leads: number
-          max_usuarios: number
-          nome: string
-          plano: "free" | "starter" | "pro" | "enterprise"
-          slug: string
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          max_leads?: number
-          max_usuarios?: number
-          nome: string
-          plano: "free" | "starter" | "pro" | "enterprise"
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          max_leads?: number
-          max_usuarios?: number
-          nome?: string
-          plano?: "free" | "starter" | "pro" | "enterprise"
-          slug?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      perfis: {
-        Row: {
-          ativo: boolean
-          avatar_url: string | null
-          cargo: string | null
-          created_at: string
-          id: string
-          nome_completo: string | null
-          organizacao_id: string | null
-          telefone: string | null
-          tipo_acesso: "total" | "parcial"
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          avatar_url?: string | null
-          cargo?: string | null
-          created_at?: string
-          id: string
-          nome_completo?: string | null
-          organizacao_id?: string | null
-          telefone?: string | null
-          tipo_acesso: "total" | "parcial"
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          avatar_url?: string | null
-          cargo?: string | null
-          created_at?: string
-          id?: string
-          nome_completo?: string | null
-          organizacao_id?: string | null
-          telefone?: string | null
-          tipo_acesso?: "total" | "parcial"
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "perfis_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "perfis_organizacao_id_fkey"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      modulos: {
-        Row: {
-          ativo: boolean
-          descricao: string | null
-          icone: string | null
-          id: string
-          nome: string
-          ordem: number
-          slug: string
-        }
-        Insert: {
-          ativo?: boolean
-          descricao?: string | null
-          icone?: string | null
-          id?: string
-          nome: string
-          ordem?: number
-          slug: string
-        }
-        Update: {
-          ativo?: boolean
-          descricao?: string | null
-          icone?: string | null
-          id?: string
-          nome?: string
-          ordem?: number
-          slug?: string
-        }
-        Relationships: []
-      }
-      permissoes: {
-        Row: {
-          acao: string
-          descricao: string | null
-          id: string
-          modulo_id: string
-        }
-        Insert: {
-          acao: string
-          descricao?: string | null
-          id?: string
-          modulo_id: string
-        }
-        Update: {
-          acao?: string
-          descricao?: string | null
-          id?: string
-          modulo_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "permissoes_modulo_id_fkey"
-            columns: ["modulo_id"]
-            isOneToOne: false
-            referencedRelation: "modulos"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      usuario_permissoes: {
-        Row: {
-          concedida: boolean
-          id: string
-          perfil_id: string
-          permissao_id: string
-        }
-        Insert: {
-          concedida?: boolean
-          id?: string
-          perfil_id: string
-          permissao_id: string
-        }
-        Update: {
-          concedida?: boolean
-          id?: string
-          perfil_id?: string
-          permissao_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "usuario_permissoes_perfil_id_fkey"
-            columns: ["perfil_id"]
-            isOneToOne: false
-            referencedRelation: "perfis"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "usuario_permissoes_permissao_id_fkey"
-            columns: ["permissao_id"]
-            isOneToOne: false
-            referencedRelation: "permissoes"
-            referencedColumns: ["id"]
-          }
-        ]
       }
     }
     Views: {

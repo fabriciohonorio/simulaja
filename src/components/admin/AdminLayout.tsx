@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Shield } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -15,11 +15,10 @@ const menuItems = [
     { icon: Users, label: "Carteira Clientes", path: "/admin/carteira", color: "text-blue-600" },
     { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes", color: "text-red-500" },
     { icon: Target, label: "Metas", path: "/admin/metas", color: "text-amber-500" },
-    // { icon: Shield, label: "Acessos", path: "/admin/auth", color: "text-slate-700" },
 ];
 
 export default function AdminLayout() {
-    const { signOut, authError, profile } = useAuth();
+    const { signOut } = useAuth();
     const location = useLocation();
     const [open, setOpen] = useState(false);
     const isFunilPage = location.pathname === "/admin/funil";
@@ -32,69 +31,52 @@ export default function AdminLayout() {
         localStorage.setItem("admin_sidebar_collapsed", String(sidebarCollapsed));
     }, [sidebarCollapsed]);
 
-    const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => {
-        const { profile, permissions } = useAuth();
-        
-        const filteredMenuItems = menuItems.filter(item => {
-            // Dashboard is always visible
-            if (item.path === "/admin") return true;
-            
-            // Total/Admin access can see everything
-            if (profile?.tipo_acesso === 'total') return true;
-            
-            // Partial access relies on granular permissions
-            return permissions.some(up => 
-                up.concedida && up.permissao?.modulo?.slug === item.path.split('/').pop()
-            );
-        });
-
-        return (
-            <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
-                <div className={`p-6 border-b border-sidebar-border text-center overflow-hidden h-24 flex items-center justify-center`}>
-                    {!collapsed ? (
-                        <a href="https://www.oespecialistaconsorcio.com.br" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent break-words leading-tight hover:opacity-80 transition-opacity">
-                            www.oespecialistaconsorcio.com.br
-                        </a>
-                    ) : (
-                        <span className="font-bold text-primary text-xl">OE</span>
-                    )}
-                </div>
-
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto no-scrollbar">
-                    {filteredMenuItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => setOpen(false)}
-                            end={item.path === "/admin"}
-                            title={collapsed ? item.label : ""}
-                            className={({ isActive }) =>
-                                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
-                                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
-                                    : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
-                                } ${collapsed ? 'justify-center px-0' : ''}`
-                            }
-                        >
-                            <item.icon className={`h-5 w-5 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
-                            {!collapsed && <span className="font-semibold tracking-tight">{item.label}</span>}
-                        </NavLink>
-                    ))}
-                </nav>
-
-                <div className={`p-4 border-t border-sidebar-border mt-auto bg-sidebar-background/50 backdrop-blur-sm ${collapsed ? 'px-2' : ''}`}>
-                    <Button
-                        variant="ghost"
-                        onClick={() => signOut()}
-                        className={`w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-6 ${collapsed ? 'justify-center px-0' : ''}`}
-                        title={collapsed ? "Sair" : ""}
-                    >
-                        <LogOut className={`h-5 w-5 ${collapsed ? 'h-6 w-6' : ''}`} />
-                        {!collapsed && <span className="font-semibold">Sair</span>}
-                    </Button>
-                </div>
+    const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
+        <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
+            <div className={`p-6 border-b border-sidebar-border text-center overflow-hidden h-24 flex items-center justify-center`}>
+                {!collapsed ? (
+                    <a href="https://www.oespecialistaconsorcio.com.br" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent break-words leading-tight hover:opacity-80 transition-opacity">
+                        www.oespecialistaconsorcio.com.br
+                    </a>
+                ) : (
+                    <span className="font-bold text-primary text-xl">OE</span>
+                )}
             </div>
-        );
-    };
+
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto no-scrollbar">
+                {menuItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setOpen(false)}
+                        end={item.path === "/admin"}
+                        title={collapsed ? item.label : ""}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
+                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
+                                : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
+                            } ${collapsed ? 'justify-center px-0' : ''}`
+                        }
+                    >
+                        <item.icon className={`h-5 w-5 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
+                        {!collapsed && <span className="font-semibold tracking-tight">{item.label}</span>}
+                    </NavLink>
+                ))}
+            </nav>
+
+            <div className={`p-4 border-t border-sidebar-border mt-auto bg-sidebar-background/50 backdrop-blur-sm ${collapsed ? 'px-2' : ''}`}>
+                <Button
+                    variant="ghost"
+                    onClick={() => signOut()}
+                    className={`w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-6 ${collapsed ? 'justify-center px-0' : ''}`}
+                    title={collapsed ? "Sair" : ""}
+                >
+                    <LogOut className={`h-5 w-5 ${collapsed ? 'h-6 w-6' : ''}`} />
+                    {!collapsed && <span className="font-semibold">Sair</span>}
+                </Button>
+            </div>
+        </div>
+    );
 
     return (
         <div className="flex h-screen bg-background overflow-hidden">
@@ -128,21 +110,6 @@ export default function AdminLayout() {
 
                 {/* Dynamic Page Content */}
                 <main className={`flex-1 overflow-auto bg-slate-50/50 relative ${isFunilPage ? 'p-0 sm:p-0 md:p-0' : 'p-4 sm:p-6 md:p-8'}`}>
-          {/* Removido o banner de diagnóstico para modo de restauração de emergência */}
-                    
-                    {!authError && !profile?.organizacao_id && (
-                        <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-                            <Shield className="h-6 w-6 text-blue-600 shrink-0 mt-0.5" />
-                            <div className="space-y-1">
-                                <p className="font-bold text-blue-900">Perfil sem Organização</p>
-                                <p className="text-sm text-blue-800 leading-relaxed">
-                                    Sua conta foi encontrada, mas não está vinculada a nenhuma organização. 
-                                    Seus dados estão protegidos pelo sistema de isolamento (RLS).
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
                     {/* Desktop Sidebar Toggle - Posicionado de forma fixa ou absoluta para fácil acesso */}
                     <button 
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

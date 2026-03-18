@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CRMDrawer } from "@/components/admin/CRMDrawer";
-import { useAuth } from "@/hooks/useAuth";
 import { jsPDF } from "jspdf";
 import { 
   Calculator, 
@@ -86,7 +85,6 @@ type HistItem = {
 };
 
 export default function Simulador() {
-  const { profile } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const refCelular = searchParams.get("ref") || "";
@@ -168,7 +166,6 @@ export default function Simulador() {
         status: "novo_lead",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
-        organizacao_id: profile?.organizacao_id,
         ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : {}),
       });
 

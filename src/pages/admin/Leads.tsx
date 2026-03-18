@@ -74,17 +74,10 @@ export default function Leads() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    supabase.from("leads")
-      .select("*")
-      .then(({ data, error }) => {
-        console.log("DEBUG: Leads carregados (modo emergência):", data);
-        if (error) {
-          console.error("DEBUG: Erro ao carregar leads:", error);
-          return;
-        }
-        setLeads((data as Lead[]) ?? []);
-        setLoading(false);
-      });
+    supabase.from("leads").select("*").then(({ data }) => {
+      setLeads((data as Lead[]) ?? []);
+      setLoading(false);
+    });
   }, []);
 
   const toggleSort = (key: keyof Lead) => {

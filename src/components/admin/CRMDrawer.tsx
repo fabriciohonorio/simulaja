@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
 
 interface Lead {
   id: string;
@@ -35,7 +34,6 @@ interface CRMDrawerProps {
 }
 
 export function CRMDrawer({ onLoadLead, onSaveSim }: CRMDrawerProps) {
-  const { profile } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -48,12 +46,10 @@ export function CRMDrawer({ onLoadLead, onSaveSim }: CRMDrawerProps) {
   }, [isOpen]);
 
   async function fetchLeads() {
-    if (!profile?.organizacao_id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("leads")
       .select("id, nome, celular, cidade, tipo_consorcio, valor_credito, status, updated_at")
-      .eq("organizacao_id", profile.organizacao_id)
       .order("updated_at", { ascending: false });
 
     if (error) {

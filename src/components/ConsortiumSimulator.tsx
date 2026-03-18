@@ -19,6 +19,8 @@ import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } f
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+import fabricioReal from "@/assets/fabricio-real.jpg";
+import heroBg from "@/assets/hero-bg.png";
 
 import cardImovel from "@/assets/card-imovel.jpg";
 import cardVeiculo from "@/assets/card-veiculo.jpg";
@@ -178,9 +180,6 @@ const ConsortiumSimulator = () => {
     // 1. Save to Supabase (CRM)
     try {
       console.log("Tentando salvar no CRM...", { nome: simNome, celular: simWpp });
-      
-      const { data: orgData } = await supabase.from('organizacoes').select('id').eq('slug', 'admin-principal').maybeSingle();
-      
       const { error: dbError } = await supabase.from("leads").insert({
         nome: simNome.trim(),
         celular: simWpp.replace(/\D/g, ""),
@@ -189,8 +188,7 @@ const ConsortiumSimulator = () => {
         prazo_meses: g.prazo,
         status: "novo_lead",
         lead_score_valor: leadScoreValor,
-        lead_temperatura: "quente",
-        organizacao_id: orgData?.id
+        lead_temperatura: "quente"
       });
 
       if (dbError) {
@@ -242,6 +240,71 @@ const ConsortiumSimulator = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 30%) 100%)" }}>
+        <div className="absolute inset-0" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.1 }} />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+
+        <div className="relative container max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Left column */}
+            <div className="text-white space-y-8 animate-fade-in-up">
+              <div>
+                <p className="text-sm md:text-base font-semibold tracking-[0.2em] uppercase text-white/60 mb-3">
+                  FABRICIO | Especialista em Consórcio
+                </p>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
+                  CONSÓRCIO
+                  <br />
+                  <span className="text-secondary">INTELIGENTE</span>
+                </h1>
+                <p className="text-lg md:text-xl text-white/70 mt-5 max-w-lg leading-relaxed">
+                  Imóveis, veículos e investimentos com planejamento financeiro e <strong className="text-white">sem juros</strong>.
+                </p>
+              </div>
+
+              {/* Benefits list */}
+              <ul className="space-y-3">
+                {[
+                  "Consórcio imobiliário",
+                  "Consórcio de veículos",
+                  "Consórcio de motos",
+                  "Consórcio agro",
+                  "Consórcio para investimento",
+                  "Consórcio para Náutica",
+                  "Cartas Contempladas",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-white/90">
+                    <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
+                    <span className="text-base md:text-lg">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href="#simulator"
+                className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
+              >
+                SIMULAR CONSÓRCIO AGORA
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </a>
+            </div>
+
+            {/* Right column — Specialist image */}
+            <div className="relative flex justify-center lg:justify-end">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-2xl" />
+                <img
+                  src={fabricioReal}
+                  alt="Fabrício — Especialista em Consórcio"
+                  className="relative w-full max-w-md lg:max-w-lg rounded-2xl shadow-2xl object-cover border-2 border-white/10"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== SOBRE O ESPECIALISTA ===== */}
       <section className="py-20 bg-background">
         <div className="container max-w-4xl mx-auto px-4 text-center">
