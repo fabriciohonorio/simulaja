@@ -473,13 +473,25 @@ function HistoricoModal({
 
     const dataHoje = format(new Date(), "dd/MM");
     const observacaoComData = `[${dataHoje}] ${observacao.trim()}`;
+ 
+    // Debug info for session and profile
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: profile } = await supabase.from("perfis").select("*").eq("id", session?.user?.id).maybeSingle();
+
+    console.log("DEBUG: Sessão/Perfil:", { 
+      user: session?.user?.email, 
+      profileOrg: (profile as any)?.organizacao_id,
+      leadOrg: lead.organizacao_id 
+    });
+
+    const finalOrgId = lead.organizacao_id || (profile as any)?.organizacao_id;
 
     console.log("Tentando salvar tratativa:", {
       lead_id: lead.id,
       tipo: tipoContato,
       observacao: observacaoComData,
       resultado,
-      organizacao_id: lead.organizacao_id,
+      organizacao_id: finalOrgId,
     });
 
     const { error } = await supabase.from("historico_contatos").insert({
@@ -487,7 +499,7 @@ function HistoricoModal({
       tipo: tipoContato,
       observacao: observacaoComData,
       resultado,
-      organizacao_id: lead.organizacao_id,
+      organizacao_id: finalOrgId,
     });
 
     if (error) {
@@ -497,14 +509,21 @@ function HistoricoModal({
       return;
     }
 
+    // Se o lead não tiver organizacao_id, vamos aproveitar para setar o do usuário
+    const updateData: any = {
+      ultimo_contato: new Date().toISOString(),
+      last_interaction_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (!lead.organizacao_id && (profile as any)?.organizacao_id) {
+      updateData.organizacao_id = (profile as any).organizacao_id;
+    }
+
     // Atualiza ultimo_contato e last_interaction_at no lead
     const { error: updateError } = await supabase
       .from("leads")
-      .update({
-        ultimo_contato: new Date().toISOString(),
-        last_interaction_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", lead.id);
 
     if (updateError) {
