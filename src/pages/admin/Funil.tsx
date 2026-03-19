@@ -472,7 +472,7 @@ function HistoricoModal({
       // Busca o perfil do usuário logado uma única vez ao abrir o modal
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user?.id) {
-          supabase.from("perfis")
+          supabase.from("perfis" as any)
             .select("organizacao_id")
             .eq("id", session.user.id)
             .maybeSingle()
@@ -500,7 +500,8 @@ function HistoricoModal({
     });
 
     if (error) {
-      toast.error("Erro ao salvar tratativa");
+      console.error("Erro ao salvar histórico:", error);
+      toast.error(`Erro ao salvar tratativa: ${error.message}${error.details ? ' - ' + error.details : ''}`);
       setSavingNota(false);
       return;
     }
@@ -524,6 +525,7 @@ function HistoricoModal({
 
     if (updateError) {
       console.error("Erro ao atualizar lead:", updateError);
+      toast.error(`Erro ao atualizar lead: ${updateError.message}`);
     }
 
     toast.success("Tratativa registrada!");
@@ -748,12 +750,12 @@ export default function Funil() {
 
   useEffect(() => {
     supabase.from("leads").select("*").then(({ data }) => {
-        setLeads((data as any[]) || []);
+        setLeads((data as unknown as Lead[]) || []);
       // De-duplicar por ID para evitar problemas de estado
-      const uniqueRaw = (data as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
+      const uniqueRaw = (data as unknown as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
       
-      if ((data as Lead[]).length !== uniqueRaw.length) {
-        console.error("DUPLICADOS DETECTADOS NO BANCO:", (data as Lead[]).length - uniqueRaw.length, "leads com IDs repetidos.");
+      if ((data as unknown as Lead[]).length !== uniqueRaw.length) {
+        console.error("DUPLICADOS DETECTADOS NO BANCO:", (data as unknown as Lead[]).length - uniqueRaw.length, "leads com IDs repetidos.");
       }
 
       const fetchedLeads = uniqueRaw.map((lead: any) => ({
