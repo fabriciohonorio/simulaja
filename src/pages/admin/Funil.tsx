@@ -441,9 +441,11 @@ function LeadCard({
 function HistoricoModal({
   lead,
   onClose,
+  allLeads = [],
 }: {
   lead: Lead | null;
   onClose: () => void;
+  allLeads?: Lead[];
 }) {
   const [historico, setHistorico] = useState<HistoricoContato[]>([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
@@ -466,20 +468,7 @@ function HistoricoModal({
   }, []);
 
   useEffect(() => {
-    if (lead) {
-      fetchHistorico(lead.id);
-      
-      // Busca o perfil do usuário logado uma única vez ao abrir o modal
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user?.id) {
-          supabase.from("perfis" as any)
-            .select("organizacao_id")
-            .eq("id", session.user.id)
-            .maybeSingle()
-            .then(({ data }) => setCurrentUserProfile(data));
-        }
-      });
-    }
+    if (lead) fetchHistorico(lead.id);
   }, [lead, fetchHistorico]);
 
   const handleSaveNota = async () => {
@@ -489,7 +478,10 @@ function HistoricoModal({
     const dataHoje = format(new Date(), "dd/MM");
     const observacaoComData = `[${dataHoje}] ${observacao.trim()}`;
  
-    const finalOrgId = lead.organizacao_id || currentUserProfile?.organizacao_id;
+    // Em vez de buscar no perfis, vamos pegar de qualquer lead que tenha o ID
+    // Já que o RLS filtra os leads pela organização do usuário logado
+    const organizationFromOtherLeads = allLeads.find(l => l.organizacao_id)?.organizacao_id;
+    const finalOrgId = lead.organizacao_id || organizationFromOtherLeads;
 
     const { error } = await supabase.from("historico_contatos").insert({
       lead_id: lead.id,
@@ -513,8 +505,8 @@ function HistoricoModal({
       updated_at: new Date().toISOString(),
     };
 
-    if (!lead.organizacao_id && currentUserProfile?.organizacao_id) {
-      updateData.organizacao_id = currentUserProfile.organizacao_id;
+    if (!lead.organizacao_id && organizationFromOtherLeads) {
+      updateData.organizacao_id = organizationFromOtherLeads;
     }
 
     // Atualiza ultimo_contato e last_interaction_at no lead
@@ -1312,7 +1304,7 @@ export default function Funil() {
       </div>
 
       {/* Modal Histórico de Tratativas */}
-      <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} />
+      <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} allLeads={leads} />
 
       {/* Vencimento Calendar Dialog */}
       <Dialog open={!!vencimentoLead} onOpenChange={(open: boolean) => !open && setVencimentoLead(null)}>
