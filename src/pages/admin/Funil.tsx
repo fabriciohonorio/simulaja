@@ -474,6 +474,14 @@ function HistoricoModal({
     const dataHoje = format(new Date(), "dd/MM");
     const observacaoComData = `[${dataHoje}] ${observacao.trim()}`;
 
+    console.log("Tentando salvar tratativa:", {
+      lead_id: lead.id,
+      tipo: tipoContato,
+      observacao: observacaoComData,
+      resultado,
+      organizacao_id: lead.organizacao_id,
+    });
+
     const { error } = await supabase.from("historico_contatos").insert({
       lead_id: lead.id,
       tipo: tipoContato,
@@ -483,13 +491,14 @@ function HistoricoModal({
     });
 
     if (error) {
-      toast.error("Erro ao salvar tratativa");
+      console.error("Erro ao salvar histórico:", error);
+      toast.error(`Erro ao salvar tratativa: ${error.message}`);
       setSavingNota(false);
       return;
     }
 
     // Atualiza ultimo_contato e last_interaction_at no lead
-    await supabase
+    const { error: updateError } = await supabase
       .from("leads")
       .update({
         ultimo_contato: new Date().toISOString(),
@@ -497,6 +506,11 @@ function HistoricoModal({
         updated_at: new Date().toISOString(),
       })
       .eq("id", lead.id);
+
+    if (updateError) {
+      console.error("Erro ao atualizar lead:", updateError);
+      toast.error(`Erro ao atualizar lead: ${updateError.message}`);
+    }
 
     toast.success("Tratativa registrada!");
     setObservacao("");
