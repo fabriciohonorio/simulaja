@@ -1109,7 +1109,7 @@ export default function Funil() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
-          <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v2.9 WIDE</Badge>
+          <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v3.5 RECURSION FIXED</Badge>
         </div>
         <div className="hidden md:flex items-center bg-muted/30 p-1 rounded-lg border border-border">
           <button
@@ -1299,7 +1299,7 @@ export default function Funil() {
           </div>
 
           <div className="ml-auto flex items-center gap-3 pl-4 border-l border-border/50">
-              <Badge variant="outline" className="bg-primary/5 text-[10px] py-0 border-primary/20">Identificador Inteligente v3.0</Badge>
+              <Badge variant="outline" className="bg-primary/5 text-[10px] py-0 border-primary/20">Identificador Inteligente v3.5</Badge>
           </div>
       </div>
 
