@@ -62,6 +62,7 @@ interface Lead {
   indicador_nome?: string | null;
   indicador_celular?: string | null;
   data_vencimento?: string | null;
+  organizacao_id?: string | null;
 }
 
 interface HistoricoContato {
@@ -71,6 +72,7 @@ interface HistoricoContato {
   observacao: string | null;
   resultado: string | null;
   created_at: string | null;
+  organizacao_id?: string | null;
 }
 
 const COLUMNS = [
@@ -476,6 +478,7 @@ function HistoricoModal({
       tipo: tipoContato,
       observacao: observacaoComData,
       resultado,
+      organizacao_id: lead.organizacao_id,
     });
 
     if (error) {
@@ -489,6 +492,7 @@ function HistoricoModal({
       .from("leads")
       .update({
         ultimo_contato: new Date().toISOString(),
+        last_interaction_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", lead.id);
