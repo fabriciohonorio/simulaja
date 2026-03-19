@@ -452,6 +452,8 @@ function HistoricoModal({
   const [observacao, setObservacao] = useState("");
   const [resultado, setResultado] = useState("positivo");
 
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+
   const fetchHistorico = useCallback(async (leadId: string) => {
     setLoadingHistorico(true);
     const { data } = await supabase
@@ -464,35 +466,30 @@ function HistoricoModal({
   }, []);
 
   useEffect(() => {
-    if (lead) fetchHistorico(lead.id);
+    if (lead) {
+      fetchHistorico(lead.id);
+      
+      // Busca o perfil do usuário logado uma única vez ao abrir o modal
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user?.id) {
+          supabase.from("perfis")
+            .select("organizacao_id")
+            .eq("id", session.user.id)
+            .maybeSingle()
+            .then(({ data }) => setCurrentUserProfile(data));
+        }
+      });
+    }
   }, [lead, fetchHistorico]);
 
   const handleSaveNota = async () => {
-    if (!lead || !observacao.trim()) return;
+    if (!lead || !observacao.trim() || savingNota) return;
     setSavingNota(true);
 
     const dataHoje = format(new Date(), "dd/MM");
     const observacaoComData = `[${dataHoje}] ${observacao.trim()}`;
  
-    // Debug info for session and profile
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data: profile } = await supabase.from("perfis").select("*").eq("id", session?.user?.id).maybeSingle();
-
-    console.log("DEBUG: Sessão/Perfil:", { 
-      user: session?.user?.email, 
-      profileOrg: (profile as any)?.organizacao_id,
-      leadOrg: lead.organizacao_id 
-    });
-
-    const finalOrgId = lead.organizacao_id || (profile as any)?.organizacao_id;
-
-    console.log("Tentando salvar tratativa:", {
-      lead_id: lead.id,
-      tipo: tipoContato,
-      observacao: observacaoComData,
-      resultado,
-      organizacao_id: finalOrgId,
-    });
+    const finalOrgId = lead.organizacao_id || currentUserProfile?.organizacao_id;
 
     const { error } = await supabase.from("historico_contatos").insert({
       lead_id: lead.id,
@@ -503,8 +500,7 @@ function HistoricoModal({
     });
 
     if (error) {
-      console.error("Erro ao salvar histórico:", error);
-      toast.error(`Erro ao salvar tratativa: ${error.message}`);
+      toast.error("Erro ao salvar tratativa");
       setSavingNota(false);
       return;
     }
@@ -516,8 +512,8 @@ function HistoricoModal({
       updated_at: new Date().toISOString(),
     };
 
-    if (!lead.organizacao_id && (profile as any)?.organizacao_id) {
-      updateData.organizacao_id = (profile as any).organizacao_id;
+    if (!lead.organizacao_id && currentUserProfile?.organizacao_id) {
+      updateData.organizacao_id = currentUserProfile.organizacao_id;
     }
 
     // Atualiza ultimo_contato e last_interaction_at no lead
@@ -528,7 +524,6 @@ function HistoricoModal({
 
     if (updateError) {
       console.error("Erro ao atualizar lead:", updateError);
-      toast.error(`Erro ao atualizar lead: ${updateError.message}`);
     }
 
     toast.success("Tratativa registrada!");
