@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin", color: "text-blue-500" },
+    { icon: Settings, label: "Configurações", path: "/admin/configuracoes", color: "text-slate-600" },
     { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis", color: "text-purple-500" },
     { icon: Filter, label: "Leads", path: "/admin/leads", color: "text-orange-500" },
     { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil", color: "text-emerald-500" },
@@ -21,11 +23,33 @@ export default function AdminLayout() {
     const { signOut } = useAuth();
     const location = useLocation();
     const [open, setOpen] = useState(false);
+    const [profile, setProfile] = useState<any>(null);
+    const [org, setOrg] = useState<any>(null);
     const isFunilPage = location.pathname === "/admin/funil";
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         const saved = localStorage.getItem("admin_sidebar_collapsed");
         return saved === "true";
     });
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profileData } = await (supabase
+            .from("perfis" as any) as any)
+            .select("*, organizacoes(nome)")
+            .eq("id", user.id)
+            .single();
+
+        if (profileData) {
+            setProfile(profileData);
+            setOrg(profileData.organizacoes);
+        }
+    };
 
     useEffect(() => {
         localStorage.setItem("admin_sidebar_collapsed", String(sidebarCollapsed));
@@ -35,13 +59,33 @@ export default function AdminLayout() {
         <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
             <div className={`p-6 border-b border-sidebar-border text-center overflow-hidden h-24 flex items-center justify-center`}>
                 {!collapsed ? (
-                    <a href="https://www.oespecialistaconsorcio.com.br" target="_blank" rel="noopener noreferrer" className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent break-words leading-tight hover:opacity-80 transition-opacity">
-                        www.oespecialistaconsorcio.com.br
-                    </a>
+                    <div className="flex flex-col items-center gap-0.5">
+                        <div className="text-sm font-black text-slate-900 tracking-tighter leading-tight">
+                            FABRICIO <span className="text-primary">|</span> <span className="font-light text-slate-500">Especialista</span>
+                        </div>
+                        <a 
+                            href="https://www.oespecialistaconsorcio.com.br" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-[9px] font-bold text-primary/70 hover:text-primary transition-colors tracking-widest uppercase"
+                        >
+                            www.oespecialistaconsorcio.com.br
+                        </a>
+                    </div>
                 ) : (
-                    <span className="font-bold text-primary text-xl">OE</span>
+                    <span className="font-bold text-primary text-xl tracking-tighter italic">FE</span>
                 )}
             </div>
+
+            {!collapsed && org && (
+                <div className="mx-4 mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">EMPRESA</div>
+                    <div className="font-black text-slate-900 truncate">{org.nome}</div>
+                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase">
+                        {profile?.tipo_acesso === 'admin' ? 'Administrador' : 'Vendedor'}
+                    </div>
+                </div>
+            )}
 
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto no-scrollbar">
                 {menuItems.map((item) => (

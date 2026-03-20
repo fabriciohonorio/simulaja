@@ -748,15 +748,11 @@ export default function Funil() {
       // De-duplicar por ID para evitar problemas de estado
       const uniqueRaw = (data as unknown as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
       
-      if ((data as unknown as Lead[]).length !== uniqueRaw.length) {
-        console.error("DUPLICADOS DETECTADOS NO BANCO:", (data as unknown as Lead[]).length - uniqueRaw.length, "leads com IDs repetidos.");
-      }
-
+      // Log only on first load if needed, but not spamming
       const fetchedLeads = uniqueRaw.map((lead: any) => ({
         ...lead,
         status: normalizeStatus(lead.status),
       }));
-      console.log("Kanban v2.2 Loaded - Leads:", fetchedLeads.length);
       setLeads(fetchedLeads);
       setLoading(false);
 

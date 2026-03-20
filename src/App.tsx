@@ -19,6 +19,9 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 import SimuladorAdmin from "./pages/admin/SimuladorAdmin";
 import Agendamentos from "./pages/admin/Agendamentos";
 import Jarvis from "./pages/admin/Jarvis";
+import Settings from "./pages/admin/Settings";
+import Register from "./pages/admin/Register";
+import ResetPassword from "./pages/admin/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +37,8 @@ const App = () => (
           <Route path="/parceiro" element={<Simulador />} />
           <Route path="/indicacoes" element={<Indicacoes />} />
           <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin/register" element={<Register />} />
+          <Route path="/admin/reset-password" element={<ResetPassword />} />
           <Route
             path="/admin"
             element={
@@ -51,6 +56,7 @@ const App = () => (
             <Route path="jarvis" element={<Jarvis />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
+            <Route path="configuracoes" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

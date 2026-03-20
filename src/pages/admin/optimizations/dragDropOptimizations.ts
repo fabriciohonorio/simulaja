@@ -15,6 +15,5 @@ export const improvedOnDragEnd = (result) => {
 
     // Add logic to handle the reordering of items here
     // E.g., updating state or calling a function to reorder
-    console.log(`Item moved from ${source.index} to ${destination.index}`);
     // Further optimization can be added based on specific requirements
 };

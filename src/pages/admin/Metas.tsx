@@ -102,6 +102,7 @@ export default function Metas() {
     const [loading, setLoading] = useState(true);
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
+    const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
 
     useEffect(() => { 
         fetchData(); 
@@ -198,7 +199,7 @@ export default function Metas() {
                 fetchTermometro()
             ]);
         } catch (err) {
-            console.error(err);
+            // Error already logged by Supabase if relevant
         } finally {
             setLoading(false);
         }
@@ -246,7 +247,6 @@ export default function Metas() {
     };
 
         const metaMensal = metaAnual / 12;
-    const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
     const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const realizadoAno = fechados.filter(l => l.created_at?.startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
