@@ -56,8 +56,8 @@ export default function Dashboard() {
   }, []);
 
   const totalLeads = leads.length;
-  const leadsNovos = leads.filter(l => l.status === "novo").length;
-  const leadsConvertidos = leads.filter(l => l.status === "fechado").length;
+  const leadsNovos = leads.filter(l => l.status === "novo" || l.status === "novo_lead").length;
+  const leadsConvertidos = leads.filter(l => l.status === "fechado" || l.status === "venda_fechada").length;
   const taxaConversao = totalLeads > 0 ? (leadsConvertidos / totalLeads) * 100 : 0;
   const volumeTotal = leads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   const volumeFechado = leads.filter(l => l.status === "fechado").reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);

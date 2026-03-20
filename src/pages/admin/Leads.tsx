@@ -37,7 +37,8 @@ const SCORE_LABELS: Record<string, string> = {
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos os status" },
-  { value: "novo", label: "Novo" },
+  { value: "novo_lead", label: "Novo Lead" },
+  { value: "novo", label: "Novo (Antigo)" },
   { value: "contatado", label: "Contatado" },
   { value: "proposta_enviada", label: "Proposta Enviada" },
   { value: "em_negociacao", label: "Em Negociação" },
@@ -101,7 +102,13 @@ export default function Leads() {
           l.celular.includes(s)
       );
     }
-    if (statusFilter !== "all") result = result.filter((l) => (l.status ?? "novo") === statusFilter);
+    if (statusFilter !== "all") result = result.filter((l) => {
+      const s = l.status ?? "novo_lead";
+      if (statusFilter === "novo_lead" || statusFilter === "novo") {
+        return s === "novo_lead" || s === "novo";
+      }
+      return s === statusFilter;
+    });
     if (tipoFilter !== "all") result = result.filter((l) => l.tipo_consorcio === tipoFilter);
     if (cidadeFilter) result = result.filter((l) => l.cidade?.toLowerCase().includes(cidadeFilter.toLowerCase()) ?? false);
 

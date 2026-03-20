@@ -5,6 +5,18 @@ import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles,
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+
 
 interface Lead {
     id: string;
@@ -16,6 +28,8 @@ interface Lead {
     lead_temperatura: string | null;
     last_interaction_at?: string | null;
     origem?: string | null;
+    data_vencimento?: string | null;
+    created_at?: string | null;
 }
 
 const TEMP_EMOJIS: Record<string, string> = {
@@ -36,14 +50,44 @@ export default function FilaInteligente() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        supabase.from("leads").select("*")
-            .not("status", "in", '("fechado", "perdido", "morto")')
-            .then(({ data }) => {
-                setLeads((data as Lead[]) ?? []);
-                setLoading(false);
-            });
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const { data } = await supabase.from("leads").select("*")
+            .not("status", "in", '("fechado", "perdido", "morto")');
+        setLeads((data as Lead[]) ?? []);
+        setLoading(false);
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const handleSaveVencimento = async () => {
+        if (!selectedLead || !selectedDate) return;
+        const dateStr = format(selectedDate, "yyyy-MM-dd");
+
+        const { error } = await supabase
+            .from("leads")
+            .update({ data_vencimento: dateStr, updated_at: new Date().toISOString() })
+            .eq("id", selectedLead.id);
+
+        if (error) {
+            toast.error("Erro ao agendar");
+            return;
+        }
+
+        setLeads((prev) =>
+            prev.map((l) => (l.id === selectedLead.id ? { ...l, data_vencimento: dateStr } : l)),
+        );
+
+        toast.success(`Agendado para ${format(selectedDate, "dd/MM/yyyy")}`);
+        setSelectedLead(null);
+        setSelectedDate(undefined);
+    };
+
 
     const getPriorityScore = (lead: Lead) => {
         let score = 0;
@@ -140,9 +184,12 @@ export default function FilaInteligente() {
                                             </a>
                                             <button
                                                 type="button"
-                                                onClick={() => alert("Agenda: Funcionalidade em desenvolvimento")}
-                                                className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg transition-colors"
-                                                title="Agendar"
+                                                onClick={() => {
+                                                    setSelectedLead(lead);
+                                                    setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
+                                                }}
+                                                className={`p-2 rounded-lg transition-colors ${lead.data_vencimento ? "bg-amber-500 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}`}
+                                                title={lead.data_vencimento ? `Agendado: ${format(parseISO(lead.data_vencimento), "dd/MM/yy")}` : "Agendar"}
                                             >
                                                 <Calendar className="h-5 w-5" />
                                             </button>
@@ -162,7 +209,35 @@ export default function FilaInteligente() {
                         <p className="text-sm">Bom trabalho! Todos os leads foram processados.</p>
                     </div>
                 )}
-            </div>
+            <Dialog open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Calendar className="h-5 w-5 text-orange-500" /> Agendar Atendimento
+                        </DialogTitle>
+                        <DialogDescription>
+                            Escolha uma data para o próximo contato com <span className="font-bold">{selectedLead?.nome}</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col items-center gap-4 py-2">
+                        <CalendarComponent
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            locale={ptBR}
+                            className="rounded-md border shadow-sm"
+                        />
+                        <div className="flex gap-2 w-full">
+                            <Button className="flex-1" onClick={handleSaveVencimento} disabled={!selectedDate}>
+                                Salvar Agendamento
+                            </Button>
+                            <Button variant="ghost" onClick={() => setSelectedLead(null)}>
+                                Cancelar
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
