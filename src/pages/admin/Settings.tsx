@@ -4,69 +4,73 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Users, Mail, UserPlus, Copy, Loader2, Trash2 } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown } from "lucide-react";
+
+const ROLES = [
+  { value: "admin", label: "Administrador" },
+  { value: "manager", label: "Manager" },
+  { value: "vendedor", label: "Vendedor" },
+];
+
+const ROLE_COLORS: Record<string, string> = {
+  admin: "bg-amber-50 text-amber-700 border-amber-200",
+  manager: "bg-purple-50 text-purple-700 border-purple-200",
+  vendedor: "bg-blue-50 text-blue-700 border-blue-200",
+};
 
 export default function Settings() {
   const { toast } = useToast();
+  const { profile, isAdmin } = useProfile();
   const [emailToInvite, setEmailToInvite] = useState("");
+  const [roleToInvite, setRoleToInvite] = useState("vendedor");
   const [loading, setLoading] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [invitations, setInvitations] = useState<any[]>([]);
   const [org, setOrg] = useState<any>(null);
+  const [changingRole, setChangingRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, [profile]);
 
   const fetchData = async () => {
+    if (!profile?.organizacao_id) return;
     setLoading(true);
     try {
-      const { data: userRes } = await supabase.auth.getUser();
-      const userId = userRes.user?.id;
-      if (!userId) return;
-
-      const { data: perf } = await (supabase.from("perfis" as any) as any)
-        .select("organizacao_id, organizacoes(*)")
-        .eq("id", userId)
-        .single();
-
-      setOrg(perf?.organizacoes);
-
       const { data: members } = await (supabase.from("perfis" as any) as any)
         .select("*")
-        .eq("organizacao_id", perf?.organizacao_id);
+        .eq("organizacao_id", profile.organizacao_id);
       setUsers(members || []);
+
+      const { data: orgData } = await (supabase.from("organizacoes" as any) as any)
+        .select("*").eq("id", profile.organizacao_id).single();
+      setOrg(orgData);
 
       const { data: invites } = await (supabase.from("convites" as any) as any)
         .select("*")
-        .eq("organizacao_id", perf?.organizacao_id)
+        .eq("organizacao_id", profile.organizacao_id)
         .eq("status", "pendente");
       setInvitations(invites || []);
-    } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleInvite = async () => {
-    if (!emailToInvite || !org) return;
+    if (!emailToInvite || !profile?.organizacao_id) return;
     setInviting(true);
     try {
       const token = Math.random().toString(36).substring(2, 15);
-      const { data: userRes } = await supabase.auth.getUser();
-
       const { error } = await (supabase.from("convites" as any) as any).insert({
         email: emailToInvite,
         token,
-        organizacao_id: org.id,
-        convidado_por: userRes.user?.id,
+        organizacao_id: profile.organizacao_id,
+        convidado_por: profile.id,
+        tipo_acesso: roleToInvite,
       });
-
       if (error) throw error;
-
       toast({ title: "Convite Criado!", description: "Copie o link abaixo e envie ao colaborador." });
       setEmailToInvite("");
       fetchData();
@@ -89,6 +93,23 @@ export default function Settings() {
     fetchData();
   };
 
+  const changeRole = async (userId: string, newRole: string) => {
+    setChangingRole(userId);
+    try {
+      const { error } = await supabase.rpc("update_member_role" as any, {
+        target_user_id: userId,
+        new_role: newRole,
+      });
+      if (error) throw error;
+      toast({ title: "Cargo Alterado!", description: `Novo cargo: ${ROLES.find(r => r.value === newRole)?.label}` });
+      fetchData();
+    } catch (err: any) {
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    } finally {
+      setChangingRole(null);
+    }
+  };
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -98,15 +119,11 @@ export default function Settings() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 pb-10">
-      {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-          Gestão da Equipe
-        </h1>
-        <p className="text-slate-500 font-medium text-sm sm:text-base">{org?.nome || "Minha Empresa"}</p>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Gestão da Equipe</h1>
+        <p className="text-slate-500 font-medium text-sm">{org?.nome || "Minha Empresa"}</p>
       </div>
 
-      {/* Grid principal */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* Painel de convite */}
@@ -114,9 +131,7 @@ export default function Settings() {
           <Card className="border-none shadow-lg rounded-2xl overflow-hidden">
             <CardHeader className="bg-slate-900 text-white p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/20 rounded-xl">
-                  <UserPlus className="h-5 w-5 text-primary" />
-                </div>
+                <div className="p-2 bg-primary/20 rounded-xl"><UserPlus className="h-5 w-5 text-primary" /></div>
                 <div>
                   <CardTitle className="text-base font-bold">Novo Convite</CardTitle>
                   <CardDescription className="text-slate-400 text-xs">Adicione membros ao time</CardDescription>
@@ -125,7 +140,7 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email-convite" className="font-bold text-slate-700">E-mail do Colaborador</Label>
+                <Label htmlFor="email-convite" className="font-bold text-slate-700">E-mail</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
@@ -138,6 +153,19 @@ export default function Settings() {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label className="font-bold text-slate-700">Cargo</Label>
+                <Select value={roleToInvite} onValueChange={setRoleToInvite}>
+                  <SelectTrigger className="h-11 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="vendedor">Vendedor</SelectItem>
+                    {isAdmin && <SelectItem value="admin">Administrador</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 className="w-full h-11 rounded-xl font-bold"
                 onClick={handleInvite}
@@ -148,31 +176,22 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Convites pendentes */}
           {invitations.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Convites Pendentes</p>
               {invitations.map((inv) => (
-                <div
-                  key={inv.id}
-                  className="bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-2 shadow-sm"
-                >
-                  <p className="text-sm font-semibold text-slate-700 truncate flex-1">{inv.email}</p>
+                <div key={inv.id} className="bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-between gap-2 shadow-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-700 truncate">{inv.email}</p>
+                    <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full border ${ROLE_COLORS[inv.tipo_acesso || 'vendedor']}`}>
+                      {inv.tipo_acesso || 'vendedor'}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-lg text-primary hover:bg-primary/5"
-                      onClick={() => copyInviteLink(inv.token)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-primary hover:bg-primary/5" onClick={() => copyInviteLink(inv.token)}>
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-lg text-red-400 hover:text-red-500 hover:bg-red-50"
-                      onClick={() => deleteInvite(inv.id)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-red-400 hover:bg-red-50" onClick={() => deleteInvite(inv.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -182,15 +201,13 @@ export default function Settings() {
           )}
         </div>
 
-        {/* Membros ativos */}
+        {/* Membros */}
         <div className="lg:col-span-8">
           <Card className="border-none shadow-lg rounded-2xl overflow-hidden">
             <CardHeader className="p-5 sm:p-6 border-b border-slate-50">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-xl">
-                    <Users className="h-5 w-5 text-blue-500" />
-                  </div>
+                  <div className="p-2 bg-blue-50 rounded-xl"><Users className="h-5 w-5 text-blue-500" /></div>
                   <div>
                     <CardTitle className="text-base font-bold">Membros Ativos</CardTitle>
                     <CardDescription className="text-xs">Pessoas com acesso ao CRM</CardDescription>
@@ -204,32 +221,40 @@ export default function Settings() {
             <CardContent className="p-0">
               <div className="divide-y divide-slate-50">
                 {users.map((u) => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between gap-4 px-5 sm:px-6 py-4 hover:bg-slate-50 transition-colors"
-                  >
+                  <div key={u.id} className="flex items-center justify-between gap-4 px-5 sm:px-6 py-4 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-slate-100 to-slate-200 flex items-center justify-center font-black text-slate-500 text-sm shrink-0">
-                        {(u.nome_completo || u.email || "?").charAt(0).toUpperCase()}
+                        {(u.nome_completo || "?").charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-slate-900 text-sm truncate">
-                          {u.nome_completo || "Sem nome"}
-                        </p>
-                        <p className="text-xs text-slate-400 truncate">
-                          {u.email || u.id.substring(0, 12) + "..."}
-                        </p>
+                        <p className="font-bold text-slate-900 text-sm truncate">{u.nome_completo || "Sem nome"}</p>
+                        <p className="text-xs text-slate-400">{u.id === profile?.id ? "Você" : ""}</p>
                       </div>
                     </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0 ${
-                        u.tipo_acesso === "admin"
-                          ? "bg-amber-50 text-amber-600 border border-amber-100"
-                          : "bg-blue-50 text-blue-600 border border-blue-100"
-                      }`}
-                    >
-                      {u.tipo_acesso === "admin" ? "Admin" : "Vendedor"}
-                    </span>
+                    <div className="shrink-0">
+                      {isAdmin && u.id !== profile?.id ? (
+                        <div className="flex items-center gap-2">
+                          {changingRole === u.id ? (
+                            <Loader2 className="animate-spin h-4 w-4 text-slate-400" />
+                          ) : (
+                            <Select value={u.tipo_acesso || "vendedor"} onValueChange={(val) => changeRole(u.id, val)}>
+                              <SelectTrigger className={`h-8 text-[11px] font-black uppercase rounded-full border px-3 ${ROLE_COLORS[u.tipo_acesso || "vendedor"]}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="manager">Manager</SelectItem>
+                                <SelectItem value="vendedor">Vendedor</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      ) : (
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ROLE_COLORS[u.tipo_acesso || "vendedor"]}`}>
+                          {u.tipo_acesso === "admin" ? "Admin" : u.tipo_acesso === "manager" ? "Manager" : "Vendedor"}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, X, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin", color: "text-blue-500" },
     { icon: Settings, label: "Configurações", path: "/admin/configuracoes", color: "text-slate-600" },
+    { icon: MessageSquare, label: "Chat da Equipe", path: "/admin/chat", color: "text-green-600" },
     { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis", color: "text-purple-500" },
     { icon: Filter, label: "Leads", path: "/admin/leads", color: "text-orange-500" },
     { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil", color: "text-emerald-500" },

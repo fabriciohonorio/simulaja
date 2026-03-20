@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +20,12 @@ interface Lead {
   created_at: string | null;
   lead_score_valor: string | null;
   lead_temperatura: string | null;
+  responsavel_id?: string | null;
+}
+
+interface Membro {
+  id: string;
+  nome_completo: string;
 }
 
 const TEMP_EMOJIS: Record<string, string> = {
@@ -65,7 +72,9 @@ const openWhatsApp = (lead: Lead) => {
 };
 
 export default function Leads() {
+  const { profile, isManager } = useProfile();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [membros, setMembros] = useState<Membro[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -75,11 +84,29 @@ export default function Leads() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    supabase.from("leads").select("*").then(({ data }) => {
-      setLeads((data as Lead[]) ?? []);
-      setLoading(false);
-    });
-  }, []);
+    if (!profile) return;
+    fetchLeads();
+    if (isManager && profile.organizacao_id) {
+      // Buscar membros para atribuição
+      (supabase.from("perfis" as any) as any)
+        .select("id, nome_completo")
+        .eq("organizacao_id", profile.organizacao_id)
+        .then(({ data }: any) => setMembros(data || []));
+    }
+  }, [profile]);
+
+  const fetchLeads = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("leads").select("*");
+    setLeads((data as Lead[]) ?? []);
+    setLoading(false);
+  };
+
+  const assignLead = async (leadId: string, responsavelId: string) => {
+    const val = responsavelId === "none" ? null : responsavelId;
+    await supabase.from("leads").update({ responsavel_id: val } as any).eq("id", leadId);
+    setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, responsavel_id: val } : l));
+  };
 
   const toggleSort = (key: keyof Lead) => {
     if (sortKey === key) {
@@ -212,6 +239,7 @@ export default function Leads() {
                 <SortHeader label="Temp" field="lead_temperatura" />
                 <SortHeader label="Status" field="status" />
                 <SortHeader label="Data" field="created_at" />
+                {isManager && <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Responsável</th>}
                 <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Ações</th>
               </tr>
             </thead>
@@ -244,7 +272,25 @@ export default function Leads() {
                       {(l.status ?? "novo").replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
+                   <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
+                  {isManager && (
+                    <td className="px-3 py-2">
+                      <Select
+                        value={l.responsavel_id || "none"}
+                        onValueChange={(val) => assignLead(l.id, val)}
+                      >
+                        <SelectTrigger className="h-7 text-xs w-36 rounded-lg">
+                          <SelectValue placeholder="Sem responsável" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem responsável</SelectItem>
+                          {membros.map((m) => (
+                            <SelectItem key={m.id} value={m.id}>{m.nome_completo}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  )}
                   <td className="px-3 py-2">
                     <Button
                       size="sm"

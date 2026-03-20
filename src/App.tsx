@@ -22,6 +22,7 @@ import Jarvis from "./pages/admin/Jarvis";
 import Settings from "./pages/admin/Settings";
 import Register from "./pages/admin/Register";
 import ResetPassword from "./pages/admin/ResetPassword";
+import Chat from "./pages/admin/Chat";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
             <Route path="configuracoes" element={<Settings />} />
+            <Route path="chat" element={<Chat />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
