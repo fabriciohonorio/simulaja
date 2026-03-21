@@ -59,6 +59,7 @@ export default function Register() {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/admin/login`,
           data: {
             nome_completo: nome,
             organizacao_id: invitationData?.organizacao_id,
