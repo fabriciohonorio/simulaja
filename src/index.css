@@ -104,4 +104,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Remove o botão Edit with Lovable que é injetado na plataforma */
+  #lovable-badge,
+  #lovable-badge-container,
+  .lovable-badge,
+  a[href^="https://lovable.dev/"],
+  [data-lovable-badge] {
+    display: none !important;
+  }
 }
