@@ -4,6 +4,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -82,6 +84,11 @@ export default function Leads() {
   const [cidadeFilter, setCidadeFilter] = useState("");
   const [sortKey, setSortKey] = useState<keyof Lead>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newLead, setNewLead] = useState({
+    nome: "", celular: "", cidade: "", tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "120"
+  });
 
   useEffect(() => {
     if (!profile) return;
@@ -106,6 +113,35 @@ export default function Leads() {
     const val = responsavelId === "none" ? null : responsavelId;
     await supabase.from("leads").update({ responsavel_id: val } as any).eq("id", leadId);
     setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, responsavel_id: val } : l));
+  };
+
+  const handleCreateLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile) return;
+    
+    setIsSubmitting(true);
+    const leadToInsert = {
+      nome: newLead.nome,
+      celular: newLead.celular,
+      cidade: newLead.cidade,
+      tipo_consorcio: newLead.tipo_consorcio,
+      valor_credito: Number(newLead.valor_credito) || 0,
+      prazo_meses: Number(newLead.prazo_meses) || 120,
+      status: "novo_lead",
+      lead_temperatura: "quente",
+      lead_score_valor: "medio",
+      responsavel_id: profile.id, // Se o admin preferir repassar, ele faz após criar, mas inicialmente cai para quem criou
+      organizacao_id: profile.organizacao_id
+    };
+
+    const { data, error } = await supabase.from("leads").insert([leadToInsert]).select();
+
+    if (!error && data && data.length > 0) {
+      setLeads(prev => [data[0] as Lead, ...prev]);
+      setIsNewLeadOpen(false);
+      setNewLead({ nome: "", celular: "", cidade: "", tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "120" });
+    }
+    setIsSubmitting(false);
   };
 
   const toggleSort = (key: keyof Lead) => {
@@ -187,10 +223,63 @@ export default function Leads() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leads</h1>
-        <Button onClick={exportCSV} variant="outline" size="sm" className="shrink-0">
-          <Download className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Exportar CSV</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Dialog open={isNewLeadOpen} onOpenChange={setIsNewLeadOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="shrink-0 bg-primary hover:bg-primary/90 text-white">
+                <UserPlus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Novo Lead</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Adicionar Novo Lead</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateLead} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nome">Nome Completo</Label>
+                  <Input id="nome" required value={newLead.nome} onChange={e => setNewLead({...newLead, nome: e.target.value})} placeholder="Ex: João Silva" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="celular">Celular</Label>
+                    <Input id="celular" required value={newLead.celular} onChange={e => setNewLead({...newLead, celular: e.target.value})} placeholder="Ex: (11) 99999-9999" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cidade">Cidade</Label>
+                    <Input id="cidade" value={newLead.cidade} onChange={e => setNewLead({...newLead, cidade: e.target.value})} placeholder="Ex: São Paulo" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo">Tipo</Label>
+                    <Select value={newLead.tipo_consorcio} onValueChange={(val) => setNewLead({...newLead, tipo_consorcio: val})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TIPO_OPTIONS.filter(o => o.value !== 'all').map(o => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="valor">Valor Crédito (R$)</Label>
+                    <Input id="valor" type="number" value={newLead.valor_credito} onChange={e => setNewLead({...newLead, valor_credito: e.target.value})} placeholder="Ex: 150000" />
+                  </div>
+                </div>
+                <DialogFooter className="pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsNewLeadOpen(false)}>Cancelar</Button>
+                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar Lead"}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button onClick={exportCSV} variant="outline" size="sm" className="shrink-0">
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar CSV</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filters — full width, wrapping grid on mobile */}

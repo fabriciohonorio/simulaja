@@ -6,18 +6,63 @@ import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangl
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/admin", color: "text-blue-500" },
-    { icon: Settings, label: "Configurações", path: "/admin/configuracoes", color: "text-slate-600" },
-    { icon: MessageSquare, label: "Chat da Equipe", path: "/admin/chat", color: "text-green-600" },
-    { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis", color: "text-purple-500" },
-    { icon: Filter, label: "Leads", path: "/admin/leads", color: "text-orange-500" },
-    { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil", color: "text-emerald-500" },
-    { icon: Calculator, label: "Simulador", path: "/admin/simulador", color: "text-cyan-500" },
-    { icon: CalendarDays, label: "Agendamentos", path: "/admin/agendamentos", color: "text-indigo-500" },
-    { icon: Users, label: "Carteira Clientes", path: "/admin/carteira", color: "text-blue-600" },
-    { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes", color: "text-red-500" },
-    { icon: Target, label: "Metas", path: "/admin/metas", color: "text-amber-500" },
+interface MenuGroup {
+    label: string;
+    items: {
+        icon: any;
+        label: string;
+        path: string;
+        color: string;
+        adminOnly?: boolean;
+    }[];
+}
+
+const menuGroups: MenuGroup[] = [
+    {
+        label: "OPERAÇÃO",
+        items: [
+            { icon: LayoutDashboard, label: "Dashboard", path: "/admin", color: "text-blue-500" },
+            { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil", color: "text-emerald-500" },
+            { icon: Filter, label: "Leads", path: "/admin/leads", color: "text-orange-500" },
+            { icon: CalendarDays, label: "Agendamentos", path: "/admin/agendamentos", color: "text-indigo-500" },
+        ]
+    },
+    {
+        label: "FERRAMENTAS DE CONVERSÃO",
+        items: [
+            { icon: Calculator, label: "Simulador", path: "/admin/simulador", color: "text-cyan-500" },
+        ]
+    },
+    {
+        label: "RELACIONAMENTO",
+        items: [
+            { icon: Users, label: "Carteira Clientes", path: "/admin/carteira", color: "text-blue-600" },
+        ]
+    },
+    {
+        label: "RECUPERAÇÃO",
+        items: [
+            { icon: AlertTriangle, label: "Inadimplentes", path: "/admin/inadimplentes", color: "text-red-500", adminOnly: true },
+        ]
+    },
+    {
+        label: "GESTÃO",
+        items: [
+            { icon: Target, label: "Metas", path: "/admin/metas", color: "text-amber-500" }, // Todos acessam, limitaremos dentro do componente
+        ]
+    },
+    {
+        label: "SISTEMA",
+        items: [
+            { icon: Settings, label: "Configurações", path: "/admin/configuracoes", color: "text-slate-600", adminOnly: true },
+        ]
+    },
+    {
+        label: "SUPORTE / IA",
+        items: [
+            { icon: Sparkles, label: "Pergunte ao Jarvis", path: "/admin/jarvis", color: "text-purple-500" },
+        ]
+    }
 ];
 
 export default function AdminLayout() {
@@ -88,25 +133,42 @@ export default function AdminLayout() {
                 </div>
             )}
 
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto no-scrollbar">
-                {menuItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setOpen(false)}
-                        end={item.path === "/admin"}
-                        title={collapsed ? item.label : ""}
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
-                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
-                                : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
-                            } ${collapsed ? 'justify-center px-0' : ''}`
-                        }
-                    >
-                        <item.icon className={`h-5 w-5 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
-                        {!collapsed && <span className="font-semibold tracking-tight">{item.label}</span>}
-                    </NavLink>
-                ))}
+            <nav className="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar">
+                {menuGroups.map((group) => {
+                    const groupItems = group.items.filter(item => 
+                        !item.adminOnly || profile?.tipo_acesso === 'admin'
+                    );
+
+                    if (groupItems.length === 0) return null;
+
+                    return (
+                        <div key={group.label} className="space-y-1">
+                            {!collapsed && (
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-2">
+                                    {group.label}
+                                </div>
+                            )}
+                            {groupItems.map((item) => (
+                                <NavLink
+                                    key={item.path}
+                                    to={item.path}
+                                    onClick={() => setOpen(false)}
+                                    end={item.path === "/admin"}
+                                    title={collapsed ? item.label : ""}
+                                    className={({ isActive }) =>
+                                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
+                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
+                                            : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
+                                        } ${collapsed ? 'justify-center px-0' : ''}`
+                                    }
+                                >
+                                    <item.icon className={`h-5 w-5 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
+                                    {!collapsed && <span className="font-semibold tracking-tight">{item.label}</span>}
+                                </NavLink>
+                            ))}
+                        </div>
+                    );
+                })}
             </nav>
 
             <div className={`p-4 border-t border-sidebar-border mt-auto bg-sidebar-background/50 backdrop-blur-sm ${collapsed ? 'px-2' : ''}`}>

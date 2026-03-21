@@ -92,7 +92,7 @@ export default function Jarvis() {
         {
             id: "1",
             role: "jarvis",
-            content: "Olá Fabrício! Sou o Jarvis, seu assistente estratégico. Como posso ajudar no seu desempenho comercial hoje?",
+            content: "Fala Fabrício! Sou o Jarvis, seu parceiro de vendas. O que vamos atacar hoje?",
             timestamp: new Date()
         }
     ]);
@@ -101,10 +101,11 @@ export default function Jarvis() {
     const speak = (text: string) => {
         if (typeof window === "undefined") return;
         
-        // Humanização: remover markdown (ex: *bold*, _italic_), emojis e caracteres especiais
+        // Humanização: remover markdown (ex: *bold*, _italic_), emojis e caracteres especiais, além de adaptar espaços
         const cleanText = text
-            .replace(/\*|_|#/g, '') // Remove md symbols
+            .replace(/\*|_|#|\[|\]/g, '') // Remove md symbols
             .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}]/gu, '') // Remove emojis
+            .replace(/FUNIL:|LEADS:|METAS DO MÊS:|INADIMPLÊNCIA:/g, '') // Remove headers para fala mais fluida
             .replace(/\s+/g, ' ') // Remove double spaces
             .trim();
 
@@ -192,11 +193,11 @@ export default function Jarvis() {
     };
 
     const suggestedQuestions = [
-        "Bom dia Jarvis, quais as novidades de hoje",
-        "Qual a situação da inadimplência",
-        "Quanto custa a parcela de 200 mil em imóveis",
-        "Como estão as metas por segmento",
-        "Quais leads têm maior chance de fechar"
+        "E aí Jarvis, qual o resumo de hoje?",
+        "Como tá a inadimplência?",
+        "Simula uma parcela de 200 mil pra mim",
+        "Como estão as metas por segmento?",
+        "Quem tem mais chance de fechar?"
     ];
 
     useEffect(() => {
@@ -216,7 +217,7 @@ export default function Jarvis() {
                     // Saudação automática ao carregar (após carregar os dados)
                     setTimeout(() => {
                         const prioritarios = allLeads.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
-                        speak(`Bom dia Fabrício. Você tem ${prioritarios} leads em negociação no seu funil hoje.`);
+                        speak(`Fala Fabrício! Tem ${prioritarios} leads em negociação na mesa. Bora focar hoje e fechar essas pendências.`);
                     }, 1000);
                 }
 
@@ -308,26 +309,89 @@ export default function Jarvis() {
             let newAnalysis: JarvisAnalysis | null = null;
 
             // Lógica de FAQ Dinâmica / Simulação
-            if ((queryLower.includes("parcela") || queryLower.includes("quanto custa")) && (queryLower.includes("mil") || queryLower.includes("m") || /\d/.test(query))) {
+            if ((queryLower.includes("parcela") || queryLower.includes("quanto custa") || queryLower.includes("simula")) && (queryLower.includes("mil") || queryLower.includes("m") || /\d/.test(query))) {
                 const valorMatch = query.match(/(\d+)/g);
                 const valor = valorMatch ? parseInt(valorMatch.join("")) : 0;
                 if (valor > 0) {
                     const sim = findParcela(valor * (queryLower.includes("mil") ? 1000 : 1), queryLower);
-                    responseContent = `Para um crédito de ${formatCurrency(sim.credito)}, a parcela reduzida é de *${formatCurrency(sim.r50)}* no prazo de ${sim.prazo} meses (Grupo ${sim.grupo}). Esta é a melhor opção estratégica hoje.`;
+                    responseContent = `Cara, pra ${formatCurrency(sim.credito)} a parcela fica R$ ${sim.r50.toFixed(2)} em ${sim.prazo} meses no Grupo ${sim.grupo}. Essa é a carta na manga. Liga e oferece agora!`;
                 }
-            } else if (queryLower.includes("inadimplencia") || queryLower.includes("devendo") || queryLower.includes("pagar")) {
-                responseContent = `Atualmente temos ${inadCount} clientes com parcelas em atraso, totalizando *${formatCurrency(dividaTotal)}* pendentes. Recomendo uma ação de cobrança imediata para os 3 maiores valores.`;
+            } else if (queryLower.includes("inadimplencia") || queryLower.includes("devendo") || queryLower.includes("pagar") || queryLower.includes("atraso")) {
+                responseContent = `Fabricio, tão devendo ${formatCurrency(dividaTotal)} de ${inadCount} clientes. Isso tá crítico. Manda mensagem pros 3 piores devedores da lista agora e resolve isso.`;
             } else if (queryLower.includes("segmento") || queryLower.includes("setor")) {
-                const resumoSeg = segmentMetas.map(s => `${s.segmento.toUpperCase()}: ${Math.round((s.valor_total/s.meta_vendas)*100)}% da meta`).join("\n");
-                responseContent = `Aqui está o desempenho por segmento este mês:\n\n${resumoSeg}\n\nO setor de ${segmentMetas.sort((a,b) => (a.valor_total/a.meta_vendas) - (b.valor_total/b.meta_vendas))[0].segmento} é o que mais precisa de atenção agora.`;
-            } else if (queryLower.includes("bom dia") || queryLower.includes("novidades") || queryLower.includes("resumo")) {
-                const hotLeads = emNegociacao.filter(l => (l as any).lead_score_valor === "premium" || (l as any).lead_score_valor === "alto").slice(0, 2);
+                const pior = segmentMetas.sort((a,b) => (a.valor_total/a.meta_vendas) - (b.valor_total/b.meta_vendas))[0];
+                const pctPior = Math.round((pior.valor_total / pior.meta_vendas) * 100);
+                responseContent = `${pior.segmento.toUpperCase()} tá em ${pctPior}%, Fabricio — isso tá feio. Faltam ${formatCurrency(pior.meta_vendas - pior.valor_total)} pra cota do mês. Puxa a lista desse segmento e liga agora!`;
+            } else if (queryLower.includes("bom dia") || queryLower.includes("novidades") || queryLower.includes("resumo") || queryLower.includes("e aí")) {
+                const score = emNegociacao.length > 0 ? Math.min(100, Math.round((realizadoMes / metaMensal) * 100)) : 0;
+                const dataHoje = new Date().toLocaleDateString('pt-BR');
                 
-                responseContent = `Bom dia Fabrício! Aqui está o "afinamento" do seu CRM hoje:\n\n` +
-                    `💰 *Financeiro*: Realizado ${formatCurrency(realizadoMes)} vs Meta ${formatCurrency(metaMensal)}. Inadimplência total em ${formatCurrency(dividaTotal)}.\n` +
-                    `🔥 *Oportunidades*: Foque em ${hotLeads.length > 0 ? hotLeads.map(l => (l as any).nome || "Lead").join(", ") : "leads de alto ticket"}.\n` +
-                    `📉 *Atenção*: Temos ${segmentMetas.filter(s => (s.valor_total/s.meta_vendas) < 0.5).length} segmentos abaixo de 50% da meta.\n\n` +
-                    `🚀 *Sugestão Jarvis*: Sua projeção de ${formatCurrency(projecao)} está saudável, mas recuperar ${formatCurrency(dividaTotal / 2)} da inadimplência daria um fôlego extra no caixa este mês.`;
+                const getCount = (st: string) => leads.filter(l => (l.status || "").toLowerCase() === st).length;
+                const leadsAtivos = emNegociacao.length;
+                const novosHoje = leads.filter(l => l.created_at?.startsWith(new Date().toISOString().split('T')[0])).length;
+                const leadsFrios = leads.filter(l => (l as any).lead_temperatura === "frio").length;
+                
+                const esfriando = emNegociacao.slice(0, 2).map(l => (l as any).nome || "Lead S/ Nome").join(", ");
+                const quentes = emNegociacao.filter(l => (l as any).lead_score_valor === "premium" || (l as any).lead_score_valor === "alto").slice(0, 2).map(l => (l as any).nome || "Lead Quente").join(", ") || "Nenhum";
+
+                const diasRestantes = Math.max(0, diasNoMes - diaHoje);
+                
+                const imo = segmentMetas.find(s => s.segmento === 'imoveis');
+                const vei = segmentMetas.find(s => s.segmento === 'veiculos');
+                
+                const pctImo = imo && imo.meta_vendas > 0 ? Math.round((imo.valor_total / imo.meta_vendas) * 100) : 0;
+                const pctVei = vei && vei.meta_vendas > 0 ? Math.round((vei.valor_total / vei.meta_vendas) * 100) : 0;
+                
+                const criticos = inadimplentes.filter(i => i.parcelas_atrasadas > 2);
+                const criticosLista = criticos.slice(0, 2).map(i => `${i.nome} (${formatCurrency(i.valor_parcela * i.parcelas_atrasadas)})`).join(", ");
+
+                let basePrompt = `Score de saúde: [SCORE]/100
+Data de hoje: [DATA]
+
+FUNIL:
+Prospecção: [PROS] | Qualificação: [QUAL] | Proposta: [PROP] | Negociação: [NEG] | Fechamento: [FECH]
+
+LEADS:
+Ativos: [ATIVOS] | Novos hoje: [NOVOS_HOJE] | Frios/risco: [FRIOS]
+Esfriando (sem contato): [LISTA_ESFRIANDO]
+Maior chance de fechar: [LISTA_QUENTE]
+
+METAS DO MÊS ([DIAS_RESTANTES] dias restantes):
+Imóveis: [PCT_IMO]% — [REALIZADO_IMO] de [META_IMO]
+Veículos: [PCT_VEI]% — [REALIZADO_VEI] de [META_VEI]
+
+INADIMPLÊNCIA:
+Total: [INAD_COUNT] | Críticos: [INAD_CRITICOS]
+Lista crítica: [LISTA_CRITICA]
+
+PIPELINE TOTAL: [PIPELINE_TOTAL]
+
+Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. Bora!`;
+
+                responseContent = basePrompt
+                    .replace('[SCORE]', score.toString())
+                    .replace('[DATA]', dataHoje)
+                    .replace('[PROS]', getCount('novo').toString())
+                    .replace('[QUAL]', getCount('em_andamento').toString())
+                    .replace('[PROP]', getCount('proposta').toString())
+                    .replace('[NEG]', getCount('negociacao').toString())
+                    .replace('[FECH]', getCount('fechado').toString())
+                    .replace('[ATIVOS]', leadsAtivos.toString())
+                    .replace('[NOVOS_HOJE]', novosHoje.toString())
+                    .replace('[FRIOS]', leadsFrios.toString())
+                    .replace('[LISTA_ESFRIANDO]', esfriando || "Nenhum no radar")
+                    .replace('[LISTA_QUENTE]', quentes)
+                    .replace('[DIAS_RESTANTES]', diasRestantes.toString())
+                    .replace('[PCT_IMO]', pctImo.toString())
+                    .replace('[REALIZADO_IMO]', imo ? formatCurrency(imo.valor_total) : "R$0")
+                    .replace('[META_IMO]', imo ? formatCurrency(imo.meta_vendas) : "R$0")
+                    .replace('[PCT_VEI]', pctVei.toString())
+                    .replace('[REALIZADO_VEI]', vei ? formatCurrency(vei.valor_total) : "R$0")
+                    .replace('[META_VEI]', vei ? formatCurrency(vei.meta_vendas) : "R$0")
+                    .replace('[INAD_COUNT]', inadCount.toString())
+                    .replace('[INAD_CRITICOS]', criticos.length.toString())
+                    .replace('[LISTA_CRITICA]', criticosLista || "Limpa!")
+                    .replace('[PIPELINE_TOTAL]', formatCurrency(pipelineValue));
                 
                 newAnalysis = {
                     metaTotal: metaMensal, realizado: realizadoMes, pipeline: pipelineValue,
@@ -335,12 +399,12 @@ export default function Jarvis() {
                     recomendacao: projecao >= metaMensal ? "EXPANSÃO E COBRANÇA" : "RECUPERAÇÃO DE VENDAS",
                     detalhes: [
                         `Inadimplência em ${formatCurrency(dividaTotal)}`,
-                        `${Math.round(progressoAno || 0)}% da meta anual atingida`,
-                        `${emNegociacao.length} leads ativos no pipeline`
+                        `${Math.round(progressoAno || 0)}% da meta alcançada`,
+                        `${emNegociacao.length} leads no funil`
                     ]
                 };
             } else {
-                responseContent = "Fabrício, analisando seu CRM por completo: seu pipeline está saudável, mas recomendo olhar para a inadimplência e para o fechamento de leads premium para garantir o batimento das metas este mês.";
+                responseContent = "Cara, pipeline rolando mas o foco tem que ser em conversão rápida. Puxa os maiores leads da base que estão parados hoje e fecha isso. Vai lá!";
             }
 
             const jarvisMsg: Message = {

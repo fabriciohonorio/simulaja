@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
+import { useProfile } from "@/hooks/useProfile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
     Target, 
     TrendingUp, 
@@ -93,6 +95,7 @@ const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, textColo
 
 export default function Metas() {
     const { toast } = useToast();
+    const { profile, isManager } = useProfile();
     const [leads, setLeads] = useState<Lead[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
     const [metaInput, setMetaInput] = useState<string>("0");
@@ -100,11 +103,14 @@ export default function Metas() {
     const [dicas, setDicas] = useState<DicaEstrategica[]>([]);
     const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
     const [loading, setLoading] = useState(true);
+    const [membros, setMembros] = useState<any[]>([]);
+    const [selectedVendedor, setSelectedVendedor] = useState<string>("all");
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
 
     useEffect(() => { 
+        if (!profile) return;
         fetchData(); 
         
         const channel = supabase
@@ -117,20 +123,50 @@ export default function Metas() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [profile, selectedVendedor]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
+
+            if (isManager && profile?.organizacao_id) {
+                const { data: membrosData } = await (supabase.from("perfis" as any) as any)
+                    .select("id, nome_completo")
+                    .eq("organizacao_id", profile.organizacao_id);
+                setMembros(membrosData || []);
+            }
+
             const { data: leadsData } = await supabase.from("leads").select("*");
-            const { data: metaData } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
             
-            const allLeads = (leadsData as Lead[]) || [];
+            let metaData = null;
+            if (selectedVendedor !== "all" || !isManager) {
+                const targetId = !isManager ? profile?.id : selectedVendedor;
+                const { data: mvData } = await supabase.from("metas_vendedor" as any)
+                    .select("*")
+                    .eq("vendedor_id", targetId)
+                    .eq("ano", currentYear)
+                    .maybeSingle();
+                metaData = mvData;
+            } else {
+                const { data: globalMeta } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
+                metaData = globalMeta;
+            }
+            
+            let allLeads = (leadsData as Lead[]) || [];
+            if (!isManager) {
+                allLeads = allLeads.filter((l: any) => l.responsavel_id === profile?.id);
+            } else if (selectedVendedor !== "all") {
+                allLeads = allLeads.filter((l: any) => l.responsavel_id === selectedVendedor);
+            }
+
             setLeads(allLeads);
             
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
+            } else {
+                setMetaAnual(0);
+                setMetaInput("0");
             }
             
             // Metas Mensais Pessoais (Fixas conforme solicitado)
@@ -241,7 +277,20 @@ export default function Metas() {
     const salvarMeta = async () => {
         const novoValor = parseFloat(metaInput);
         if (isNaN(novoValor)) return;
-        await supabase.from("meta").upsert({ ano: currentYear, meta_anual: novoValor }, { onConflict: "ano" });
+        
+        if (selectedVendedor !== "all" || !isManager) {
+            const targetId = !isManager ? profile?.id : selectedVendedor;
+            const { error } = await supabase.from("metas_vendedor" as any).upsert({ 
+                vendedor_id: targetId, 
+                ano: currentYear, 
+                meta_anual: novoValor 
+            }, { onConflict: "vendedor_id,ano" });
+            
+            if (error) console.error("Erro ao salvar meta", error);
+        } else {
+            await supabase.from("meta").upsert({ ano: currentYear, meta_anual: novoValor }, { onConflict: "ano" });
+        }
+        
         setMetaAnual(novoValor);
         toast({ title: "Meta salva com sucesso!" });
     };
@@ -284,9 +333,26 @@ export default function Metas() {
         <div className="space-y-4 sm:space-y-6 pb-12">
             {/* Header */}
             <div className="space-y-3">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold">Metas e Indicadores</h1>
-                    <p className="text-sm text-muted-foreground">Acompanhe seu desempenho de {currentYear}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-bold">Metas e Indicadores</h1>
+                        <p className="text-sm text-muted-foreground">Acompanhe seu desempenho de {currentYear}</p>
+                    </div>
+                    {isManager && (
+                        <div className="w-full sm:w-64">
+                            <Select value={selectedVendedor} onValueChange={setSelectedVendedor}>
+                                <SelectTrigger className="w-full h-9 bg-white">
+                                    <SelectValue placeholder="Visão Global" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Visão Global (Todos)</SelectItem>
+                                    {membros.map(m => (
+                                        <SelectItem key={m.id} value={m.id}>{m.nome_completo}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                 </div>
                 {/* Meta Anual Card — stacked on mobile */}
                 <Card className="bg-primary/5 border-primary/20">
