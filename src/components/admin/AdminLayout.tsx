@@ -126,9 +126,10 @@ export default function AdminLayout() {
             {!collapsed && org && (
                 <div className="mx-4 mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">EMPRESA</div>
-                    <div className="font-black text-slate-900 truncate">{org.nome}</div>
-                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase">
-                        {profile?.tipo_acesso === 'admin' ? 'Administrador' : 'Vendedor'}
+                    <div className="font-black text-slate-900 truncate mb-1">{org.nome}</div>
+                    <div className="text-xs font-semibold text-slate-600 truncate mb-2">{profile?.nome_completo || "Usuário"}</div>
+                    <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase">
+                        {profile?.tipo_acesso === 'admin' ? 'Administrador' : profile?.tipo_acesso === 'manager' ? 'Manager' : 'Vendedor'}
                     </div>
                 </div>
             )}
