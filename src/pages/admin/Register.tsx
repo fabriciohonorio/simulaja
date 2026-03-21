@@ -60,7 +60,9 @@ export default function Register() {
         password,
         options: {
           data: {
-            nome_completo: nome
+            nome_completo: nome,
+            organizacao_id: invitationData?.organizacao_id,
+            tipo_acesso: invitationToken ? 'vendedor' : 'admin'
           }
         }
       });
@@ -68,44 +70,12 @@ export default function Register() {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Erro ao criar usuário.");
 
-      const userId = authData.user.id;
-
       if (invitationToken && invitationData) {
-        const { error: profileError } = await (supabase
-          .from("perfis" as any) as any)
-          .update({ 
-            organizacao_id: invitationData.organizacao_id,
-            nome_completo: nome,
-            tipo_acesso: 'vendedor' 
-          })
-          .eq("id", userId);
-        
-        if (profileError) throw profileError;
-
+        // Apenas marca o convite como aceito. O perfil será criado via Trigger com a org correta
         await (supabase
           .from("convites" as any) as any)
           .update({ status: "aceito" })
           .eq("token", invitationToken);
-
-      } else {
-        const { data: orgData, error: orgError } = await (supabase
-          .from("organizacoes" as any) as any)
-          .insert({ nome: orgNome, slug: orgNome.toLowerCase().replace(/\s+/g, '-') })
-          .select()
-          .single();
-
-        if (orgError) throw orgError;
-
-        const { error: profileError } = await (supabase
-          .from("perfis" as any) as any)
-          .update({ 
-            organizacao_id: orgData.id,
-            nome_completo: nome,
-            tipo_acesso: 'admin' 
-          })
-          .eq("id", userId);
-
-        if (profileError) throw profileError;
       }
 
       setSuccess(true);
