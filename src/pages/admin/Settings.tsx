@@ -93,6 +93,33 @@ export default function Settings() {
     fetchData();
   };
 
+  const deleteMember = async (userId: string) => {
+    if (!window.confirm("Tem certeza que deseja remover este membro da equipe? Todos os dados vinculados a ele podem ser afetados.")) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await (supabase.from("perfis" as any) as any)
+        .delete()
+        .eq("id", userId);
+        
+      if (error) throw error;
+      
+      toast({ 
+        title: "Membro Removido", 
+        description: "O acesso deste colaborador foi revogado com sucesso." 
+      });
+      fetchData();
+    } catch (err: any) {
+      toast({ 
+        title: "Erro ao remover", 
+        description: err.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const changeRole = async (userId: string, newRole: string) => {
     setChangingRole(userId);
     try {
@@ -231,24 +258,35 @@ export default function Settings() {
                         <p className="text-xs text-slate-400">{u.id === profile?.id ? "Você" : ""}</p>
                       </div>
                     </div>
-                    <div className="shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {isAdmin && u.id !== profile?.id ? (
-                        <div className="flex items-center gap-2">
-                          {changingRole === u.id ? (
-                            <Loader2 className="animate-spin h-4 w-4 text-slate-400" />
-                          ) : (
-                            <Select value={u.tipo_acesso || "vendedor"} onValueChange={(val) => changeRole(u.id, val)}>
-                              <SelectTrigger className={`h-8 text-[11px] font-black uppercase rounded-full border px-3 ${ROLE_COLORS[u.tipo_acesso || "vendedor"]}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="manager">Manager</SelectItem>
-                                <SelectItem value="vendedor">Vendedor</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        </div>
+                        <>
+                          <div className="flex items-center gap-2">
+                            {changingRole === u.id ? (
+                              <Loader2 className="animate-spin h-4 w-4 text-slate-400" />
+                            ) : (
+                              <Select value={u.tipo_acesso || "vendedor"} onValueChange={(val) => changeRole(u.id, val)}>
+                                <SelectTrigger className={`h-8 text-[11px] font-black uppercase rounded-full border px-3 ${ROLE_COLORS[u.tipo_acesso || "vendedor"]}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                  <SelectItem value="manager">Manager</SelectItem>
+                                  <SelectItem value="vendedor">Vendedor</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                            onClick={() => deleteMember(u.id)}
+                            title="Excluir Vendedor"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
                       ) : (
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ROLE_COLORS[u.tipo_acesso || "vendedor"]}`}>
                           {u.tipo_acesso === "admin" ? "Admin" : u.tipo_acesso === "manager" ? "Manager" : "Vendedor"}
