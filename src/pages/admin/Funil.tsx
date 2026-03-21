@@ -64,6 +64,7 @@ interface Lead {
   indicador_celular?: string | null;
   data_vencimento?: string | null;
   organizacao_id?: string | null;
+  responsavel_id?: string | null;
 }
 
 interface HistoricoContato {
@@ -226,6 +227,9 @@ function LeadCard({
   onDelete,
   onSetVencimento,
   onOpenHistorico,
+  onAssignLead,
+  membros = [],
+  isManager = false,
   ultimaTratativa,
   compact = false,
 }: {
@@ -235,6 +239,9 @@ function LeadCard({
   onDelete: (id: string, nome: string) => void;
   onSetVencimento: (lead: Lead) => void;
   onOpenHistorico: (lead: Lead) => void;
+  onAssignLead?: (leadId: string, responsavelId: string) => void;
+  membros?: Membro[];
+  isManager?: boolean;
   ultimaTratativa?: HistoricoContato | null;
   compact?: boolean;
 }) {
@@ -433,6 +440,22 @@ function LeadCard({
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <CalendarIcon className="h-3 w-3" /> {lead.prazo_meses}m
           </div>
+        </div>
+      )}
+
+      {isManager && onAssignLead && (
+        <div className="mt-2 pt-2 border-t border-border/50">
+          <p className="text-[9px] text-muted-foreground uppercase font-black mb-1">Responsável</p>
+          <select
+            className="w-full text-[10px] p-1 rounded border border-border bg-background"
+            value={lead.responsavel_id || "none"}
+            onChange={(e) => onAssignLead(lead.id, e.target.value)}
+          >
+            <option value="none">Sem responsável</option>
+            {membros.map((m) => (
+              <option key={m.id} value={m.id}>{m.nome_completo}</option>
+            ))}
+          </select>
         </div>
       )}
     </div>
@@ -680,10 +703,18 @@ export default function Funil() {
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
   
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [membros, setMembros] = useState<{id: string, nome_completo: string}[]>([]);
+  const isManager = true; // Todo: usar useProfile real para isso se disponível no Funil context, mas por hora mock ou pegar da sessão
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
+    
+    // Buscar membros para o select de responsável
+    supabase.from("perfis").select("id, nome_completo").then(({ data }) => {
+      setMembros(data || []);
+    });
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -1069,6 +1100,12 @@ export default function Funil() {
           zIndex: snapshot.isDragging ? 9999 : "auto",
         };
 
+        const assignLead = async (leadId: string, responsavelId: string) => {
+          const val = responsavelId === "none" ? null : responsavelId;
+          await supabase.from("leads").update({ responsavel_id: val } as any).eq("id", leadId);
+          setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, responsavel_id: val } : l));
+        };
+
         const cardElement = (
           <div
             {...provided.draggableProps}
@@ -1087,6 +1124,9 @@ export default function Funil() {
                 setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
               }}
               onOpenHistorico={setHistoricoLead}
+              onAssignLead={assignLead}
+              membros={membros}
+              isManager={isManager}
               ultimaTratativa={ultimasTratativas[lead.id] ?? null}
               compact={isWideView}
             />

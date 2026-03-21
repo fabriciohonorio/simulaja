@@ -343,6 +343,26 @@ export default function Leads() {
                 </div>
               </div>
 
+              {isManager && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase font-black">Responsável</p>
+                  <Select
+                    value={l.responsavel_id || "none"}
+                    onValueChange={(val) => assignLead(l.id, val)}
+                  >
+                    <SelectTrigger className="h-8 text-xs w-full rounded-lg">
+                      <SelectValue placeholder="Sem responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem responsável</SelectItem>
+                      {membros.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.nome_completo}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <Button
                 size="sm"
                 variant="outline"
