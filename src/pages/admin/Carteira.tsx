@@ -197,17 +197,27 @@ export default function Carteira() {
       
       const phoneOverrides: Record<string, string> = {
         "ANA PAULA LODE DE SOUZA STAMATO": "41996970001",
+        "PATRICIA NUNES MAGALHAES": "41998129859",
         "PATRICIA NUNES MAGALHÃES": "41998129859",
         "EDSON VENANCIO BATISTA JUNIOR": "41984762996"
       };
 
+      const normalize = (str: string) => 
+        str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
+      const getOverride = (nome: string) => {
+        const normalizedInput = normalize(nome);
+        for (const [key, val] of Object.entries(phoneOverrides)) {
+          if (normalizedInput.includes(normalize(key))) return val;
+        }
+        return null;
+      };
+
       // Execute inserts
       const insertPromises = toInsert.map(async (item) => {
-        const upperNome = item.nome.toUpperCase();
         let phone = item.celular;
         
-        // Apply overrides if phone is missing
-        const override = Object.entries(phoneOverrides).find(([name]) => upperNome.includes(name))?.[1];
+        const override = getOverride(item.nome);
         if (override && !phone) {
           phone = override;
           if (item.lead_id) {
@@ -230,10 +240,9 @@ export default function Carteira() {
 
       // Execute updates
       const updatePromises = toUpdate.map(async (item) => {
-        const upperNome = item.nome.toUpperCase();
         let phone = item.celular;
         
-        const override = Object.entries(phoneOverrides).find(([name]) => upperNome.includes(name))?.[1];
+        const override = getOverride(item.nome);
         if (override && (!phone || phone === "null")) {
           phone = override;
           if (item.lead_id) {
