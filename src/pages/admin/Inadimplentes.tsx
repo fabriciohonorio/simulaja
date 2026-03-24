@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
@@ -52,6 +52,7 @@ export default function Inadimplentes() {
     parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "",
   });
   const [saving, setSaving] = useState(false);
+  const [editingItem, setEditingItem] = useState<Inadimplente | null>(null);
 
   const fetchData = async () => {
     const { data: rows } = await (supabase.from("inadimplentes" as any) as any).select("*");
@@ -78,9 +79,9 @@ export default function Inadimplentes() {
     if (newStatus === "regularizado") toast.success("🎉 Cliente regularizado!");
   };
 
-  const handleAdd = async () => {
+  const handleSave = async () => {
     setSaving(true);
-    const { error } = await (supabase.from("inadimplentes" as any) as any).insert({
+    const payload = {
       nome: form.nome,
       celular: form.celular,
       tipo_consorcio: form.tipo_consorcio,
@@ -90,13 +91,44 @@ export default function Inadimplentes() {
       grupo: form.grupo,
       cota: form.cota,
       administradora: form.administradora || null,
-      status: "em_atraso",
-    });
+      status: editingItem ? editingItem.status : "em_atraso",
+    };
+
+    const { error } = editingItem 
+      ? await (supabase.from("inadimplentes" as any) as any).update(payload).eq("id", editingItem.id)
+      : await (supabase.from("inadimplentes" as any) as any).insert(payload);
+
     setSaving(false);
-    if (error) { toast.error("Erro ao adicionar"); return; }
-    toast.success("Inadimplente adicionado!");
+    if (error) { toast.error(editingItem ? "Erro ao atualizar" : "Erro ao adicionar"); return; }
+    
+    toast.success(editingItem ? "Atualizado com sucesso!" : "Adicionado com sucesso!");
     setShowAdd(false);
+    setEditingItem(null);
     setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
+    fetchData();
+  };
+
+  const handleEdit = (item: Inadimplente) => {
+    setEditingItem(item);
+    setForm({
+      nome: item.nome,
+      celular: item.celular || "",
+      tipo_consorcio: item.tipo_consorcio || "",
+      valor_parcela: String(item.valor_parcela),
+      parcelas_pagas: String(item.parcelas_pagas),
+      parcelas_atrasadas: String(item.parcelas_atrasadas),
+      grupo: item.grupo || "",
+      cota: item.cota || "",
+      administradora: item.administradora || "",
+    });
+    setShowAdd(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este card?")) return;
+    const { error } = await (supabase.from("inadimplentes" as any) as any).delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir"); return; }
+    toast.success("Excluído com sucesso");
     fetchData();
   };
 
@@ -146,7 +178,11 @@ export default function Inadimplentes() {
             <Copy className="h-4 w-4 sm:mr-2" />
             <span className="sm:inline">Copiar Msgs</span>
           </Button>
-          <Button size="sm" onClick={() => setShowAdd(true)} className="flex-1 sm:flex-none">
+          <Button size="sm" onClick={() => {
+            setEditingItem(null);
+            setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
+            setShowAdd(true);
+          }} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 sm:mr-2" />
             <span className="sm:inline">Adicionar</span>
           </Button>
@@ -213,24 +249,41 @@ export default function Inadimplentes() {
                         >
                           <div className="flex items-center justify-between gap-2">
                             <p className="font-medium truncate flex-1">{item.nome}</p>
-                            {item.celular && (
-                              <a
-                                href={`https://wa.me/55${item.celular.replace(/\D/g, "")}?text=${encodeURIComponent(
-                                  copyTemplate
-                                    .replace("{nome}", item.nome)
-                                    .replace("{cota}", item.cota || "—")
-                                    .replace("{grupo}", item.grupo || "—")
-                                    .replace("{parcelas_atrasadas}", String(item.parcelas_atrasadas))
-                                    .replace("{valor_parcela}", formatCurrency(item.valor_parcela))
-                                )}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-green-500 hover:text-green-600 shrink-0 ml-1 p-1"
+                            <div className="flex items-center gap-1 shrink-0">
+                              {item.celular && (
+                                <a
+                                  href={`https://wa.me/55${item.celular.replace(/\D/g, "")}?text=${encodeURIComponent(
+                                    copyTemplate
+                                      .replace("{nome}", item.nome)
+                                      .replace("{cota}", item.cota || "—")
+                                      .replace("{grupo}", item.grupo || "—")
+                                      .replace("{parcelas_atrasadas}", String(item.parcelas_atrasadas))
+                                      .replace("{valor_parcela}", formatCurrency(item.valor_parcela))
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-green-500 hover:text-green-600 p-1"
+                                  title="WhatsApp"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </a>
+                              )}
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
+                                className="text-muted-foreground hover:text-primary p-1"
+                                title="Editar"
                               >
-                                <MessageCircle className="h-4 w-4" />
-                              </a>
-                            )}
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                className="text-muted-foreground hover:text-destructive p-1"
+                                title="Excluir"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 text-xs">
                             <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
@@ -340,50 +393,61 @@ export default function Inadimplentes() {
       </DragDropContext>
 
       {/* Add Dialog */}
-      <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Adicionar Inadimplente</DialogTitle></DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1 col-span-2">
+      <Dialog open={showAdd} onOpenChange={(open: boolean) => { setShowAdd(open); if (!open) setEditingItem(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingItem ? "Editar Cliente" : "Adicionar Inadimplente"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <div className="space-y-2 md:col-span-2">
               <Label>Nome</Label>
-              <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+              <Input placeholder="Nome completo" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
             </div>
-            <div className="space-y-1">
+            
+            <div className="space-y-2">
               <Label>Celular</Label>
-              <Input value={form.celular} onChange={(e) => setForm({ ...form, celular: e.target.value })} placeholder="(00) 00000-0000" />
+              <Input placeholder="(00) 00000-0000" value={form.celular} onChange={(e) => setForm({ ...form, celular: e.target.value })} />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label>Segmento</Label>
-              <Input value={form.tipo_consorcio} onChange={(e) => setForm({ ...form, tipo_consorcio: e.target.value })} placeholder="Imóveis, Veículos..." />
+              <Input placeholder="Imóveis, Veículos..." value={form.tipo_consorcio} onChange={(e) => setForm({ ...form, tipo_consorcio: e.target.value })} />
             </div>
-            <div className="space-y-1">
+
+            <div className="space-y-2">
               <Label>Valor Parcela</Label>
               <Input type="number" value={form.valor_parcela} onChange={(e) => setForm({ ...form, valor_parcela: e.target.value })} />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label>Parcelas Pagas</Label>
               <Input type="number" value={form.parcelas_pagas} onChange={(e) => setForm({ ...form, parcelas_pagas: e.target.value })} />
             </div>
-            <div className="space-y-1">
+
+            <div className="space-y-2">
               <Label>Parc. Atrasadas</Label>
               <Input type="number" value={form.parcelas_atrasadas} onChange={(e) => setForm({ ...form, parcelas_atrasadas: e.target.value })} />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label>Grupo</Label>
-              <Input value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })} />
+              <Input placeholder="Número do grupo" value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })} />
             </div>
-            <div className="space-y-1">
+
+            <div className="space-y-2">
               <Label>Cota</Label>
-              <Input value={form.cota} onChange={(e) => setForm({ ...form, cota: e.target.value })} />
+              <Input placeholder="Número da cota" value={form.cota} onChange={(e) => setForm({ ...form, cota: e.target.value })} />
             </div>
-            <div className="space-y-1 col-span-2">
+            <div className="space-y-2">
+              {/* Spacer on desktop */}
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
               <Label>Administradora</Label>
-              <Input value={form.administradora} onChange={(e) => setForm({ ...form, administradora: e.target.value })} placeholder="Ex: Magalu, Embracon..." />
+              <Input placeholder="Ex: Magalu, Embracon..." value={form.administradora} onChange={(e) => setForm({ ...form, administradora: e.target.value })} />
             </div>
           </div>
-          <Button onClick={handleAdd} disabled={saving || !form.nome} className="mt-2 w-full">
-            {saving ? "Salvando..." : "Adicionar"}
-          </Button>
+          <div className="flex justify-end gap-2 mt-2">
+            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
