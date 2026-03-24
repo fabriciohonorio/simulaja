@@ -175,16 +175,21 @@ export default function Carteira() {
       }));
 
       const { data: currentInad } = await supabase.from("inadimplentes").select("*");
-      
-      // Items to insert (not in table yet)
-      const toInsert = mappedCarteira.filter(c => 
-        c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE") &&
-        !currentInad?.some(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota)
-      );
+       // Items to insert (not in table yet)
+      const toInsert = mappedCarteira.filter(c => {
+        const hasProtocol = c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE");
+        if (!hasProtocol) return false;
+        return !currentInad?.some(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota);
+      });
 
       // Items to update (already in table but missing phone)
       const toUpdate = mappedCarteira.filter(c => {
-        if (!c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE") || !c.celular) return false;
+        const hasProtocol = c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE");
+        if (!hasProtocol) return false;
+        
+        const phone = c.celular || getOverride(c.nome);
+        if (!phone) return false;
+        
         const exists = currentInad?.find(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota);
         return exists && !exists.celular;
       });
@@ -215,14 +220,10 @@ export default function Carteira() {
 
       // Execute inserts
       const insertPromises = toInsert.map(async (item) => {
-        let phone = item.celular;
+        let phone = item.celular || getOverride(item.nome);
         
-        const override = getOverride(item.nome);
-        if (override && !phone) {
-          phone = override;
-          if (item.lead_id) {
-            await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
-          }
+        if (phone && !item.celular && item.lead_id) {
+          await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
         }
         
         return supabase.from("inadimplentes").insert({
@@ -240,14 +241,10 @@ export default function Carteira() {
 
       // Execute updates
       const updatePromises = toUpdate.map(async (item) => {
-        let phone = item.celular;
+        let phone = item.celular || getOverride(item.nome);
         
-        const override = getOverride(item.nome);
-        if (override && (!phone || phone === "null")) {
-          phone = override;
-          if (item.lead_id) {
-            await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
-          }
+        if (phone && (!item.celular || item.celular === "null") && item.lead_id) {
+          await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
         }
         
         const existing = currentInad?.find(i => i.nome === item.nome && i.grupo === item.grupo && i.cota === item.cota);
