@@ -112,6 +112,7 @@ export default function Metas() {
     const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
     const [loading, setLoading] = useState(true);
     const [membros, setMembros] = useState<any[]>([]);
+    const [inadimplentesCount, setInadimplentesCount] = useState(0);
     const [selectedVendedor, setSelectedVendedor] = useState<string>("all");
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
@@ -146,8 +147,10 @@ export default function Metas() {
 
             const { data: leadsData } = await supabase.from("leads").select("*");
             const { data: carteiraData } = await supabase.from("carteira").select("id, data_adesao, data_contemplacao, status");
+            const { count: countInad } = await supabase.from("inadimplentes").select("*", { count: 'exact', head: true }).neq("status", "regularizado");
             
             setCarteira((carteiraData as any[]) || []);
+            setInadimplentesCount(countInad || 0);
             
             let metaData = null;
             if (selectedVendedor !== "all" || !isManager) {
@@ -493,6 +496,7 @@ export default function Metas() {
                         { icon: BarChart3, color: "text-indigo-500", val: formatCurrency(projecaoMes), label: "Projeção do Mês", cardClass: "" },
                         { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-600" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-100 border-red-400 border-2 shadow-sm scale-105 transition-all" : "" },
                         { icon: Clock, color: "text-primary", val: `${prazoMedio} meses`, label: "Prazo Médio Contem.", cardClass: "" },
+                        { icon: UserX, color: inadimplentesCount > 0 ? "text-red-600" : "text-gray-400", val: inadimplentesCount, label: "Inadimplentes", cardClass: inadimplentesCount > 0 ? "bg-red-50 border-red-200 shadow-sm" : "" },
                     ];
                     return items.map((k, i) => (
                         <Card key={i} className={k.cardClass}>
