@@ -195,11 +195,21 @@ export default function Carteira() {
         return;
       }
       
+      const phoneOverrides: Record<string, string> = {
+        "ANA PAULA LODE DE SOUZA STAMATO": "41996970001",
+        "PATRICIA NUNES MAGALHÃES": "41998129859",
+        "EDSON VENANCIO BATISTA JUNIOR": "41984762996"
+      };
+
       // Execute inserts
       const insertPromises = toInsert.map(async (item) => {
+        const upperNome = item.nome.toUpperCase();
         let phone = item.celular;
-        if (item.nome.toUpperCase().includes("ANA PAULA LODE") && !phone) {
-          phone = "41996970001";
+        
+        // Apply overrides if phone is missing
+        const override = Object.entries(phoneOverrides).find(([name]) => upperNome.includes(name))?.[1];
+        if (override && !phone) {
+          phone = override;
           if (item.lead_id) {
             await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
           }
@@ -220,9 +230,12 @@ export default function Carteira() {
 
       // Execute updates
       const updatePromises = toUpdate.map(async (item) => {
+        const upperNome = item.nome.toUpperCase();
         let phone = item.celular;
-        if (item.nome.toUpperCase().includes("ANA PAULA LODE") && (!phone || phone === "null")) {
-          phone = "41996970001";
+        
+        const override = Object.entries(phoneOverrides).find(([name]) => upperNome.includes(name))?.[1];
+        if (override && (!phone || phone === "null")) {
+          phone = override;
           if (item.lead_id) {
             await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
           }
