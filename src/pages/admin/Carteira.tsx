@@ -164,21 +164,39 @@ export default function Carteira() {
   const handleSyncInadimplentes = async () => {
     setLoading(true);
     try {
-      const { data: carteiraItems } = await supabase.from("carteira").select("*");
-      const { data: currentInad } = await supabase.from("inadimplentes").select("nome, grupo, cota");
+      // Fetch carteira with leads data
+      const { data: carteiraData } = await supabase
+        .from("carteira")
+        .select("*, leads:lead_id(celular)");
       
-      const toSync = (carteiraItems ?? []).filter(c => 
+      const mappedCarteira = (carteiraData ?? []).map((item: any) => ({
+        ...item,
+        celular: (item.leads as any)?.celular ?? null,
+      }));
+
+      const { data: currentInad } = await supabase.from("inadimplentes").select("*");
+      
+      // Items to insert (not in table yet)
+      const toInsert = mappedCarteira.filter(c => 
         c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE") &&
         !currentInad?.some(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota)
       );
+
+      // Items to update (already in table but missing phone)
+      const toUpdate = mappedCarteira.filter(c => {
+        if (!c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE") || !c.celular) return false;
+        const exists = currentInad?.find(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota);
+        return exists && !exists.celular;
+      });
       
-      if (toSync.length === 0) {
-        toast({ title: "Sincronização", description: "Todos os inadimplentes já estão espelhados." });
+      if (toInsert.length === 0 && toUpdate.length === 0) {
+        toast({ title: "Sincronização", description: "Todos os inadimplentes já estão atualizados." });
         setLoading(false);
         return;
       }
       
-      const syncPromises = toSync.map(item => 
+      // Execute inserts
+      const insertPromises = toInsert.map(item => 
         supabase.from("inadimplentes").insert({
           nome: item.nome,
           celular: item.celular,
@@ -191,9 +209,18 @@ export default function Carteira() {
           parcelas_atrasadas: 1
         })
       );
+
+      // Execute updates
+      const updatePromises = toUpdate.map(item => {
+        const existing = currentInad?.find(i => i.nome === item.nome && i.grupo === item.grupo && i.cota === item.cota);
+        return supabase.from("inadimplentes").update({ celular: item.celular }).eq("id", existing?.id);
+      });
       
-      await Promise.all(syncPromises);
-      toast({ title: "Sucesso", description: `${toSync.length} clientes sincronizados para Inadimplentes.` });
+      await Promise.all([...insertPromises, ...updatePromises]);
+      toast({ 
+        title: "Sucesso", 
+        description: `${toInsert.length} novos e ${toUpdate.length} existentes sincronizados.` 
+      });
     } catch (err) {
       console.error(err);
       toast({ title: "Erro", description: "Falha ao sincronizar.", variant: "destructive" });
