@@ -84,6 +84,13 @@ interface Lead {
     propensity_score?: number | null;
 }
 
+interface CarteiraItem {
+    id: string;
+    data_adesao: string | null;
+    data_contemplacao: string | null;
+    status: string;
+}
+
 
 const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, textColor: string, label: string }> = {
     imoveis: { icon: Home, color: 'bg-blue-600', textColor: 'text-blue-600', label: 'Imóveis' },
@@ -97,6 +104,7 @@ export default function Metas() {
     const { toast } = useToast();
     const { profile, isManager } = useProfile();
     const [leads, setLeads] = useState<Lead[]>([]);
+    const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
     const [metaInput, setMetaInput] = useState<string>("0");
     const [termometro, setTermometro] = useState<TermometroMercado | null>(null);
@@ -137,6 +145,9 @@ export default function Metas() {
             }
 
             const { data: leadsData } = await supabase.from("leads").select("*");
+            const { data: carteiraData } = await supabase.from("carteira").select("id, data_adesao, data_contemplacao, status");
+            
+            setCarteira((carteiraData as any[]) || []);
             
             let metaData = null;
             if (selectedVendedor !== "all" || !isManager) {
@@ -326,6 +337,22 @@ export default function Metas() {
         return { name: new Date(currentYear, i, 1).toLocaleString("pt-BR", { month: "short" }), realizado: r, meta: metaMensal };
     });
 
+    const contempladosCarteira = carteira.filter(c => c.status === "contemplada" && c.data_adesao && c.data_contemplacao);
+    const totalMeses = contempladosCarteira.reduce((acc, c) => {
+        const start = new Date(c.data_adesao!);
+        const end = new Date(c.data_contemplacao!);
+        const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        return acc + (diffDays / 30);
+    }, 0);
+    const prazoMedio = contempladosCarteira.length > 0 ? (totalMeses / contempladosCarteira.length).toFixed(1) : "—";
+
+    const aguardandoUrgente = carteira.filter(c => {
+        if (c.status !== "aguardando" || !c.data_adesao) return false;
+        const start = new Date(c.data_adesao);
+        const diffMonths = (new Date().getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30);
+        return diffMonths > 6;
+    }).length;
+
 
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
@@ -465,6 +492,7 @@ export default function Metas() {
                         { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda", cardClass: "" },
                         { icon: BarChart3, color: "text-indigo-500", val: formatCurrency(projecaoMes), label: "Projeção do Mês", cardClass: "" },
                         { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-600" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-100 border-red-400 border-2 shadow-sm scale-105 transition-all" : "" },
+                        { icon: Clock, color: "text-primary", val: `${prazoMedio} meses`, label: "Prazo Médio Contem.", cardClass: "" },
                     ];
                     return items.map((k, i) => (
                         <Card key={i} className={k.cardClass}>
@@ -590,6 +618,15 @@ export default function Metas() {
                             <AlertTitle className="font-bold text-red-700">Atenção: Leads Negligenciados</AlertTitle>
                             <AlertDescription className="text-red-600">
                                 Existem <b>{semFollowUp} leads</b> sem contato há mais de 7 dias. Priorize o atendimento para evitar a perda dessas oportunidades.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    {aguardandoUrgente > 0 && (
+                        <Alert variant="warning" className="border-orange-600 bg-orange-100">
+                            <Clock className="h-4 w-4 text-orange-600" />
+                            <AlertTitle className="font-bold text-orange-700">Atenção: Clientes em Espera Longa</AlertTitle>
+                            <AlertDescription className="text-orange-600">
+                                Existem <b>{aguardandoUrgente} clientes</b> aguardando contemplação há mais de 6 meses. Verifique se há estratégias de lance para acelerar o processo.
                             </AlertDescription>
                         </Alert>
                     )}

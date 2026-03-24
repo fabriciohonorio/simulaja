@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { format, parseISO } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -37,7 +40,9 @@ interface CarteiraItem {
   status: string;
   cota_contemplada: string | null;
   data_contemplacao: string | null;
+  data_adesao: string | null;
   boleto_url: string | null;
+  protocolo_lance_fixo_url: string | null;
   created_at: string;
   celular?: string | null;
 }
@@ -51,6 +56,8 @@ export default function Carteira() {
   const [dataContemplacao, setDataContemplacao] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [isEditingAdesao, setIsEditingAdesao] = useState(false);
+  const [newAdesaoDate, setNewAdesaoDate] = useState("");
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchData = async () => {
@@ -61,6 +68,20 @@ export default function Carteira() {
     }));
     setItems(mapped);
     setLoading(false);
+  };
+
+  const calculateTimeElapsed = (start: string | null, end: string | null) => {
+    if (!start) return "—";
+    const startDate = new Date(start);
+    const endDate = end ? new Date(end) : new Date();
+    
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 30) return `${diffDays} dias`;
+    const months = Math.floor(diffDays / 30);
+    const remainingDays = diffDays % 30;
+    return remainingDays > 0 ? `${months}m ${remainingDays}d` : `${months} meses`;
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -103,6 +124,71 @@ export default function Carteira() {
     toast({ title: "Boleto enviado!", description: `Boleto de ${item.nome} salvo com sucesso.` });
     setUploading(null);
     fetchData();
+  };
+
+  const handleUploadProtocolo = async (item: CarteiraItem, file: File) => {
+    if (file.type !== "application/pdf") {
+      toast({ title: "Erro", description: "Apenas arquivos PDF são aceitos.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Erro", description: "Arquivo deve ter no máximo 5MB.", variant: "destructive" });
+      return;
+    }
+
+    setUploading(`proto_${item.id}`);
+    const filePath = `${item.id}/${Date.now()}_protocolo.pdf`;
+
+    if (item.protocolo_lance_fixo_url) {
+      const oldPath = item.protocolo_lance_fixo_url;
+      if (oldPath) await supabase.storage.from("boletos").remove([oldPath]);
+    }
+
+    const { error: uploadError } = await supabase.storage.from("boletos").upload(filePath, file);
+    if (uploadError) {
+      toast({ title: "Erro no upload", description: uploadError.message, variant: "destructive" });
+      setUploading(null);
+      return;
+    }
+
+    await supabase.from("carteira").update({ protocolo_lance_fixo_url: filePath }).eq("id", item.id);
+
+    toast({ title: "Protocolo enviado!", description: `Protocolo de ${item.nome} salvo com sucesso.` });
+    setUploading(null);
+    fetchData();
+  };
+
+  const handleViewProtocolo = async (item: CarteiraItem) => {
+    if (!item.protocolo_lance_fixo_url) return;
+    const { data, error } = await supabase.storage.from("boletos").createSignedUrl(item.protocolo_lance_fixo_url, 300);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Erro", description: "Não foi possível abrir o protocolo.", variant: "destructive" });
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  };
+
+  const handleDeleteProtocolo = async (item: CarteiraItem) => {
+    if (!item.protocolo_lance_fixo_url) return;
+    await supabase.storage.from("boletos").remove([item.protocolo_lance_fixo_url]);
+    await supabase.from("carteira").update({ protocolo_lance_fixo_url: null }).eq("id", item.id);
+    toast({ title: "Protocolo removido", description: `Protocolo de ${item.nome} foi excluído.` });
+    fetchData();
+  };
+
+  const handleUpdateAdesao = async () => {
+    if (!selectedItem || !newAdesaoDate) return;
+    setSaving(true);
+    const { error } = await supabase.from("carteira").update({ data_adesao: newAdesaoDate }).eq("id", selectedItem.id);
+    
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Sucesso", description: "Data de adesão atualizada." });
+      setIsEditingAdesao(false);
+      fetchData();
+    }
+    setSaving(false);
   };
 
   const handleViewBoleto = async (item: CarteiraItem) => {
@@ -196,6 +282,42 @@ export default function Carteira() {
     </div>
   );
 
+  const ProtocoloActions = ({ item }: { item: CarteiraItem }) => (
+    <div className="flex items-center gap-1">
+      <input
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        ref={(el) => { fileInputRefs.current[`proto_${item.id}`] = el; }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUploadProtocolo(item, file);
+          e.target.value = "";
+        }}
+      />
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-1 border-dashed"
+        disabled={uploading === `proto_${item.id}`}
+        onClick={() => fileInputRefs.current[`proto_${item.id}`]?.click()}
+      >
+        <Upload className="h-3.5 w-3.5" />
+        {uploading === `proto_${item.id}` ? "..." : item.protocolo_lance_fixo_url ? "Fix." : "Lance"}
+      </Button>
+      {item.protocolo_lance_fixo_url && (
+        <>
+          <Button size="sm" variant="ghost" onClick={() => handleViewProtocolo(item)} title="Ver protocolo de lance">
+            <FileText className="h-3.5 w-3.5 text-orange-600" />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => handleDeleteProtocolo(item)} title="Excluir protocolo">
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+          </Button>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold">Carteira de Clientes</h1>
@@ -230,7 +352,7 @@ export default function Carteira() {
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
-                {["Nome", "Tipo", "Valor", "Grupo", "Cota", "Status", "Boleto", "Ações"].map((h) => (
+                {["Nome", "Tipo", "Valor", "Adesão", "Lance / Boleto", "Status", "Eficiência"].map((h) => (
                   <th key={h} className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -238,11 +360,36 @@ export default function Carteira() {
             <tbody className="divide-y divide-border">
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-muted/50">
-                  <td className="px-3 py-2 font-medium">{item.nome}</td>
-                  <td className="px-3 py-2">{item.tipo_consorcio}</td>
-                  <td className="px-3 py-2">{formatCurrency(Number(item.valor_credito || 0))}</td>
-                  <td className="px-3 py-2">{item.grupo || "—"}</td>
-                  <td className="px-3 py-2">{item.cota || "—"}</td>
+                  <td className="px-3 py-2 font-medium">
+                    {item.nome}
+                    <div className="text-[10px] text-muted-foreground font-normal">
+                      G: {item.grupo || "—"} / C: {item.cota || "—"}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 capitalize">{item.tipo_consorcio}</td>
+                  <td className="px-3 py-2 font-bold">{formatCurrency(Number(item.valor_credito || 0))}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-col group">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{item.data_adesao ? format(parseISO(item.data_adesao), "dd/MM/yyyy") : "—"}</span>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => { setSelectedItem(item); setNewAdesaoDate(item.data_adesao || ""); setIsEditingAdesao(true); }}
+                        >
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">Há {calculateTimeElapsed(item.data_adesao, null)}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-col gap-1.5 min-w-[120px]">
+                      <ProtocoloActions item={item} />
+                      <BoletoActions item={item} />
+                    </div>
+                  </td>
                   <td className="px-3 py-2">
                     {item.status === "contemplada" ? (
                       <Badge className="bg-green-600 text-white">🏆 Contemplada</Badge>
@@ -251,17 +398,15 @@ export default function Carteira() {
                     )}
                   </td>
                   <td className="px-3 py-2">
-                    <BoletoActions item={item} />
-                  </td>
-                  <td className="px-3 py-2">
                     {item.status === "aguardando" ? (
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedItem(item); setCotaContemplada(""); setDataContemplacao(""); }}>
-                        Registrar Contemplação
+                      <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => { setSelectedItem(item); setCotaContemplada(""); setDataContemplacao(""); }}>
+                        Contemplar
                       </Button>
                     ) : (
-                      <div className="text-xs text-muted-foreground">
-                        <p>Cota: {item.cota_contemplada}</p>
-                        <p>{item.data_contemplacao}</p>
+                      <div className="text-[10px] leading-tight text-muted-foreground">
+                        <p className="font-bold text-green-700">Contemplada em:</p>
+                        <p>{item.data_contemplacao ? format(parseISO(item.data_contemplacao), "dd/MM/yyyy") : "—"}</p>
+                        <p className="mt-1 font-semibold text-primary">Tempo: {calculateTimeElapsed(item.data_adesao, item.data_contemplacao)}</p>
                       </div>
                     )}
                   </td>
@@ -301,24 +446,39 @@ export default function Carteira() {
                   <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Grupo / Cota</p>
-                  <p>{item.grupo || "—"} / {item.cota || "—"}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs text-muted-foreground">Adesão</p>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-4 w-4 p-0"
+                      onClick={() => { setSelectedItem(item); setNewAdesaoDate(item.data_adesao || ""); setIsEditingAdesao(true); }}
+                    >
+                      <Calendar className="h-2.5 w-2.5" />
+                    </Button>
+                  </div>
+                  <p className="text-xs">{item.data_adesao ? format(parseISO(item.data_adesao), "dd/MM") : "—"} ({calculateTimeElapsed(item.data_adesao, null)})</p>
                 </div>
                 {item.status === "contemplada" && (
-                  <>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Cota Contemplada</p>
-                      <p>{item.cota_contemplada || "—"}</p>
+                  <div className="col-span-2 bg-green-50 p-2 rounded border border-green-100 mt-1">
+                    <p className="text-[10px] font-bold text-green-700 uppercase">Dados de Contemplação</p>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Cota / Data</p>
+                        <p className="text-xs font-bold">{item.cota_contemplada || "—"} / {item.data_contemplacao ? format(parseISO(item.data_contemplacao), "dd/MM") : "—"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-muted-foreground">Tempo Total</p>
+                        <p className="text-xs font-bold text-primary">{calculateTimeElapsed(item.data_adesao, item.data_contemplacao)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> Data</p>
-                      <p>{item.data_contemplacao || "—"}</p>
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                <ProtocoloActions item={item} />
+                <div className="w-px h-4 bg-border mx-1" />
                 <BoletoActions item={item} />
               </div>
 
@@ -337,7 +497,7 @@ export default function Carteira() {
         ))}
       </div>
 
-      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+      <Dialog open={!!selectedItem} onOpenChange={(open: boolean) => !open && setSelectedItem(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Registrar Contemplação — {selectedItem?.nome}</DialogTitle>
@@ -345,16 +505,45 @@ export default function Carteira() {
           <div className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label>Número da Cota Contemplada</Label>
-              <Input value={cotaContemplada} onChange={(e) => setCotaContemplada(e.target.value)} placeholder="Ex: 0012" />
+              <Input value={cotaContemplada} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCotaContemplada(e.target.value)} placeholder="Ex: 0012" />
             </div>
             <div className="space-y-2">
               <Label>Data da Assembleia</Label>
-              <Input type="date" value={dataContemplacao} onChange={(e) => setDataContemplacao(e.target.value)} />
+              <Input type="date" value={dataContemplacao} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDataContemplacao(e.target.value)} />
             </div>
             <Button className="w-full" onClick={handleContemplacao} disabled={saving}>
               {saving ? "Salvando..." : "Confirmar Contemplação"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Date Edit Dialog */}
+      <Dialog open={isEditingAdesao} onOpenChange={setIsEditingAdesao}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Editar Data de Adesão</DialogTitle>
+            <DialogDescription>
+              Ajuste a data de entrada do cliente {selectedItem?.nome}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="data_adesao">Data de Adesão</Label>
+              <Input
+                id="data_adesao"
+                type="date"
+                value={newAdesaoDate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAdesaoDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingAdesao(false)}>Cancelar</Button>
+            <Button onClick={handleUpdateAdesao} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar Alteração"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

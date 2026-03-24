@@ -1034,6 +1034,7 @@ export default function Funil() {
       grupo,
       cota,
       status: "aguardando",
+      data_adesao: new Date().toISOString().split('T')[0],
     });
 
     setSaving(false);
