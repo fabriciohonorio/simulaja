@@ -196,10 +196,18 @@ export default function Carteira() {
       }
       
       // Execute inserts
-      const insertPromises = toInsert.map(item => 
-        supabase.from("inadimplentes").insert({
+      const insertPromises = toInsert.map(async (item) => {
+        let phone = item.celular;
+        if (item.nome.toUpperCase().includes("ANA PAULA LODE") && !phone) {
+          phone = "41996970001";
+          if (item.lead_id) {
+            await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
+          }
+        }
+        
+        return supabase.from("inadimplentes").insert({
           nome: item.nome,
-          celular: item.celular,
+          celular: phone,
           grupo: item.grupo,
           cota: item.cota,
           tipo_consorcio: item.tipo_consorcio,
@@ -207,13 +215,21 @@ export default function Carteira() {
           valor_parcela: 0,
           parcelas_pagas: 0,
           parcelas_atrasadas: 1
-        })
-      );
+        });
+      });
 
       // Execute updates
-      const updatePromises = toUpdate.map(item => {
+      const updatePromises = toUpdate.map(async (item) => {
+        let phone = item.celular;
+        if (item.nome.toUpperCase().includes("ANA PAULA LODE") && (!phone || phone === "null")) {
+          phone = "41996970001";
+          if (item.lead_id) {
+            await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
+          }
+        }
+        
         const existing = currentInad?.find(i => i.nome === item.nome && i.grupo === item.grupo && i.cota === item.cota);
-        return supabase.from("inadimplentes").update({ celular: item.celular }).eq("id", existing?.id);
+        return supabase.from("inadimplentes").update({ celular: phone }).eq("id", existing?.id);
       });
       
       await Promise.all([...insertPromises, ...updatePromises]);
