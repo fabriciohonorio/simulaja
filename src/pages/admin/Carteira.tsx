@@ -128,8 +128,34 @@ export default function Carteira() {
 
   const handleUpdateProtocolo = async (item: CarteiraItem, value: string) => {
     const { error } = await supabase.from("carteira").update({ protocolo_lance_fixo: value }).eq("id", item.id);
+    
     if (!error) {
       toast({ title: "Sucesso", description: "Protocolo atualizado." });
+      
+      // Delinquency Mirroring
+      if (value.toUpperCase().includes("INADIMPLENTE")) {
+        const { error: syncError } = await supabase.from("inadimplentes").insert({
+          nome: item.nome,
+          celular: item.celular,
+          grupo: item.grupo,
+          cota: item.cota,
+          tipo_consorcio: item.tipo_consorcio,
+          status: "em_atraso",
+          valor_parcela: 0,
+          parcelas_pagas: 0,
+          parcelas_atrasadas: 1
+        });
+
+        if (syncError) {
+          console.error("Erro ao espelhar inadimplência:", syncError);
+        } else {
+          toast({ 
+            title: "Inadimplência Registrada", 
+            description: "Cliente espelhado para o módulo de Inadimplentes.",
+          });
+        }
+      }
+      
       fetchData();
     }
   };
