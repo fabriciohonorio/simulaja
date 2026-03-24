@@ -160,7 +160,7 @@ export default function Carteira() {
       fetchData();
     }
   };
-  
+
   const handleSyncInadimplentes = async () => {
     setLoading(true);
     try {
@@ -172,7 +172,7 @@ export default function Carteira() {
       };
 
       const normalize = (str: string) => 
-        str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase() : "";
 
       const getOverride = (nome: string) => {
         const normalizedInput = normalize(nome);
@@ -196,21 +196,33 @@ export default function Carteira() {
       
       // Items to insert (not in table yet)
       const toInsert = mappedCarteira.filter(c => {
-        const hasProtocol = c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE");
+        const protocolValue = c.protocolo_lance_fixo?.toUpperCase() || "";
+        const hasProtocol = protocolValue.includes("INADIM");
         if (!hasProtocol) return false;
-        return !currentInad?.some(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota);
+        
+        return !currentInad?.some(i => 
+          normalize(i.nome) === normalize(c.nome) && 
+          (i.grupo === c.grupo || !i.grupo) && 
+          (i.cota === c.cota || !i.cota)
+        );
       });
 
-      // Items to update (already in table but missing phone)
+      // Items to update (already in table but missing phone or has override)
       const toUpdate = mappedCarteira.filter(c => {
-        const hasProtocol = c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE");
+        const protocolValue = c.protocolo_lance_fixo?.toUpperCase() || "";
+        const hasProtocol = protocolValue.includes("INADIM");
         if (!hasProtocol) return false;
         
         const phone = c.celular || getOverride(c.nome);
         if (!phone) return false;
         
-        const exists = currentInad?.find(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota);
-        return exists && !exists.celular;
+        const exists = currentInad?.find(i => 
+          normalize(i.nome) === normalize(c.nome) && 
+          (i.grupo === c.grupo || !i.grupo) && 
+          (i.cota === c.cota || !i.cota)
+        );
+        // Update if already in table but phone is missing OR if we have a manual override for them
+        return exists && (!exists.celular || getOverride(c.nome));
       });
       
       if (toInsert.length === 0 && toUpdate.length === 0) {
@@ -222,6 +234,7 @@ export default function Carteira() {
       // Execute inserts
       const insertResults = await Promise.all(toInsert.map(async (item) => {
         let phone = item.celular || getOverride(item.nome);
+        if (phone && phone.startsWith("55")) phone = phone.substring(2);
         
         if (phone && !item.celular && item.lead_id) {
           await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
@@ -250,13 +263,18 @@ export default function Carteira() {
       // Execute updates
       const updateResults = await Promise.all(toUpdate.map(async (item) => {
         let phone = item.celular || getOverride(item.nome);
+        if (phone && phone.startsWith("55")) phone = phone.substring(2);
         
         if (phone && (!item.celular || item.celular === "null") && item.lead_id) {
           await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
         }
         
-        const existing = currentInad?.find(i => i.nome === item.nome && i.grupo === item.grupo && i.cota === item.cota);
-        if (!existing?.id) return { error: null }; // Skip if no ID
+        const existing = currentInad?.find(i => 
+          normalize(i.nome) === normalize(item.nome) && 
+          (i.grupo === item.grupo || !i.grupo) && 
+          (i.cota === item.cota || !i.cota)
+        );
+        if (!existing?.id) return { error: null };
 
         return (supabase.from("inadimplentes" as any) as any)
           .update({ celular: phone })
