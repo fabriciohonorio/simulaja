@@ -344,24 +344,41 @@ export default function Inadimplentes() {
                             >
                               <div className="flex items-center justify-between">
                                 <p className="font-medium truncate flex-1">{item.nome}</p>
-                                {item.celular && (
-                                  <a
-                                    href={`https://wa.me/55${item.celular.replace(/\D/g, "")}?text=${encodeURIComponent(
-                                      copyTemplate
-                                        .replace("{nome}", item.nome)
-                                        .replace("{cota}", item.cota || "—")
-                                        .replace("{grupo}", item.grupo || "—")
-                                        .replace("{parcelas_atrasadas}", String(item.parcelas_atrasadas))
-                                        .replace("{valor_parcela}", formatCurrency(item.valor_parcela))
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="text-green-500 hover:text-green-600 shrink-0 ml-1"
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {item.celular && (
+                                    <a
+                                      href={`https://wa.me/55${item.celular.replace(/\D/g, "")}?text=${encodeURIComponent(
+                                        copyTemplate
+                                          .replace("{nome}", item.nome)
+                                          .replace("{cota}", item.cota || "—")
+                                          .replace("{grupo}", item.grupo || "—")
+                                          .replace("{parcelas_atrasadas}", String(item.parcelas_atrasadas))
+                                          .replace("{valor_parcela}", formatCurrency(item.valor_parcela))
+                                      )}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="text-green-500 hover:text-green-600 p-1"
+                                      title="WhatsApp"
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                    </a>
+                                  )}
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
+                                    className="text-muted-foreground hover:text-primary p-1"
+                                    title="Editar"
                                   >
-                                    <MessageCircle className="h-4 w-4" />
-                                  </a>
-                                )}
+                                    <Pencil className="h-4 w-4" />
+                                  </button>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                    className="text-muted-foreground hover:text-destructive p-1"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 text-xs">
                                 <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
