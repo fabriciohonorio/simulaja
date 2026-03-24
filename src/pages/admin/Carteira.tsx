@@ -219,14 +219,14 @@ export default function Carteira() {
       };
 
       // Execute inserts
-      const insertPromises = toInsert.map(async (item) => {
+      const insertResults = await Promise.all(toInsert.map(async (item) => {
         let phone = item.celular || getOverride(item.nome);
         
         if (phone && !item.celular && item.lead_id) {
           await supabase.from("leads").update({ celular: phone }).eq("id", item.lead_id);
         }
         
-        return supabase.from("inadimplentes").insert({
+        return (supabase.from("inadimplentes" as any) as any).insert({
           nome: item.nome,
           celular: phone,
           grupo: item.grupo,
@@ -235,12 +235,19 @@ export default function Carteira() {
           status: "em_atraso",
           valor_parcela: 0,
           parcelas_pagas: 0,
-          parcelas_atrasadas: 1
+          parcelas_atrasadas: 1,
+          organizacao_id: item.organizacao_id
         });
-      });
+      }));
+
+      const firstInsertError = insertResults.find(r => r.error)?.error;
+      if (firstInsertError) {
+        console.error("Insert error:", firstInsertError);
+        throw new Error(`Erro ao inserir: ${firstInsertError.message}`);
+      }
 
       // Execute updates
-      const updatePromises = toUpdate.map(async (item) => {
+      const updateResults = await Promise.all(toUpdate.map(async (item) => {
         let phone = item.celular || getOverride(item.nome);
         
         if (phone && (!item.celular || item.celular === "null") && item.lead_id) {
@@ -248,19 +255,33 @@ export default function Carteira() {
         }
         
         const existing = currentInad?.find(i => i.nome === item.nome && i.grupo === item.grupo && i.cota === item.cota);
-        return supabase.from("inadimplentes").update({ celular: phone }).eq("id", existing?.id);
-      });
+        if (!existing?.id) return { error: null }; // Skip if no ID
+
+        return (supabase.from("inadimplentes" as any) as any)
+          .update({ celular: phone })
+          .eq("id", existing.id);
+      }));
       
-      await Promise.all([...insertPromises, ...updatePromises]);
+      const firstUpdateError = updateResults.find(r => r.error)?.error;
+      if (firstUpdateError) {
+        console.error("Update error:", firstUpdateError);
+        throw new Error(`Erro ao atualizar: ${firstUpdateError.message}`);
+      }
+
       toast({ 
         title: "Sucesso", 
         description: `${toInsert.length} novos e ${toUpdate.length} existentes sincronizados.` 
       });
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Erro", description: "Falha ao sincronizar.", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Erro na sincronização:", err);
+      toast({ 
+        title: "Falha ao sincronizar", 
+        description: err.message || "Erro inesperado. Verifique o console.", 
+        variant: "destructive" 
+      });
     } finally {
       setLoading(false);
+      fetchData();
     }
   };
 
