@@ -305,11 +305,11 @@ export default function Carteira() {
                 <tr key={item.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium">
                     <div className="text-sm">{item.nome}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-[10px] font-bold border-primary/30 py-0 px-1.5 h-4">
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-black py-0 px-2 h-5 shadow-sm">
                         G: {item.grupo || "—"}
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] font-bold border-primary/30 py-0 px-1.5 h-4">
+                      <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] font-black py-0 px-2 h-5 shadow-sm">
                         C: {item.cota || "—"}
                       </Badge>
                     </div>
@@ -393,15 +393,15 @@ export default function Carteira() {
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
                 </div>
-                <div className="col-span-2 flex items-center gap-3 bg-primary/5 p-1.5 rounded-md border border-primary/10 mb-1">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Grupo</p>
-                    <p className="text-sm font-black text-primary">{item.grupo || "—"}</p>
+                <div className="col-span-2 flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-2 rounded-lg border border-primary/20 mb-1 shadow-inner">
+                  <div className="flex-1 text-center">
+                    <p className="text-[9px] text-blue-600 uppercase font-black tracking-tighter">Grupo</p>
+                    <p className="text-base font-black text-blue-800 leading-none">{item.grupo || "—"}</p>
                   </div>
-                  <div className="w-px h-6 bg-primary/20" />
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Cota</p>
-                    <p className="text-sm font-black text-primary">{item.cota || "—"}</p>
+                  <div className="w-px h-8 bg-primary/20" />
+                  <div className="flex-1 text-center">
+                    <p className="text-[9px] text-indigo-600 uppercase font-black tracking-tighter">Cota</p>
+                    <p className="text-base font-black text-indigo-800 leading-none">{item.cota || "—"}</p>
                   </div>
                 </div>
                 <div>
