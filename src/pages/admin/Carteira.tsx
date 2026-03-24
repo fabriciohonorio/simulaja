@@ -42,7 +42,7 @@ interface CarteiraItem {
   data_contemplacao: string | null;
   data_adesao: string | null;
   boleto_url: string | null;
-  protocolo_lance_fixo_url: string | null;
+  protocolo_lance_fixo: string | null;
   created_at: string;
   celular?: string | null;
 }
@@ -126,54 +126,12 @@ export default function Carteira() {
     fetchData();
   };
 
-  const handleUploadProtocolo = async (item: CarteiraItem, file: File) => {
-    if (file.type !== "application/pdf") {
-      toast({ title: "Erro", description: "Apenas arquivos PDF são aceitos.", variant: "destructive" });
-      return;
+  const handleUpdateProtocolo = async (item: CarteiraItem, value: string) => {
+    const { error } = await supabase.from("carteira").update({ protocolo_lance_fixo: value }).eq("id", item.id);
+    if (!error) {
+      toast({ title: "Sucesso", description: "Protocolo atualizado." });
+      fetchData();
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Erro", description: "Arquivo deve ter no máximo 5MB.", variant: "destructive" });
-      return;
-    }
-
-    setUploading(`proto_${item.id}`);
-    const filePath = `${item.id}/${Date.now()}_protocolo.pdf`;
-
-    if (item.protocolo_lance_fixo_url) {
-      const oldPath = item.protocolo_lance_fixo_url;
-      if (oldPath) await supabase.storage.from("boletos").remove([oldPath]);
-    }
-
-    const { error: uploadError } = await supabase.storage.from("boletos").upload(filePath, file);
-    if (uploadError) {
-      toast({ title: "Erro no upload", description: uploadError.message, variant: "destructive" });
-      setUploading(null);
-      return;
-    }
-
-    await supabase.from("carteira").update({ protocolo_lance_fixo_url: filePath }).eq("id", item.id);
-
-    toast({ title: "Protocolo enviado!", description: `Protocolo de ${item.nome} salvo com sucesso.` });
-    setUploading(null);
-    fetchData();
-  };
-
-  const handleViewProtocolo = async (item: CarteiraItem) => {
-    if (!item.protocolo_lance_fixo_url) return;
-    const { data, error } = await supabase.storage.from("boletos").createSignedUrl(item.protocolo_lance_fixo_url, 300);
-    if (error || !data?.signedUrl) {
-      toast({ title: "Erro", description: "Não foi possível abrir o protocolo.", variant: "destructive" });
-      return;
-    }
-    window.open(data.signedUrl, "_blank");
-  };
-
-  const handleDeleteProtocolo = async (item: CarteiraItem) => {
-    if (!item.protocolo_lance_fixo_url) return;
-    await supabase.storage.from("boletos").remove([item.protocolo_lance_fixo_url]);
-    await supabase.from("carteira").update({ protocolo_lance_fixo_url: null }).eq("id", item.id);
-    toast({ title: "Protocolo removido", description: `Protocolo de ${item.nome} foi excluído.` });
-    fetchData();
   };
 
   const handleUpdateAdesao = async () => {
@@ -282,41 +240,26 @@ export default function Carteira() {
     </div>
   );
 
-  const ProtocoloActions = ({ item }: { item: CarteiraItem }) => (
-    <div className="flex items-center gap-1">
-      <input
-        type="file"
-        accept=".pdf"
-        className="hidden"
-        ref={(el) => { fileInputRefs.current[`proto_${item.id}`] = el; }}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleUploadProtocolo(item, file);
-          e.target.value = "";
-        }}
-      />
-      <Button
-        size="sm"
-        variant="outline"
-        className="gap-1 border-dashed"
-        disabled={uploading === `proto_${item.id}`}
-        onClick={() => fileInputRefs.current[`proto_${item.id}`]?.click()}
-      >
-        <Upload className="h-3.5 w-3.5" />
-        {uploading === `proto_${item.id}` ? "..." : item.protocolo_lance_fixo_url ? "Fix." : "Lance"}
-      </Button>
-      {item.protocolo_lance_fixo_url && (
-        <>
-          <Button size="sm" variant="ghost" onClick={() => handleViewProtocolo(item)} title="Ver protocolo de lance">
-            <FileText className="h-3.5 w-3.5 text-orange-600" />
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => handleDeleteProtocolo(item)} title="Excluir protocolo">
-            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-          </Button>
-        </>
-      )}
-    </div>
-  );
+  const ProtocoloActions = ({ item }: { item: CarteiraItem }) => {
+    const [protocolValue, setProtocolValue] = useState(item.protocolo_lance_fixo || "");
+    
+    return (
+      <div className="flex items-center gap-2">
+        <Input 
+          size={10} 
+          className="h-8 text-[10px] w-24" 
+          placeholder="Protocolo Lance" 
+          value={protocolValue}
+          onChange={(e) => setProtocolValue(e.target.value)}
+          onBlur={() => {
+            if (protocolValue !== (item.protocolo_lance_fixo || "")) {
+              handleUpdateProtocolo(item, protocolValue);
+            }
+          }}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -361,9 +304,14 @@ export default function Carteira() {
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium">
-                    {item.nome}
-                    <div className="text-[10px] text-muted-foreground font-normal">
-                      G: {item.grupo || "—"} / C: {item.cota || "—"}
+                    <div className="text-sm">{item.nome}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-[10px] font-bold border-primary/30 py-0 px-1.5 h-4">
+                        G: {item.grupo || "—"}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px] font-bold border-primary/30 py-0 px-1.5 h-4">
+                        C: {item.cota || "—"}
+                      </Badge>
                     </div>
                   </td>
                   <td className="px-3 py-2 capitalize">{item.tipo_consorcio}</td>
@@ -444,6 +392,17 @@ export default function Carteira() {
                 <div>
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
+                </div>
+                <div className="col-span-2 flex items-center gap-3 bg-primary/5 p-1.5 rounded-md border border-primary/10 mb-1">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Grupo</p>
+                    <p className="text-sm font-black text-primary">{item.grupo || "—"}</p>
+                  </div>
+                  <div className="w-px h-6 bg-primary/20" />
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Cota</p>
+                    <p className="text-sm font-black text-primary">{item.cota || "—"}</p>
+                  </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-1">
