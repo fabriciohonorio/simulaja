@@ -25,6 +25,7 @@ import {
   FileText,
   Trash2,
   Send,
+  UserX,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -159,6 +160,47 @@ export default function Carteira() {
       fetchData();
     }
   };
+  
+  const handleSyncInadimplentes = async () => {
+    setLoading(true);
+    try {
+      const { data: carteiraItems } = await supabase.from("carteira").select("*");
+      const { data: currentInad } = await supabase.from("inadimplentes").select("nome, grupo, cota");
+      
+      const toSync = (carteiraItems ?? []).filter(c => 
+        c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE") &&
+        !currentInad?.some(i => i.nome === c.nome && i.grupo === c.grupo && i.cota === c.cota)
+      );
+      
+      if (toSync.length === 0) {
+        toast({ title: "Sincronização", description: "Todos os inadimplentes já estão espelhados." });
+        setLoading(false);
+        return;
+      }
+      
+      const syncPromises = toSync.map(item => 
+        supabase.from("inadimplentes").insert({
+          nome: item.nome,
+          celular: item.celular,
+          grupo: item.grupo,
+          cota: item.cota,
+          tipo_consorcio: item.tipo_consorcio,
+          status: "em_atraso",
+          valor_parcela: 0,
+          parcelas_pagas: 0,
+          parcelas_atrasadas: 1
+        })
+      );
+      
+      await Promise.all(syncPromises);
+      toast({ title: "Sucesso", description: `${toSync.length} clientes sincronizados para Inadimplentes.` });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Erro", description: "Falha ao sincronizar.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpdateAdesao = async () => {
     if (!selectedItem || !newAdesaoDate) return;
@@ -289,7 +331,19 @@ export default function Carteira() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <h1 className="text-xl sm:text-2xl font-bold">Carteira de Clientes</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold">Carteira de Clientes</h1>
+        <Button 
+          size="sm" 
+          onClick={handleSyncInadimplentes} 
+          variant="outline" 
+          className="flex-1 sm:flex-none border-red-200 text-red-600 hover:bg-red-50 shadow-sm"
+          disabled={loading}
+        >
+          <UserX className="h-4 w-4 mr-2" />
+          Sincronizar Inadimplentes Retroativos
+        </Button>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
