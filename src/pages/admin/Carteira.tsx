@@ -164,6 +164,24 @@ export default function Carteira() {
   const handleSyncInadimplentes = async () => {
     setLoading(true);
     try {
+      const phoneOverrides: Record<string, string> = {
+        "ANA PAULA LODE DE SOUZA STAMATO": "41996970001",
+        "PATRICIA NUNES MAGALHAES": "41998129859",
+        "PATRICIA NUNES MAGALHÃES": "41998129859",
+        "EDSON VENANCIO BATISTA JUNIOR": "41984762996"
+      };
+
+      const normalize = (str: string) => 
+        str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
+      const getOverride = (nome: string) => {
+        const normalizedInput = normalize(nome);
+        for (const [key, val] of Object.entries(phoneOverrides)) {
+          if (normalizedInput.includes(normalize(key))) return val;
+        }
+        return null;
+      };
+
       // Fetch carteira with leads data
       const { data: carteiraData } = await supabase
         .from("carteira")
@@ -175,7 +193,8 @@ export default function Carteira() {
       }));
 
       const { data: currentInad } = await supabase.from("inadimplentes").select("*");
-       // Items to insert (not in table yet)
+      
+      // Items to insert (not in table yet)
       const toInsert = mappedCarteira.filter(c => {
         const hasProtocol = c.protocolo_lance_fixo?.toUpperCase().includes("INADIMPLENTE");
         if (!hasProtocol) return false;
@@ -199,24 +218,6 @@ export default function Carteira() {
         setLoading(false);
         return;
       }
-      
-      const phoneOverrides: Record<string, string> = {
-        "ANA PAULA LODE DE SOUZA STAMATO": "41996970001",
-        "PATRICIA NUNES MAGALHAES": "41998129859",
-        "PATRICIA NUNES MAGALHÃES": "41998129859",
-        "EDSON VENANCIO BATISTA JUNIOR": "41984762996"
-      };
-
-      const normalize = (str: string) => 
-        str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-
-      const getOverride = (nome: string) => {
-        const normalizedInput = normalize(nome);
-        for (const [key, val] of Object.entries(phoneOverrides)) {
-          if (normalizedInput.includes(normalize(key))) return val;
-        }
-        return null;
-      };
 
       // Execute inserts
       const insertResults = await Promise.all(toInsert.map(async (item) => {
