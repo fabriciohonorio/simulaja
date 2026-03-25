@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
@@ -32,11 +32,22 @@ const openWhatsApp = (lead: Lead) => {
 export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newLeadFlash, setNewLeadFlash] = useState(false);
+  const prevCountRef = useRef(0);
 
   useEffect(() => {
     const fetchData = () => {
-      supabase.from("leads").select("*").then(({ data }) => {
-        setLeads((data as any[]) ?? []);
+      supabase.from("leads").select("*").order("created_at", { ascending: false }).then(({ data }) => {
+        const sorted = ((data as any[]) ?? []).sort(
+          (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
+        // Flash badge when a NEW lead arrives (more leads than before)
+        if (prevCountRef.current > 0 && sorted.length > prevCountRef.current) {
+          setNewLeadFlash(true);
+          setTimeout(() => setNewLeadFlash(false), 4000);
+        }
+        prevCountRef.current = sorted.length;
+        setLeads(sorted);
         setLoading(false);
       });
     };
@@ -134,8 +145,18 @@ export default function Dashboard() {
     <div className="space-y-4 sm:space-y-6 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard Admin</h1>
-          <p className="text-sm text-muted-foreground">Bem-vindo ao painel de controle do SimulaJá.</p>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            Dashboard Admin
+            {newLeadFlash && (
+              <Badge className="animate-pulse bg-green-500 text-white border-none text-xs gap-1">
+                <Zap className="h-3 w-3" /> Novo Lead!
+              </Badge>
+            )}
+          </h1>
+          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            Atualização automática em tempo real
+          </p>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full outline outline-1 outline-border">
           <Calendar className="h-4 w-4" />
@@ -281,19 +302,93 @@ export default function Dashboard() {
                 </>
               );
             })()}
-            {leads.filter(l => l.status === "novo" && l.created_at && (Date.now() - new Date(l.created_at).getTime() > 24 * 60 * 60 * 1000)).length > 0 && (
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100">
-                <div className="p-2 rounded-full bg-white text-orange-500 shadow-sm"><Clock className="h-4 w-4" /></div>
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-orange-800">
-                    {leads.filter(l => l.status === "novo" && l.created_at && (Date.now() - new Date(l.created_at).getTime() > 24 * 60 * 60 * 1000)).length} Leads sem contato
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-orange-700">Há mais de 24h sem primeira interação.</p>
+            {/* Leads novo_lead sem nenhum contato há mais de 24h */}
+            {(() => {
+              const semContato = leads.filter(
+                l => (l.status === 'novo' || l.status === 'novo_lead') &&
+                  l.created_at &&
+                  (Date.now() - new Date(l.created_at).getTime() > 24 * 60 * 60 * 1000)
+              );
+              return semContato.length > 0 ? (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100">
+                  <div className="p-2 rounded-full bg-white text-orange-500 shadow-sm"><Clock className="h-4 w-4" /></div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-semibold text-orange-800">
+                      {semContato.length} lead(s) sem 1º contato há +24h
+                    </p>
+                    <div className="space-y-0.5 mt-1">
+                      {semContato.slice(0, 3).map(l => (
+                        <div key={l.id} className="flex items-center gap-2">
+                          <p className="text-[10px] sm:text-xs text-orange-700">{l.nome}</p>
+                          <button
+                            onClick={() => openWhatsApp(l)}
+                            className="text-green-600 hover:text-green-700"
+                            title="Chamar no WhatsApp"
+                          >
+                            <MessageCircle className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
+
+            {/* Leads quentes sem interação há +48h */}
+            {(() => {
+              const quentes = leads.filter(
+                l => l.lead_temperatura === 'quente' &&
+                  l.last_interaction_at &&
+                  (Date.now() - new Date(l.last_interaction_at).getTime() > 48 * 60 * 60 * 1000) &&
+                  l.status !== 'fechado' && l.status !== 'morto' && l.status !== 'perdido'
+              );
+              return quentes.length > 0 ? (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-100">
+                  <div className="p-2 rounded-full bg-white text-yellow-500 shadow-sm"><Bell className="h-4 w-4 animate-bounce" /></div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-semibold text-yellow-800">
+                      🔥 {quentes.length} lead(s) quente(s) sem contato há +48h
+                    </p>
+                    <div className="space-y-0.5 mt-1">
+                      {quentes.slice(0, 3).map(l => (
+                        <div key={l.id} className="flex items-center gap-2">
+                          <p className="text-[10px] sm:text-xs text-yellow-800 font-semibold">{l.nome}</p>
+                          <button
+                            onClick={() => openWhatsApp(l)}
+                            className="text-green-600 hover:text-green-700"
+                            title="Chamar no WhatsApp"
+                          >
+                            <MessageCircle className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Nenhum alerta */}
+            {(() => {
+              const today = new Date(); today.setHours(0,0,0,0);
+              const aguardando = leads.filter(l => l.status === 'aguardando_pagamento' && l.data_vencimento);
+              const atrasados = aguardando.filter(l => parseISO(l.data_vencimento!) < today);
+              const semContato = leads.filter(l => (l.status === 'novo' || l.status === 'novo_lead') && l.created_at && (Date.now() - new Date(l.created_at).getTime() > 24 * 60 * 60 * 1000));
+              const quentes = leads.filter(l => l.lead_temperatura === 'quente' && l.last_interaction_at && (Date.now() - new Date(l.last_interaction_at).getTime() > 48 * 60 * 60 * 1000) && l.status !== 'fechado' && l.status !== 'morto' && l.status !== 'perdido');
+              return atrasados.length === 0 && semContato.length === 0 && quentes.length === 0 ? (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-100">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <p className="text-xs text-green-700 font-semibold">Tudo em ordem! Nenhum alerta no momento.</p>
+                </div>
+              ) : null;
+            })()}
+
             <div className="pt-1">
-              <p className="text-[10px] sm:text-xs text-muted-foreground italic text-center">Última atualização: agora mesmo</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground italic text-center flex items-center justify-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                Atualização automática via Supabase Realtime
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -346,12 +441,17 @@ export default function Dashboard() {
                 <div key={l.id} className="flex items-center justify-between p-3 sm:p-4 hover:bg-accent/5 transition-colors">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">{l.nome}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(l.created_at || '').toLocaleDateString('pt-BR')}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {l.created_at
+                        ? new Date(l.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                        : '—'
+                      }
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
                     <p className="text-xs sm:text-sm font-medium hidden sm:block">{formatCurrency(Number(l.valor_credito))}</p>
                     <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-primary/10 text-primary capitalize shrink-0">
-                      {l.status ?? 'novo'}
+                      {(l.status ?? 'novo').replace(/_/g, ' ')}
                     </span>
                     <button onClick={() => openWhatsApp(l)} className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors active:scale-95">
                       <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -359,6 +459,9 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
+              {leads.length === 0 && (
+                <p className="text-center text-sm text-muted-foreground py-6">Nenhum lead ainda.</p>
+              )}
             </div>
           </CardContent>
         </Card>
