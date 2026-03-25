@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown } from "lucide-react";
+import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Lead {
@@ -64,6 +64,19 @@ const TIPO_OPTIONS = [
   { value: "investimento", label: "Investimento" },
 ];
 
+const TEMPERATURA_OPTIONS = [
+  { value: "quente", label: "🔥 Quente" },
+  { value: "morno", label: "🌤 Morno" },
+  { value: "frio", label: "❄️ Frio" },
+  { value: "morto", label: "☠️ Morto" },
+];
+
+const SCORE_OPTIONS = [
+  { value: "premium", label: "🔥 Premium" },
+  { value: "alto", label: "🚀 Alto" },
+  { value: "medio", label: "⚡ Médio" },
+  { value: "baixo", label: "🧊 Baixo" },
+];
 
 const openWhatsApp = (lead: Lead) => {
   const msg = encodeURIComponent(
@@ -71,6 +84,12 @@ const openWhatsApp = (lead: Lead) => {
   );
   const phone = lead.celular.replace(/\D/g, "");
   window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
+};
+
+const EMPTY_LEAD_FORM = {
+  nome: "", email: "", celular: "", cidade: "", tipo_consorcio: "imovel",
+  valor_credito: "", prazo_meses: "120", status: "novo_lead",
+  lead_temperatura: "quente", lead_score_valor: "medio",
 };
 
 export default function Leads() {
@@ -84,17 +103,27 @@ export default function Leads() {
   const [cidadeFilter, setCidadeFilter] = useState("");
   const [sortKey, setSortKey] = useState<keyof Lead>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  // New Lead dialog
   const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newLead, setNewLead] = useState({
-    nome: "", celular: "", cidade: "", tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "120"
-  });
+  const [newLead, setNewLead] = useState(EMPTY_LEAD_FORM);
+
+  // Edit Lead dialog
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+  const [editForm, setEditForm] = useState(EMPTY_LEAD_FORM);
+
+  // Delete confirmation
+  const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
     fetchLeads();
     if (isManager && profile.organizacao_id) {
-      // Buscar membros para atribuição
       (supabase.from("perfis" as any) as any)
         .select("id, nome_completo")
         .eq("organizacao_id", profile.organizacao_id)
@@ -118,30 +147,87 @@ export default function Leads() {
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
-    
     setIsSubmitting(true);
     const leadToInsert = {
       nome: newLead.nome,
+      email: newLead.email || null,
       celular: newLead.celular,
       cidade: newLead.cidade,
       tipo_consorcio: newLead.tipo_consorcio,
       valor_credito: Number(newLead.valor_credito) || 0,
       prazo_meses: Number(newLead.prazo_meses) || 120,
-      status: "novo_lead",
-      lead_temperatura: "quente",
-      lead_score_valor: "medio",
-      responsavel_id: profile.id, // Se o admin preferir repassar, ele faz após criar, mas inicialmente cai para quem criou
-      organizacao_id: profile.organizacao_id
+      status: newLead.status,
+      lead_temperatura: newLead.lead_temperatura,
+      lead_score_valor: newLead.lead_score_valor,
+      responsavel_id: profile.id,
+      organizacao_id: profile.organizacao_id,
     };
-
     const { data, error } = await supabase.from("leads").insert([leadToInsert]).select();
-
     if (!error && data && data.length > 0) {
       setLeads(prev => [data[0] as Lead, ...prev]);
       setIsNewLeadOpen(false);
-      setNewLead({ nome: "", celular: "", cidade: "", tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "120" });
+      setNewLead(EMPTY_LEAD_FORM);
     }
     setIsSubmitting(false);
+  };
+
+  const openEdit = (lead: Lead) => {
+    setEditingLead(lead);
+    setEditForm({
+      nome: lead.nome || "",
+      email: lead.email || "",
+      celular: lead.celular || "",
+      cidade: lead.cidade || "",
+      tipo_consorcio: lead.tipo_consorcio || "imovel",
+      valor_credito: String(lead.valor_credito || ""),
+      prazo_meses: String(lead.prazo_meses || "120"),
+      status: lead.status || "novo_lead",
+      lead_temperatura: lead.lead_temperatura || "quente",
+      lead_score_valor: lead.lead_score_valor || "medio",
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleEditLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLead) return;
+    setIsEditSubmitting(true);
+    const updates = {
+      nome: editForm.nome,
+      email: editForm.email || null,
+      celular: editForm.celular,
+      cidade: editForm.cidade,
+      tipo_consorcio: editForm.tipo_consorcio,
+      valor_credito: Number(editForm.valor_credito) || 0,
+      prazo_meses: Number(editForm.prazo_meses) || 120,
+      status: editForm.status,
+      lead_temperatura: editForm.lead_temperatura,
+      lead_score_valor: editForm.lead_score_valor,
+    };
+    const { error } = await supabase.from("leads").update(updates as any).eq("id", editingLead.id);
+    if (!error) {
+      setLeads(prev => prev.map(l => l.id === editingLead.id ? { ...l, ...updates } : l));
+      setIsEditOpen(false);
+      setEditingLead(null);
+    }
+    setIsEditSubmitting(false);
+  };
+
+  const openDelete = (lead: Lead) => {
+    setDeletingLead(lead);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteLead = async () => {
+    if (!deletingLead) return;
+    setIsDeleting(true);
+    const { error } = await supabase.from("leads").delete().eq("id", deletingLead.id);
+    if (!error) {
+      setLeads(prev => prev.filter(l => l.id !== deletingLead.id));
+      setIsDeleteOpen(false);
+      setDeletingLead(null);
+    }
+    setIsDeleting(false);
   };
 
   const toggleSort = (key: keyof Lead) => {
@@ -155,13 +241,12 @@ export default function Leads() {
 
   const filtered = useMemo(() => {
     let result = [...leads];
-
     if (search) {
       const s = search.toLowerCase();
       result = result.filter(
         (l) =>
           l.nome.toLowerCase().includes(s) ||
-          l.email.toLowerCase().includes(s) ||
+          (l.email || "").toLowerCase().includes(s) ||
           l.celular.includes(s)
       );
     }
@@ -215,6 +300,94 @@ export default function Leads() {
     </th>
   );
 
+  // Shared form fields for new/edit
+  const LeadFormFields = ({
+    form,
+    setForm,
+  }: {
+    form: typeof EMPTY_LEAD_FORM;
+    setForm: React.Dispatch<React.SetStateAction<typeof EMPTY_LEAD_FORM>>;
+  }) => (
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
+        <Label htmlFor="nome">Nome Completo</Label>
+        <Input id="nome" required value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Ex: João Silva" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="celular">Celular</Label>
+          <Input id="celular" required value={form.celular} onChange={e => setForm(f => ({ ...f, celular: e.target.value }))} placeholder="Ex: (11) 99999-9999" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">E-mail</Label>
+          <Input id="email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Ex: joao@email.com" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="cidade">Cidade</Label>
+          <Input id="cidade" value={form.cidade} onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))} placeholder="Ex: São Paulo" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="tipo">Tipo</Label>
+          <Select value={form.tipo_consorcio} onValueChange={(val) => setForm(f => ({ ...f, tipo_consorcio: val }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {TIPO_OPTIONS.filter(o => o.value !== 'all').map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="valor">Valor Crédito (R$)</Label>
+          <Input id="valor" type="number" value={form.valor_credito} onChange={e => setForm(f => ({ ...f, valor_credito: e.target.value }))} placeholder="Ex: 150000" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="prazo">Prazo (meses)</Label>
+          <Input id="prazo" type="number" value={form.prazo_meses} onChange={e => setForm(f => ({ ...f, prazo_meses: e.target.value }))} placeholder="Ex: 120" />
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select value={form.status} onValueChange={(val) => setForm(f => ({ ...f, status: val }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.filter(o => o.value !== 'all').map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Temperatura</Label>
+          <Select value={form.lead_temperatura} onValueChange={(val) => setForm(f => ({ ...f, lead_temperatura: val }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {TEMPERATURA_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Score</Label>
+          <Select value={form.lead_score_valor} onValueChange={(val) => setForm(f => ({ ...f, lead_score_valor: val }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SCORE_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
@@ -224,50 +397,25 @@ export default function Leads() {
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leads</h1>
         <div className="flex items-center gap-2">
+
+          {/* Novo Lead — icon only (tooltip on hover) */}
           <Dialog open={isNewLeadOpen} onOpenChange={setIsNewLeadOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="shrink-0 bg-primary hover:bg-primary/90 text-white">
-                <UserPlus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Novo Lead</span>
+              <Button
+                size="icon"
+                className="shrink-0 bg-primary hover:bg-primary/90 text-white h-9 w-9"
+                title="Novo Lead"
+              >
+                <UserPlus className="h-4 w-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Adicionar Novo Lead</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleCreateLead} className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo</Label>
-                  <Input id="nome" required value={newLead.nome} onChange={e => setNewLead({...newLead, nome: e.target.value})} placeholder="Ex: João Silva" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="celular">Celular</Label>
-                    <Input id="celular" required value={newLead.celular} onChange={e => setNewLead({...newLead, celular: e.target.value})} placeholder="Ex: (11) 99999-9999" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cidade">Cidade</Label>
-                    <Input id="cidade" value={newLead.cidade} onChange={e => setNewLead({...newLead, cidade: e.target.value})} placeholder="Ex: São Paulo" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo">Tipo</Label>
-                    <Select value={newLead.tipo_consorcio} onValueChange={(val) => setNewLead({...newLead, tipo_consorcio: val})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {TIPO_OPTIONS.filter(o => o.value !== 'all').map(o => (
-                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="valor">Valor Crédito (R$)</Label>
-                    <Input id="valor" type="number" value={newLead.valor_credito} onChange={e => setNewLead({...newLead, valor_credito: e.target.value})} placeholder="Ex: 150000" />
-                  </div>
-                </div>
-                <DialogFooter className="pt-4">
+              <form onSubmit={handleCreateLead}>
+                <LeadFormFields form={newLead} setForm={setNewLead as any} />
+                <DialogFooter className="pt-2">
                   <Button type="button" variant="outline" onClick={() => setIsNewLeadOpen(false)}>Cancelar</Button>
                   <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar Lead"}</Button>
                 </DialogFooter>
@@ -275,14 +423,14 @@ export default function Leads() {
             </DialogContent>
           </Dialog>
 
-          <Button onClick={exportCSV} variant="outline" size="sm" className="shrink-0">
-            <Download className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Exportar CSV</span>
+          {/* Export CSV — icon only */}
+          <Button onClick={exportCSV} variant="outline" size="icon" className="shrink-0 h-9 w-9" title="Exportar CSV">
+            <Download className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Filters — full width, wrapping grid on mobile */}
+      {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         <Input
           placeholder="Buscar nome, email, telefone..."
@@ -313,7 +461,7 @@ export default function Leads() {
         />
       </div>
 
-      {/* Responsive Lead List */}
+      {/* Lead List */}
       <div className="rounded-lg border border-border bg-card">
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-auto">
@@ -342,6 +490,7 @@ export default function Leads() {
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
+                {isManager && <td className="px-3 py-1"></td>}
                 <td className="px-3 py-1"></td>
               </tr>
               {filtered.map((l) => (
@@ -361,7 +510,7 @@ export default function Leads() {
                       {(l.status ?? "novo").replace("_", " ")}
                     </span>
                   </td>
-                   <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
+                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
                   {isManager && (
                     <td className="px-3 py-2">
                       <Select
@@ -381,14 +530,38 @@ export default function Leads() {
                     </td>
                   )}
                   <td className="px-3 py-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                      onClick={() => openWhatsApp(l)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {/* WhatsApp */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        title="WhatsApp"
+                        onClick={() => openWhatsApp(l)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                      {/* Editar */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        title="Editar lead"
+                        onClick={() => openEdit(l)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {/* Excluir */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        title="Excluir lead"
+                        onClick={() => openDelete(l)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -399,7 +572,7 @@ export default function Leads() {
         {/* Mobile Card View */}
         <div className="md:hidden flex flex-col divide-y divide-border">
           {filtered.map((l) => (
-            <div key={l.id} className="p-4 space-y-3 active:bg-muted/50">
+            <div key={l.id} className="p-4 space-y-3">
               <div className="flex justify-between items-start gap-2">
                 <div className="min-w-0">
                   <h3 className="font-medium truncate">{l.nome}</h3>
@@ -452,14 +625,35 @@ export default function Leads() {
                 </div>
               )}
 
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full text-green-600 border-green-200 hover:bg-green-50 gap-2"
-                onClick={() => openWhatsApp(l)}
-              >
-                <MessageCircle className="h-4 w-4" /> WhatsApp
-              </Button>
+              {/* Mobile action buttons */}
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 text-green-600 border-green-200 hover:bg-green-50 gap-2"
+                  onClick={() => openWhatsApp(l)}
+                >
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50 h-9 w-9"
+                  title="Editar"
+                  onClick={() => openEdit(l)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="text-red-500 border-red-200 hover:bg-red-50 h-9 w-9"
+                  title="Excluir"
+                  onClick={() => openDelete(l)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -469,6 +663,47 @@ export default function Leads() {
         )}
       </div>
       <p className="text-xs text-muted-foreground">{filtered.length} leads encontrados</p>
+
+      {/* Edit Lead Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Lead</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditLead}>
+            <LeadFormFields form={editForm} setForm={setEditForm as any} />
+            <DialogFooter className="pt-2">
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={isEditSubmitting}>{isEditSubmitting ? "Salvando..." : "Salvar Alterações"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir o lead <strong className="text-foreground">{deletingLead?.nome}</strong>?
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={handleDeleteLead}
+            >
+              {isDeleting ? "Excluindo..." : "Excluir Lead"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
