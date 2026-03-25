@@ -774,7 +774,7 @@ export default function Funil() {
   const scrollDrag = useRef({ active: false, startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
-    supabase.from("leads").select("*").then(({ data }) => {
+    supabase.from("leads").select("*").order("created_at", { ascending: false }).then(({ data }) => {
         setLeads((data as unknown as Lead[]) || []);
       // De-duplicar por ID para evitar problemas de estado
       const uniqueRaw = (data as unknown as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
