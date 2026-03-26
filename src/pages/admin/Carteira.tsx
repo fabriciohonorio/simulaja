@@ -59,7 +59,41 @@ export default function Carteira() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [isEditingAdesao, setIsEditingAdesao] = useState(false);
   const [newAdesaoDate, setNewAdesaoDate] = useState("");
+  const [loteriaFederal, setLoteriaFederal] = useState("");
+  const [participantesPadrao, setParticipantesPadrao] = useState<number>(600);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const groupQuotaMap: Record<string, number> = {
+    "5290": 1800,
+    "5292": 2500,
+    "5291": 1800,
+    "6041": 3100,
+    "5996": 1800,
+    "6037": 2500,
+  };
+
+  const getLoteriaStatus = (cotaStr: string | null, grupoStr: string | null) => {
+    if (!loteriaFederal) return null;
+    const lotId = parseInt(loteriaFederal.replace(/\D/g, ''));
+    if (isNaN(lotId)) return null;
+    
+    // Get participants for this group specifically as requested by user
+    const participants = grupoStr ? (groupQuotaMap[grupoStr] || participantesPadrao) : participantesPadrao;
+    
+    if (participants <= 0) return null;
+    
+    // Lotus algorithm modulo participants
+    const winCota = lotId % participants === 0 ? participants : lotId % participants;
+    const clientCota = parseInt(cotaStr || "0");
+    if (!clientCota) return { winCota, isWinner: false, isClose: false, diff: null, participants };
+    
+    // Calculate circular distance
+    const diff = Math.min(
+      Math.abs(clientCota - winCota), 
+      participants - Math.abs(clientCota - winCota)
+    );
+    return { winCota, isWinner: diff === 0, isClose: diff > 0 && diff <= 5, diff, participants };
+  };
 
   const fetchData = async () => {
     const { data } = await supabase.from("carteira").select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
@@ -448,7 +482,7 @@ export default function Carteira() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
         {[
           { label: "Total de Clientes", value: total, icon: Users, color: "text-primary" },
           { label: "Aguardando", value: aguardando, icon: Clock, color: "text-muted-foreground" },
@@ -462,13 +496,39 @@ export default function Carteira() {
                   <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.color}`} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground leading-tight">{card.label}</p>
-                  <p className="text-lg font-bold leading-tight">{card.value}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate">{card.label}</p>
+                  <p className="text-sm sm:text-lg font-bold leading-tight truncate">{card.value}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
+
+        <Card className="col-span-2 lg:col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
+          <CardContent className="p-2 sm:p-3 sm:pt-4 h-full flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Trophy className="h-4 w-4 text-blue-600" />
+              <p className="text-[10px] sm:text-xs font-bold text-blue-900 uppercase">Loteria Federal</p>
+            </div>
+            <div className="flex gap-1.5">
+              <Input 
+                type="number" 
+                placeholder="Prêmio..." 
+                value={loteriaFederal} 
+                onChange={(e) => setLoteriaFederal(e.target.value)} 
+                className="bg-white/90 border-blue-200 h-8 text-xs font-bold text-blue-900 focus-visible:ring-blue-500 w-full"
+              />
+              <Input 
+                type="number" 
+                placeholder="Parts." 
+                title="Qtd. Participantes do Grupo (padrão 600)"
+                value={participantesPadrao} 
+                onChange={(e) => setParticipantesPadrao(Number(e.target.value))} 
+                className="bg-white/90 border-blue-200 h-8 text-xs font-medium w-16 text-center focus-visible:ring-blue-500 shrink-0 px-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Desktop Table */}
@@ -486,14 +546,45 @@ export default function Carteira() {
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium">
-                    <div className="text-sm">{item.nome}</div>
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-black py-0 px-2 h-5 shadow-sm">
-                        G: {item.grupo || "—"}
-                      </Badge>
-                      <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] font-black py-0 px-2 h-5 shadow-sm">
-                        C: {item.cota || "—"}
-                      </Badge>
+                    <div className="text-sm font-bold">{item.nome}</div>
+                    <div className="flex flex-col gap-1.5 mt-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Badge className="bg-blue-50 text-blue-800 border-blue-300 text-xs font-black py-0.5 px-3 h-6 shadow-sm">
+                          G: {item.grupo || "—"}
+                        </Badge>
+                        <Badge className="bg-indigo-50 text-indigo-800 border-indigo-300 text-xs font-black py-0.5 px-3 h-6 shadow-sm">
+                          C: {item.cota || "—"}
+                        </Badge>
+                      </div>
+                      {(() => {
+                        const lot = getLoteriaStatus(item.cota, item.grupo);
+                        if (!lot) return null;
+                        if (lot.isWinner) {
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <Badge className="bg-green-100 text-green-800 border-green-400 text-[11px] font-black py-0 px-2 h-5 animate-pulse">
+                                🏆 CONTEMPLADO (Sorteio: {lot.winCota})
+                              </Badge>
+                            </div>
+                          );
+                        }
+                        if (lot.isClose) {
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-400 text-[10px] font-bold py-0 px-2 h-5">
+                                ⚠️ NA TRAVE! Sorteado: {lot.winCota} ({lot.participants} parts)
+                              </Badge>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant="outline" className="text-muted-foreground text-[10px] py-0 px-2 h-5 border-dashed">
+                              Sorteio: {lot.winCota} ({lot.participants} parts)
+                            </Badge>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </td>
                   <td className="px-3 py-2 capitalize">{item.tipo_consorcio}</td>
@@ -575,17 +666,32 @@ export default function Carteira() {
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
                 </div>
-                <div className="col-span-2 flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-2 rounded-lg border border-primary/20 mb-1 shadow-inner">
+                <div className="col-span-2 flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-2.5 rounded-lg border border-primary/20 mb-1 shadow-inner">
                   <div className="flex-1 text-center">
-                    <p className="text-[9px] text-blue-600 uppercase font-black tracking-tighter">Grupo</p>
-                    <p className="text-base font-black text-blue-800 leading-none">{item.grupo || "—"}</p>
+                    <p className="text-[10px] text-blue-600 uppercase font-black tracking-tighter">Grupo</p>
+                    <p className="text-xl font-black text-blue-900 leading-none mt-0.5">{item.grupo || "—"}</p>
                   </div>
-                  <div className="w-px h-8 bg-primary/20" />
+                  <div className="w-px h-10 bg-primary/20" />
                   <div className="flex-1 text-center">
-                    <p className="text-[9px] text-indigo-600 uppercase font-black tracking-tighter">Cota</p>
-                    <p className="text-base font-black text-indigo-800 leading-none">{item.cota || "—"}</p>
+                    <p className="text-[10px] text-indigo-600 uppercase font-black tracking-tighter">Cota</p>
+                    <p className="text-xl font-black text-indigo-900 leading-none mt-0.5">{item.cota || "—"}</p>
                   </div>
                 </div>
+                {(() => {
+                  const lot = getLoteriaStatus(item.cota, item.grupo);
+                  if (!lot) return null;
+                  return (
+                    <div className="col-span-2 flex items-center justify-center p-1.5 rounded-lg border">
+                      {lot.isWinner ? (
+                        <p className="text-xs font-black text-green-700 uppercase animate-pulse">🏆 CONTEMPLADO (Sorteio: {lot.winCota})</p>
+                      ) : lot.isClose ? (
+                        <p className="text-[11px] font-bold text-yellow-700">⚠️ NA TRAVE! Sorteado: {lot.winCota} ({lot.participants} pts)</p>
+                      ) : (
+                        <p className="text-[10px] text-muted-foreground font-medium">Sorteio: {lot.winCota} / {lot.participants} participantes</p>
+                      )}
+                    </div>
+                  );
+                })()}
                 <div>
                   <div className="flex items-center gap-1">
                     <p className="text-xs text-muted-foreground">Adesão</p>
