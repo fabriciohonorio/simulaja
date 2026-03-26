@@ -531,7 +531,7 @@ export default function Carteira() {
     });
 
     doc.save(`relatorio-carteira-${format(new Date(), "yyyy-MM-dd")}.pdf`);
-    toast.success("Relatório gerado com sucesso!");
+    toast({ title: "Relatório gerado com sucesso!" });
   };
 
   return (

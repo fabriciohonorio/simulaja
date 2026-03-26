@@ -626,7 +626,7 @@ export default function Metas() {
                         </Alert>
                     )}
                     {aguardandoUrgente > 0 && (
-                        <Alert variant="warning" className="border-orange-600 bg-orange-100">
+                        <Alert variant="default" className="border-orange-600 bg-orange-100">
                             <Clock className="h-4 w-4 text-orange-600" />
                             <AlertTitle className="font-bold text-orange-700">Atenção: Clientes em Espera Longa</AlertTitle>
                             <AlertDescription className="text-orange-600">
