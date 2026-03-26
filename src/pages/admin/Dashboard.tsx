@@ -403,7 +403,7 @@ export default function Dashboard() {
           <CardContent className="p-0">
             <div className="divide-y divide-border">
               {leads
-                .filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido")
+                .filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido" && l.status !== "inadimplente")
                 .sort((a, b) => Number(b.valor_credito || 0) - Number(a.valor_credito || 0))
                 .slice(0, 7)
                 .map((l, i) => (
@@ -418,7 +418,7 @@ export default function Dashboard() {
                     <p className="text-sm font-bold text-primary shrink-0">{formatCurrency(Number(l.valor_credito))}</p>
                   </div>
                 ))}
-              {leads.filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido").length === 0 && (
+              {leads.filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido" && l.status !== "inadimplente").length === 0 && (
                 <p className="text-center text-sm text-muted-foreground py-6">Nenhum lead em negociação.</p>
               )}
             </div>
@@ -478,7 +478,7 @@ export default function Dashboard() {
             <div className="divide-y divide-border h-[250px] sm:h-[300px] overflow-y-auto custom-scrollbar">
               {(() => {
                 const agendados = leads
-                  .filter(l => l.data_vencimento)
+                  .filter(l => l.data_vencimento && !["perdido", "morto", "fechado"].includes(l.status || ""))
                   .sort((a, b) => new Date(a.data_vencimento!).getTime() - new Date(b.data_vencimento!).getTime())
                   .slice(0, 10);
 
