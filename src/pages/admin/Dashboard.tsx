@@ -21,6 +21,14 @@ interface Lead {
   data_vencimento: string | null;
   celular: string | null;
 }
+interface CarteiraItem {
+  id: string;
+  nome: string;
+  grupo: string | null;
+  cota: string | null;
+  valor_credito: number | null;
+  celular: string | null;
+}
 
 
 const openWhatsApp = (lead: Lead) => {
@@ -31,9 +39,27 @@ const openWhatsApp = (lead: Lead) => {
 
 export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
+
+  const loteriaFederal = localStorage.getItem("simulaja_loteria_federal") || "";
+  const groupQuotaMap: Record<string, number> = {
+    "5290": 1800, "5292": 2500, "5291": 1800, "6041": 3100, "5996": 1800, "6037": 2500, "5294": 2500
+  };
+
+  const getLoteriaStatus = (cotaStr: string | null, grupoStr: string | null) => {
+    if (!loteriaFederal) return null;
+    const lotId = parseInt(loteriaFederal.replace(/\D/g, ''));
+    if (isNaN(lotId)) return null;
+    const participants = grupoStr ? (groupQuotaMap[grupoStr] || 600) : 600;
+    const winCota = lotId % participants === 0 ? participants : lotId % participants;
+    const clientCota = parseInt(cotaStr || "0");
+    if (!clientCota) return null;
+    const diff = Math.min(Math.abs(clientCota - winCota), participants - Math.abs(clientCota - winCota));
+    return { winCota, isWinner: diff === 0, isClose: diff > 0 && diff <= 10, diff };
+  };
 
   useEffect(() => {
     const fetchData = () => {
@@ -48,6 +74,10 @@ export default function Dashboard() {
         }
         prevCountRef.current = sorted.length;
         setLeads(sorted);
+      });
+
+      supabase.from("carteira").select("id, nome, grupo, cota, valor_credito, celular").then(({ data }) => {
+        setCarteira((data as any[]) || []);
         setLoading(false);
       });
     };
@@ -57,6 +87,9 @@ export default function Dashboard() {
     const channel = supabase
       .channel('dashboard-leads-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+        fetchData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'carteira' }, () => {
         fetchData();
       })
       .subscribe();
@@ -363,6 +396,43 @@ export default function Dashboard() {
                           </button>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Alerta de Contemplação (Loteria) */}
+            {(() => {
+              const proximos = carteira
+                .map(item => ({ item, lot: getLoteriaStatus(item.cota, item.grupo) }))
+                .filter(res => res.lot && (res.lot.isWinner || res.lot.isClose));
+
+              return proximos.length > 0 ? (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 border border-indigo-100 shadow-sm transition-all hover:bg-indigo-100/50">
+                  <div className="p-2 rounded-full bg-white text-indigo-600 shadow-sm">
+                    <Trophy className="h-4 w-4 animate-bounce" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-black text-indigo-900 uppercase">
+                      🎯 {proximos.length} Clientes Próximos da Contemplação
+                    </p>
+                    <div className="space-y-1 mt-1.5">
+                      {proximos.slice(0, 4).map(({ item, lot }) => (
+                        <div key={item.id} className="flex items-center justify-between gap-2 p-1 bg-white/50 rounded border border-indigo-50/50">
+                          <p className="text-[10px] sm:text-xs text-indigo-800 font-bold truncate flex-1">
+                            {item.nome}
+                          </p>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${lot?.isWinner ? 'bg-green-500 text-white animate-pulse' : 'bg-indigo-100 text-indigo-700'}`}>
+                              {lot?.isWinner ? '🏆 GANHADOR' : `G:${item.grupo} C:${item.cota}`}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {proximos.length > 4 && (
+                        <p className="text-[9px] text-indigo-400 font-medium italic text-right">+ {proximos.length - 4} outros...</p>
+                      )}
                     </div>
                   </div>
                 </div>

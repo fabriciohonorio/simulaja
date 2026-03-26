@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
+import { jsPDF } from "jspdf";
 
 interface CarteiraItem {
   id: string;
@@ -470,6 +471,45 @@ export default function Carteira() {
     );
   };
 
+  const handleGenerateReport = () => {
+    const doc = new jsPDF();
+    const title = "Relatorio de Carteira de Clientes";
+    const date = format(new Date(), "dd/MM/yyyy HH:mm");
+
+    doc.setFontSize(16);
+    doc.text(title, 10, 10);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${date}`, 10, 16);
+    doc.line(10, 18, 200, 18);
+
+    let y = 25;
+    doc.setFont("helvetica", "bold");
+    doc.text("Nome", 10, y);
+    doc.text("Grupo", 100, y);
+    doc.text("Cota", 125, y);
+    doc.text("Valor", 150, y);
+    doc.text("Status", 185, y);
+    doc.line(10, y + 2, 200, y + 2);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    items.forEach((item) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(item.nome.substring(0, 45), 10, y);
+      doc.text(item.grupo || "—", 100, y);
+      doc.text(item.cota || "—", 125, y);
+      doc.text(formatCurrency(Number(item.valor_credito || 0)), 150, y);
+      doc.text(item.status || "—", 185, y);
+      y += 6;
+    });
+
+    doc.save(`relatorio-carteira-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("Relatório gerado com sucesso!");
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -483,6 +523,15 @@ export default function Carteira() {
         >
           <UserX className="h-4 w-4 mr-2" />
           Sincronizar Inadimplentes Retroativos
+        </Button>
+        <Button 
+          size="sm" 
+          onClick={handleGenerateReport} 
+          variant="outline" 
+          className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Gerar Relatório PDF
         </Button>
       </div>
 

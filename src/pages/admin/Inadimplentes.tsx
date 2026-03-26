@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { jsPDF } from "jspdf";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -151,6 +153,47 @@ export default function Inadimplentes() {
     toast.success(`${msgs.length} mensagens copiadas!`);
   };
 
+  const handleGenerateReport = () => {
+    const doc = new jsPDF();
+    const title = "Relatorio de Inadimplentes";
+    const date = format(new Date(), "dd/MM/yyyy HH:mm");
+
+    doc.setFontSize(16);
+    doc.text(title, 10, 10);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${date}`, 10, 16);
+    doc.line(10, 18, 200, 18);
+
+    let y = 25;
+    doc.setFont("helvetica", "bold");
+    doc.text("Nome", 10, y);
+    doc.text("G/C", 80, y);
+    doc.text("Atraso (Qtd)", 110, y);
+    doc.text("Valor Devido", 150, y);
+    doc.text("Status", 185, y);
+    doc.line(10, y + 2, 200, y + 2);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    const atrasados = data.filter(d => d.status !== "regularizado");
+    atrasados.forEach((item) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      const valorDevido = item.valor_parcela * item.parcelas_atrasadas;
+      doc.text(item.nome.substring(0, 35), 10, y);
+      doc.text(`${item.grupo || "-"}/${item.cota || "-"}`, 80, y);
+      doc.text(`${item.parcelas_atrasadas} parc.`, 110, y);
+      doc.text(formatCurrency(valorDevido), 150, y);
+      doc.text(item.status.replace("_", " "), 185, y);
+      y += 6;
+    });
+
+    doc.save(`relatorio-inadimplentes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("Relatório gerado com sucesso!");
+  };
+
   const totalAtrasados = data.filter((d) => d.status !== "regularizado").length;
   const totalValorAtrasado = data
     .filter((d) => d.status !== "regularizado")
@@ -177,6 +220,10 @@ export default function Inadimplentes() {
           <Button variant="outline" size="sm" onClick={() => setShowCopy(true)} className="flex-1 sm:flex-none">
             <Copy className="h-4 w-4 sm:mr-2" />
             <span className="sm:inline">Copiar Msgs</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleGenerateReport} className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm">
+            <FileText className="h-4 w-4 sm:mr-2" />
+            <span className="sm:inline">Relatório PDF</span>
           </Button>
           <Button size="sm" onClick={() => {
             setEditingItem(null);

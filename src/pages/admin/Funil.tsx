@@ -18,8 +18,10 @@ import {
   PhoneCall,
   Mail,
   MessageSquare,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
+import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
@@ -899,6 +901,45 @@ export default function Funil() {
     frame();
   };
 
+  const handleGenerateReport = () => {
+    const doc = new jsPDF();
+    const title = "Relatorio de Funil de Vendas";
+    const date = format(new Date(), "dd/MM/yyyy HH:mm");
+
+    doc.setFontSize(16);
+    doc.text(title, 10, 10);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${date}`, 10, 16);
+    doc.line(10, 18, 200, 18);
+
+    let y = 25;
+    doc.setFont("helvetica", "bold");
+    doc.text("Nome", 10, y);
+    doc.text("Status", 80, y);
+    doc.text("Valor", 130, y);
+    doc.text("Temp", 165, y);
+    doc.text("Origem", 185, y);
+    doc.line(10, y + 2, 200, y + 2);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    leads.forEach((item) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(item.nome.substring(0, 35), 10, y);
+      doc.text((item.status || "Novo").replace("_", " "), 80, y);
+      doc.text(formatCurrency(Number(item.valor_credito || 0)), 130, y);
+      doc.text(item.lead_temperatura || "quente", 165, y);
+      doc.text((item.origem || "Simulador").substring(0, 10), 185, y);
+      y += 6;
+    });
+
+    doc.save(`relatorio-funil-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("Relatório gerado com sucesso!");
+  };
+
   const onDragEnd = async (result: DropResult) => {
     isDraggingCardRef.current = false;
     if (!result.destination) return;
@@ -1163,6 +1204,21 @@ export default function Funil() {
           >
             Wide CRM
           </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleGenerateReport}
+            className="border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Relatório PDF
+          </Button>
+          <Button onClick={() => window.open("/leads", "_blank")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Lead
+          </Button>
         </div>
       </div>
 
