@@ -258,12 +258,16 @@ function LeadCard({
       {...provided.dragHandleProps}
       className={`bg-background border-2 rounded-md transition-all ${
         compact ? "p-1.5 space-y-1 text-[11px]" : "p-3 space-y-1.5 text-sm"
-      } ${lead.indicador_nome?.toLowerCase().includes("emilly")
-        ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-        : normalizeStatus(lead.status) === "fechado"
-          ? "border-green-500 bg-green-50 dark:bg-green-950/30"
-          : TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border"
-        } ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+      } ${(() => {
+        const indicator = lead.indicador_nome?.toLowerCase() || "";
+        if (indicator.includes("emily") || indicator.includes("emilly")) return "border-blue-500 bg-blue-50 dark:bg-blue-950/30";
+        if (indicator.includes("vanessa")) return "border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30";
+        if (indicator.includes("halidi")) return "border-orange-500 bg-orange-50 dark:bg-orange-950/30";
+        
+        if (normalizeStatus(lead.status) === "fechado") return "border-green-500 bg-green-50 dark:bg-green-950/30";
+        
+        return TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border";
+      })()} ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
     >
       <div className="flex items-center justify-between gap-1">
         <div className="flex flex-col min-w-0 flex-1">
@@ -713,7 +717,7 @@ export default function Funil() {
     window.addEventListener("resize", handleResize);
     
     // Buscar membros para o select de responsável
-    supabase.from("perfis").select("id, nome_completo").then(({ data }) => {
+    (supabase.from("perfis" as any) as any).select("id, nome_completo").then(({ data }: any) => {
       setMembros(data || []);
     });
 

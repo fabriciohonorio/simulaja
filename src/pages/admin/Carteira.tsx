@@ -47,6 +47,7 @@ interface CarteiraItem {
   protocolo_lance_fixo: string | null;
   created_at: string;
   celular?: string | null;
+  indicador_nome?: string | null;
 }
 
 
@@ -102,10 +103,11 @@ export default function Carteira() {
   };
 
   const fetchData = async () => {
-    const { data } = await supabase.from("carteira").select("*, leads:lead_id(celular)").order("created_at", { ascending: false });
+    const { data } = await supabase.from("carteira").select("*, leads:lead_id(celular, indicador_nome)").order("created_at", { ascending: false });
     const mapped = (data ?? []).map((item: any) => ({
       ...item,
       celular: (item.leads as any)?.celular ?? null,
+      indicador_nome: (item.leads as any)?.indicador_nome ?? null,
     }));
     setItems(mapped);
     setLoading(false);
@@ -589,8 +591,16 @@ export default function Carteira() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {items.map((item) => (
-                <tr key={item.id} className="hover:bg-muted/50">
+              {items.map((item) => {
+                const indicator = item.indicador_nome?.toLowerCase() || "";
+                const rowColor = 
+                  (indicator.includes("emily") || indicator.includes("emilly")) ? "bg-blue-50/50 hover:bg-blue-100/50" :
+                  indicator.includes("vanessa") ? "bg-yellow-50/50 hover:bg-yellow-100/50" :
+                  indicator.includes("halidi") ? "bg-orange-50/50 hover:bg-orange-100/50" :
+                  "hover:bg-muted/50";
+
+                return (
+                  <tr key={item.id} className={rowColor}>
                   <td className="px-3 py-2 font-medium">
                     <div className="text-sm font-bold text-slate-800">{item.nome}</div>
                     <div className="flex flex-col gap-1.5 mt-2">
@@ -678,7 +688,8 @@ export default function Carteira() {
                     )}
                   </td>
                 </tr>
-              ))}
+              );
+              })}
               {items.length === 0 && (
                 <tr><td colSpan={8} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</td></tr>
               )}
@@ -692,9 +703,17 @@ export default function Carteira() {
         {items.length === 0 && (
           <p className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</p>
         )}
-        {items.map((item) => (
-          <Card key={item.id}>
-            <CardContent className="p-4 space-y-3">
+        {items.map((item) => {
+          const indicator = item.indicador_nome?.toLowerCase() || "";
+          const cardColor = 
+            (indicator.includes("emily") || indicator.includes("emilly")) ? "border-blue-500 bg-blue-50" :
+            indicator.includes("vanessa") ? "border-yellow-500 bg-yellow-50" :
+            indicator.includes("halidi") ? "border-orange-500 bg-orange-50" :
+            "";
+
+          return (
+            <Card key={item.id} className={cardColor}>
+              <CardContent className="p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{item.nome}</p>
@@ -786,7 +805,8 @@ export default function Carteira() {
               )}
             </CardContent>
           </Card>
-        ))}
+        );
+      })}
       </div>
 
       <Dialog open={!!selectedItem} onOpenChange={(open: boolean) => !open && setSelectedItem(null)}>
