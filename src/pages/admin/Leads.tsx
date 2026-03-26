@@ -469,6 +469,7 @@ export default function Leads() {
             <thead className="bg-muted">
               <tr>
                 <SortHeader label="Nome" field="nome" />
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Ações</th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Celular</th>
                 <SortHeader label="Cidade" field="cidade" />
                 <SortHeader label="Valor" field="valor_credito" />
@@ -477,12 +478,12 @@ export default function Leads() {
                 <SortHeader label="Status" field="status" />
                 <SortHeader label="Data" field="created_at" />
                 {isManager && <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Responsável</th>}
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground sticky right-0 bg-muted z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               <tr className="bg-muted/30 text-xs font-semibold text-muted-foreground">
                 <td className="px-3 py-1">{filtered.length} leads</td>
+                <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1">{formatCurrency(filtered.reduce((s, l) => s + Number(l.valor_credito || 0), 0))}</td>
@@ -491,45 +492,11 @@ export default function Leads() {
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 {isManager && <td className="px-3 py-1"></td>}
-                <td className="px-3 py-1 sticky right-0 bg-muted/30 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]"></td>
               </tr>
               {filtered.map((l) => (
                 <tr key={l.id} className="hover:bg-muted/50">
-                  <td className="px-3 py-2 font-medium whitespace-nowrap">{l.nome}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">{l.celular}</td>
-                  <td className="px-3 py-2">{l.cidade || "N/Inf"}</td>
-                  <td className="px-3 py-2 font-medium whitespace-nowrap">{formatCurrency(Number(l.valor_credito))}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className="text-[10px] font-bold uppercase">{SCORE_LABELS[l.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className="text-[10px] font-bold uppercase">{TEMP_EMOJIS[l.lead_temperatura || "quente"] || "🔥"}</span>
-                  </td>
+                  <td className="px-3 py-2 font-medium">{l.nome}</td>
                   <td className="px-3 py-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary capitalize">
-                      {(l.status ?? "novo").replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{l.created_at?.slice(0, 10)}</td>
-                  {isManager && (
-                    <td className="px-3 py-2">
-                      <Select
-                        value={l.responsavel_id || "none"}
-                        onValueChange={(val) => assignLead(l.id, val)}
-                      >
-                        <SelectTrigger className="h-7 text-xs w-36 rounded-lg">
-                          <SelectValue placeholder="Sem responsável" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Sem responsável</SelectItem>
-                          {membros.map((m) => (
-                            <SelectItem key={m.id} value={m.id}>{m.nome_completo}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                  )}
-                  <td className="px-3 py-2 sticky right-0 bg-background shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center gap-1">
                       {/* WhatsApp */}
                       <Button
@@ -563,6 +530,39 @@ export default function Leads() {
                       </Button>
                     </div>
                   </td>
+                  <td className="px-3 py-2">{l.celular}</td>
+                  <td className="px-3 py-2">{l.cidade || "N/Inf"}</td>
+                  <td className="px-3 py-2 font-medium">{formatCurrency(Number(l.valor_credito))}</td>
+                  <td className="px-3 py-2">
+                    <span className="text-[10px] font-bold uppercase">{SCORE_LABELS[l.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="text-[10px] font-bold uppercase">{TEMP_EMOJIS[l.lead_temperatura || "quente"] || "🔥"}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary capitalize">
+                      {(l.status ?? "novo").replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground">{l.created_at?.slice(0, 10)}</td>
+                  {isManager && (
+                    <td className="px-3 py-2">
+                      <Select
+                        value={l.responsavel_id || "none"}
+                        onValueChange={(val) => assignLead(l.id, val)}
+                      >
+                        <SelectTrigger className="h-7 text-xs w-36 rounded-lg">
+                          <SelectValue placeholder="Sem responsável" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem responsável</SelectItem>
+                          {membros.map((m) => (
+                            <SelectItem key={m.id} value={m.id}>{m.nome_completo}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
