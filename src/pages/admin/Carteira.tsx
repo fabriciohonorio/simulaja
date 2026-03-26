@@ -70,6 +70,7 @@ export default function Carteira() {
     "6041": 3100,
     "5996": 1800,
     "6037": 2500,
+    "5294": 2500,
   };
 
   useEffect(() => {
@@ -508,27 +509,19 @@ export default function Carteira() {
           </Card>
         ))}
 
-        <Card className="col-span-2 lg:col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
+        <Card className="col-span-2 lg:col-span-1 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm transition-all hover:shadow-md">
           <CardContent className="p-2 sm:p-3 sm:pt-4 h-full flex flex-col justify-center">
             <div className="flex items-center gap-1.5 mb-2">
-              <Trophy className="h-4 w-4 text-blue-600" />
-              <p className="text-[10px] sm:text-xs font-bold text-blue-900 uppercase">Loteria Federal</p>
+              <Trophy className="h-4 w-4 text-blue-600 animate-bounce" />
+              <p className="text-[10px] sm:text-xs font-bold text-blue-900 uppercase tracking-tighter">Prêmio Loteria Federal</p>
             </div>
             <div className="flex gap-1.5">
               <Input 
                 type="number" 
-                placeholder="Prêmio..." 
+                placeholder="Último prêmio..." 
                 value={loteriaFederal} 
                 onChange={(e) => setLoteriaFederal(e.target.value)} 
-                className="bg-white/90 border-blue-200 h-8 text-xs font-bold text-blue-900 focus-visible:ring-blue-500 w-full"
-              />
-              <Input 
-                type="number" 
-                placeholder="Parts." 
-                title="Qtd. Participantes do Grupo (padrão 600)"
-                value={participantesPadrao} 
-                onChange={(e) => setParticipantesPadrao(Number(e.target.value))} 
-                className="bg-white/90 border-blue-200 h-8 text-xs font-medium w-16 text-center focus-visible:ring-blue-500 shrink-0 px-1"
+                className="bg-white/95 border-blue-200 h-9 text-xs font-black text-blue-900 focus-visible:ring-blue-500 w-full shadow-inner"
               />
             </div>
           </CardContent>
@@ -550,15 +543,15 @@ export default function Carteira() {
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-muted/50">
                   <td className="px-3 py-2 font-medium">
-                    <div className="text-sm font-bold">{item.nome}</div>
-                    <div className="flex flex-col gap-1.5 mt-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <Badge className="bg-blue-50 text-blue-800 border-blue-300 text-xs font-black py-0.5 px-3 h-6 shadow-sm">
-                          G: {item.grupo || "—"}
-                        </Badge>
-                        <Badge className="bg-indigo-50 text-indigo-800 border-indigo-300 text-xs font-black py-0.5 px-3 h-6 shadow-sm">
-                          C: {item.cota || "—"}
-                        </Badge>
+                    <div className="text-sm font-bold text-slate-800">{item.nome}</div>
+                    <div className="flex flex-col gap-1.5 mt-2">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
+                          GRUP: <span className="text-orange-700 text-xs">{item.grupo || "—"}</span>
+                        </div>
+                        <div className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
+                          COTA: <span className="text-orange-700 text-xs">{item.cota || "—"}</span>
+                        </div>
                       </div>
                       {(() => {
                         const lot = getLoteriaStatus(item.cota, item.grupo);
@@ -670,15 +663,14 @@ export default function Carteira() {
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
                 </div>
-                <div className="col-span-2 flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-2.5 rounded-lg border border-primary/20 mb-1 shadow-inner">
-                  <div className="flex-1 text-center">
-                    <p className="text-[10px] text-blue-600 uppercase font-black tracking-tighter">Grupo</p>
-                    <p className="text-xl font-black text-blue-900 leading-none mt-0.5">{item.grupo || "—"}</p>
+                <div className="col-span-2 flex items-center gap-2.5 bg-gradient-to-r from-orange-50/50 to-white p-2 rounded-xl border border-orange-100 mb-1 shadow-sm">
+                  <div className="flex-1 text-center bg-white p-1 rounded border border-orange-50">
+                    <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter">Grupo</p>
+                    <p className="text-lg font-black text-orange-600 leading-none">{item.grupo || "—"}</p>
                   </div>
-                  <div className="w-px h-10 bg-primary/20" />
-                  <div className="flex-1 text-center">
-                    <p className="text-[10px] text-indigo-600 uppercase font-black tracking-tighter">Cota</p>
-                    <p className="text-xl font-black text-indigo-900 leading-none mt-0.5">{item.cota || "—"}</p>
+                  <div className="flex-1 text-center bg-white p-1 rounded border border-orange-50">
+                    <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter">Cota</p>
+                    <p className="text-lg font-black text-orange-600 leading-none">{item.cota || "—"}</p>
                   </div>
                 </div>
                 {(() => {
