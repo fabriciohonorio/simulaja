@@ -59,7 +59,7 @@ export default function Carteira() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [isEditingAdesao, setIsEditingAdesao] = useState(false);
   const [newAdesaoDate, setNewAdesaoDate] = useState("");
-  const [loteriaFederal, setLoteriaFederal] = useState("");
+  const [loteriaFederal, setLoteriaFederal] = useState(() => localStorage.getItem("simulaja_loteria_federal") || "");
   const [participantesPadrao, setParticipantesPadrao] = useState<number>(600);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -71,6 +71,10 @@ export default function Carteira() {
     "5996": 1800,
     "6037": 2500,
   };
+
+  useEffect(() => {
+    localStorage.setItem("simulaja_loteria_federal", loteriaFederal);
+  }, [loteriaFederal]);
 
   const getLoteriaStatus = (cotaStr: string | null, grupoStr: string | null) => {
     if (!loteriaFederal) return null;
