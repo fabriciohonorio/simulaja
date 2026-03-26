@@ -1,0 +1,201 @@
+﻿
+> vite_react_shadcn_ts@0.0.0 lint
+> eslint .
+
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ConsortiumSimulator.tsx
+  137:6   warning  React Hook useEffect has a missing dependency: 'lista.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  205:17  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\admin\AdminLayout.tsx
+  12:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  73:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\admin\CRMDrawer.tsx
+  32:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\badge.tsx
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\button.tsx
+  47:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\command.tsx
+  24:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\form.tsx
+  129:10  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\navigation-menu.tsx
+  111:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\sidebar.tsx
+  636:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\sonner.tsx
+  27:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\textarea.tsx
+  5:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\components\ui\toggle.tsx
+  37:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\hooks\useProfile.tsx
+  37:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\Indicacoes.tsx
+   89:63  warning  React Hook useEffect has a missing dependency: 'lista.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  133:40  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\Simulador.tsx
+  120:6   warning  React Hook useEffect has a missing dependency: 'lista.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  213:33  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  236:17  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Agendamentos.tsx
+  36:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Carteira.tsx
+   66:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  279:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  279:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  294:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Chat.tsx
+   42:32  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   42:40  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   46:24  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   57:31  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   64:19  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   79:6   warning  React Hook useEffect has a missing dependency: 'fetchMensagens'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   84:49  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   84:57  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  107:41  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  107:49  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  131:6   warning  React Hook useEffect has a missing dependency: 'fetchMensagens'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  233:40  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Dashboard.tsx
+   41:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  203:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\FilaInteligente.tsx
+  243:0  error  Parsing error: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Funil.tsx
+   237:13  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+   238:13  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+   482:64  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+   527:23  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+   783:49  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+   798:13  error    'newStatus' is never reassigned. Use 'const' instead                                                      prefer-const
+   811:13  error    'reasons' is never reassigned. Use 'const' instead                                                        prefer-const
+   870:6   warning  React Hook useEffect has a missing dependency: 'leads'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  1029:58  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+  1029:66  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+  1106:74  error    Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Inadimplentes.tsx
+   58:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Jarvis.tsx
+  119:35   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  122:46   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  122:83   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  134:55   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  136:35   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  137:35   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  332:60   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  334:75   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  335:64   error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  335:109  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  335:170  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  348:21   error  'basePrompt' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Leads.tsx
+  127:34  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  127:42  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  130:26  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  132:6   warning  React Hook useEffect has a missing dependency: 'isManager'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  143:68  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  207:70  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  417:71  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  675:69  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Metas.tsx
+  114:44  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  135:8   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  142:80  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  142:88  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  152:42  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  158:82  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  171:48  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  173:48  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  233:50  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  243:22  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  259:78  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  259:86  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  274:78  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  274:86  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  297:71  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  685:42  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Register.tsx
+  21:56  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  31:6   warning  React Hook useEffect has a missing dependency: 'checkInvitation'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  35:27  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  35:35  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  77:31  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  77:39  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+  90:19  error    Unexpected any. Specify a different type                                                                            @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\SDRPanel.tsx
+  42:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Settings.tsx
+   31:38  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   32:50  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   33:34  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   36:37  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   42:66  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   42:74  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   47:72  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   47:80  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   51:68  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   51:76  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   66:60  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   66:68  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   77:19  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   91:40  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+   91:48  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  101:58  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  101:66  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  112:19  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  126:68  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  133:19  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\Samsung\Documents\Projetos\simulaja\tailwind.config.ts
+  95:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Ô£û 135 problems (118 errors, 17 warnings)
+  3 errors and 0 warnings potentially fixable with the `--fix` option.
+

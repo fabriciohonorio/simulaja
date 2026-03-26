@@ -26,12 +26,21 @@ import { formatCurrency } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,6 +76,7 @@ interface Lead {
   data_vencimento?: string | null;
   organizacao_id?: string | null;
   responsavel_id?: string | null;
+  administradora?: string | null;
 }
 
 interface HistoricoContato {
@@ -368,6 +378,11 @@ function LeadCard({
               via {lead.indicador_nome}
             </span>
           )}
+          {lead.administradora && (
+            <span className="text-[9px] text-blue-600 font-black uppercase bg-blue-50 px-1 rounded border border-blue-100">
+              {lead.administradora}
+            </span>
+          )}
         </div>
         
         {/* Indicador de dias sem contato */}
@@ -400,7 +415,7 @@ function LeadCard({
             <NotebookPen className={`text-muted-foreground mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
             <div className="min-w-0 flex-1">
               <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-semibold text-muted-foreground truncate`}>
-                {ultimaTratativa.observacao || "Sem observação"}
+                {ultimaTratativa!.observacao || "Sem observação"}
               </p>
             </div>
           </div>
@@ -428,7 +443,7 @@ function LeadCard({
         >
           {(vencHoje || vencAtrasado) && <Bell className={`${compact ? "h-2 w-2" : "h-3 w-3"} animate-bounce`} />}
           <CalendarIcon className={`${compact ? "h-2 w-2" : "h-3 w-3"}`} />
-          {format(parseISO(lead.data_vencimento), "dd/MM")} {vencAtrasado && !compact && " — ATRASADO"}
+          {format(parseISO(lead.data_vencimento!), "dd/MM")} {vencAtrasado && !compact && " — ATRASADO"}
         </div>
       )}
 
@@ -455,7 +470,7 @@ function LeadCard({
           <select
             className="w-full text-[10px] p-1 rounded border border-border bg-background"
             value={lead.responsavel_id || "none"}
-            onChange={(e) => onAssignLead(lead.id, e.target.value)}
+            onChange={(e) => onAssignLead?.(lead.id, e.target.value)}
           >
             <option value="none">Sem responsável</option>
             {membros.map((m) => (
@@ -702,7 +717,10 @@ export default function Funil() {
   const [grupo, setGrupo] = useState("");
   const [cota, setCota] = useState("");
   const [saving, setSaving] = useState(false);
-  const [mobileColIdx, setMobileColIdx] = useState(0);
+  const [administradoraFilter, setAdministradoraFilter] = useState("todos");
+  const [indicadores, setIndicadores] = useState<{ id: string, name: string }[]>([]);
+
+  const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
   const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
@@ -876,10 +894,13 @@ export default function Funil() {
   }, [leads.length]);
 
   // getColumnLeads: match direto com os IDs normalizados — sem duplicatas
-  const getColumnLeads = (colId: string) =>
-    leads
-      .filter(l => normalizeStatus(l.status) === colId)
-      .sort((a, b) => {
+  const getColumnLeads = (columnId: string) => {
+     return leads.filter((lead) => {
+      const matchStatus = normalizeStatus(lead.status) === columnId;
+      const matchAdmin = administradoraFilter === "todos" || lead.administradora === administradoraFilter;
+      return matchStatus && matchAdmin;
+    })
+    .sort((a, b) => {
         // Prioridade ABSOLUTA: Recentes Primeiro (Mais novos no TOPO)
         const timeA = new Date(a.created_at || 0).getTime();
         const timeB = new Date(b.created_at || 0).getTime();
@@ -1078,6 +1099,7 @@ export default function Funil() {
       valor_credito: Number(celebrationLead.valor_credito),
       grupo,
       cota,
+      administradora: (administradora === "none" ? null : administradora) || celebrationLead.administradora,
       status: "aguardando",
       data_adesao: new Date().toISOString().split('T')[0],
     });
@@ -1195,6 +1217,18 @@ export default function Funil() {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
           <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v3.5 RECURSION FIXED</Badge>
         </div>
+        
+        <div className="flex items-center gap-2">
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
+            <TabsList className="grid w-auto grid-cols-4 sm:w-[500px]">
+              <TabsTrigger value="todos">Todos</TabsTrigger>
+              {ADMINISTRADORAS.map(admin => (
+                <TabsTrigger key={admin} value={admin}>{admin}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+
         <div className="hidden md:flex items-center bg-muted/30 p-1 rounded-lg border border-border">
           <button
             onClick={() => setIsWideView(false)}
@@ -1469,6 +1503,25 @@ export default function Funil() {
                 <Input id="cota" value={cota} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCota(e.target.value)} placeholder="Ex: 56" />
               </div>
             </div>
+            
+            <div className="space-y-2 text-left">
+              <Label>Administradora</Label>
+              <Select 
+                value={administradora || celebrationLead?.administradora || ""} 
+                onValueChange={setAdministradora}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a Administradora" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {ADMINISTRADORAS.map(admin => (
+                    <SelectItem key={admin} value={admin}>{admin}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex flex-col gap-2">
               <Button onClick={handleSaveCelebration} disabled={saving}>
                 {saving ? "Salvando..." : "🎉 Salvar e Celebrar!"}

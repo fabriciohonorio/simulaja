@@ -15,6 +15,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Users,
   Clock,
   Trophy,
@@ -48,6 +60,7 @@ interface CarteiraItem {
   created_at: string;
   celular?: string | null;
   indicador_nome?: string | null;
+  administradora?: string | null;
 }
 
 
@@ -61,6 +74,8 @@ export default function Carteira() {
   const [uploading, setUploading] = useState<string | null>(null);
   const [isEditingAdesao, setIsEditingAdesao] = useState(false);
   const [newAdesaoDate, setNewAdesaoDate] = useState("");
+  const [administradora, setAdministradora] = useState("");
+  const [administradoraFilter, setAdministradoraFilter] = useState("todos");
   const [loteriaFederal, setLoteriaFederal] = useState(() => localStorage.getItem("simulaja_loteria_federal") || "");
   const [participantesPadrao, setParticipantesPadrao] = useState<number>(600);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -108,6 +123,7 @@ export default function Carteira() {
       ...item,
       celular: (item.leads as any)?.celular ?? null,
       indicador_nome: (item.leads as any)?.indicador_nome ?? null,
+      administradora: item.administradora ?? null,
     }));
     setItems(mapped);
     setLoading(false);
@@ -404,7 +420,12 @@ export default function Carteira() {
     if (!selectedItem) return;
     setSaving(true);
     await supabase.from("carteira")
-      .update({ status: "contemplada", cota_contemplada: cotaContemplada, data_contemplacao: dataContemplacao })
+      .update({ 
+        status: "contemplada", 
+        cota_contemplada: cotaContemplada, 
+        data_contemplacao: dataContemplacao,
+        administradora: administradora === "none" ? null : (administradora || selectedItem.administradora)
+      })
       .eq("id", selectedItem.id);
     setSaving(false);
     setSelectedItem(null);
@@ -537,6 +558,17 @@ export default function Carteira() {
         </Button>
       </div>
 
+      <div className="flex justify-between items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border/50">
+        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
+          <TabsList className="grid w-full grid-cols-4 sm:w-[500px]">
+            <TabsTrigger value="todos">Todas Administradoras</TabsTrigger>
+            <TabsTrigger value="MAGALU">MAGALU</TabsTrigger>
+            <TabsTrigger value="ADEMICON">ADEMICON</TabsTrigger>
+            <TabsTrigger value="SERVOPA">SERVOPA</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
         {[
@@ -591,7 +623,9 @@ export default function Carteira() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {items.map((item) => {
+              {items
+                .filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter)
+                .map((item) => {
                 const indicator = item.indicador_nome?.toLowerCase() || "";
                 const rowColor = 
                   (indicator.includes("emily") || indicator.includes("emilly")) ? "bg-blue-50/50 hover:bg-blue-100/50" :
@@ -611,6 +645,11 @@ export default function Carteira() {
                         <div className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
                           COTA: <span className="text-orange-700 text-xs">{item.cota || "—"}</span>
                         </div>
+                        {item.administradora && (
+                          <div className="bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
+                            ADMIN: <span className="text-blue-700 text-xs">{item.administradora}</span>
+                          </div>
+                        )}
                       </div>
                       {(() => {
                         const lot = getLoteriaStatus(item.cota, item.grupo);
@@ -703,7 +742,9 @@ export default function Carteira() {
         {items.length === 0 && (
           <p className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</p>
         )}
-        {items.map((item) => {
+        {items
+          .filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter)
+          .map((item) => {
           const indicator = item.indicador_nome?.toLowerCase() || "";
           const cardColor = 
             (indicator.includes("emily") || indicator.includes("emilly")) ? "border-blue-500 bg-blue-50" :
@@ -731,6 +772,12 @@ export default function Carteira() {
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium text-primary">{formatCurrency(Number(item.valor_credito || 0))}</p>
                 </div>
+                {item.administradora && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Administradora</p>
+                    <p className="font-bold text-blue-600 uppercase text-xs">{item.administradora}</p>
+                  </div>
+                )}
                 <div className="col-span-2 flex items-center gap-2.5 bg-gradient-to-r from-orange-50/50 to-white p-2 rounded-xl border border-orange-100 mb-1 shadow-sm">
                   <div className="flex-1 text-center bg-white p-1 rounded border border-orange-50">
                     <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter">Grupo</p>
@@ -818,6 +865,23 @@ export default function Carteira() {
             <div className="space-y-2">
               <Label>Número da Cota Contemplada</Label>
               <Input value={cotaContemplada} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCotaContemplada(e.target.value)} placeholder="Ex: 0012" />
+            </div>
+            <div className="space-y-2">
+              <Label>Administradora</Label>
+              <Select 
+                value={administradora || selectedItem?.administradora || ""} 
+                onValueChange={setAdministradora}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a Administradora" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  <SelectItem value="MAGALU">MAGALU</SelectItem>
+                  <SelectItem value="ADEMICON">ADEMICON</SelectItem>
+                  <SelectItem value="SERVOPA">SERVOPA</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Data da Assembleia</Label>

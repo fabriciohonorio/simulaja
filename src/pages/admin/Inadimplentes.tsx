@@ -16,6 +16,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Inadimplente {
   id: string;
@@ -55,6 +68,9 @@ export default function Inadimplentes() {
   });
   const [saving, setSaving] = useState(false);
   const [editingItem, setEditingItem] = useState<Inadimplente | null>(null);
+  const [administradoraFilter, setAdministradoraFilter] = useState("todos");
+
+  const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
   const fetchData = async () => {
     const { data: rows } = await (supabase.from("inadimplentes" as any) as any).select("*");
@@ -64,7 +80,13 @@ export default function Inadimplentes() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const getColumnItems = (colId: string) => data.filter((d) => d.status === colId);
+  const getColumnItems = (colId: string) => {
+    return data.filter((d) => {
+      const matchStatus = d.status === colId;
+      const matchAdmin = administradoraFilter === "todos" || d.administradora === administradoraFilter;
+      return matchStatus && matchAdmin;
+    });
+  };
 
   const onDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
@@ -215,6 +237,16 @@ export default function Inadimplentes() {
           <p className="text-sm text-muted-foreground">
             {totalAtrasados} inadimplentes · {formatCurrency(totalValorAtrasado)} em atraso
           </p>
+        </div>
+        <div className="flex flex-col sm:items-end gap-2">
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
+            <TabsList className="grid w-full grid-cols-4 sm:w-[400px]">
+              <TabsTrigger value="todos">Todos</TabsTrigger>
+              {ADMINISTRADORAS.map(admin => (
+                <TabsTrigger key={admin} value={admin}>{admin}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowCopy(true)} className="flex-1 sm:flex-none">
@@ -505,7 +537,20 @@ export default function Inadimplentes() {
 
             <div className="space-y-2 md:col-span-2">
               <Label>Administradora</Label>
-              <Input placeholder="Ex: Magalu, Embracon..." value={form.administradora} onChange={(e) => setForm({ ...form, administradora: e.target.value })} />
+              <Select 
+                value={form.administradora} 
+                onValueChange={(val) => setForm({ ...form, administradora: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a Administradora" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {ADMINISTRADORAS.map(admin => (
+                    <SelectItem key={admin} value={admin}>{admin}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-2">

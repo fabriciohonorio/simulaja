@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -12,7 +13,7 @@ import { formatCurrency } from "@/lib/utils";
 interface Lead {
   id: string;
   nome: string;
-  email: string;
+  email: string | null;
   celular: string;
   cidade: string;
   tipo_consorcio: string;
@@ -23,6 +24,7 @@ interface Lead {
   lead_score_valor: string | null;
   lead_temperatura: string | null;
   responsavel_id?: string | null;
+  administradora?: string | null;
 }
 
 interface Membro {
@@ -90,6 +92,7 @@ const EMPTY_LEAD_FORM = {
   nome: "", email: "", celular: "", cidade: "", tipo_consorcio: "imovel",
   valor_credito: "", prazo_meses: "120", status: "novo_lead",
   lead_temperatura: "quente", lead_score_valor: "medio",
+  administradora: "none",
 };
 
 export default function Leads() {
@@ -103,6 +106,8 @@ export default function Leads() {
   const [cidadeFilter, setCidadeFilter] = useState("");
   const [sortKey, setSortKey] = useState<keyof Lead>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [administradoraFilter, setAdministradoraFilter] = useState("todos");
+  const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
   // New Lead dialog
   const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
@@ -161,6 +166,7 @@ export default function Leads() {
       lead_score_valor: newLead.lead_score_valor,
       responsavel_id: profile.id,
       organizacao_id: profile.organizacao_id,
+      administradora: newLead.administradora === "none" ? null : newLead.administradora,
     };
     const { data, error } = await supabase.from("leads").insert([leadToInsert]).select();
     if (!error && data && data.length > 0) {
@@ -184,6 +190,7 @@ export default function Leads() {
       status: lead.status || "novo_lead",
       lead_temperatura: lead.lead_temperatura || "quente",
       lead_score_valor: lead.lead_score_valor || "medio",
+      administradora: lead.administradora || "none",
     });
     setIsEditOpen(true);
   };
@@ -203,6 +210,7 @@ export default function Leads() {
       status: editForm.status,
       lead_temperatura: editForm.lead_temperatura,
       lead_score_valor: editForm.lead_score_valor,
+      administradora: editForm.administradora === "none" ? null : editForm.administradora,
     };
     const { error } = await supabase.from("leads").update(updates as any).eq("id", editingLead.id);
     if (!error) {
@@ -258,6 +266,7 @@ export default function Leads() {
       return s === statusFilter;
     });
     if (tipoFilter !== "all") result = result.filter((l) => l.tipo_consorcio === tipoFilter);
+    if (administradoraFilter !== "todos") result = result.filter((l) => l.administradora === administradoraFilter);
     if (cidadeFilter) result = result.filter((l) => l.cidade?.toLowerCase().includes(cidadeFilter.toLowerCase()) ?? false);
 
     result.sort((a, b) => {
@@ -311,26 +320,26 @@ export default function Leads() {
     <div className="space-y-4 py-4">
       <div className="space-y-2">
         <Label htmlFor="nome">Nome Completo</Label>
-        <Input id="nome" required value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Ex: João Silva" />
+        <Input id="nome" required value={form.nome} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Ex: João Silva" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="celular">Celular</Label>
-          <Input id="celular" required value={form.celular} onChange={e => setForm(f => ({ ...f, celular: e.target.value }))} placeholder="Ex: (11) 99999-9999" />
+          <Input id="celular" required value={form.celular} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, celular: e.target.value }))} placeholder="Ex: (11) 99999-9999" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Ex: joao@email.com" />
+          <Input id="email" type="email" value={form.email || ""} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Ex: joao@email.com" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="cidade">Cidade</Label>
-          <Input id="cidade" value={form.cidade} onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))} placeholder="Ex: São Paulo" />
+          <Input id="cidade" value={form.cidade} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, cidade: e.target.value }))} placeholder="Ex: São Paulo" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="tipo">Tipo</Label>
-          <Select value={form.tipo_consorcio} onValueChange={(val) => setForm(f => ({ ...f, tipo_consorcio: val }))}>
+          <Select value={form.tipo_consorcio} onValueChange={(val: string) => setForm(f => ({ ...f, tipo_consorcio: val }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {TIPO_OPTIONS.filter(o => o.value !== 'all').map(o => (
@@ -343,17 +352,17 @@ export default function Leads() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="valor">Valor Crédito (R$)</Label>
-          <Input id="valor" type="number" value={form.valor_credito} onChange={e => setForm(f => ({ ...f, valor_credito: e.target.value }))} placeholder="Ex: 150000" />
+          <Input id="valor" type="number" value={form.valor_credito} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, valor_credito: e.target.value }))} placeholder="Ex: 150000" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="prazo">Prazo (meses)</Label>
-          <Input id="prazo" type="number" value={form.prazo_meses} onChange={e => setForm(f => ({ ...f, prazo_meses: e.target.value }))} placeholder="Ex: 120" />
+          <Input id="prazo" type="number" value={form.prazo_meses} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, prazo_meses: e.target.value }))} placeholder="Ex: 120" />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>Status</Label>
-          <Select value={form.status} onValueChange={(val) => setForm(f => ({ ...f, status: val }))}>
+          <Select value={form.status || "novo_lead"} onValueChange={(val: string) => setForm(f => ({ ...f, status: val }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.filter(o => o.value !== 'all').map(o => (
@@ -364,7 +373,7 @@ export default function Leads() {
         </div>
         <div className="space-y-2">
           <Label>Temperatura</Label>
-          <Select value={form.lead_temperatura} onValueChange={(val) => setForm(f => ({ ...f, lead_temperatura: val }))}>
+          <Select value={form.lead_temperatura || "quente"} onValueChange={(val: string) => setForm(f => ({ ...f, lead_temperatura: val }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {TEMPERATURA_OPTIONS.map(o => (
@@ -375,7 +384,7 @@ export default function Leads() {
         </div>
         <div className="space-y-2">
           <Label>Score</Label>
-          <Select value={form.lead_score_valor} onValueChange={(val) => setForm(f => ({ ...f, lead_score_valor: val }))}>
+          <Select value={form.lead_score_valor || "medio"} onValueChange={(val: string) => setForm(f => ({ ...f, lead_score_valor: val }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {SCORE_OPTIONS.map(o => (
@@ -384,6 +393,18 @@ export default function Leads() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Administradora</Label>
+        <Select value={form.administradora || "none"} onValueChange={(val: string) => setForm(f => ({ ...f, administradora: val }))}>
+          <SelectTrigger><SelectValue placeholder="Selecione a Administradora" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Nenhuma</SelectItem>
+            {ADMINISTRADORAS.map(admin => (
+              <SelectItem key={admin} value={admin}>{admin}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
@@ -475,6 +496,7 @@ export default function Leads() {
                 <SortHeader label="Valor" field="valor_credito" />
                 <SortHeader label="Score" field="lead_score_valor" />
                 <SortHeader label="Temp" field="lead_temperatura" />
+                <SortHeader label="Admin" field="administradora" />
                 <SortHeader label="Status" field="status" />
                 <SortHeader label="Data" field="created_at" />
                 {isManager && <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Responsável</th>}
@@ -540,6 +562,13 @@ export default function Leads() {
                     <span className="text-[10px] font-bold uppercase">{TEMP_EMOJIS[l.lead_temperatura || "quente"] || "🔥"}</span>
                   </td>
                   <td className="px-3 py-2">
+                    {l.administradora && (
+                      <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 text-[10px] font-black uppercase">
+                        {l.administradora}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary capitalize">
                       {(l.status ?? "novo").replace("_", " ")}
                     </span>
@@ -549,7 +578,7 @@ export default function Leads() {
                     <td className="px-3 py-2">
                       <Select
                         value={l.responsavel_id || "none"}
-                        onValueChange={(val) => assignLead(l.id, val)}
+                        onValueChange={(val: string) => assignLead(l.id, val)}
                       >
                         <SelectTrigger className="h-7 text-xs w-36 rounded-lg">
                           <SelectValue placeholder="Sem responsável" />
@@ -603,6 +632,12 @@ export default function Leads() {
                   <p className="text-xs text-muted-foreground uppercase font-black">Tipo / Prazo</p>
                   <p className="capitalize font-medium">{l.tipo_consorcio} · {l.prazo_meses}m</p>
                 </div>
+                {l.administradora && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-black">Admin</p>
+                    <p className="font-bold text-blue-600 uppercase text-[10px]">{l.administradora}</p>
+                  </div>
+                )}
               </div>
 
               {isManager && (
@@ -610,7 +645,7 @@ export default function Leads() {
                   <p className="text-xs text-muted-foreground uppercase font-black">Responsável</p>
                   <Select
                     value={l.responsavel_id || "none"}
-                    onValueChange={(val) => assignLead(l.id, val)}
+                    onValueChange={(val: string) => assignLead(l.id, val)}
                   >
                     <SelectTrigger className="h-8 text-xs w-full rounded-lg">
                       <SelectValue placeholder="Sem responsável" />
