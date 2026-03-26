@@ -278,7 +278,7 @@ export default function Leads() {
     });
 
     return result;
-  }, [leads, search, statusFilter, tipoFilter, cidadeFilter, sortKey, sortDir]);
+  }, [leads, search, statusFilter, tipoFilter, cidadeFilter, sortKey, sortDir, administradoraFilter]);
 
   const exportCSV = () => {
     const headers = ["Nome", "Email", "Celular", "Cidade", "Tipo", "Valor Crédito", "Prazo", "Status", "Score", "Temp", "Data"];
@@ -449,6 +449,17 @@ export default function Leads() {
             <Download className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
+        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full lg:w-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
+            <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todos</TabsTrigger>
+            {ADMINISTRADORAS.map(admin => (
+              <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2">{admin}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Filters */}

@@ -197,7 +197,11 @@ export default function Inadimplentes() {
     y += 8;
 
     doc.setFont("helvetica", "normal");
-    const atrasados = data.filter(d => d.status !== "regularizado");
+    const atrasados = data.filter(d => {
+      const matchStatus = d.status !== "regularizado";
+      const matchAdmin = administradoraFilter === "todos" || d.administradora === administradoraFilter;
+      return matchStatus && matchAdmin;
+    });
     atrasados.forEach((item) => {
       if (y > 280) {
         doc.addPage();
@@ -239,11 +243,11 @@ export default function Inadimplentes() {
           </p>
         </div>
         <div className="flex flex-col sm:items-end gap-2">
-          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
-            <TabsList className="grid w-full grid-cols-4 sm:w-[400px]">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full lg:w-auto">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
+              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todos</TabsTrigger>
               {ADMINISTRADORAS.map(admin => (
-                <TabsTrigger key={admin} value={admin}>{admin}</TabsTrigger>
+                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2">{admin}</TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
@@ -497,39 +501,39 @@ export default function Inadimplentes() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="space-y-2 md:col-span-2">
               <Label>Nome</Label>
-              <Input placeholder="Nome completo" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+              <Input placeholder="Nome completo" value={form.nome} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, nome: e.target.value })} />
             </div>
             
             <div className="space-y-2">
               <Label>Celular</Label>
-              <Input placeholder="(00) 00000-0000" value={form.celular} onChange={(e) => setForm({ ...form, celular: e.target.value })} />
+              <Input placeholder="(11) 99999-9999" value={form.celular} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, celular: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Segmento</Label>
-              <Input placeholder="Imóveis, Veículos..." value={form.tipo_consorcio} onChange={(e) => setForm({ ...form, tipo_consorcio: e.target.value })} />
+              <Label>Tipo Consórcio</Label>
+              <Input placeholder="Ex: Imóvel" value={form.tipo_consorcio} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, tipo_consorcio: e.target.value })} />
             </div>
 
             <div className="space-y-2">
               <Label>Valor Parcela</Label>
-              <Input type="number" value={form.valor_parcela} onChange={(e) => setForm({ ...form, valor_parcela: e.target.value })} />
+              <Input type="number" value={form.valor_parcela} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, valor_parcela: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label>Parcelas Pagas</Label>
-              <Input type="number" value={form.parcelas_pagas} onChange={(e) => setForm({ ...form, parcelas_pagas: e.target.value })} />
+              <Input type="number" value={form.parcelas_pagas} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, parcelas_pagas: e.target.value })} />
             </div>
 
             <div className="space-y-2">
-              <Label>Parc. Atrasadas</Label>
-              <Input type="number" value={form.parcelas_atrasadas} onChange={(e) => setForm({ ...form, parcelas_atrasadas: e.target.value })} />
+              <Label>Parcelas Atrasadas</Label>
+              <Input type="number" value={form.parcelas_atrasadas} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, parcelas_atrasadas: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label>Grupo</Label>
-              <Input placeholder="Número do grupo" value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })} />
+              <Input placeholder="Ex: 1234" value={form.grupo} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, grupo: e.target.value })} />
             </div>
 
             <div className="space-y-2">
               <Label>Cota</Label>
-              <Input placeholder="Número da cota" value={form.cota} onChange={(e) => setForm({ ...form, cota: e.target.value })} />
+              <Input placeholder="Ex: 56" value={form.cota} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, cota: e.target.value })} />
             </div>
             <div className="space-y-2">
               {/* Spacer on desktop */}
@@ -537,12 +541,9 @@ export default function Inadimplentes() {
 
             <div className="space-y-2 md:col-span-2">
               <Label>Administradora</Label>
-              <Select 
-                value={form.administradora} 
-                onValueChange={(val) => setForm({ ...form, administradora: val })}
-              >
+              <Select value={form.administradora || "none"} onValueChange={(val: string) => setForm({ ...form, administradora: val === "none" ? "" : val })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione a Administradora" />
+                  <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhuma</SelectItem>
@@ -570,7 +571,7 @@ export default function Inadimplentes() {
               <Textarea
                 rows={4}
                 value={copyTemplate}
-                onChange={(e) => setCopyTemplate(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCopyTemplate(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
                 Variáveis: {"{nome}"}, {"{cota}"}, {"{grupo}"}, {"{parcelas_atrasadas}"}, {"{valor_parcela}"}

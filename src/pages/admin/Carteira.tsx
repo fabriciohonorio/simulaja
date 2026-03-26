@@ -516,7 +516,8 @@ export default function Carteira() {
     y += 8;
 
     doc.setFont("helvetica", "normal");
-    items.forEach((item) => {
+    const filteredForReport = items.filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter);
+    filteredForReport.forEach((item) => {
       if (y > 280) {
         doc.addPage();
         y = 20;
@@ -559,12 +560,12 @@ export default function Carteira() {
       </div>
 
       <div className="flex justify-between items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border/50">
-        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
-          <TabsList className="grid w-full grid-cols-4 sm:w-[500px]">
-            <TabsTrigger value="todos">Todas Administradoras</TabsTrigger>
-            <TabsTrigger value="MAGALU">MAGALU</TabsTrigger>
-            <TabsTrigger value="ADEMICON">ADEMICON</TabsTrigger>
-            <TabsTrigger value="SERVOPA">SERVOPA</TabsTrigger>
+        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full lg:w-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
+            <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todas Administradoras</TabsTrigger>
+            <TabsTrigger value="MAGALU" className="text-[10px] sm:text-xs py-2">MAGALU</TabsTrigger>
+            <TabsTrigger value="ADEMICON" className="text-[10px] sm:text-xs py-2">ADEMICON</TabsTrigger>
+            <TabsTrigger value="SERVOPA" className="text-[10px] sm:text-xs py-2">SERVOPA</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

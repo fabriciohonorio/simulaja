@@ -26,7 +26,12 @@ import { formatCurrency } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Tabs,
@@ -87,6 +92,11 @@ interface HistoricoContato {
   resultado: string | null;
   created_at: string | null;
   organizacao_id?: string | null;
+}
+
+interface Membro {
+  id: string;
+  nome_completo: string;
 }
 
 const COLUMNS = [
@@ -212,7 +222,7 @@ const normalizeStatus = (status: string | null): string => {
 };
 
 
-const isToday = (dateStr: string | null) => {
+const isToday = (dateStr: string | null | undefined) => {
   if (!dateStr) return false;
   const d = parseISO(dateStr);
   const today = new Date();
@@ -223,7 +233,7 @@ const isToday = (dateStr: string | null) => {
   );
 };
 
-const isPastDue = (dateStr: string | null) => {
+const isPastDue = (dateStr: string | null | undefined) => {
   if (!dateStr) return false;
   const d = parseISO(dateStr);
   const today = new Date();
@@ -716,6 +726,7 @@ export default function Funil() {
   const [celebrationLead, setCelebrationLead] = useState<Lead | null>(null);
   const [grupo, setGrupo] = useState("");
   const [cota, setCota] = useState("");
+  const [administradora, setAdministradora] = useState("");
   const [saving, setSaving] = useState(false);
   const [administradoraFilter, setAdministradoraFilter] = useState("todos");
   const [indicadores, setIndicadores] = useState<{ id: string, name: string }[]>([]);
@@ -727,6 +738,7 @@ export default function Funil() {
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
   
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [mobileColIdx, setMobileColIdx] = useState(0);
   const [membros, setMembros] = useState<{id: string, nome_completo: string}[]>([]);
   const isManager = true; // Todo: usar useProfile real para isso se disponível no Funil context, mas por hora mock ou pegar da sessão
 
@@ -915,6 +927,7 @@ export default function Funil() {
 
         return 0;
       });
+  };
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
@@ -948,7 +961,8 @@ export default function Funil() {
     y += 8;
 
     doc.setFont("helvetica", "normal");
-    leads.forEach((item) => {
+    const filteredLeads = leads.filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter);
+    filteredLeads.forEach((item) => {
       if (y > 280) {
         doc.addPage();
         y = 20;
@@ -1218,12 +1232,12 @@ export default function Funil() {
           <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v3.5 RECURSION FIXED</Badge>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
-            <TabsList className="grid w-auto grid-cols-4 sm:w-[500px]">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
+        <div className="flex items-center gap-2 w-full lg:w-auto mt-2 lg:mt-0">
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
+              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todos</TabsTrigger>
               {ADMINISTRADORAS.map(admin => (
-                <TabsTrigger key={admin} value={admin}>{admin}</TabsTrigger>
+                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2">{admin}</TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
