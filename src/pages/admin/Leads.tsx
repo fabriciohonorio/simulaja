@@ -626,14 +626,15 @@ export default function Leads() {
               )}
 
               {/* Mobile action buttons */}
-              <div className="flex gap-2">
+              <div className="flex justify-end gap-2">
                 <Button
-                  size="sm"
+                  size="icon"
                   variant="outline"
-                  className="flex-1 text-green-600 border-green-200 hover:bg-green-50 gap-2"
+                  className="text-green-600 border-green-200 hover:bg-green-50 h-9 w-9"
+                  title="WhatsApp"
                   onClick={() => openWhatsApp(l)}
                 >
-                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                  <MessageCircle className="h-4 w-4" />
                 </Button>
                 <Button
                   size="icon"
