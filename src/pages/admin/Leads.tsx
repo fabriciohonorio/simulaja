@@ -477,7 +477,7 @@ export default function Leads() {
                 <SortHeader label="Status" field="status" />
                 <SortHeader label="Data" field="created_at" />
                 {isManager && <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Responsável</th>}
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Ações</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground sticky right-0 bg-muted z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -491,7 +491,7 @@ export default function Leads() {
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 {isManager && <td className="px-3 py-1"></td>}
-                <td className="px-3 py-1"></td>
+                <td className="px-3 py-1 sticky right-0 bg-muted/30 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]"></td>
               </tr>
               {filtered.map((l) => (
                 <tr key={l.id} className="hover:bg-muted/50">
@@ -529,7 +529,7 @@ export default function Leads() {
                       </Select>
                     </td>
                   )}
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2 sticky right-0 bg-background shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center gap-1">
                       {/* WhatsApp */}
                       <Button
