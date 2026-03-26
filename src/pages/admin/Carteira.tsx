@@ -92,7 +92,7 @@ export default function Carteira() {
       Math.abs(clientCota - winCota), 
       participants - Math.abs(clientCota - winCota)
     );
-    return { winCota, isWinner: diff === 0, isClose: diff > 0 && diff <= 5, diff, participants };
+    return { winCota, isWinner: diff === 0, isClose: diff > 0 && diff <= 10, diff, participants };
   };
 
   const fetchData = async () => {
@@ -571,8 +571,8 @@ export default function Carteira() {
                         if (lot.isClose) {
                           return (
                             <div className="flex items-center gap-1.5">
-                              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-400 text-[10px] font-bold py-0 px-2 h-5">
-                                ⚠️ NA TRAVE! Sorteado: {lot.winCota} ({lot.participants} parts)
+                              <Badge className="bg-amber-100 text-amber-800 border-amber-400 text-[10px] font-black py-0 px-2 h-5 animate-pulse">
+                                🔥 PODE GANHAR LANCE FIXO (Sorteio: {lot.winCota} / Dif: {lot.diff})
                               </Badge>
                             </div>
                           );
@@ -685,7 +685,7 @@ export default function Carteira() {
                       {lot.isWinner ? (
                         <p className="text-xs font-black text-green-700 uppercase animate-pulse">🏆 CONTEMPLADO (Sorteio: {lot.winCota})</p>
                       ) : lot.isClose ? (
-                        <p className="text-[11px] font-bold text-yellow-700">⚠️ NA TRAVE! Sorteado: {lot.winCota} ({lot.participants} pts)</p>
+                        <p className="text-[11px] font-black text-amber-700 animate-pulse">🔥 LANCE FIXO PRÓXIMO: {lot.winCota} (Dif: {lot.diff})</p>
                       ) : (
                         <p className="text-[10px] text-muted-foreground font-medium">Sorteio: {lot.winCota} / {lot.participants} participantes</p>
                       )}
