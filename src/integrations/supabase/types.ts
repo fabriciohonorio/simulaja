@@ -21,12 +21,15 @@ export type Database = {
           cota_contemplada: string | null
           created_at: string
           data_contemplacao: string | null
+          data_adesao: string | null
           grupo: string | null
           id: string
           lead_id: string | null
           nome: string
           status: string
           tipo_consorcio: string | null
+          protocolo_lance_fixo: string | null
+          administradora: string | null
           updated_at: string
           valor_credito: number | null
         }
@@ -36,12 +39,15 @@ export type Database = {
           cota_contemplada?: string | null
           created_at?: string
           data_contemplacao?: string | null
+          data_adesao?: string | null
           grupo?: string | null
           id?: string
           lead_id?: string | null
           nome: string
           status?: string
           tipo_consorcio?: string | null
+          protocolo_lance_fixo?: string | null
+          administradora?: string | null
           updated_at?: string
           valor_credito?: number | null
         }
@@ -51,12 +57,15 @@ export type Database = {
           cota_contemplada?: string | null
           created_at?: string
           data_contemplacao?: string | null
+          data_adesao?: string | null
           grupo?: string | null
           id?: string
           lead_id?: string | null
           nome?: string
           status?: string
           tipo_consorcio?: string | null
+          protocolo_lance_fixo?: string | null
+          administradora?: string | null
           updated_at?: string
           valor_credito?: number | null
         }
@@ -202,6 +211,7 @@ export type Database = {
           status: string | null
           tipo_consorcio: string | null
           ultimo_contato: string | null
+          administradora: string | null
           updated_at: string | null
           valor_credito: number | null
         }
@@ -220,6 +230,7 @@ export type Database = {
           prazo_meses?: number | null
           status?: string | null
           tipo_consorcio?: string | null
+          administradora?: string | null
           ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
@@ -239,6 +250,7 @@ export type Database = {
           prazo_meses?: number | null
           status?: string | null
           tipo_consorcio?: string | null
+          administradora?: string | null
           ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
