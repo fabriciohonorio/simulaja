@@ -209,6 +209,8 @@ export default function FilaInteligente() {
                         <p className="text-sm">Bom trabalho! Todos os leads foram processados.</p>
                     </div>
                 )}
+            </div>
+
             <Dialog open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
