@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
@@ -168,6 +168,22 @@ export default function Dashboard() {
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   
   const progressoMes = metaMensal > 0 ? (realizadoMes / metaMensal) * 100 : 0;
+  
+  // Funil de Vendas - Dados Real-time
+  const funnelStages = [
+    { label: "Novos", icon: UserPlus, color: "text-blue-500", bg: "bg-blue-500", statuses: ["novo", "novo_lead"] },
+    { label: "Contato", icon: Phone, color: "text-pink-500", bg: "bg-pink-500", statuses: ["primeiro_contato", "contato"] },
+    { label: "Negociação", icon: MessageSquare, color: "text-purple-500", bg: "bg-purple-500", statuses: ["negociacao"] },
+    { label: "Proposta", icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500", statuses: ["simulacao_enviada", "proposta"] },
+    { label: "Fechados", icon: Handshake, color: "text-emerald-600", bg: "bg-emerald-600", statuses: ["fechado", "venda_fechada"] },
+    { label: "Perdidos", icon: AlertTriangle, color: "text-slate-400", bg: "bg-slate-400", statuses: ["perdido", "morto", "inadimplente"] },
+  ];
+
+  const funnelData = funnelStages.map(stage => {
+    const count = leads.filter(l => stage.statuses.includes(l.status || "")).length;
+    const percentage = totalLeads > 0 ? (count / totalLeads) * 100 : 0;
+    return { ...stage, count, percentage };
+  });
 
 
   if (loading) {
@@ -276,6 +292,44 @@ export default function Dashboard() {
                     {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatCurrency(Math.max(0, metaMensal - realizadoMes))}`}
                 </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Funil de Vendas - Estilo Visual Mockup - Full Width on Mobile, Col on Desktop */}
+        <Card className="shadow-sm border-border bg-card lg:col-span-3">
+          <CardHeader className="pb-2 border-b border-dashed mb-4">
+            <CardTitle className="text-base sm:text-lg flex items-center justify-center gap-2 uppercase tracking-tighter font-black py-1">
+               📊 Funil de Vendas - Tempo Real
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4 py-2">
+            {funnelData.map((item, i) => (
+              <div key={i} className="flex items-center gap-3 group">
+                <div className="w-24 sm:w-28 shrink-0 flex items-center gap-2">
+                   <div className={`p-1 rounded-md bg-muted/50 group-hover:scale-110 transition-transform`}>
+                    <item.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${item.color}`} />
+                   </div>
+                   <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight truncate">{item.label}</span>
+                   <span className="text-[10px] text-muted-foreground/30 font-light ml-auto">|</span>
+                </div>
+                
+                <div className="flex-1 h-2.5 sm:h-3 bg-muted/50 rounded-sm overflow-hidden border border-border/50 relative">
+                   <div 
+                     className={`h-full ${item.bg} transition-all duration-1000 ease-out shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]`} 
+                     style={{ width: `${item.percentage}%` }}
+                   />
+                </div>
+
+                <div className="w-16 sm:w-20 text-right shrink-0 flex items-center justify-end gap-1.5">
+                   <span className="text-[10px] text-muted-foreground/30 font-light">|</span>
+                   <span className="text-xs sm:text-sm font-black text-foreground w-6 text-center">{item.count}</span>
+                   <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                     {item.percentage.toFixed(0)}%
+                   </span>
+                   <span className="text-[10px] text-muted-foreground/30 font-light ml-0.5">|</span>
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
