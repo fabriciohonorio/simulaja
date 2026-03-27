@@ -316,7 +316,7 @@ export default function Leads() {
                 <UserPlus className="h-4 w-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Adicionar Novo Lead</DialogTitle>
               </DialogHeader>
@@ -395,6 +395,7 @@ export default function Leads() {
                 <SortHeader label="Admin" field="administradora" />
                 <SortHeader label="Status" field="status" />
                 <SortHeader label="Data" field="created_at" />
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Indicador</th>
                 {isManager && <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Responsável</th>}
               </tr>
             </thead>
@@ -470,6 +471,16 @@ export default function Leads() {
                     </span>
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">{l.created_at?.slice(0, 10)}</td>
+                  <td className="px-3 py-2">
+                    {l.indicador_nome ? (
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium">{l.indicador_nome}</span>
+                        <span className="text-[10px] text-muted-foreground">{l.indicador_celular}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                   {isManager && (
                     <td className="px-3 py-2">
                       <Select
@@ -532,6 +543,12 @@ export default function Leads() {
                   <div>
                     <p className="text-xs text-muted-foreground uppercase font-black">Admin</p>
                     <p className="font-bold text-blue-600 uppercase text-[10px]">{l.administradora}</p>
+                  </div>
+                )}
+                {l.indicador_nome && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground uppercase font-black">Indicador</p>
+                    <p className="text-sm font-medium">{l.indicador_nome} ({l.indicador_celular})</p>
                   </div>
                 )}
               </div>
@@ -598,7 +615,7 @@ export default function Leads() {
 
       {/* Edit Lead Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Lead</DialogTitle>
           </DialogHeader>
