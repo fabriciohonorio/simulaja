@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +75,7 @@ export default function Inadimplentes() {
 
   const fetchData = async () => {
     const { data: rows } = await (supabase.from("inadimplentes" as any) as any).select("*");
-    setData(rows ?? []);
+    setData(rows as Inadimplente[] ?? []);
     setLoading(false);
   };
 
@@ -89,18 +90,7 @@ export default function Inadimplentes() {
   };
 
   const onDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
-    const id = result.draggableId;
-    const newStatus = result.destination.droppableId;
-
-    setData((prev) => prev.map((d) => (d.id === id ? { ...d, status: newStatus } : d)));
-
-    const { error } = await (supabase.from("inadimplentes" as any) as any)
-      .update({ status: newStatus })
-      .eq("id", id);
-
-    if (error) toast.error("Erro ao atualizar status");
-    if (newStatus === "regularizado") toast.success("🎉 Cliente regularizado!");
+    await handleKanbanDragEnd(result, data, setData, "inadimplentes", "🎉 Cliente regularizado!");
   };
 
   const handleSave = async () => {

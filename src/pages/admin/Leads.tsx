@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { LeadForm, LeadFormData, STATUS_OPTIONS, TIPO_OPTIONS, TEMPERATURA_OPTIONS, SCORE_OPTIONS } from "@/components/admin/LeadForm";
 
 interface Lead {
   id: string;
@@ -25,6 +26,8 @@ interface Lead {
   lead_temperatura: string | null;
   responsavel_id?: string | null;
   administradora?: string | null;
+  indicador_nome?: string;
+  indicador_celular?: string;
 }
 
 interface Membro {
@@ -46,38 +49,14 @@ const SCORE_LABELS: Record<string, string> = {
   baixo: "🧊 Lead Baixo",
 };
 
-const STATUS_OPTIONS = [
+const FILTER_STATUS_OPTIONS = [
   { value: "all", label: "Todos os status" },
-  { value: "novo_lead", label: "Novo Lead" },
-  { value: "novo", label: "Novo (Antigo)" },
-  { value: "contatado", label: "Contatado" },
-  { value: "proposta_enviada", label: "Proposta Enviada" },
-  { value: "em_negociacao", label: "Em Negociação" },
-  { value: "fechado", label: "Fechado" },
+  ...STATUS_OPTIONS
 ];
 
-const TIPO_OPTIONS = [
+const FILTER_TIPO_OPTIONS = [
   { value: "all", label: "Todos os tipos" },
-  { value: "imovel", label: "Imóvel" },
-  { value: "veiculo", label: "Veículo" },
-  { value: "moto", label: "Moto" },
-  { value: "pesados", label: "Pesados" },
-  { value: "agricolas", label: "Agrícolas" },
-  { value: "investimento", label: "Investimento" },
-];
-
-const TEMPERATURA_OPTIONS = [
-  { value: "quente", label: "🔥 Quente" },
-  { value: "morno", label: "🌤 Morno" },
-  { value: "frio", label: "❄️ Frio" },
-  { value: "morto", label: "☠️ Morto" },
-];
-
-const SCORE_OPTIONS = [
-  { value: "premium", label: "🔥 Premium" },
-  { value: "alto", label: "🚀 Alto" },
-  { value: "medio", label: "⚡ Médio" },
-  { value: "baixo", label: "🧊 Baixo" },
+  ...TIPO_OPTIONS
 ];
 
 const openWhatsApp = (lead: Lead) => {
@@ -88,11 +67,13 @@ const openWhatsApp = (lead: Lead) => {
   window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
 };
 
-const EMPTY_LEAD_FORM = {
+const EMPTY_LEAD_FORM: LeadFormData = {
   nome: "", email: "", celular: "", cidade: "", tipo_consorcio: "imovel",
   valor_credito: "", prazo_meses: "120", status: "novo_lead",
   lead_temperatura: "quente", lead_score_valor: "medio",
   administradora: "none",
+  indicador_nome: "",
+  indicador_celular: "",
 };
 
 export default function Leads() {
@@ -129,10 +110,11 @@ export default function Leads() {
     if (!profile) return;
     fetchLeads();
     if (isManager && profile.organizacao_id) {
-      (supabase.from("perfis" as any) as any)
-        .select("id, nome_completo")
-        .eq("organizacao_id", profile.organizacao_id)
-        .then(({ data }: any) => setMembros(data || []));
+      const fetchMembros = async () => {
+        const { data } = await (supabase as any).from("perfis").select("id, nome_completo").eq("organizacao_id", profile.organizacao_id);
+        if (data) setMembros(data as unknown as Membro[]);
+      };
+      fetchMembros();
     }
   }, [profile]);
 
@@ -145,34 +127,34 @@ export default function Leads() {
 
   const assignLead = async (leadId: string, responsavelId: string) => {
     const val = responsavelId === "none" ? null : responsavelId;
-    await supabase.from("leads").update({ responsavel_id: val } as any).eq("id", leadId);
+    await (supabase as any).from("leads").update({ responsavel_id: val }).eq("id", leadId);
     setLeads((prev) => prev.map((l) => l.id === leadId ? { ...l, responsavel_id: val } : l));
   };
 
-  const handleCreateLead = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateLead = async (formData: LeadFormData) => {
     if (!profile) return;
     setIsSubmitting(true);
     const leadToInsert = {
-      nome: newLead.nome,
-      email: newLead.email || null,
-      celular: newLead.celular,
-      cidade: newLead.cidade,
-      tipo_consorcio: newLead.tipo_consorcio,
-      valor_credito: Number(newLead.valor_credito) || 0,
-      prazo_meses: Number(newLead.prazo_meses) || 120,
-      status: newLead.status,
-      lead_temperatura: newLead.lead_temperatura,
-      lead_score_valor: newLead.lead_score_valor,
+      nome: formData.nome,
+      email: formData.email || null,
+      celular: formData.celular,
+      cidade: formData.cidade,
+      tipo_consorcio: formData.tipo_consorcio,
+      valor_credito: Number(formData.valor_credito) || 0,
+      prazo_meses: Number(formData.prazo_meses) || 120,
+      status: formData.status,
+      lead_temperatura: formData.lead_temperatura,
+      lead_score_valor: formData.lead_score_valor,
       responsavel_id: profile.id,
       organizacao_id: profile.organizacao_id,
-      administradora: newLead.administradora === "none" ? null : newLead.administradora,
+      administradora: formData.administradora === "none" ? null : formData.administradora,
+      indicador_nome: formData.indicador_nome || null,
+      indicador_celular: formData.indicador_celular || null,
     };
-    const { data, error } = await supabase.from("leads").insert([leadToInsert]).select();
+    const { data, error } = await supabase.from("leads").insert([leadToInsert as any]).select();
     if (!error && data && data.length > 0) {
       setLeads(prev => [data[0] as Lead, ...prev]);
       setIsNewLeadOpen(false);
-      setNewLead(EMPTY_LEAD_FORM);
     }
     setIsSubmitting(false);
   };
@@ -191,26 +173,29 @@ export default function Leads() {
       lead_temperatura: lead.lead_temperatura || "quente",
       lead_score_valor: lead.lead_score_valor || "medio",
       administradora: lead.administradora || "none",
+      indicador_nome: lead.indicador_nome || "",
+      indicador_celular: lead.indicador_celular || "",
     });
     setIsEditOpen(true);
   };
 
-  const handleEditLead = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditLead = async (formData: LeadFormData) => {
     if (!editingLead) return;
     setIsEditSubmitting(true);
     const updates = {
-      nome: editForm.nome,
-      email: editForm.email || null,
-      celular: editForm.celular,
-      cidade: editForm.cidade,
-      tipo_consorcio: editForm.tipo_consorcio,
-      valor_credito: Number(editForm.valor_credito) || 0,
-      prazo_meses: Number(editForm.prazo_meses) || 120,
-      status: editForm.status,
-      lead_temperatura: editForm.lead_temperatura,
-      lead_score_valor: editForm.lead_score_valor,
-      administradora: editForm.administradora === "none" ? null : editForm.administradora,
+      nome: formData.nome,
+      email: formData.email || null,
+      celular: formData.celular,
+      cidade: formData.cidade,
+      tipo_consorcio: formData.tipo_consorcio,
+      valor_credito: Number(formData.valor_credito) || 0,
+      prazo_meses: Number(formData.prazo_meses) || 120,
+      status: formData.status,
+      lead_temperatura: formData.lead_temperatura,
+      lead_score_valor: formData.lead_score_valor,
+      administradora: formData.administradora === "none" ? null : formData.administradora,
+      indicador_nome: formData.indicador_nome || null,
+      indicador_celular: formData.indicador_celular || null,
     };
     const { error } = await supabase.from("leads").update(updates as any).eq("id", editingLead.id);
     if (!error) {
@@ -309,105 +294,6 @@ export default function Leads() {
     </th>
   );
 
-  // Shared form fields for new/edit
-  const LeadFormFields = ({
-    form,
-    setForm,
-  }: {
-    form: typeof EMPTY_LEAD_FORM;
-    setForm: React.Dispatch<React.SetStateAction<typeof EMPTY_LEAD_FORM>>;
-  }) => (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="nome">Nome Completo</Label>
-        <Input id="nome" required value={form.nome} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Ex: João Silva" />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="celular">Celular</Label>
-          <Input id="celular" required value={form.celular} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, celular: e.target.value }))} placeholder="Ex: (11) 99999-9999" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">E-mail</Label>
-          <Input id="email" type="email" value={form.email || ""} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Ex: joao@email.com" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="cidade">Cidade</Label>
-          <Input id="cidade" value={form.cidade} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, cidade: e.target.value }))} placeholder="Ex: São Paulo" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="tipo">Tipo</Label>
-          <Select value={form.tipo_consorcio} onValueChange={(val: string) => setForm(f => ({ ...f, tipo_consorcio: val }))}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TIPO_OPTIONS.filter(o => o.value !== 'all').map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="valor">Valor Crédito (R$)</Label>
-          <Input id="valor" type="number" value={form.valor_credito} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, valor_credito: e.target.value }))} placeholder="Ex: 150000" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="prazo">Prazo (meses)</Label>
-          <Input id="prazo" type="number" value={form.prazo_meses} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, prazo_meses: e.target.value }))} placeholder="Ex: 120" />
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label>Status</Label>
-          <Select value={form.status || "novo_lead"} onValueChange={(val: string) => setForm(f => ({ ...f, status: val }))}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.filter(o => o.value !== 'all').map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Temperatura</Label>
-          <Select value={form.lead_temperatura || "quente"} onValueChange={(val: string) => setForm(f => ({ ...f, lead_temperatura: val }))}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TEMPERATURA_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Score</Label>
-          <Select value={form.lead_score_valor || "medio"} onValueChange={(val: string) => setForm(f => ({ ...f, lead_score_valor: val }))}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {SCORE_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Administradora</Label>
-        <Select value={form.administradora || "none"} onValueChange={(val: string) => setForm(f => ({ ...f, administradora: val }))}>
-          <SelectTrigger><SelectValue placeholder="Selecione a Administradora" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Nenhuma</SelectItem>
-            {ADMINISTRADORAS.map(admin => (
-              <SelectItem key={admin} value={admin}>{admin}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -434,13 +320,12 @@ export default function Leads() {
               <DialogHeader>
                 <DialogTitle>Adicionar Novo Lead</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleCreateLead}>
-                <LeadFormFields form={newLead} setForm={setNewLead as any} />
-                <DialogFooter className="pt-2">
-                  <Button type="button" variant="outline" onClick={() => setIsNewLeadOpen(false)}>Cancelar</Button>
-                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar Lead"}</Button>
-                </DialogFooter>
-              </form>
+              <LeadForm 
+                initialData={EMPTY_LEAD_FORM}
+                onSubmit={handleCreateLead}
+                onCancel={() => setIsNewLeadOpen(false)}
+                isSubmitting={isSubmitting}
+              />
             </DialogContent>
           </Dialog>
 
@@ -473,7 +358,7 @@ export default function Leads() {
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
-            {STATUS_OPTIONS.map((o) => (
+            {FILTER_STATUS_OPTIONS.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
           </SelectContent>
@@ -481,7 +366,7 @@ export default function Leads() {
         <Select value={tipoFilter} onValueChange={setTipoFilter}>
           <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
-            {TIPO_OPTIONS.map((o) => (
+            {FILTER_TIPO_OPTIONS.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
           </SelectContent>
@@ -717,13 +602,12 @@ export default function Leads() {
           <DialogHeader>
             <DialogTitle>Editar Lead</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleEditLead}>
-            <LeadFormFields form={editForm} setForm={setEditForm as any} />
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isEditSubmitting}>{isEditSubmitting ? "Salvando..." : "Salvar Alterações"}</Button>
-            </DialogFooter>
-          </form>
+          <LeadForm 
+            initialData={editForm}
+            onSubmit={handleEditLead}
+            onCancel={() => setIsEditOpen(false)}
+            isSubmitting={isEditSubmitting}
+          />
         </DialogContent>
       </Dialog>
 

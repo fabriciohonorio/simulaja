@@ -53,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
 
 interface Lead {
   id: string;
@@ -1019,6 +1020,7 @@ export default function Funil() {
   const onDragEnd = async (result: DropResult) => {
     isDraggingCardRef.current = false;
     if (!result.destination) return;
+    
     const leadId = result.draggableId;
     const oldStatus = result.source.droppableId;
     const newStatus = result.destination.droppableId;
@@ -1028,77 +1030,10 @@ export default function Funil() {
     const lead = leads.find((l) => l.id === leadId);
     if (!lead) return;
 
-    // Calcule a nova temperatura e score baseada no novo status
-    let newTemp = lead.lead_temperatura || "quente";
-    if (newStatus === "morto") newTemp = "morto";
-    else if (newStatus === "perdido") newTemp = "perdido";
-    else if (["novo_lead", "simulacao_enviada", "negociacao"].includes(newStatus)) newTemp = "quente";
+    // Call optimized helper
+    await handleKanbanDragEnd(result, leads, setLeads, "leads", "Ação concluída com sucesso!");
 
-    // Re-calculo simplificado de propensity baseado no que vi no useEffect de carga
-    let score = 0;
-    if (lead.lead_score_valor === "premium") score += 40;
-    else if (lead.lead_score_valor === "alto") score += 30;
-    else if (lead.lead_score_valor === "medio") score += 20;
-    else score += 10;
-
-    if (newTemp === "quente") score += 40;
-    else if (newTemp === "morno") score += 20;
-
-    if (["simulacao_enviada", "negociacao"].includes(newStatus)) score += 20;
-    else if (newStatus === "qualificacao") score += 15;
-    else if (newStatus === "primeiro_contato") score += 10;
-
-    // Local update
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { 
-      ...l, 
-      status: newStatus, 
-      lead_temperatura: newTemp,
-      propensity_score: score,
-      last_interaction_at: new Date().toISOString() 
-    } : l)));
-
-    const statusLabel = COLUMNS.find(c => c.id === newStatus)?.label || newStatus;
-    const logEntry = `Mudança de etapa: ${statusLabel}`;
-
-    // Database update
-    const { error } = await supabase
-      .from("leads")
-      .update({ 
-        status: newStatus, 
-        lead_temperatura: newTemp,
-        propensity_score: score,
-        status_updated_at: new Date().toISOString(),
-        last_interaction_at: new Date().toISOString(),
-        updated_at: new Date().toISOString() 
-      })
-      .eq("id", leadId);
-
-    if (error) {
-      toast.error("Erro ao atualizar status");
-      return;
-    }
-
-    // Auto-create interaction log
-    await supabase.from("historico_contatos").insert({
-      lead_id: leadId,
-      tipo: "sistema",
-      observacao: `[${format(new Date(), "dd/MM")}] ${logEntry}`,
-      resultado: "neutro",
-    });
-
-    // Refresh last interaction in state
-    setUltimasTratativas(prev => ({
-      ...prev,
-      [leadId]: {
-        id: "temp-" + Date.now(),
-        lead_id: leadId,
-        tipo: "sistema",
-        observacao: `[${format(new Date(), "dd/MM")}] ${logEntry}`,
-        resultado: "neutro",
-        created_at: new Date().toISOString()
-      } as HistoricoContato
-    }));
-
+    // Special handlers for specific statuses
     if (newStatus === "aguardando_pagamento") {
       setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
       setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
@@ -1110,6 +1045,17 @@ export default function Funil() {
       setCota("");
       fireConfetti();
     }
+    
+    // Auto-create interaction log
+    const statusLabel = COLUMNS.find(c => c.id === newStatus)?.label || newStatus;
+    const logEntry = `Mudança de etapa: ${statusLabel}`;
+    await supabase.from("historico_contatos").insert({
+      lead_id: leadId,
+      tipo: "sistema",
+      observacao: `[${format(new Date(), "dd/MM")}] ${logEntry}`,
+      resultado: "neutro",
+      organizacao_id: lead.organizacao_id
+    });
   };
 
   const handleSaveVencimento = async () => {
