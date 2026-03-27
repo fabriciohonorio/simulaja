@@ -934,21 +934,13 @@ export default function Funil() {
       return matchStatus && matchAdmin;
     })
     .sort((a, b) => {
-        // Se for a coluna de fechado, prioriza os que foram atualizados por último (vendas recentes)
-        if (columnId === "fechado") {
-          const updateA = new Date(a.status_updated_at || a.updated_at || a.created_at || 0).getTime();
-          const updateB = new Date(b.status_updated_at || b.updated_at || b.created_at || 0).getTime();
-          return updateB - updateA;
-        }
-
-        // Prioridade ABSOLUTA para as demais colunas: Recentes Primeiro (Mais novos no TOPO)
-        const timeA = new Date(a.created_at || 0).getTime();
-        const timeB = new Date(b.created_at || 0).getTime();
+        // Regra: Últimas atividades (interação, mudança de status ou criação) sempre no TOPO
+        const updateA = new Date(a.last_interaction_at || a.status_updated_at || a.created_at || 0).getTime();
+        const updateB = new Date(b.last_interaction_at || b.status_updated_at || b.created_at || 0).getTime();
         
-        // Se as datas forem diferentes, o mais novo (maior timestamp) vem primeiro
-        if (timeA !== timeB) return timeB - timeA;
+        if (updateA !== updateB) return updateB - updateA;
 
-        // Empate técnico de data? Usa o Score como desempate
+        // Empate técnico? Usa o Score como desempate (A > B > C > D)
         const sw: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 };
         const sA = sw[a.score_final || ""] || 0, sB = sw[b.score_final || ""] || 0;
         if (sA !== sB) return sB - sA;
