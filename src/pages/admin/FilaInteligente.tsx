@@ -133,8 +133,7 @@ export default function FilaInteligente() {
                         : 0;
 
                     return (
-                        <Card key={lead.id} className={`overflow-hidden border-l-4 transition-all hover:scale-[1.01] ${index === 0 ? "border-l-primary shadow-md" : "border-l-border"
-                            }`}>
+                        <Card key={lead.id} className={`overflow-hidden border-l-4 transition-all hover:scale-[1.01] ${index === 0 ? "border-l-primary shadow-md" : "border-l-border"}`}>
                             <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div className="flex gap-4 items-center">
                                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs shrink-0">
