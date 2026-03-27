@@ -82,7 +82,7 @@ const SCORE_OPTIONS = [
 
 const openWhatsApp = (lead: Lead) => {
   const msg = encodeURIComponent(
-    `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de ${formatCurrency(Number(lead.valor_credito))}, gostaria de conversar com você.`
+    `Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?`
   );
   const phone = lead.celular.replace(/\D/g, "");
   window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");

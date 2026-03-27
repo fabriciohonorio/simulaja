@@ -32,7 +32,7 @@ interface CarteiraItem {
 
 
 const openWhatsApp = (lead: Lead) => {
-  const msg = encodeURIComponent(`Olá ${lead.nome}! Vi que você tem interesse em um consórcio. Vamos conversar?`);
+  const msg = encodeURIComponent(`Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?`);
   const phone = lead.celular ? lead.celular.replace(/\D/g, "") : "";
   window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
 };

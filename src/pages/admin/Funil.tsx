@@ -341,7 +341,7 @@ function LeadCard({
           </button>
           <a
             href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent(
-              `Olá ${lead.nome}! Sobre sua simulação de ${lead.tipo_consorcio} no valor de ${formatCurrency(lead.valor_credito)}...`,
+              `Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?`,
             )}`}
             target="_blank"
             rel="noopener noreferrer"
