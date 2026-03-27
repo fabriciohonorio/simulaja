@@ -267,7 +267,9 @@ function LeadCard({
   ultimaTratativa?: HistoricoContato | null;
   compact?: boolean;
 }) {
-  const isAguardando = normalizeStatus(lead.status) === "aguardando_pagamento";
+  const statusNormalized = normalizeStatus(lead.status);
+  const isAguardando = statusNormalized === "aguardando_pagamento";
+  const isFechado = statusNormalized === "fechado";
   const vencHoje = isToday(lead.data_vencimento);
   const vencAtrasado = isPastDue(lead.data_vencimento);
 
@@ -306,7 +308,7 @@ function LeadCard({
                 {lead.propensity_score}%
               </Badge>
             )}
-            {isAguardando && (vencHoje || vencAtrasado) && (
+            {isAguardando && (vencHoje || vencAtrasado) && !isFechado && (
               <Bell className={`${compact ? "h-3 w-3" : "h-4 w-4"} text-amber-500 animate-pulse`} />
             )}
           </div>
@@ -395,8 +397,8 @@ function LeadCard({
           )}
         </div>
         
-        {/* Indicador de dias sem contato */}
-        {(() => {
+        {/* Indicador de dias sem contato - Oculto se fechado */}
+        {!isFechado && (() => {
           const lastDate = lead.last_interaction_at || lead.created_at || new Date().toISOString();
           const dias = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24));
           const isEmergency = dias >= 3;
@@ -430,7 +432,7 @@ function LeadCard({
             </div>
           </div>
         </button>
-      ) : !compact && (
+      ) : (!compact && !isFechado) && (
         <button
           onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
           className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
@@ -439,8 +441,8 @@ function LeadCard({
         </button>
       )}
 
-      {/* Agendamento — visível para qualquer lead com data marcada */}
-      {lead.data_vencimento && (
+      {/* Agendamento — oculto se fechado */}
+      {lead.data_vencimento && !isFechado && (
         <div
           className={`flex items-center gap-1 font-bold rounded ${
             compact ? "text-[8px] px-1 py-0.5" : "text-[10px] px-2 py-1"
@@ -804,6 +806,25 @@ export default function Funil() {
     document.removeEventListener("mouseup", stopResizing);
   };
 
+  // Keyboard Navigation for Kanban
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't scroll if user is typing in an input/textarea
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
+        return;
+      }
+
+      if (e.key === "ArrowRight") {
+        if (kanbanRef.current) kanbanRef.current.scrollLeft += 500;
+      } else if (e.key === "ArrowLeft") {
+        if (kanbanRef.current) kanbanRef.current.scrollLeft -= 500;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Drag-to-scroll no kanban desktop
   const kanbanRef = useRef<HTMLDivElement>(null);
   const isDraggingCardRef = useRef(false);
@@ -913,7 +934,14 @@ export default function Funil() {
       return matchStatus && matchAdmin;
     })
     .sort((a, b) => {
-        // Prioridade ABSOLUTA: Recentes Primeiro (Mais novos no TOPO)
+        // Se for a coluna de fechado, prioriza os que foram atualizados por último (vendas recentes)
+        if (columnId === "fechado") {
+          const updateA = new Date(a.status_updated_at || a.updated_at || a.created_at || 0).getTime();
+          const updateB = new Date(b.status_updated_at || b.updated_at || b.created_at || 0).getTime();
+          return updateB - updateA;
+        }
+
+        // Prioridade ABSOLUTA para as demais colunas: Recentes Primeiro (Mais novos no TOPO)
         const timeA = new Date(a.created_at || 0).getTime();
         const timeB = new Date(b.created_at || 0).getTime();
         
@@ -1349,20 +1377,20 @@ export default function Funil() {
         <div className="relative group w-full">
           {/* Seta esquerda */}
           <button
-            onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 320)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all -ml-6 border-4 border-background"
+            onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 500)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -ml-8 border-4 border-background group-hover:opacity-100 opacity-80"
             aria-label="Rolar para esquerda"
           >
-            <ChevronLeft className="h-8 w-8" />
+            <ChevronLeft className="h-10 w-10" />
           </button>
 
           {/* Seta direita */}
           <button
-            onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 320)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_20px_rgba(0,0,0,0.3)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all -mr-6 border-4 border-background"
+            onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 500)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -mr-8 border-4 border-background group-hover:opacity-100 opacity-80"
             aria-label="Rolar para direita"
           >
-            <ChevronRight className="h-8 w-8" />
+            <ChevronRight className="h-10 w-10" />
           </button>
 
           <div
