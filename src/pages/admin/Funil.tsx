@@ -476,19 +476,36 @@ function LeadCard({
         </div>
       )}
 
-      {isManager && onAssignLead && (
+      {(isManager && onAssignLead) || (isFechado && lead.status_updated_at) ? (
+        <div className="mt-2 pt-2 border-t border-border/50 flex justify-between items-end gap-2">
+          {isManager && onAssignLead && (
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] text-muted-foreground uppercase font-black mb-1">Responsável</p>
+              <select
+                className="w-full text-[10px] p-1 rounded border border-border bg-background"
+                value={lead.responsavel_id || "none"}
+                onChange={(e) => onAssignLead?.(lead.id, e.target.value)}
+              >
+                <option value="none">Sem responsável</option>
+                {membros.map((m) => (
+                  <option key={m.id} value={m.id}>{m.nome_completo}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          {isFechado && lead.status_updated_at && (
+            <div className={`text-right shrink-0 p-1 rounded bg-green-50 border border-green-100 ${!isManager ? 'w-full flex justify-between items-center' : ''}`}>
+               <p className="text-[8px] text-green-700 uppercase font-bold">Fechamento</p>
+               <p className="text-[10px] text-green-600 font-black">{format(parseISO(lead.status_updated_at), "dd/MM/yy")}</p>
+            </div>
+          )}
+        </div>
+      ) : lead.responsavel_id && !compact && (
         <div className="mt-2 pt-2 border-t border-border/50">
-          <p className="text-[9px] text-muted-foreground uppercase font-black mb-1">Responsável</p>
-          <select
-            className="w-full text-[10px] p-1 rounded border border-border bg-background"
-            value={lead.responsavel_id || "none"}
-            onChange={(e) => onAssignLead?.(lead.id, e.target.value)}
-          >
-            <option value="none">Sem responsável</option>
-            {membros.map((m) => (
-              <option key={m.id} value={m.id}>{m.nome_completo}</option>
-            ))}
-          </select>
+           <p className="text-[10px] text-muted-foreground italic">
+             Resp: {membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "S/Resp"}
+           </p>
         </div>
       )}
     </div>

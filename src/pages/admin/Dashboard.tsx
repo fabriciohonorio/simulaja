@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from "recharts";
 
 interface Lead {
   id: string;
@@ -233,68 +233,6 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <Card className="lg:col-span-2 shadow-sm border-border">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" /> Performance Semanal (Novos Leads)
-            </CardTitle>
-            <Badge variant="outline" className="text-[10px] uppercase font-bold">Últimos 7 dias</Badge>
-          </CardHeader>
-          <CardContent className="h-[220px] sm:h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                <Tooltip
-                  cursor={{ fill: 'hsl(var(--accent)/0.5)' }}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  formatter={(value: any) => [value, "Leads"]}
-                />
-                <Bar dataKey="leads" name="Leads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Card Meta x Realizado no Dashboard */}
-        <Card className="shadow-sm border-border bg-gradient-to-br from-primary/5 to-transparent">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" /> Meta x Realizado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col justify-center h-[220px] sm:h-[300px] space-y-6">
-            <div className="text-center">
-                <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Status do Mês</p>
-                <p className="text-3xl font-black text-primary">{progressoMes.toFixed(2).replace('.', ',')}%</p>
-            </div>
-            
-            <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold uppercase">
-                    <span>Realizado</span>
-                    <span>Meta</span>
-                </div>
-                <div className="w-full bg-primary/10 rounded-full h-4 overflow-hidden border border-primary/20">
-                    <div 
-                        className="bg-primary h-full transition-all duration-1000" 
-                        style={{ width: `${Math.min(100, progressoMes)}%` }} 
-                    />
-                </div>
-                <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
-                    <span>{formatCurrency(realizadoMes)}</span>
-                    <span>{formatCurrency(metaMensal)}</span>
-                </div>
-            </div>
-
-            <div className={`p-3 rounded-lg border text-center ${progressoMes >= 100 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
-                <p className="text-xs font-bold uppercase">
-                    {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatCurrency(Math.max(0, metaMensal - realizadoMes))}`}
-                </p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Funil de Vendas - Estilo Visual Mockup - Full Width on Mobile, Col on Desktop */}
         <Card className="shadow-sm border-border bg-card lg:col-span-3">
           <CardHeader className="pb-2 border-b border-dashed mb-4">
@@ -330,6 +268,71 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2 shadow-sm border-border">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" /> Performance Semanal (Novos Leads)
+            </CardTitle>
+            <Badge variant="outline" className="text-[10px] uppercase font-bold">Últimos 7 dias</Badge>
+          </CardHeader>
+          <CardContent className="h-[220px] sm:h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                <Tooltip
+                  cursor={{ fill: 'hsl(var(--accent)/0.5)' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  formatter={(value: any) => [value, "Leads"]}
+                />
+                <Bar dataKey="leads" name="Leads" radius={[4, 4, 0, 0]} barSize={40}>
+                   {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1'][index % 7]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-border bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Target className="h-5 w-5 text-emerald-600" /> Meta x Realizado
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col justify-center h-[220px] sm:h-[300px] space-y-6">
+            <div className="text-center">
+                <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Status do Mês</p>
+                <p className="text-3xl font-black text-emerald-600">{progressoMes.toFixed(2).replace('.', ',')}%</p>
+            </div>
+            
+            <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold uppercase">
+                    <span>Realizado</span>
+                    <span>Meta</span>
+                </div>
+                <div className="w-full bg-emerald-100 rounded-full h-4 overflow-hidden border border-emerald-200">
+                    <div 
+                        className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                        style={{ width: `${Math.min(100, progressoMes)}%` }} 
+                    />
+                </div>
+                <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
+                    <span>{formatCurrency(realizadoMes)}</span>
+                    <span>{formatCurrency(metaMensal)}</span>
+                </div>
+            </div>
+
+            <div className={`p-3 rounded-lg border text-center ${progressoMes >= 100 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+                <p className="text-xs font-bold uppercase">
+                    {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatCurrency(Math.max(0, metaMensal - realizadoMes))}`}
+                </p>
+            </div>
           </CardContent>
         </Card>
 
