@@ -225,40 +225,69 @@ export default function Inadimplentes() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Inadimplentes</h1>
-          <p className="text-sm text-muted-foreground">
-            {totalAtrasados} inadimplentes · {formatCurrency(totalValorAtrasado)} em atraso
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Inadimplentes</h1>
+            <p className="text-sm text-muted-foreground">
+              {totalAtrasados} clientes · {formatCurrency(totalValorAtrasado)} em atraso
+            </p>
+          </div>
+          <div className="flex md:hidden items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowCopy(true)} className="h-9 px-3">
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleGenerateReport} 
+                className="h-9 px-3 border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+              >
+              <FileText className="h-4 w-4" />
+            </Button>
+            <Button size="sm" className="h-9 px-3" onClick={() => {
+              setEditingItem(null);
+              setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
+              setShowAdd(true);
+            }}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-col sm:items-end gap-2">
-          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full lg:w-auto">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
-              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todos</TabsTrigger>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
+            <TabsList className="grid w-full grid-cols-2 sm:flex sm:w-auto h-auto">
+              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2 px-4">Todos</TabsTrigger>
               {ADMINISTRADORAS.map(admin => (
-                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2">{admin}</TabsTrigger>
+                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2 px-4">{admin}</TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowCopy(true)} className="flex-1 sm:flex-none">
-            <Copy className="h-4 w-4 sm:mr-2" />
-            <span className="sm:inline">Copiar Msgs</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleGenerateReport} className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm">
-            <FileText className="h-4 w-4 sm:mr-2" />
-            <span className="sm:inline">Relatório PDF</span>
-          </Button>
-          <Button size="sm" onClick={() => {
-            setEditingItem(null);
-            setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
-            setShowAdd(true);
-          }} className="flex-1 sm:flex-none">
-            <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="sm:inline">Adicionar</span>
-          </Button>
+
+          <div className="hidden md:flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" onClick={() => setShowCopy(true)}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar Msgs
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleGenerateReport} 
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Relatório PDF
+            </Button>
+            <Button size="sm" onClick={() => {
+              setEditingItem(null);
+              setForm({ nome: "", celular: "", tipo_consorcio: "", valor_parcela: "", parcelas_pagas: "", parcelas_atrasadas: "", grupo: "", cota: "", administradora: "" });
+              setShowAdd(true);
+            }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar
+            </Button>
+          </div>
         </div>
       </div>
 

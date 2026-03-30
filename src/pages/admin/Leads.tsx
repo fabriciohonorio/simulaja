@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
+import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2, FileText } from "lucide-react";
+import { format } from "date-fns";
+import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/utils";
 import { LeadForm, LeadFormData, STATUS_OPTIONS, TIPO_OPTIONS, TEMPERATURA_OPTIONS, SCORE_OPTIONS } from "@/components/admin/LeadForm";
 
@@ -282,6 +284,44 @@ export default function Leads() {
     a.click();
   };
 
+  const handleGenerateReport = () => {
+    const doc = new jsPDF();
+    const titleText = "Relatorio de Leads — CRM";
+    const dateStr = format(new Date(), "dd/MM/yyyy HH:mm");
+
+    doc.setFontSize(16);
+    doc.text(titleText, 10, 10);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${dateStr}`, 10, 16);
+    doc.line(10, 18, 200, 18);
+
+    let y = 25;
+    doc.setFont("helvetica", "bold");
+    doc.text("Nome", 10, y);
+    doc.text("Celular", 80, y);
+    doc.text("Valor", 120, y);
+    doc.text("Status", 155, y);
+    doc.text("Data", 185, y);
+    doc.line(10, y + 2, 200, y + 2);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    filtered.forEach((l) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(l.nome.substring(0, 35), 10, y);
+      doc.text(l.celular || "—", 80, y);
+      doc.text(formatCurrency(Number(l.valor_credito || 0)), 120, y);
+      doc.text((l.status || "Novo").replace("_", " "), 155, y);
+      doc.text(l.created_at?.slice(0, 10) || "—", 185, y);
+      y += 6;
+    });
+
+    doc.save(`relatorio-leads-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  };
+
   const SortHeader = ({ label, field }: { label: string; field: keyof Lead }) => (
     <th
       className="px-3 py-2 text-left text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground whitespace-nowrap"
@@ -301,19 +341,56 @@ export default function Leads() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leads</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leads</h1>
+          <div className="flex md:hidden items-center gap-2">
+            <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handleGenerateReport} 
+                className="h-9 w-9 border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+                title="Relatório PDF"
+              >
+              <FileText className="h-4 w-4" />
+            </Button>
+            <Dialog open={isNewLeadOpen} onOpenChange={setIsNewLeadOpen}>
+              <DialogTrigger asChild>
+                <Button size="icon" className="h-9 w-9" title="Novo Lead">
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Novo Lead</DialogTitle>
+                </DialogHeader>
+                <LeadForm 
+                  initialData={EMPTY_LEAD_FORM}
+                  onSubmit={handleCreateLead}
+                  onCancel={() => setIsNewLeadOpen(false)}
+                  isSubmitting={isSubmitting}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+        
+        <div className="hidden md:flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleGenerateReport} 
+            className="border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Relatório PDF
+          </Button>
 
-          {/* Novo Lead — icon only (tooltip on hover) */}
           <Dialog open={isNewLeadOpen} onOpenChange={setIsNewLeadOpen}>
             <DialogTrigger asChild>
-              <Button
-                size="icon"
-                className="shrink-0 bg-primary hover:bg-primary/90 text-white h-9 w-9"
-                title="Novo Lead"
-              >
+              <Button size="sm" className="gap-2">
                 <UserPlus className="h-4 w-4" />
+                Novo Lead
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -329,19 +406,18 @@ export default function Leads() {
             </DialogContent>
           </Dialog>
 
-          {/* Export CSV — icon only */}
-          <Button onClick={exportCSV} variant="outline" size="icon" className="shrink-0 h-9 w-9" title="Exportar CSV">
+          <Button onClick={exportCSV} variant="outline" size="icon" className="h-9 w-9" title="Exportar CSV">
             <Download className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="bg-muted/30 p-2 rounded-lg border border-border/50">
-        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full lg:w-auto">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
-            <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todos</TabsTrigger>
+      <div className="flex items-center justify-between gap-4 bg-muted/30 p-1 rounded-lg border border-border/50 overflow-x-auto no-scrollbar">
+        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full">
+          <TabsList className="flex w-full sm:w-auto h-auto bg-transparent border-none">
+            <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2 px-4 whitespace-nowrap">Todas</TabsTrigger>
             {ADMINISTRADORAS.map(admin => (
-              <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2">{admin}</TabsTrigger>
+              <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2 px-4 whitespace-nowrap">{admin}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>

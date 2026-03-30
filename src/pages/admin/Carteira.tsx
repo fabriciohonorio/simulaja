@@ -536,36 +536,60 @@ export default function Carteira() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold">Carteira de Clientes</h1>
-        <Button 
-          size="sm" 
-          onClick={handleSyncInadimplentes} 
-          variant="outline" 
-          className="flex-1 sm:flex-none border-red-200 text-red-600 hover:bg-red-50 shadow-sm"
-          disabled={loading}
-        >
-          <UserX className="h-4 w-4 mr-2" />
-          Sincronizar Inadimplentes Retroativos
-        </Button>
-        <Button 
-          size="sm" 
-          onClick={handleGenerateReport} 
-          variant="outline" 
-          className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          Gerar Relatório PDF
-        </Button>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <h1 className="text-xl sm:text-2xl font-bold">Carteira de Clientes</h1>
+          <div className="flex md:hidden items-center gap-2">
+            <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleSyncInadimplentes} 
+                className="h-9 px-3 border-red-200 text-red-600 hover:bg-red-50 shadow-sm"
+                disabled={loading}
+              >
+              <UserX className="h-4 w-4" />
+            </Button>
+            <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleGenerateReport} 
+                className="h-9 px-3 border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+              >
+              <FileText className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 shrink-0">
+          <Button 
+            size="sm" 
+            onClick={handleSyncInadimplentes} 
+            variant="outline" 
+            className="border-red-200 text-red-600 hover:bg-red-50 shadow-sm"
+            disabled={loading}
+          >
+            <UserX className="h-4 w-4 mr-2" />
+            Sincronizar Retroativos
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={handleGenerateReport} 
+            variant="outline" 
+            className="border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Gerar Relatório PDF
+          </Button>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border/50">
-        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full lg:w-auto">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
-            <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todas Administradoras</TabsTrigger>
-            <TabsTrigger value="MAGALU" className="text-[10px] sm:text-xs py-2">MAGALU</TabsTrigger>
-            <TabsTrigger value="ADEMICON" className="text-[10px] sm:text-xs py-2">ADEMICON</TabsTrigger>
-            <TabsTrigger value="SERVOPA" className="text-[10px] sm:text-xs py-2">SERVOPA</TabsTrigger>
+      <div className="flex items-center justify-between gap-4 bg-muted/30 p-1 rounded-lg border border-border/50 overflow-x-auto no-scrollbar">
+        <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full">
+          <TabsList className="flex w-full sm:w-auto h-auto bg-transparent border-none">
+            <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2 px-4 whitespace-nowrap">Todas</TabsTrigger>
+            <TabsTrigger value="MAGALU" className="text-[10px] sm:text-xs py-2 px-4 whitespace-nowrap">MAGALU</TabsTrigger>
+            <TabsTrigger value="ADEMICON" className="text-[10px] sm:text-xs py-2 px-4 whitespace-nowrap">ADEMICON</TabsTrigger>
+            <TabsTrigger value="SERVOPA" className="text-[10px] sm:text-xs py-2 px-4 whitespace-nowrap">SERVOPA</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

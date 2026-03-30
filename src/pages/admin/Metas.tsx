@@ -26,12 +26,15 @@ import {
     Truck, 
     AlertCircle,
     CheckCircle2,
-    LucideIcon
+    LucideIcon,
+    Settings2
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export interface TermometroMercado {
   id: string;
@@ -114,6 +117,15 @@ export default function Metas() {
     const [membros, setMembros] = useState<any[]>([]);
     const [inadimplentesCount, setInadimplentesCount] = useState(0);
     const [selectedVendedor, setSelectedVendedor] = useState<string>("all");
+    const [segmentMetas, setSegmentMetas] = useState<Record<string, number>>({
+        imoveis: 500000,
+        veiculos: 100000,
+        motos: 100000,
+        pesados: 180000,
+        investimentos: 120000
+    });
+    const [isEditingSegmentMetas, setIsEditingSegmentMetas] = useState(false);
+    const [tempSegmentMetas, setTempSegmentMetas] = useState<Record<string, string>>({});
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
     const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
@@ -183,14 +195,8 @@ export default function Metas() {
                 setMetaInput("0");
             }
             
-            // Metas Mensais Pessoais (Fixas conforme solicitado)
-            const monthlyMetas: Record<string, number> = {
-                imoveis: 500000,
-                veiculos: 100000,
-                motos: 100000,
-                pesados: 180000,
-                investimentos: 120000
-            };
+            // Metas Mensais Pessoais (Agora Dinâmicas)
+            const monthlyMetas = segmentMetas;
 
             const segs: MetricaSegmento[] = [
                 { segmento: 'imoveis', keywords: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'] },
@@ -387,25 +393,82 @@ export default function Metas() {
                 {/* Meta Anual Card — stacked on mobile */}
                 <Card className="bg-primary/5 border-primary/20">
                     <CardContent className="p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                            <div className="flex items-center gap-2 shrink-0">
-                                <Target className="h-5 w-5 text-primary" />
-                                <span className="font-semibold text-sm">Meta Anual ({currentYear})</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <Target className="h-5 w-5 text-primary" />
+                                    <span className="font-semibold text-sm">Meta Anual ({currentYear})</span>
+                                </div>
+                                <div className="flex items-center gap-2 max-w-[200px]">
+                                    <span className="text-muted-foreground text-xs">R$</span>
+                                    <Input
+                                        type="number"
+                                        value={metaInput}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaInput(e.target.value)}
+                                        className="h-8 text-right font-bold text-xs"
+                                    />
+                                    <Button size="sm" variant="outline" onClick={salvarMeta} className="h-8 px-2 text-xs">Salvar</Button>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 flex-1">
-                                <span className="text-muted-foreground text-sm">R$</span>
-                                <Input
-                                    type="number"
-                                    value={metaInput}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaInput(e.target.value)}
-                                    className="flex-1 h-9 text-right font-bold"
-                                />
-                                <Button size="sm" onClick={salvarMeta} className="shrink-0">Salvar</Button>
-                            </div>
+                            
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 gap-2 bg-white/50"
+                                onClick={() => {
+                                    const temp: Record<string, string> = {};
+                                    Object.entries(segmentMetas).forEach(([k, v]) => temp[k] = String(v));
+                                    setTempSegmentMetas(temp);
+                                    setIsEditingSegmentMetas(true);
+                                }}
+                            >
+                                <Settings2 className="h-3.5 w-3.5" />
+                                Configurar Metas/Segmento
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Dialog para Editar Metas por Segmento */}
+            <Dialog open={isEditingSegmentMetas} onOpenChange={setIsEditingSegmentMetas}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle>Metas Mensais por Segmento</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        {Object.entries(tempSegmentMetas).map(([segmento, valor]) => (
+                            <div key={segmento} className="grid grid-cols-2 items-center gap-4">
+                                <Label className="capitalize font-medium">{segmento}</Label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]">R$</span>
+                                    <Input
+                                        type="number"
+                                        value={valor}
+                                        onChange={(e) => setTempSegmentMetas(prev => ({ ...prev, [segmento]: e.target.value }))}
+                                        className="h-9 pl-8 text-right font-bold text-sm"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" size="sm" onClick={() => setIsEditingSegmentMetas(false)}>Cancelar</Button>
+                        <Button size="sm" onClick={() => {
+                            const newMetas: Record<string, number> = {};
+                            Object.entries(tempSegmentMetas).forEach(([k, v]) => newMetas[k] = Number(v) || 0);
+                            setSegmentMetas(newMetas);
+                            setIsEditingSegmentMetas(false);
+                            toast({
+                                title: "Metas atualizadas",
+                                description: "As metas por segmento foram aplicadas para esta sessão."
+                            });
+                        }}>
+                            Aplicar Metas
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Progress Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -55,8 +55,9 @@ export default function FilaInteligente() {
 
     const fetchData = useCallback(async () => {
         setLoading(true);
+        // Filtro otimizado para excluir leads fechados/perdidos
         const { data } = await supabase.from("leads").select("*")
-            .not("status", "in", '("fechado", "perdido", "morto")');
+            .not("status", "in", "(fechado,perdido,morto)");
         setLeads((data as Lead[]) ?? []);
         setLoading(false);
     }, []);
@@ -88,23 +89,19 @@ export default function FilaInteligente() {
         setSelectedDate(undefined);
     };
 
-
     const getPriorityScore = (lead: Lead) => {
         let score = 0;
-        // Temp priority
         if (lead.lead_temperatura === "quente") score += 1000;
         else if (lead.lead_temperatura === "morno") score += 500;
         else if (lead.lead_temperatura === "frio") score += 100;
 
-        // Credit priority
         if (lead.lead_score_valor === "premium") score += 300;
         else if (lead.lead_score_valor === "alto") score += 200;
         else if (lead.lead_score_valor === "medio") score += 100;
 
-        // Wait time priority
         if (lead.last_interaction_at) {
             const hours = (Date.now() - new Date(lead.last_interaction_at).getTime()) / (1000 * 60 * 60);
-            score += Math.min(hours * 10, 200); // Up to 200 points for waiting
+            score += Math.min(hours * 10, 200);
         }
 
         return score;
@@ -147,53 +144,51 @@ export default function FilaInteligente() {
                                             </Badge>
                                         </div>
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground font-bold">
-                                            <span className="flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
+                                            <span className="flex items-center gap-1 font-bold"><TrendingUp className="h-3.5 w-3.5" /> {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                                             <span className="flex items-center gap-1 font-medium"><MapPin className="h-3.5 w-3.5" /> {lead.cidade || "N/Inf"}</span>
-                                            <span className="flex items-center gap-1 text-primary"><Clock className="h-3.5 w-3.5" /> {hoursWait}h de espera</span>
+                                            <span className="flex items-center gap-1 text-primary font-bold"><Clock className="h-3.5 w-3.5" /> {hoursWait}h de espera</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
                                     <p className="text-xl font-black text-foreground">{formatCurrency(Number(lead.valor_credito))}</p>
-                                    <div className="flex gap-2">
-                                        <div className="flex gap-2">
-                                            <a
-                                                href="/admin/sdr"
-                                                className="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-lg transition-colors"
-                                                title="Conselho da IA"
-                                            >
-                                                <Sparkles className="h-5 w-5" />
-                                            </a>
-                                            <a
-                                                href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent("Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?")}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
-                                                title="WhatsApp"
-                                            >
-                                                <MessageCircle className="h-5 w-5" />
-                                            </a>
-                                            <a
-                                                href={`tel:${(lead.celular || "").replace(/\D/g, "")}`}
-                                                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
-                                                title="Ligar"
-                                            >
-                                                <Phone className="h-5 w-5" />
-                                            </a>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedLead(lead);
-                                                    setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
-                                                }}
-                                                className={`p-2 rounded-lg transition-colors ${lead.data_vencimento ? "bg-amber-500 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}`}
-                                                title={lead.data_vencimento ? `Agendado: ${format(parseISO(lead.data_vencimento), "dd/MM/yy")}` : "Agendar"}
-                                            >
-                                                <Calendar className="h-5 w-5" />
-                                            </button>
-                                            <Button variant="outline" size="sm" className="hidden sm:inline-flex">Ver Detalhes</Button>
-                                        </div>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href="/admin/sdr"
+                                            className="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-lg transition-colors"
+                                            title="Conselho da IA"
+                                        >
+                                            <Sparkles className="h-5 w-5" />
+                                        </a>
+                                        <a
+                                            href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=${encodeURIComponent("Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?")}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
+                                            title="WhatsApp"
+                                        >
+                                            <MessageCircle className="h-5 w-5" />
+                                        </a>
+                                        <a
+                                            href={`tel:${(lead.celular || "").replace(/\D/g, "")}`}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
+                                            title="Ligar"
+                                        >
+                                            <Phone className="h-5 w-5" />
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedLead(lead);
+                                                setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
+                                            }}
+                                            className={`p-2 rounded-lg transition-colors ${lead.data_vencimento ? "bg-amber-500 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}`}
+                                            title={lead.data_vencimento ? `Agendado: ${format(parseISO(lead.data_vencimento), "dd/MM/yy")}` : "Agendar"}
+                                        >
+                                            <Calendar className="h-5 w-5" />
+                                        </button>
+                                        <Button variant="outline" size="sm" className="hidden sm:inline-flex">Ver Detalhes</Button>
                                     </div>
                                 </div>
                             </CardContent>

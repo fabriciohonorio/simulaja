@@ -1209,51 +1209,64 @@ export default function Funil() {
 
   return (
     <div className="space-y-4 select-none no-scrollbar w-full">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div className="flex items-center justify-between w-full md:w-auto">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
-          <Badge variant="secondary" className="h-5 text-[10px] animate-pulse bg-blue-100 text-blue-700 border-blue-200 shadow-sm">v3.5 RECURSION FIXED</Badge>
+          <div className="flex md:hidden items-center gap-2">
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleGenerateReport}
+                className="h-9 px-3 border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+              >
+              <FileText className="h-4 w-4" />
+            </Button>
+            <Button size="sm" className="h-9 px-3" onClick={() => window.open("/leads", "_blank")}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2 w-full lg:w-auto mt-2 lg:mt-0">
-          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 sm:w-[500px] h-auto">
-              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2">Todos</TabsTrigger>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
+            <TabsList className="grid w-full grid-cols-2 sm:flex sm:w-auto h-auto">
+              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2 px-4">Todos</TabsTrigger>
               {ADMINISTRADORAS.map(admin => (
-                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2">{admin}</TabsTrigger>
+                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2 px-4">{admin}</TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
-        </div>
 
-        <div className="hidden md:flex items-center bg-muted/30 p-1 rounded-lg border border-border">
-          <button
-            onClick={() => setIsWideView(false)}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isWideView ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Padrão
-          </button>
-          <button
-            onClick={() => setIsWideView(true)}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isWideView ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Wide CRM
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleGenerateReport}
-            className="border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Relatório PDF
-          </Button>
-          <Button onClick={() => window.open("/leads", "_blank")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Lead
-          </Button>
+          <div className="hidden md:flex items-center bg-muted/30 p-1 rounded-lg border border-border shrink-0">
+            <button
+              onClick={() => setIsWideView(false)}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isWideView ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Padrão
+            </button>
+            <button
+              onClick={() => setIsWideView(true)}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isWideView ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Wide
+            </button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2 shrink-0">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleGenerateReport}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Relatório PDF
+            </Button>
+            <Button size="sm" onClick={() => window.open("/leads", "_blank")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Lead
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -1429,7 +1442,7 @@ export default function Funil() {
           </div>
 
           <div className="ml-auto flex items-center gap-3 pl-4 border-l border-border/50">
-              <Badge variant="outline" className="bg-primary/5 text-[10px] py-0 border-primary/20">Identificador Inteligente v3.5</Badge>
+              <Badge variant="outline" className="bg-primary/5 text-[10px] py-0 border-primary/20 italic">Dashboard de Vendas Inteligente</Badge>
           </div>
       </div>
 
