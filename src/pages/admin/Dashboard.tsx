@@ -259,15 +259,15 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {ranking.map((item, i) => (
                 <div key={item.id} className={`relative flex items-center gap-4 p-4 rounded-2xl border transition-all hover:scale-[1.02] ${
-                  i === 0 ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]" :
-                  i === 1 ? "bg-slate-500/10 border-slate-500/30" :
-                  "bg-orange-700/10 border-orange-700/30"
+                  i === 0 ? "bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]" :
+                  i === 1 ? "bg-blue-500/10 border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]" :
+                  "bg-violet-500/10 border-violet-500/30 shadow-[0_0_20px_rgba(139,92,246,0.1)]"
                 }`}>
                   <div className="relative">
                     <div className={`h-16 w-16 sm:h-20 sm:w-20 rounded-full border-4 overflow-hidden flex items-center justify-center text-2xl font-black shrink-0 ${
-                      i === 0 ? "border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]" :
-                      i === 1 ? "border-slate-300" :
-                      "border-orange-600"
+                      i === 0 ? "border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]" :
+                      i === 1 ? "border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
+                      "border-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
                     }`}>
                       {item.avatar ? (
                         <img src={item.avatar} alt={item.nome} className="h-full w-full object-cover" />
@@ -276,9 +276,9 @@ export default function Dashboard() {
                       )}
                     </div>
                     <div className={`absolute -top-2 -right-2 h-8 w-8 rounded-full flex items-center justify-center shadow-lg font-black text-sm border-2 ${
-                      i === 0 ? "bg-amber-500 text-white border-amber-300 rotate-12" :
-                      i === 1 ? "bg-slate-300 text-slate-800 border-white" :
-                      "bg-orange-600 text-white border-orange-400"
+                      i === 0 ? "bg-emerald-500 text-white border-emerald-300 rotate-12" :
+                      i === 1 ? "bg-blue-500 text-white border-blue-300" :
+                      "bg-violet-500 text-white border-violet-300"
                     }`}>
                       {i + 1}º
                     </div>
@@ -286,7 +286,7 @@ export default function Dashboard() {
                   <div className="min-w-0">
                     <p className="font-black text-base truncate">{item.nome}</p>
                     <p className={`text-xs font-bold uppercase tracking-widest ${
-                      i === 0 ? "text-amber-500" : i === 1 ? "text-slate-300" : "text-orange-500"
+                      i === 0 ? "text-emerald-500" : i === 1 ? "text-blue-400" : "text-violet-500"
                     }`}>
                       {formatCurrency(item.total)}
                     </p>
