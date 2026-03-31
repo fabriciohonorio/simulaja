@@ -103,13 +103,13 @@ export default function AdminLayout() {
 
     const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
         <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
-            <div className={`p-4 border-b border-sidebar-border text-center overflow-hidden h-24 flex items-center justify-center`}>
+            <div className={`p-4 border-b border-sidebar-border text-center overflow-hidden h-28 flex items-center justify-center bg-white/50 backdrop-blur-sm`}>
                 {!collapsed ? (
                     <div className="flex flex-col items-center gap-1">
                         <img 
                             src="/logo.png?v=1" 
                             alt="Contemplar CRM" 
-                            className="h-16 w-auto object-contain"
+                            className="h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
                         />
                     </div>
                 ) : (
@@ -117,7 +117,7 @@ export default function AdminLayout() {
                         <img 
                             src="/logo.png?v=1" 
                             alt="C" 
-                            className="h-10 w-10 object-contain"
+                            className="h-12 w-12 object-contain"
                         />
                     </div>
                 )}
@@ -196,12 +196,12 @@ export default function AdminLayout() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-border shadow-sm sticky top-0 z-30">
+                <header className="lg:hidden flex items-center justify-between px-4 h-20 bg-white border-b border-border shadow-sm sticky top-0 z-30">
                     <div className="flex items-center gap-2 overflow-hidden flex-1">
                         <img 
                             src="/logo.png?v=1" 
                             alt="Contemplar CRM" 
-                            className="h-10 w-auto object-contain"
+                            className="h-14 w-auto object-contain"
                         />
                     </div>
 
