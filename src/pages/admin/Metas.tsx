@@ -190,6 +190,17 @@ export default function Metas() {
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
+                
+                // Carregar metas por segmento se for a visão global
+                if (selectedVendedor === "all" && isManager) {
+                    setSegmentMetas({
+                        imoveis: metaData.meta_imoveis || 0,
+                        veiculos: metaData.meta_veiculos || 0,
+                        motos: metaData.meta_motos || 0,
+                        pesados: metaData.meta_pesados || 0,
+                        investimentos: metaData.meta_investimentos || 0
+                    });
+                }
             } else {
                 setMetaAnual(0);
                 setMetaInput("0");
@@ -298,21 +309,63 @@ export default function Metas() {
         const novoValor = parseFloat(metaInput);
         if (isNaN(novoValor)) return;
         
-        if (selectedVendedor !== "all" || !isManager) {
-            const targetId = !isManager ? profile?.id : selectedVendedor;
-            const { error } = await supabase.from("metas_vendedor" as any).upsert({ 
-                vendedor_id: targetId, 
-                ano: currentYear, 
-                meta_anual: novoValor 
-            }, { onConflict: "vendedor_id,ano" });
+        try {
+            if (selectedVendedor !== "all" || !isManager) {
+                const targetId = !isManager ? profile?.id : selectedVendedor;
+                const { error } = await supabase.from("metas_vendedor" as any).upsert({ 
+                    vendedor_id: targetId, 
+                    ano: currentYear, 
+                    meta_anual: novoValor 
+                }, { onConflict: "vendedor_id,ano" });
+                
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from("meta").upsert({ 
+                    ano: currentYear, 
+                    meta_anual: novoValor 
+                }, { onConflict: "ano" });
+                if (error) throw error;
+            }
             
-            if (error) console.error("Erro ao salvar meta", error);
-        } else {
-            await supabase.from("meta").upsert({ ano: currentYear, meta_anual: novoValor }, { onConflict: "ano" });
+            setMetaAnual(novoValor);
+            toast({ title: "Meta salva com sucesso!" });
+        } catch (error) {
+            console.error("Erro ao salvar meta:", error);
+            toast({ 
+                title: "Erro ao salvar meta", 
+                description: "Verifique sua conexão ou permissões.",
+                variant: "destructive" 
+            });
         }
-        
-        setMetaAnual(novoValor);
-        toast({ title: "Meta salva com sucesso!" });
+    };
+
+    const salvarMetasSegmento = async (newMetas: Record<string, number>) => {
+        if (!isManager || selectedVendedor !== "all") {
+             setSegmentMetas(newMetas);
+             return;
+        }
+
+        try {
+            const { error } = await supabase.from("meta").upsert({
+                ano: currentYear,
+                meta_imoveis: newMetas.imoveis,
+                meta_veiculos: newMetas.veiculos,
+                meta_motos: newMetas.motos,
+                meta_pesados: newMetas.pesados,
+                meta_investimentos: newMetas.investimentos
+            }, { onConflict: "ano" });
+
+            if (error) throw error;
+
+            setSegmentMetas(newMetas);
+            toast({ title: "Metas por segmento salvas!" });
+        } catch (error) {
+            console.error("Erro ao salvar metas por segmento:", error);
+            toast({ 
+                title: "Erro ao salvar metas", 
+                variant: "destructive" 
+            });
+        }
     };
 
         const metaMensal = metaAnual / 12;
@@ -457,14 +510,10 @@ export default function Metas() {
                         <Button size="sm" onClick={() => {
                             const newMetas: Record<string, number> = {};
                             Object.entries(tempSegmentMetas).forEach(([k, v]) => newMetas[k] = Number(v) || 0);
-                            setSegmentMetas(newMetas);
+                            salvarMetasSegmento(newMetas);
                             setIsEditingSegmentMetas(false);
-                            toast({
-                                title: "Metas atualizadas",
-                                description: "As metas por segmento foram aplicadas para esta sessão."
-                            });
                         }}>
-                            Aplicar Metas
+                            Aplicar e Salvar Metas
                         </Button>
                     </DialogFooter>
                 </DialogContent>

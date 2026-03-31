@@ -62,13 +62,12 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md border-none shadow-2xl rounded-[28px] sm:rounded-[32px] overflow-hidden">
         <CardHeader className="text-center space-y-2 pt-8 sm:pt-10 px-6 sm:px-8">
-          <div className="flex flex-col items-center">
-            <div className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
-              FABRICIO <span className="text-primary mx-0.5">|</span> <span className="font-light text-slate-500">Especialista Consórcio</span>
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">
-              www.oespecialistaconsorcio.com.br
-            </div>
+          <div className="flex flex-col items-center pb-4">
+            <img 
+              src="/logo.png" 
+              alt="Contemplar CRM" 
+              className="h-24 w-auto object-contain mb-2"
+            />
           </div>
           <CardTitle className="text-lg sm:text-xl font-bold text-slate-800 pt-3">Acesso ao Painel</CardTitle>
         </CardHeader>

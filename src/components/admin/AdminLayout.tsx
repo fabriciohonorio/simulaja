@@ -103,23 +103,23 @@ export default function AdminLayout() {
 
     const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
         <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
-            <div className={`p-6 border-b border-sidebar-border text-center overflow-hidden h-24 flex items-center justify-center`}>
+            <div className={`p-4 border-b border-sidebar-border text-center overflow-hidden h-24 flex items-center justify-center`}>
                 {!collapsed ? (
-                    <div className="flex flex-col items-center gap-0.5">
-                        <div className="text-sm font-black text-slate-900 tracking-tighter leading-tight">
-                            FABRICIO <span className="text-primary">|</span> <span className="font-light text-slate-500">Especialista</span>
-                        </div>
-                        <a 
-                            href="https://www.oespecialistaconsorcio.com.br" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-[9px] font-bold text-primary/70 hover:text-primary transition-colors tracking-widest uppercase"
-                        >
-                            www.oespecialistaconsorcio.com.br
-                        </a>
+                    <div className="flex flex-col items-center gap-1">
+                        <img 
+                            src="/logo.png" 
+                            alt="Contemplar CRM" 
+                            className="h-16 w-auto object-contain"
+                        />
                     </div>
                 ) : (
-                    <span className="font-bold text-primary text-xl tracking-tighter italic">FE</span>
+                    <div className="flex flex-col items-center justify-center">
+                        <img 
+                            src="/logo.png" 
+                            alt="C" 
+                            className="h-10 w-10 object-contain"
+                        />
+                    </div>
                 )}
             </div>
 
@@ -198,7 +198,11 @@ export default function AdminLayout() {
                 {/* Mobile Header */}
                 <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-border shadow-sm sticky top-0 z-30">
                     <div className="flex items-center gap-2 overflow-hidden flex-1">
-                        <span className="font-bold text-sm text-primary truncate max-w-[200px]">www.oespecialistaconsorcio.com.br</span>
+                        <img 
+                            src="/logo.png" 
+                            alt="Contemplar CRM" 
+                            className="h-10 w-auto object-contain"
+                        />
                     </div>
 
                     <Sheet open={open} onOpenChange={setOpen}>
