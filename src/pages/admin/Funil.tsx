@@ -1221,9 +1221,6 @@ export default function Funil() {
               >
               <FileText className="h-4 w-4" />
             </Button>
-            <Button size="sm" className="h-9 px-3" onClick={() => window.open("/leads", "_blank")}>
-              <Plus className="h-4 w-4" />
-            </Button>
           </div>
         </div>
         
@@ -1261,10 +1258,6 @@ export default function Funil() {
             >
               <FileText className="h-4 w-4 mr-2" />
               Relatório PDF
-            </Button>
-            <Button size="sm" onClick={() => window.open("/leads", "_blank")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Lead
             </Button>
           </div>
         </div>
