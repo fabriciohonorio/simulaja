@@ -12,6 +12,10 @@ import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/utils";
 import { LeadForm, LeadFormData, STATUS_OPTIONS, TIPO_OPTIONS, TEMPERATURA_OPTIONS, SCORE_OPTIONS } from "@/components/admin/LeadForm";
+import { zapiService } from "@/services/zapi";
+import { aiService } from "@/services/aiService";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface Lead {
   id: string;
@@ -102,6 +106,7 @@ export default function Leads() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
   const [editForm, setEditForm] = useState(EMPTY_LEAD_FORM);
+  const [isAiGenerating, setIsAiGenerating] = useState<string | null>(null);
 
   // Delete confirmation
   const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
@@ -223,6 +228,43 @@ export default function Leads() {
       setDeletingLead(null);
     }
     setIsDeleting(false);
+  };
+
+  const handleAiWhatsApp = async (lead: Lead) => {
+    setIsAiGenerating(lead.id);
+    toast.info(`Jarvis está analisando ${lead.nome}...`);
+    
+    try {
+      const { script, error: aiError } = await aiService.generateSalesScript({
+        nome: lead.nome,
+        tipo_consorcio: lead.tipo_consorcio,
+        valor_credito: Number(lead.valor_credito),
+        cidade: lead.cidade
+      });
+
+      if (aiError) throw aiError;
+
+      toast.success("Script gerado com sucesso!");
+      
+      const { error: zapiError } = await zapiService.sendMessage({
+        phone: lead.celular,
+        message: script
+      });
+
+      if (zapiError) {
+        // Se der erro no Z-API (ex: falta de chave), abre o WhatsApp manual com o script gerado
+        toast.warning("Z-API não configurada. Abrindo manual com script do Jarvis.");
+        const phone = lead.celular.replace(/\D/g, "");
+        window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(script)}`, "_blank");
+      } else {
+        toast.success("Mensagem enviada via Z-API!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Falha na automação do Jarvis.");
+    } finally {
+      setIsAiGenerating(null);
+    }
   };
 
   const toggleSort = (key: keyof Lead) => {
@@ -498,10 +540,21 @@ export default function Leads() {
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50"
-                        title="WhatsApp"
+                        title="WhatsApp Manual"
                         onClick={() => openWhatsApp(l)}
                       >
                         <MessageCircle className="h-4 w-4" />
+                      </Button>
+                      {/* Jarvis Auto WhatsApp */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                        title="Atendimento Automático Jarvis"
+                        onClick={() => handleAiWhatsApp(l)}
+                        disabled={isAiGenerating === l.id}
+                      >
+                        {isAiGenerating === l.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                       </Button>
                       {/* Editar */}
                       <Button
@@ -655,10 +708,20 @@ export default function Leads() {
                   size="icon"
                   variant="outline"
                   className="text-green-600 border-green-200 hover:bg-green-50 h-9 w-9"
-                  title="WhatsApp"
+                  title="WhatsApp Manual"
                   onClick={() => openWhatsApp(l)}
                 >
                   <MessageCircle className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="text-purple-600 border-purple-200 hover:bg-purple-50 h-9 w-9"
+                  title="Jarvis Auto"
+                  onClick={() => handleAiWhatsApp(l)}
+                  disabled={isAiGenerating === l.id}
+                >
+                  {isAiGenerating === l.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                 </Button>
                 <Button
                   size="icon"
