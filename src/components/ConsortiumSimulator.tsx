@@ -218,7 +218,7 @@ const ConsortiumSimulator = () => {
           valor_credito: fmt(g.credito),
           tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
-          origem: utmParams.origem || "Lovable Home",
+          origem: utmParams.origem || "Simulador Web",
           score: leadScoreValor,
         }),
       });

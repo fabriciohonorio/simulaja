@@ -254,7 +254,7 @@ export default function Simulador() {
     doc.setFontSize(22);
     doc.text("FABRICIO | Especialista Consórcio", 20, 25);
     doc.setFontSize(10);
-    doc.text("simulaja.lovable.app", 20, 32);
+    doc.text("app.contemplarcrm.com.br", 20, 32);
     
     // Content
     doc.setTextColor(navy[0], navy[1], navy[2]);
@@ -364,8 +364,8 @@ ${incluirComp ? `*🏦 COMPARATIVO FINANCIAMENTO*
 • Parcela Consórcio: *${fmt(g.r50)}*
 • Economia mensal: *${fmt(pmtF - g.r50)}*
 ` : ''}
-_Fabricio Especialista - Realizando seu sonho sem pagar juros!_
-_simulaja.lovable.app_`;
+_Contemplar CRM - Inteligência em Consórcios_
+_app.contemplarcrm.com.br_`;
 
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');

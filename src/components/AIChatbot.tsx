@@ -50,7 +50,7 @@ const AIChatbot = () => {
     valor_credito: "",
     conhecimento_consorcio: "",
     interesse_simulacao: "",
-    origem: "IA_Lovable",
+    origem: "Jarvis AI",
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
