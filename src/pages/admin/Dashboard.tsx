@@ -105,6 +105,10 @@ export default function Dashboard() {
     };
   }, []);
 
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
   const totalLeads = leads.length;
   const leadsNovos = leads.filter(l => l.status === "novo" || l.status === "novo_lead").length;
   const leadsConvertidos = leads.filter(l => l.status === "fechado" || l.status === "venda_fechada").length;
@@ -191,9 +195,13 @@ export default function Dashboard() {
     return { ...stage, count, percentage };
   });
 
-  // Cálculo de Ranking de Consultores
+  // Cálculo de Ranking de Consultores - AGORA MENSAL
   const rankingRaw = leads
-    .filter(l => (l.status === "fechado" || l.status === "venda_fechada") && l.responsavel_id)
+    .filter(l => {
+      const isSale = l.status === "fechado" || l.status === "venda_fechada";
+      const isThisMonth = l.created_at ? new Date(l.created_at) >= startOfMonth : false;
+      return isSale && isThisMonth && l.responsavel_id;
+    })
     .reduce((acc: Record<string, number>, lead) => {
       const rid = lead.responsavel_id!;
       acc[rid] = (acc[rid] || 0) + Number(lead.valor_credito || 0);
@@ -252,7 +260,7 @@ export default function Dashboard() {
               <div className="p-1.5 bg-amber-500/20 rounded-lg">
                 <Trophy className="h-5 w-5 text-amber-500" />
               </div>
-              <CardTitle className="text-lg font-black tracking-tight uppercase">Ranking de Consultores</CardTitle>
+              <CardTitle className="text-lg font-black tracking-tight uppercase">Ranking Mensal de Consultores</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
