@@ -126,8 +126,13 @@ export default function Leads() {
   }, [profile]);
 
   const fetchLeads = async () => {
+    if (!profile?.organizacao_id) return;
     setLoading(true);
-    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+    const { data } = await (supabase as any)
+      .from("leads")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("created_at", { ascending: false });
     setLeads((data as Lead[]) ?? []);
     setLoading(false);
   };

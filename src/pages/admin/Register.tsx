@@ -55,6 +55,20 @@ export default function Register() {
     setLoading(true);
 
     try {
+      let orgId = invitationData?.organizacao_id;
+
+      // 1. If not an invite, create a new Organization
+      if (!invitationToken) {
+        const newOrgId = crypto.randomUUID();
+        const { error: orgError } = await (supabase.from("organizacoes" as any) as any).insert({
+          id: newOrgId,
+          nome: orgNome,
+        });
+        if (orgError) throw orgError;
+        orgId = newOrgId;
+      }
+
+      // 2. Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -62,7 +76,7 @@ export default function Register() {
           emailRedirectTo: `${window.location.origin}/admin/login`,
           data: {
             nome_completo: nome,
-            organizacao_id: invitationData?.organizacao_id,
+            organizacao_id: orgId,
             tipo_acesso: invitationToken ? 'vendedor' : 'admin'
           }
         }
@@ -72,9 +86,7 @@ export default function Register() {
       if (!authData.user) throw new Error("Erro ao criar usuário.");
 
       if (invitationToken && invitationData) {
-        // Apenas marca o convite como aceito. O perfil será criado via Trigger com a org correta
-        await (supabase
-          .from("convites" as any) as any)
+        await (supabase.from("convites" as any) as any)
           .update({ status: "aceito" })
           .eq("token", invitationToken);
       }
@@ -121,11 +133,11 @@ export default function Register() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-900/40 opacity-50" />
         <div className="relative z-10">
           <div className="space-y-1">
-            <div className="text-2xl font-black tracking-tight text-white">
-              FABRICIO <span className="text-primary mx-1">|</span> <span className="font-light opacity-80">Especialista Consórcio</span>
+            <div className="text-2xl font-black tracking-tight text-white uppercase">
+              CONTEMPLAR <span className="text-primary mx-1">|</span> <span className="font-light opacity-80">CRM SaaS</span>
             </div>
             <div className="text-xs font-medium text-white/60 tracking-widest uppercase">
-              www.oespecialistaconsorcio.com.br
+              www.contemplarcrm.com.br
             </div>
           </div>
           <div className="mt-24 space-y-6">

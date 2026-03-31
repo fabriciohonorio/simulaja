@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon } from "lucide-react";
@@ -80,6 +81,7 @@ interface JarvisAnalysis {
 
 export default function Jarvis() {
     const { toast } = useToast();
+    const { profile } = useProfile();
     const [question, setQuestion] = useState("");
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysis, setAnalysis] = useState<JarvisAnalysis | null>(null);
@@ -92,7 +94,7 @@ export default function Jarvis() {
         {
             id: "1",
             role: "jarvis",
-            content: "Fala Fabrício! Sou o Jarvis, seu parceiro de vendas. O que vamos atacar hoje?",
+            content: `Fala ${profile?.nome_completo?.split(' ')[0] || 'Parceiro'}! Sou o Jarvis, seu estrategista comercial. O que vamos atacar hoje?`,
             timestamp: new Date()
         }
     ]);
@@ -217,7 +219,7 @@ export default function Jarvis() {
                     // Saudação automática ao carregar (após carregar os dados)
                     setTimeout(() => {
                         const prioritarios = allLeads.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
-                        speak(`Fala Fabrício! Tem ${prioritarios} leads em negociação na mesa. Bora focar hoje e fechar essas pendências.`);
+                        speak(`Fala ${profile?.nome_completo?.split(' ')[0] || 'Parceiro'}! Tem ${prioritarios} leads em negociação na mesa. Bora focar hoje e fechar essas pendências.`);
                     }, 1000);
                 }
 

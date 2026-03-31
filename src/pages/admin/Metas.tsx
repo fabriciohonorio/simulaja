@@ -134,9 +134,14 @@ export default function Metas() {
         if (!profile) return;
         fetchData(); 
         
-        const channel = supabase
+        const channel = (supabase as any)
             .channel('metas-leads-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+            .on('postgres_changes', { 
+                event: '*', 
+                schema: 'public', 
+                table: 'leads',
+                filter: `organizacao_id=eq.${profile.organizacao_id}`
+            }, () => {
                 fetchData();
             })
             .subscribe();
@@ -157,9 +162,9 @@ export default function Metas() {
                 setMembros(membrosData || []);
             }
 
-            const { data: leadsData } = await supabase.from("leads").select("*");
-            const { data: carteiraData } = await supabase.from("carteira").select("id, data_adesao, data_contemplacao, status");
-            const { count: countInad } = await supabase.from("inadimplentes").select("*", { count: 'exact', head: true }).neq("status", "regularizado");
+            const { data: leadsData } = await (supabase.from("leads") as any).select("*").eq("organizacao_id", profile.organizacao_id);
+            const { data: carteiraData } = await (supabase.from("carteira") as any).select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
+            const { count: countInad } = await (supabase.from("inadimplentes") as any).select("*", { count: 'exact', head: true }).neq("status", "regularizado").eq("organizacao_id", profile.organizacao_id);
             
             setCarteira((carteiraData as any[]) || []);
             setInadimplentesCount(countInad || 0);
@@ -167,14 +172,19 @@ export default function Metas() {
             let metaData = null;
             if (selectedVendedor !== "all" || !isManager) {
                 const targetId = !isManager ? profile?.id : selectedVendedor;
-                const { data: mvData } = await supabase.from("metas_vendedor" as any)
+                const { data: mvData } = await (supabase.from("metas_vendedor" as any) as any)
                     .select("*")
                     .eq("vendedor_id", targetId)
                     .eq("ano", currentYear)
+                    .eq("organizacao_id", profile.organizacao_id)
                     .maybeSingle();
                 metaData = mvData;
             } else {
-                const { data: globalMeta } = await supabase.from("meta").select("*").eq("ano", currentYear).maybeSingle();
+                const { data: globalMeta } = await (supabase.from("meta") as any)
+                    .select("*")
+                    .eq("ano", currentYear)
+                    .eq("organizacao_id", profile.organizacao_id)
+                    .maybeSingle();
                 metaData = globalMeta;
             }
             
@@ -312,17 +322,19 @@ export default function Metas() {
         try {
             if (selectedVendedor !== "all" || !isManager) {
                 const targetId = !isManager ? profile?.id : selectedVendedor;
-                const { error } = await supabase.from("metas_vendedor" as any).upsert({ 
+                const { error } = await (supabase.from("metas_vendedor" as any) as any).upsert({ 
                     vendedor_id: targetId, 
                     ano: currentYear, 
-                    meta_anual: novoValor 
+                    meta_anual: novoValor,
+                    organizacao_id: profile?.organizacao_id
                 }, { onConflict: "vendedor_id,ano" });
                 
                 if (error) throw error;
             } else {
-                const { error } = await supabase.from("meta").upsert({ 
+                const { error } = await (supabase.from("meta" as any) as any).upsert({ 
                     ano: currentYear, 
-                    meta_anual: novoValor 
+                    meta_anual: novoValor,
+                    organizacao_id: profile?.organizacao_id
                 }, { onConflict: "ano" });
                 if (error) throw error;
             }
@@ -346,13 +358,14 @@ export default function Metas() {
         }
 
         try {
-            const { error } = await supabase.from("meta").upsert({
+            const { error } = await (supabase.from("meta" as any) as any).upsert({
                 ano: currentYear,
                 meta_imoveis: newMetas.imoveis,
                 meta_veiculos: newMetas.veiculos,
                 meta_motos: newMetas.motos,
                 meta_pesados: newMetas.pesados,
-                meta_investimentos: newMetas.investimentos
+                meta_investimentos: newMetas.investimentos,
+                organizacao_id: profile?.organizacao_id
             }, { onConflict: "ano" });
 
             if (error) throw error;

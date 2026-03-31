@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
@@ -65,6 +66,7 @@ interface CarteiraItem {
 
 
 export default function Carteira() {
+  const { profile } = useProfile();
   const [items, setItems] = useState<CarteiraItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<CarteiraItem | null>(null);
@@ -118,7 +120,12 @@ export default function Carteira() {
   };
 
   const fetchData = async () => {
-    const { data } = await supabase.from("carteira").select("*, leads:lead_id(celular, indicador_nome)").order("created_at", { ascending: false });
+    if (!profile?.organizacao_id) return;
+    const { data } = await (supabase as any)
+      .from("carteira")
+      .select("*, leads:lead_id(celular, indicador_nome)")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("created_at", { ascending: false });
     const mapped = (data ?? []).map((item: any) => ({
       ...item,
       celular: (item.leads as any)?.celular ?? null,
@@ -143,7 +150,9 @@ export default function Carteira() {
     return remainingDays > 0 ? `${months}m ${remainingDays}d` : `${months} meses`;
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    if (profile?.organizacao_id) fetchData(); 
+  }, [profile?.organizacao_id]);
 
   const total = items.length;
   const aguardando = items.filter((i) => i.status === "aguardando").length;
@@ -178,7 +187,11 @@ export default function Carteira() {
 
     const { data: urlData } = supabase.storage.from("boletos").getPublicUrl(filePath);
     // Since bucket is private, we store the path and generate signed URLs on demand
-    await supabase.from("carteira").update({ boleto_url: filePath }).eq("id", item.id);
+    await (supabase as any)
+      .from("carteira")
+      .update({ boleto_url: filePath })
+      .eq("id", item.id)
+      .eq("organizacao_id", profile?.organizacao_id);
 
     toast({ title: "Boleto enviado!", description: `Boleto de ${item.nome} salvo com sucesso.` });
     setUploading(null);
@@ -308,7 +321,7 @@ export default function Carteira() {
           valor_parcela: 0,
           parcelas_pagas: 0,
           parcelas_atrasadas: 1,
-          organizacao_id: item.organizacao_id
+          organizacao_id: profile?.organizacao_id
         });
       }));
 

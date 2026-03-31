@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2, FileText } from "lucide-react";
@@ -55,6 +56,7 @@ const COLUMNS = [
 
 
 export default function Inadimplentes() {
+  const { profile } = useProfile();
   const [data, setData] = useState<Inadimplente[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -74,12 +76,17 @@ export default function Inadimplentes() {
   const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
   const fetchData = async () => {
-    const { data: rows } = await (supabase.from("inadimplentes" as any) as any).select("*");
+    if (!profile?.organizacao_id) return;
+    const { data: rows } = await (supabase.from("inadimplentes" as any) as any)
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id);
     setData(rows as Inadimplente[] ?? []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    if (profile?.organizacao_id) fetchData(); 
+  }, [profile?.organizacao_id]);
 
   const getColumnItems = (colId: string) => {
     return data.filter((d) => {
@@ -106,10 +113,11 @@ export default function Inadimplentes() {
       cota: form.cota,
       administradora: form.administradora || null,
       status: editingItem ? editingItem.status : "em_atraso",
+      organizacao_id: profile?.organizacao_id
     };
 
     const { error } = editingItem 
-      ? await (supabase.from("inadimplentes" as any) as any).update(payload).eq("id", editingItem.id)
+      ? await (supabase.from("inadimplentes" as any) as any).update(payload).eq("id", editingItem.id).eq("organizacao_id", profile?.organizacao_id)
       : await (supabase.from("inadimplentes" as any) as any).insert(payload);
 
     setSaving(false);
@@ -140,7 +148,7 @@ export default function Inadimplentes() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir este card?")) return;
-    const { error } = await (supabase.from("inadimplentes" as any) as any).delete().eq("id", id);
+    const { error } = await (supabase.from("inadimplentes" as any) as any).delete().eq("id", id).eq("organizacao_id", profile?.organizacao_id);
     if (error) { toast.error("Erro ao excluir"); return; }
     toast.success("Excluído com sucesso");
     fetchData();

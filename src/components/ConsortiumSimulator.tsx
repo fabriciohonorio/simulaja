@@ -19,6 +19,8 @@ import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } f
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+import { useProfile } from "@/hooks/useProfile";
+
 import fabricioReal from "@/assets/fabricio-real.jpg";
 import heroBg from "@/assets/hero-bg.png";
 
@@ -29,8 +31,9 @@ import cardAgro from "@/assets/card-agro.jpg";
 import cardInvestimento from "@/assets/card-investimento.jpg";
 import cardNautica from "@/assets/card-nautica.jpg";
 
-const WHATSAPP_LINK = "https://wa.me/5541997925357?text=Ol%C3%A1%20Fabr%C3%ADcio!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
+const WHATSAPP_LINK = "https://wa.me/55?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
 
+type Category = { id: string; label: string; icon: string };
 type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
 
 const GRUPOS: Record<string, GrupoItem[]> = {
@@ -76,7 +79,7 @@ const GRUPOS: Record<string, GrupoItem[]> = {
   ],
 };
 
-const CATEGORIAS = [
+const CATEGORIAS: Category[] = [
   { id: "imovel", label: "Imóvel / Investimento", icon: "🏠" },
   { id: "veiculo", label: "Moto / Veículos / Náutico", icon: "🚗" },
   { id: "pesados", label: "Pesados / Agrícola", icon: "🚛" },
@@ -95,9 +98,68 @@ const consortiumCards = [
   { title: "Consórcio para Investimento", desc: "Construa patrimônio com estratégia e sem juros bancários.", img: cardInvestimento },
 ];
 
-const ConsortiumSimulator = () => {
+interface ConsortiumSimulatorProps {
+  overrideConfig?: {
+    categorias: Category[];
+    grupos: Record<string, GrupoItem[]>;
+  };
+}
+
+const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
+  const { profile } = useProfile();
   const { toast } = useToast();
 
+  const [dynamicCategorias, setDynamicCategorias] = useState<Category[]>(CATEGORIAS);
+  const [dynamicGrupos, setDynamicGrupos] = useState<Record<string, GrupoItem[]>>(GRUPOS);
+
+  useEffect(() => {
+    if (overrideConfig) {
+      setDynamicCategorias(overrideConfig.categorias);
+      setDynamicGrupos(overrideConfig.grupos);
+      return;
+    }
+
+    const fetchConfig = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const publicOrgId = urlParams.get("org");
+      const targetOrgId = publicOrgId || profile?.organizacao_id;
+
+      if (!targetOrgId) {
+         setDynamicCategorias(CATEGORIAS);
+         setDynamicGrupos(GRUPOS);
+         return;
+      }
+
+      try {
+        const { data } = await (supabase as any)
+          .from("simulador_config")
+          .select("*")
+          .eq("organizacao_id", targetOrgId)
+          .maybeSingle();
+        
+        if (data) {
+          if (data.categorias) setDynamicCategorias(data.categorias);
+          if (data.grupos) setDynamicGrupos(data.grupos);
+        } else {
+          const { data: masterData } = await (supabase as any)
+            .from("simulador_config")
+            .select("*")
+            .order('updated_at', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+          if (masterData) {
+            setDynamicCategorias(masterData.categorias);
+            setDynamicGrupos(masterData.grupos);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao carregar simulador_config:", err);
+      }
+    };
+
+    fetchConfig();
+  }, [profile?.organizacao_id, overrideConfig]);
 
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
@@ -110,7 +172,6 @@ const ConsortiumSimulator = () => {
   const [historico, setHistorico] = useState<HistItem[]>([]);
   const [bloqueado, setBloqueado] = useState(false);
   
-  // Novos Estados Fabricio
   const [lanceDinheiroPct, setLanceDinheiroPct] = useState(0);
   const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
   const [incluirComp, setIncluirComp] = useState(true);
@@ -128,13 +189,15 @@ const ConsortiumSimulator = () => {
     });
   }, []);
 
-  const lista = GRUPOS[categoria];
-  const safeIdx = Math.min(idx, lista.length - 1);
-  const g = lista[safeIdx];
+  const lista = dynamicGrupos[categoria] || [];
+  const safeIdx = Math.min(idx, lista.length > 0 ? lista.length - 1 : 0);
+  const g = lista[safeIdx] || { grupo: "—", credito: 0, r50: 0, prazo: 0 };
 
   useEffect(() => {
-    setIdx(Math.min(4, lista.length - 1));
-  }, [categoria]);
+    if (lista.length > 0) {
+      setIdx(Math.min(4, lista.length - 1));
+    }
+  }, [categoria, lista.length]);
 
   const fmt = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -183,7 +246,7 @@ const ConsortiumSimulator = () => {
       const { error: dbError } = await supabase.from("leads").insert({
         nome: simNome.trim(),
         celular: simWpp.replace(/\D/g, ""),
-        tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+        tipo_consorcio: dynamicCategorias.find(c => c.id === categoria)?.label || categoria,
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo_lead",
@@ -216,7 +279,7 @@ const ConsortiumSimulator = () => {
           nome: simNome.trim(),
           celular: simWpp,
           valor_credito: fmt(g.credito),
-          tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+          tipo_consorcio: dynamicCategorias.find(c => c.id === categoria)?.label || categoria,
           pagina: window.location.href,
           origem: utmParams.origem || "Simulador Web",
           score: leadScoreValor,
@@ -310,7 +373,7 @@ const ConsortiumSimulator = () => {
         <div className="container max-w-4xl mx-auto px-4 text-center">
           <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3">Sobre</p>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Consultoria <span className="text-primary">Inteligente</span> em Consórcio
+            Consultoria <span className="text-primary">Especializada</span> em Consórcio
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Ajudo pessoas a conquistarem imóveis, veículos e patrimônio utilizando o consórcio como estratégia financeira inteligente.
@@ -401,7 +464,7 @@ const ConsortiumSimulator = () => {
 
             {/* Segmentos */}
             <div className="flex flex-wrap gap-2 justify-center mb-6">
-              {CATEGORIAS.map((cat) => (
+              {dynamicCategorias.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setCategoria(cat.id)}
@@ -519,7 +582,7 @@ const ConsortiumSimulator = () => {
               <div ref={resultRef} className="rounded-[18px] p-0 mt-8 animate-fade-in overflow-hidden border-2 border-primary bg-card shadow-xl">
                 <div className="bg-primary p-4 text-white">
                   <div className="text-[0.6rem] uppercase tracking-[0.15em] mb-1 font-bold flex items-center justify-between opacity-80">
-                    <span>PROPOSTA GERADA POR FABRICIO</span>
+                    <span>PROPOSTA GERADA PELO CONSULTOR</span>
                     <CheckCircle2 className="w-3 h-3 text-green-400" />
                   </div>
                   <h3 className="text-lg font-bold">Simulação Detalhada</h3>

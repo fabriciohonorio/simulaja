@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useProfile } from "@/hooks/useProfile";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -741,6 +742,7 @@ function HistoricoModal({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Funil() {
+  const { profile } = useProfile();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [celebrationLead, setCelebrationLead] = useState<Lead | null>(null);
@@ -849,90 +851,98 @@ export default function Funil() {
   const scrollDrag = useRef({ active: false, startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
-    supabase.from("leads").select("*").order("created_at", { ascending: false }).then(({ data }) => {
+    if (!profile?.organizacao_id) return;
+
+    (supabase as any)
+      .from("leads")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("created_at", { ascending: false })
+      .then(({ data }: any) => {
         setLeads((data as unknown as Lead[]) || []);
-      // De-duplicar por ID para evitar problemas de estado
-      const uniqueRaw = (data as unknown as Lead[]).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
-      
-      // Log only on first load if needed, but not spamming
-      const fetchedLeads = uniqueRaw.map((lead: any) => ({
-        ...lead,
-        status: normalizeStatus(lead.status),
-      }));
-      setLeads(fetchedLeads);
-      setLoading(false);
+        // De-duplicar por ID para evitar problemas de estado
+        const uniqueRaw = ((data as unknown as Lead[]) || []).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
+        
+        // Log only on first load if needed, but not spamming
+        const fetchedLeads = uniqueRaw.map((lead: any) => ({
+          ...lead,
+          status: normalizeStatus(lead.status),
+        }));
+        setLeads(fetchedLeads);
+        setLoading(false);
 
-      const now = new Date();
-      fetchedLeads.forEach(async (lead: Lead) => {
-        const finalStatuses = ["fechado", "perdido", "morto"];
-        if (finalStatuses.includes(lead.status || "")) return;
+        const now = new Date();
+        fetchedLeads.forEach(async (lead: Lead) => {
+          const finalStatuses = ["fechado", "perdido", "morto"];
+          if (finalStatuses.includes(lead.status || "")) return;
 
-        const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
-        const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
-        let newTemp = lead.lead_temperatura || "quente";
-        let newStatus = lead.status;
+          const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now);
+          const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
+          let newTemp = lead.lead_temperatura || "quente";
+          let newStatus = lead.status;
 
-        // Temperatura dinâmica (mantendo a lógica mas sem forçar status 'morto' para tudo)
-        if (hoursDiff > 24 * 7) {
-          newTemp = "morto";
-        } else if (hoursDiff > 24 * 3) {
-          newTemp = "frio";
-        } else if (hoursDiff > 24) {
-          newTemp = "morno";
-        }
+          // Temperatura dinâmica (mantendo a lógica mas sem forçar status 'morto' para tudo)
+          if (hoursDiff > 24 * 7) {
+            newTemp = "morto";
+          } else if (hoursDiff > 24 * 3) {
+            newTemp = "frio";
+          } else if (hoursDiff > 24) {
+            newTemp = "morno";
+          }
 
-        // Propensity Calculation (mantendo compatibilidade com lead_score_valor)
-        let score = 0;
-        let reasons = [];
+          // Propensity Calculation (mantendo compatibilidade com lead_score_valor)
+          let score = 0;
+          let reasons = [];
 
-        if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
-        else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
-        else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
-        else { score += 10; reasons.push("Baixo Potencial"); }
+          if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
+          else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
+          else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
+          else { score += 10; reasons.push("Baixo Potencial"); }
 
-        if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
-        else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
-        else if (newTemp === "frio") { score += 5; }
+          if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
+          else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
+          else if (newTemp === "frio") { score += 5; }
 
-        if (["simulacao_enviada", "proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
-        else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
-        else if (newStatus === "primeiro_contato" || newStatus === "contato") { score += 10; }
-        else { score += 5; }
+          if (["simulacao_enviada", "proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
+          else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
+          else if (newStatus === "primeiro_contato" || newStatus === "contato") { score += 10; }
+          else { score += 5; }
 
-        const newScore = score;
-        const newReason = reasons.join(" + ");
+          const newScore = score;
+          const newReason = reasons.join(" + ");
 
-        if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
-          await supabase.from("leads").update({
-            lead_temperatura: newTemp,
-            status: newStatus,
-            status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
-            propensity_score: newScore,
-            propensity_reason: newReason
-          }).eq("id", lead.id);
+          if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
+            await (supabase as any).from("leads").update({
+              lead_temperatura: newTemp,
+              status: newStatus,
+              status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
+              propensity_score: newScore,
+              propensity_reason: newReason
+            }).eq("id", lead.id).eq("organizacao_id", profile.organizacao_id);
 
-          setLeads(prev => prev.map(l => l.id === lead.id ? {
-            ...l,
-            lead_temperatura: newTemp,
-            status: newStatus,
-            propensity_score: newScore,
-            propensity_reason: newReason
-          } : l));
-        }
+            setLeads(prev => prev.map(l => l.id === lead.id ? {
+              ...l,
+              lead_temperatura: newTemp,
+              status: newStatus,
+              propensity_score: newScore,
+              propensity_reason: newReason
+            } : l));
+          }
+        });
       });
-    });
-  }, []);
+  }, [profile?.organizacao_id]);
 
   // Busca última tratativa de todos os leads
   useEffect(() => {
-    if (leads.length === 0) return;
+    if (leads.length === 0 || !profile?.organizacao_id) return;
     const leadIds = leads.map((l) => l.id);
-    supabase
+    (supabase as any)
       .from("historico_contatos")
       .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
       .in("lead_id", leadIds)
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (!data) return;
         const map: Record<string, HistoricoContato> = {};
         (data as HistoricoContato[]).forEach((h) => {
@@ -942,7 +952,7 @@ export default function Funil() {
         });
         setUltimasTratativas(map);
       });
-  }, [leads.length]);
+  }, [leads.length, profile?.organizacao_id]);
 
   // getColumnLeads: match direto com os IDs normalizados — sem duplicatas
   const getColumnLeads = (columnId: string) => {

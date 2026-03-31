@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles } from "lucide-react";
@@ -33,13 +34,15 @@ interface CarteiraItem {
 }
 
 
-const openWhatsApp = (lead: Lead) => {
-  const msg = encodeURIComponent(`Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?`);
+const openWhatsApp = (lead: Lead, consultorName?: string) => {
+  const name = consultorName || "sua equipe de consórcio";
+  const msg = encodeURIComponent(`Olá, bom dia! Aqui é o ${name}. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?`);
   const phone = lead.celular ? lead.celular.replace(/\D/g, "") : "";
   window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
 };
 
 export default function Dashboard() {
+  const { profile } = useProfile();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [perfis, setPerfis] = useState<any[]>([]);
   const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
@@ -65,38 +68,62 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    if (!profile?.organizacao_id) return;
+
     const fetchData = () => {
-      supabase.from("leads").select("*").order("created_at", { ascending: false }).then(({ data }) => {
-        const sorted = ((data as any[]) ?? []).sort(
-          (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-        );
-        // Flash badge when a NEW lead arrives (more leads than before)
-        if (prevCountRef.current > 0 && sorted.length > prevCountRef.current) {
-          setNewLeadFlash(true);
-          setTimeout(() => setNewLeadFlash(false), 4000);
-        }
-        prevCountRef.current = sorted.length;
-        setLeads(sorted);
-      });
+      (supabase as any)
+        .from("leads")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .order("created_at", { ascending: false })
+        .then(({ data }: any) => {
+          const sorted = ((data as any[]) ?? []).sort(
+            (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+          );
+          if (prevCountRef.current > 0 && sorted.length > prevCountRef.current) {
+            setNewLeadFlash(true);
+            setTimeout(() => setNewLeadFlash(false), 4000);
+          }
+          prevCountRef.current = sorted.length;
+          setLeads(sorted);
+        });
 
-      supabase.from("carteira").select("id, nome, grupo, cota, valor_credito, celular").then(({ data }) => {
-        setCarteira((data as any[]) || []);
-        setLoading(false);
-      });
+      (supabase as any)
+        .from("carteira")
+        .select("id, nome, grupo, cota, valor_credito, celular")
+        .eq("organizacao_id", profile.organizacao_id)
+        .then(({ data }: any) => {
+          setCarteira((data as any[]) || []);
+          setLoading(false);
+        });
 
-      supabase.from("perfis" as any).select("*").then(({ data }) => {
-        setPerfis((data as any[]) || []);
-      });
+      (supabase as any)
+        .from("perfis")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .then(({ data }: any) => {
+          setPerfis((data as any[]) || []);
+        });
     };
 
     fetchData();
 
     const channel = supabase
-      .channel('dashboard-leads-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+      .channel(`dashboard-leads-${profile.organizacao_id}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'leads',
+        filter: `organizacao_id=eq.${profile.organizacao_id}` 
+      }, () => {
         fetchData();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'carteira' }, () => {
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'carteira',
+        filter: `organizacao_id=eq.${profile.organizacao_id}`
+      }, () => {
         fetchData();
       })
       .subscribe();
@@ -104,7 +131,7 @@ export default function Dashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [profile?.organizacao_id]);
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -167,10 +194,18 @@ export default function Dashboard() {
   // Meta vs Realizado Data for Dashboard
   const [metaAnual, setMetaAnual] = useState(0);
   useEffect(() => {
-    supabase.from("meta").select("meta_anual").order("ano", { ascending: false }).limit(1).maybeSingle().then(({ data }) => {
-      if (data) setMetaAnual(data.meta_anual || 0);
-    });
-  }, []);
+    if (!profile?.organizacao_id) return;
+    (supabase as any)
+      .from("meta")
+      .select("meta_anual")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("ano", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) setMetaAnual(data.meta_anual || 0);
+      });
+  }, [profile?.organizacao_id]);
 
   const metaMensal = metaAnual / 12;
   const currentMonthStr = format(new Date(), "yyyy-MM");
