@@ -2,7 +2,7 @@
   "name": "Contemplar CRM",
   "short_name": "Contemplar",
   "description": "CRM de Elite para Gestão de Consórcios",
-  "start_url": "/",
+  "start_url": "/admin",
   "display": "standalone",
   "background_color": "#064e3b",
   "theme_color": "#10b981",
