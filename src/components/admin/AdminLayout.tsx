@@ -107,7 +107,7 @@ export default function AdminLayout() {
                 {!collapsed ? (
                     <div className="flex flex-col items-center gap-1">
                         <img 
-                            src="/logo.png" 
+                            src="/logo.png?v=1" 
                             alt="Contemplar CRM" 
                             className="h-16 w-auto object-contain"
                         />
@@ -115,7 +115,7 @@ export default function AdminLayout() {
                 ) : (
                     <div className="flex flex-col items-center justify-center">
                         <img 
-                            src="/logo.png" 
+                            src="/logo.png?v=1" 
                             alt="C" 
                             className="h-10 w-10 object-contain"
                         />
@@ -199,7 +199,7 @@ export default function AdminLayout() {
                 <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-border shadow-sm sticky top-0 z-30">
                     <div className="flex items-center gap-2 overflow-hidden flex-1">
                         <img 
-                            src="/logo.png" 
+                            src="/logo.png?v=1" 
                             alt="Contemplar CRM" 
                             className="h-10 w-auto object-contain"
                         />

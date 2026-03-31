@@ -64,7 +64,7 @@ export default function Login() {
         <CardHeader className="text-center space-y-2 pt-8 sm:pt-10 px-6 sm:px-8">
           <div className="flex flex-col items-center pb-4">
             <img 
-              src="/logo.png" 
+              src="/logo.png?v=1" 
               alt="Contemplar CRM" 
               className="h-24 w-auto object-contain mb-2"
             />
