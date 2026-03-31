@@ -227,7 +227,43 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-12">
+    <div className="space-y-6">
+      {/* Seção Emocional/Foco de Vendas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex flex-col gap-1">
+             <div className="flex items-center gap-2 opacity-90">
+               <span className="p-1.5 bg-white/20 rounded-lg"><TrendingUp className="h-4 w-4" /></span>
+               <p className="text-[10px] font-black uppercase tracking-widest">💰 Quase no Bolso</p>
+             </div>
+             <p className="text-2xl font-black">{formatCurrency(leads.filter(l => l.status === 'negociacao' || l.status === 'simulacao_enviada').reduce((acc, l) => acc + Number(l.valor_credito || 0), 0))}</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Volume em Negociação Final</p>
+          </div>
+        </div>
+
+        <div className="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex flex-col gap-1">
+             <div className="flex items-center gap-2 opacity-90">
+               <span className="p-1.5 bg-white/20 rounded-lg"><Sparkles className="h-4 w-4" /></span>
+               <p className="text-[10px] font-black uppercase tracking-widest">🔥 Prontos para Fechar</p>
+             </div>
+             <p className="text-2xl font-black">{leads.filter(l => l.lead_temperatura === 'quente' && l.status !== 'fechado').length} Leads</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Temperatura Quente Ativa</p>
+          </div>
+        </div>
+
+        <div className="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-xl shadow-violet-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex flex-col gap-1">
+             <div className="flex items-center gap-2 opacity-90">
+               <span className="p-1.5 bg-white/20 rounded-lg"><Target className="h-4 w-4" /></span>
+               <p className="text-[10px] font-black uppercase tracking-widest">🎯 Alvos de Hoje</p>
+             </div>
+             <p className="text-2xl font-black">{leads.filter(l => (l.propensity_score || 0) >= 80 && l.status !== 'fechado').length} Oportunidades</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Alta Chance de Fechamento</p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

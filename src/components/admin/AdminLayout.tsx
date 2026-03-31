@@ -108,7 +108,7 @@ export default function AdminLayout() {
                     <div className="flex flex-col items-center gap-1">
                         <img 
                             src="/logo.png?v=1" 
-                            alt="Contemplar CRM" 
+                            alt="Contemplar CRM - Gestão Comercial" 
                             className="h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
                         />
                     </div>
@@ -200,7 +200,7 @@ export default function AdminLayout() {
                     <div className="flex items-center gap-2 overflow-hidden flex-1">
                         <img 
                             src="/logo.png?v=1" 
-                            alt="Contemplar CRM" 
+                            alt="Contemplar CRM - Gestão Comercial" 
                             className="h-14 w-auto object-contain"
                         />
                     </div>
