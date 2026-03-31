@@ -4,8 +4,8 @@
   "description": "Gestão Comercial de Consórcio de Elite",
   "start_url": "/admin",
   "display": "standalone",
-  "background_color": "#064e3b",
-  "theme_color": "#10b981",
+  "background_color": "#0F172A",
+  "theme_color": "#84CC16",
   "icons": [
     {
       "src": "/icon-512.png",
