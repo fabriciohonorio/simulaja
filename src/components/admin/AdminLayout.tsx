@@ -105,19 +105,23 @@ export default function AdminLayout() {
         <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
             <div className={`p-4 border-b border-sidebar-border text-center overflow-hidden h-28 flex items-center justify-center bg-white/50 backdrop-blur-sm`}>
                 {!collapsed ? (
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-center gap-1 transition-all duration-300 hover:scale-105">
                         <img 
-                            src="/logo.png?v=1" 
-                            alt="Contemplar CRM - Gestão Comercial" 
-                            className="h-20 w-auto object-contain transition-all duration-500 hover:scale-105"
+                            src="/icon-512.png" 
+                            alt="Logo Contemplar" 
+                            className="h-14 w-auto object-contain drop-shadow-sm" 
                         />
+                        <div className="flex flex-col items-center leading-tight">
+                            <span className="text-[14px] font-black tracking-tighter text-slate-900 uppercase">CONTEMPLAR</span>
+                            <span className="text-[11px] font-bold tracking-[0.25em] text-[#84CC16] -mt-0.5 ml-1">CRM</span>
+                        </div>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center">
                         <img 
-                            src="/logo.png?v=1" 
+                            src="/icon-512.png" 
                             alt="C" 
-                            className="h-12 w-12 object-contain"
+                            className="h-10 w-10 object-contain shadow-sm rounded-lg"
                         />
                     </div>
                 )}
@@ -197,12 +201,16 @@ export default function AdminLayout() {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Mobile Header */}
                 <header className="lg:hidden flex items-center justify-between px-4 h-20 bg-white border-b border-border shadow-sm sticky top-0 z-30">
-                    <div className="flex items-center gap-2 overflow-hidden flex-1">
+                    <div className="flex items-center gap-3 overflow-hidden flex-1 group">
                         <img 
-                            src="/logo.png?v=1" 
-                            alt="Contemplar CRM - Gestão Comercial" 
-                            className="h-14 w-auto object-contain"
+                            src="/icon-512.png" 
+                            alt="Logo" 
+                            className="h-10 w-auto object-contain"
                         />
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-[12px] font-black tracking-tighter text-slate-900 uppercase">CONTEMPLAR</span>
+                            <span className="text-[10px] font-bold tracking-[0.2em] text-[#84CC16] -mt-0.5">CRM</span>
+                        </div>
                     </div>
 
                     <Sheet open={open} onOpenChange={setOpen}>

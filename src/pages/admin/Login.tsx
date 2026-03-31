@@ -62,12 +62,16 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md border-none shadow-2xl rounded-[28px] sm:rounded-[32px] overflow-hidden">
         <CardHeader className="text-center space-y-2 pt-8 sm:pt-10 px-6 sm:px-8">
-          <div className="flex flex-col items-center pb-6">
+          <div className="flex flex-col items-center pb-4 transition-all duration-700 hover:scale-105">
             <img 
-              src="/logo.png?v=1" 
-              alt="Contemplar CRM" 
-              className="h-32 sm:h-40 w-auto object-contain transition-all duration-700 hover:scale-105"
+              src="/icon-512.png" 
+              alt="Logo Contemplar" 
+              className="h-32 sm:h-40 w-auto object-contain drop-shadow-xl" 
             />
+            <div className="flex flex-col items-center leading-tight mt-4">
+              <span className="text-[24px] sm:text-[32px] font-black tracking-tighter text-slate-900 uppercase">CONTEMPLAR</span>
+              <span className="text-[18px] sm:text-[22px] font-bold tracking-[0.3em] text-[#84CC16] -mt-1 ml-2">CRM</span>
+            </div>
           </div>
           <CardTitle className="text-lg sm:text-xl font-bold text-slate-800 pt-3">Acesso ao Painel</CardTitle>
         </CardHeader>
