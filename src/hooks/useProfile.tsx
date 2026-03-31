@@ -7,6 +7,7 @@ export interface Profile {
   tipo_acesso: "admin" | "manager" | "vendedor";
   organizacao_id: string | null;
   email?: string | null;
+  avatar_url?: string | null;
 }
 
 let _cache: Profile | null = null;
@@ -35,7 +36,7 @@ export function useProfile() {
     if (!user) { setLoading(false); return; }
 
     const { data } = await (supabase.from("perfis" as any) as any)
-      .select("id, nome_completo, tipo_acesso, organizacao_id")
+      .select("id, nome_completo, tipo_acesso, organizacao_id, avatar_url")
       .eq("id", user.id)
       .single();
 

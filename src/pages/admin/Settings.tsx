@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/hooks/useProfile";
-import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown } from "lucide-react";
+import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown, Upload } from "lucide-react";
 
 const ROLES = [
   { value: "admin", label: "Administrador" },
@@ -146,10 +146,90 @@ export default function Settings() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 pb-10">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Gestão da Equipe</h1>
-        <p className="text-slate-500 font-medium text-sm">{org?.nome || "Minha Empresa"}</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Configurações</h1>
+          <p className="text-slate-500 font-medium text-sm">{org?.nome || "Minha Empresa"}</p>
+        </div>
       </div>
+
+      {/* Seção Meu Perfil */}
+      <Card className="border-none shadow-lg rounded-2xl overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative group">
+              <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-white/10 overflow-hidden bg-slate-700 flex items-center justify-center text-4xl font-black shrink-0 shadow-2xl">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.nome_completo || ""} className="h-full w-full object-cover" />
+                ) : (
+                  (profile?.nome_completo || "?").charAt(0).toUpperCase()
+                )}
+              </div>
+              <label 
+                htmlFor="avatar-upload" 
+                className="absolute bottom-0 right-0 p-2 bg-primary rounded-full cursor-pointer shadow-lg hover:scale-110 transition-transform border-4 border-slate-900"
+              >
+                <Upload className="h-4 w-4 text-white" />
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast({ title: "Arquivo muito grande", description: "O limite é de 2MB.", variant: "destructive" });
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      const fileExt = file.name.split('.').pop();
+                      const filePath = `${profile?.id}/avatar.${fileExt}`;
+                      
+                      // Upload to a generic 'public' bucket if 'avatars' doesn't exist
+                      const { error: uploadError } = await supabase.storage
+                        .from("profiles")
+                        .upload(filePath, file, { upsert: true });
+
+                      if (uploadError) throw uploadError;
+
+                      const { data: { publicUrl } } = supabase.storage
+                        .from("profiles")
+                        .getPublicUrl(filePath);
+
+                      const { error: updateError } = await (supabase.from("perfis" as any) as any)
+                        .update({ avatar_url: publicUrl })
+                        .eq("id", profile?.id);
+
+                      if (updateError) throw updateError;
+
+                      toast({ title: "Foto atualizada!", description: "Sua nova foto já está visível." });
+                      window.location.reload(); // Refresh to update all instances
+                    } catch (err: any) {
+                      toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+            <div className="flex-1 text-center sm:text-left space-y-1">
+              <h2 className="text-2xl font-bold">{profile?.nome_completo}</h2>
+              <p className="text-slate-400 font-medium">{profile?.email}</p>
+              <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ROLE_COLORS[profile?.tipo_acesso || "vendedor"]}`}>
+                  {profile?.tipo_acesso}
+                </span>
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-700 bg-slate-800/50">
+                  ID: #{profile?.id?.substring(0, 8)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 

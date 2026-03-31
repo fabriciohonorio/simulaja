@@ -20,6 +20,7 @@ interface Lead {
   last_interaction_at: string | null;
   data_vencimento: string | null;
   celular: string | null;
+  responsavel_id: string | null;
 }
 interface CarteiraItem {
   id: string;
@@ -39,6 +40,7 @@ const openWhatsApp = (lead: Lead) => {
 
 export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [perfis, setPerfis] = useState<any[]>([]);
   const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLeadFlash, setNewLeadFlash] = useState(false);
@@ -79,6 +81,10 @@ export default function Dashboard() {
       supabase.from("carteira").select("id, nome, grupo, cota, valor_credito, celular").then(({ data }) => {
         setCarteira((data as any[]) || []);
         setLoading(false);
+      });
+
+      supabase.from("perfis" as any).select("*").then(({ data }) => {
+        setPerfis((data as any[]) || []);
       });
     };
 
@@ -185,6 +191,28 @@ export default function Dashboard() {
     return { ...stage, count, percentage };
   });
 
+  // Cálculo de Ranking de Consultores
+  const rankingRaw = leads
+    .filter(l => (l.status === "fechado" || l.status === "venda_fechada") && l.responsavel_id)
+    .reduce((acc: Record<string, number>, lead) => {
+      const rid = lead.responsavel_id!;
+      acc[rid] = (acc[rid] || 0) + Number(lead.valor_credito || 0);
+      return acc;
+    }, {});
+
+  const ranking = Object.entries(rankingRaw)
+    .map(([rid, total]) => {
+      const perfil = perfis.find(p => p.id === rid);
+      return {
+        id: rid,
+        nome: perfil?.nome_completo || "Consultor",
+        avatar: perfil?.avatar_url,
+        total
+      };
+    })
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3);
+
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -212,6 +240,63 @@ export default function Dashboard() {
           {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
         </div>
       </div>
+
+      {/* Ranking de Consultores */}
+      {ranking.length > 0 && (
+        <Card className="border-none shadow-md bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <Trophy className="h-32 w-32 rotate-12" />
+          </div>
+          <CardHeader className="pb-2 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-amber-500/20 rounded-lg">
+                <Trophy className="h-5 w-5 text-amber-500" />
+              </div>
+              <CardTitle className="text-lg font-black tracking-tight uppercase">Ranking de Consultores</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {ranking.map((item, i) => (
+                <div key={item.id} className={`relative flex items-center gap-4 p-4 rounded-2xl border transition-all hover:scale-[1.02] ${
+                  i === 0 ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]" :
+                  i === 1 ? "bg-slate-500/10 border-slate-500/30" :
+                  "bg-orange-700/10 border-orange-700/30"
+                }`}>
+                  <div className="relative">
+                    <div className={`h-16 w-16 sm:h-20 sm:w-20 rounded-full border-4 overflow-hidden flex items-center justify-center text-2xl font-black shrink-0 ${
+                      i === 0 ? "border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]" :
+                      i === 1 ? "border-slate-300" :
+                      "border-orange-600"
+                    }`}>
+                      {item.avatar ? (
+                        <img src={item.avatar} alt={item.nome} className="h-full w-full object-cover" />
+                      ) : (
+                        item.nome.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className={`absolute -top-2 -right-2 h-8 w-8 rounded-full flex items-center justify-center shadow-lg font-black text-sm border-2 ${
+                      i === 0 ? "bg-amber-500 text-white border-amber-300 rotate-12" :
+                      i === 1 ? "bg-slate-300 text-slate-800 border-white" :
+                      "bg-orange-600 text-white border-orange-400"
+                    }`}>
+                      {i + 1}º
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-black text-base truncate">{item.nome}</p>
+                    <p className={`text-xs font-bold uppercase tracking-widest ${
+                      i === 0 ? "text-amber-500" : i === 1 ? "text-slate-300" : "text-orange-500"
+                    }`}>
+                      {formatCurrency(item.total)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Grid — 2-col on phones, 3-col on sm, 6-col on xl */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
