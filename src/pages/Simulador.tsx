@@ -177,24 +177,8 @@ export default function Simulador() {
       console.error("🚨 Exception CRM:", e);
     }
 
-    // 2. Webhook Make (Telegram/Notificações)
-    try {
-      await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: nome.trim(),
-          celular: wpp,
-          valor_credito: fmt(g.credito),
-          tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
-          pagina: window.location.href,
-          origem: new URLSearchParams(window.location.search).get("utm_source") || (isIndicacao ? "indicacao" : "Página Simulador"),
-          score: leadScoreValor,
-          indicador_celular: isIndicacao ? refCelular : undefined,
-          indicador_nome: isIndicacao ? refNome : undefined,
-        }),
-      });
-    } catch (e) { console.warn("Webhook Error:", e); }
+    // 2. Notificação desabilitada para o CRM (Telegram/Make) conforme solicitado
+    console.log("Notificação externa (Telegram/Make) ignorada para o simulador interno.");
 
     if (novaConsulta >= MAX_CONSULTAS) {
       setTimeout(() => setBloqueado(true), 700);
