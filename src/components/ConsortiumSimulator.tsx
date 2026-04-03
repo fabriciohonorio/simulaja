@@ -7,7 +7,7 @@ const sliderThumbStyles = `
     width: 28px;
     height: 28px;
     background: #ffffff;
-    border: 4px solid hsl(var(--primary));
+    border: 4px solid hsl(var(--secondary));
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
@@ -19,14 +19,14 @@ const sliderThumbStyles = `
   }
   input[type=range].custom-slider:active::-webkit-slider-thumb {
     transform: scale(0.95);
-    background: hsl(var(--primary));
+    background: hsl(var(--secondary));
     border-color: #ffffff;
   }
   input[type=range].custom-slider::-moz-range-thumb {
     width: 28px;
     height: 28px;
     background: #ffffff;
-    border: 4px solid hsl(var(--primary));
+    border: 4px solid hsl(var(--secondary));
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
@@ -229,8 +229,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
   const [historico, setHistorico] = useState<HistItem[]>([]);
   const [bloqueado, setBloqueado] = useState(false);
   
-  const [lanceDinheiroPct, setLanceDinheiroPct] = useState(0);
-  const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
   const [incluirComp, setIncluirComp] = useState(true);
 
   const resultRef = useRef<HTMLDivElement>(null);
@@ -512,7 +510,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
               onChange={(e) => setIdx(Number(e.target.value))}
               className="custom-slider w-full h-3 rounded-full cursor-pointer appearance-none mb-2"
               style={{
-                background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
+                background: `linear-gradient(to right, hsl(var(--secondary)) 0%, hsl(var(--secondary)) ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
               }}
             />
             <div className="flex justify-between text-xs text-muted-foreground mb-6">
@@ -537,32 +535,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
               ))}
             </div>
 
-            {/* Parcela verde */}
-            <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
-              <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,#16a34a,#4ade80)" }} />
-              <p className="text-[0.65rem] font-bold uppercase tracking-wider mb-1" style={{ color: "#15803d" }}>
-                Parcela reduzida 50% <span style={{ color: "#4ade80", fontWeight: 400 }}>· até a contemplação</span>
-              </p>
-              <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "monospace", color: "#16a34a" }}>
-                {fmtFull(g.r50)}
-              </p>
-              <div className="flex gap-2 mt-3.5">
-                {[
-                  { label: "Crédito", value: fmt(g.credito) },
-                  { label: "Prazo", value: `${g.prazo} meses` },
-                  { label: "Grupo", value: g.grupo },
-                  ...(isInternal && g.tx !== undefined ? [{ label: "Tx Adm", value: `${g.tx}%` }] : []),
-                  ...(isInternal && g.fr !== undefined ? [{ label: "F. Reserva", value: `${g.fr}%` }] : [])
-                ].map((m) => (
-                  <div key={m.label} className="flex-1 bg-white rounded-lg py-2 px-2.5 text-center" style={{ border: "1px solid #d1fae5" }}>
-                    <p className="text-[0.58rem] uppercase tracking-wider mb-0.5 text-muted-foreground whitespace-nowrap">{m.label}</p>
-                    <p className="text-sm font-bold text-foreground" style={{ fontFamily: "monospace" }}>{m.value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="h-px bg-border mb-5" />
 
             {/* Formulário */}
             <input
@@ -599,39 +572,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
               <ArrowRight className="w-5 h-5" />
             </button>
 
-            {/* Estratégia de Lance (Opcional) */}
-            <div className="mt-8 pt-6 border-t border-border">
-              <div className="flex items-center gap-2 mb-4">
-                <CircleDollarSign className="w-5 h-5 text-secondary" />
-                <h3 className="font-bold text-foreground">Estratégia de Lance (Opcional)</h3>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Lance Dinheiro (%)</label>
-                  <Input 
-                    type="number" 
-                    value={lanceDinheiroPct || ""} 
-                    onChange={(e) => setLanceDinheiroPct(Number(e.target.value))}
-                    placeholder="Ex: 20"
-                    className="rounded-lg bg-muted/50 border-border text-sm font-mono"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Lance Embutido (%)</label>
-                  <Input 
-                    type="number" 
-                    value={lanceEmbutidoPct || ""} 
-                    onChange={(e) => setLanceEmbutidoPct(Number(e.target.value))}
-                    placeholder="Ex: 10"
-                    className="rounded-lg bg-muted/50 border-border text-sm font-mono"
-                  />
-                </div>
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-2 italic">
-                * O lance embutido utiliza parte do próprio crédito para contemplação.
-              </p>
-            </div>
+
 
             <p className="text-center text-xs text-muted-foreground mt-3.5">
               Ao simular, você concorda com nossa <a href="#" className="text-primary underline hover:no-underline font-medium">Política de Privacidade</a>
@@ -680,19 +621,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
                     )}
                   </div>
 
-                  {/* Estratégia de Lance (Se existir) */}
-                  {(lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) && (
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="w-4 h-4 text-blue-600" />
-                        <span className="text-[0.7rem] font-bold text-blue-800 uppercase">Estratégia de Lance</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm font-bold text-blue-900">
-                        <span>Total do Lance ({lanceDinheiroPct + lanceEmbutidoPct}%)</span>
-                        <span>{fmtFull(g.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100)}</span>
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* Comparativo */}
                   {incluirComp && (
