@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConsortiumSimulator from "@/components/ConsortiumSimulator";
 
 // Types matching ConsortiumSimulator
-type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
+type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
 type Category = { id: string; label: string; icon: string };
 
 export default function SimuladorAdmin() {
@@ -345,7 +345,7 @@ export default function SimuladorAdmin() {
                   <div className="p-4 bg-primary text-white text-center text-xs font-bold uppercase">
                     Modo Visualização (Simule para testar as regras)
                   </div>
-                  <ConsortiumSimulator overrideConfig={{ categorias, grupos }} />
+                  <ConsortiumSimulator overrideConfig={{ categorias, grupos }} isInternal={true} />
                </div>
             </div>
           </div>

@@ -1,4 +1,46 @@
 import { useState, useEffect, useRef } from "react";
+
+const sliderThumbStyles = `
+  input[type=range].custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 4px solid hsl(var(--primary));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  input[type=range].custom-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 0 4px rgba(0,0,0,0.1);
+  }
+  input[type=range].custom-slider:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+    background: hsl(var(--primary));
+    border-color: #ffffff;
+  }
+  input[type=range].custom-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 4px solid hsl(var(--primary));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  input[type=range].custom-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 0 4px rgba(0,0,0,0.1);
+  }
+  input[type=range].custom-slider:active::-moz-range-thumb {
+    transform: scale(0.95);
+  }
+`;
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -34,48 +76,62 @@ import cardNautica from "@/assets/card-nautica.jpg";
 const WHATSAPP_LINK = "https://wa.me/55?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
 
 type Category = { id: string; label: string; icon: string };
-type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
+type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
 
 const GRUPOS: Record<string, GrupoItem[]> = {
   imovel: [
-    { grupo: "6041", credito: 110000, r50: 405.9, prazo: 216 },
-    { grupo: "6041", credito: 120000, r50: 442.8, prazo: 216 },
-    { grupo: "6041", credito: 130000, r50: 479.69, prazo: 216 },
-    { grupo: "6041", credito: 140000, r50: 516.59, prazo: 216 },
-    { grupo: "6041", credito: 150000, r50: 553.49, prazo: 216 },
-    { grupo: "6041", credito: 160000, r50: 590.39, prazo: 216 },
-    { grupo: "6041", credito: 170000, r50: 627.29, prazo: 216 },
-    { grupo: "6041", credito: 180000, r50: 664.19, prazo: 216 },
-    { grupo: "6041", credito: 190000, r50: 701.09, prazo: 216 },
-    { grupo: "6041", credito: 200000, r50: 737.99, prazo: 216 },
-    { grupo: "6030", credito: 250000, r50: 941.72, prazo: 199 },
-    { grupo: "6030", credito: 300000, r50: 1130.06, prazo: 199 },
-    { grupo: "6035", credito: 350000, r50: 1286.42, prazo: 220 },
-    { grupo: "6039", credito: 500000, r50: 1672.7, prazo: 230 },
-    { grupo: "6039", credito: 700000, r50: 2341.78, prazo: 230 },
-    { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
+    { grupo: "6040", credito: 110000, r50: 440.55, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 120000, r50: 480.60, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 130000, r50: 520.66, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 140000, r50: 560.71, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 150000, r50: 600.76, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 160000, r50: 640.81, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 170000, r50: 680.86, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 180000, r50: 720.91, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 190000, r50: 760.96, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 200000, r50: 801.01, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 210000, r50: 841.06, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6040", credito: 220000, r50: 881.11, prazo: 209, tx: 26, fr: 1 },
+    { grupo: "6030", credito: 250000, r50: 1039.13, prazo: 198, tx: 25, fr: 1 },
+    { grupo: "6030", credito: 260000, r50: 1080.70, prazo: 198, tx: 25, fr: 1 },
+    { grupo: "6030", credito: 270000, r50: 1122.26, prazo: 198, tx: 25, fr: 1 },
+    { grupo: "6030", credito: 280000, r50: 1163.83, prazo: 198, tx: 25, fr: 1 },
+    { grupo: "6030", credito: 300000, r50: 1246.96, prazo: 198, tx: 25, fr: 1 },
+    { grupo: "6035", credito: 320000, r50: 1197.94, prazo: 228, tx: 27, fr: 1 },
+    { grupo: "6042", credito: 350000, r50: 1234.46, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 400000, r50: 1410.82, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 420000, r50: 1481.36, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 430000, r50: 1516.63, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 450000, r50: 1587.17, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 500000, r50: 1763.52, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 600000, r50: 2116.22, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 700000, r50: 2468.93, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 1000000, r50: 3527.04, prazo: 240, tx: 26, fr: 1 },
   ],
   veiculo: [
-    { grupo: "5293", credito: 25000, r50: 264.63, prazo: 77 },
-    { grupo: "5294", credito: 37000, r50: 273.98, prazo: 100 },
-    { grupo: "5294", credito: 40000, r50: 296.2, prazo: 100 },
-    { grupo: "5294", credito: 45000, r50: 333.22, prazo: 100 },
-    { grupo: "5294", credito: 50000, r50: 370.25, prazo: 100 },
-    { grupo: "5294", credito: 60000, r50: 444.3, prazo: 100 },
-    { grupo: "5295", credito: 80000, r50: 592.39, prazo: 100 },
-    { grupo: "5295", credito: 100000, r50: 740.49, prazo: 100 },
-    { grupo: "5295", credito: 120000, r50: 888.59, prazo: 100 },
-    { grupo: "5282", credito: 150000, r50: 1249.79, prazo: 91 },
-    { grupo: "5282", credito: 160000, r50: 1333.11, prazo: 91 },
+    { grupo: "5294", credito: 37000, r50: 276.62, prazo: 99, tx: 20, fr: 1 },
+    { grupo: "5294", credito: 40000, r50: 299.04, prazo: 99, tx: 20, fr: 1 },
+    { grupo: "5294", credito: 50000, r50: 373.80, prazo: 99, tx: 20, fr: 1 },
+    { grupo: "5294", credito: 60000, r50: 448.56, prazo: 99, tx: 20, fr: 1 },
+    { grupo: "5294", credito: 70000, r50: 523.31, prazo: 99, tx: 20, fr: 1 },
+    { grupo: "5295", credito: 80000, r50: 575.99, prazo: 100, tx: 18, fr: 1 },
+    { grupo: "5295", credito: 90000, r50: 647.99, prazo: 100, tx: 18, fr: 1 },
+    { grupo: "5295", credito: 100000, r50: 719.99, prazo: 100, tx: 18, fr: 1 },
+    { grupo: "5295", credito: 110000, r50: 791.99, prazo: 100, tx: 18, fr: 1 },
+    { grupo: "5295", credito: 120000, r50: 863.99, prazo: 100, tx: 18, fr: 1 },
+    { grupo: "5295", credito: 130000, r50: 935.98, prazo: 100, tx: 18, fr: 1 },
+    { grupo: "5286", credito: 140000, r50: 1259.99, prazo: 84, tx: 22, fr: 1 },
+    { grupo: "5286", credito: 150000, r50: 1349.99, prazo: 84, tx: 22, fr: 1 },
+    { grupo: "5286", credito: 160000, r50: 1439.99, prazo: 84, tx: 22, fr: 1 },
   ],
   pesados: [
-    { grupo: "5996", credito: 180000, r50: 932.64, prazo: 135 },
-    { grupo: "5996", credito: 200000, r50: 1036.26, prazo: 135 },
-    { grupo: "5996", credito: 250000, r50: 1295.33, prazo: 135 },
-    { grupo: "5996", credito: 280000, r50: 1450.77, prazo: 135 },
-    { grupo: "5996", credito: 300000, r50: 1554.4, prazo: 135 },
-    { grupo: "5996", credito: 400000, r50: 2072.52, prazo: 135 },
-    { grupo: "5996", credito: 500000, r50: 2590.66, prazo: 135 },
+    { grupo: "5998", credito: 180000, r50: 1309.29, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "5998", credito: 200000, r50: 1454.77, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "5998", credito: 220000, r50: 1600.24, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "5998", credito: 250000, r50: 1818.46, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "5998", credito: 280000, r50: 2036.68, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "5998", credito: 300000, r50: 2182.15, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "5998", credito: 350000, r50: 2545.84, prazo: 96, tx: 16, fr: 1 },
   ],
 };
 
@@ -103,9 +159,10 @@ interface ConsortiumSimulatorProps {
     categorias: Category[];
     grupos: Record<string, GrupoItem[]>;
   };
+  isInternal?: boolean;
 }
 
-const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
+const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulatorProps) => {
   const { profile } = useProfile();
   const { toast } = useToast();
 
@@ -303,6 +360,7 @@ const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <style>{sliderThumbStyles}</style>
       {/* ===== HERO SECTION ===== */}
       <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 30%) 100%)" }}>
         <div className="absolute inset-0" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.1 }} />
@@ -452,9 +510,9 @@ const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
               step={1}
               value={safeIdx}
               onChange={(e) => setIdx(Number(e.target.value))}
-              className="w-full h-1.5 rounded-full cursor-pointer appearance-none mb-2"
+              className="custom-slider w-full h-3 rounded-full cursor-pointer appearance-none mb-2"
               style={{
-                background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${pct}%, hsl(var(--secondary)) ${pct}%, hsl(var(--secondary)) 100%)`,
+                background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
               }}
             />
             <div className="flex justify-between text-xs text-muted-foreground mb-6">
@@ -493,9 +551,11 @@ const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
                   { label: "Crédito", value: fmt(g.credito) },
                   { label: "Prazo", value: `${g.prazo} meses` },
                   { label: "Grupo", value: g.grupo },
+                  ...(isInternal && g.tx !== undefined ? [{ label: "Tx Adm", value: `${g.tx}%` }] : []),
+                  ...(isInternal && g.fr !== undefined ? [{ label: "F. Reserva", value: `${g.fr}%` }] : [])
                 ].map((m) => (
                   <div key={m.label} className="flex-1 bg-white rounded-lg py-2 px-2.5 text-center" style={{ border: "1px solid #d1fae5" }}>
-                    <p className="text-[0.58rem] uppercase tracking-wider mb-0.5 text-muted-foreground">{m.label}</p>
+                    <p className="text-[0.58rem] uppercase tracking-wider mb-0.5 text-muted-foreground whitespace-nowrap">{m.label}</p>
                     <p className="text-sm font-bold text-foreground" style={{ fontFamily: "monospace" }}>{m.value}</p>
                   </div>
                 ))}
@@ -597,7 +657,7 @@ const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
                   </div>
 
                   {/* Grid: Crédito e Prazo */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className={`grid gap-3 ${isInternal && (resultado.tx !== undefined || resultado.fr !== undefined) ? 'grid-cols-4' : 'grid-cols-2'}`}>
                     <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
                       <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1">Crédito</p>
                       <p className="text-lg font-bold text-foreground">{fmtFull(resultado.credito)}</p>
@@ -606,6 +666,18 @@ const ConsortiumSimulator = ({ overrideConfig }: ConsortiumSimulatorProps) => {
                       <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1">Prazo</p>
                       <p className="text-lg font-bold text-foreground">{resultado.prazo} meses</p>
                     </div>
+                    {isInternal && resultado.tx !== undefined && (
+                      <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
+                        <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1 whitespace-nowrap">Taxa Adm</p>
+                        <p className="text-lg font-bold text-foreground">{resultado.tx}%</p>
+                      </div>
+                    )}
+                    {isInternal && resultado.fr !== undefined && (
+                      <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
+                        <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1 whitespace-nowrap">F. Reserva</p>
+                        <p className="text-lg font-bold text-foreground">{resultado.fr}%</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Estratégia de Lance (Se existir) */}
