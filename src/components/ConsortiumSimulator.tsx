@@ -167,57 +167,8 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
   const { profile } = useProfile();
   const { toast } = useToast();
 
-  const [dynamicCategorias, setDynamicCategorias] = useState<Category[]>(CATEGORIAS);
-  const [dynamicGrupos, setDynamicGrupos] = useState<Record<string, GrupoItem[]>>(GRUPOS);
-
-  useEffect(() => {
-    if (overrideConfig) {
-      setDynamicCategorias(overrideConfig.categorias);
-      setDynamicGrupos(overrideConfig.grupos);
-      return;
-    }
-
-    const fetchConfig = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const publicOrgId = urlParams.get("org");
-      const targetOrgId = publicOrgId || profile?.organizacao_id;
-
-      if (!targetOrgId) {
-         setDynamicCategorias(CATEGORIAS);
-         setDynamicGrupos(GRUPOS);
-         return;
-      }
-
-      try {
-        const { data } = await (supabase as any)
-          .from("simulador_config")
-          .select("*")
-          .eq("organizacao_id", targetOrgId)
-          .maybeSingle();
-        
-        if (data) {
-          if (data.categorias) setDynamicCategorias(data.categorias);
-          if (data.grupos) setDynamicGrupos(data.grupos);
-        } else {
-          const { data: masterData } = await (supabase as any)
-            .from("simulador_config")
-            .select("*")
-            .order('updated_at', { ascending: true })
-            .limit(1)
-            .maybeSingle();
-
-          if (masterData) {
-            setDynamicCategorias(masterData.categorias);
-            setDynamicGrupos(masterData.grupos);
-          }
-        }
-      } catch (err) {
-        console.error("Erro ao carregar simulador_config:", err);
-      }
-    };
-
-    fetchConfig();
-  }, [profile?.organizacao_id, overrideConfig]);
+  const dynamicCategorias = overrideConfig?.categorias || CATEGORIAS;
+  const dynamicGrupos = overrideConfig?.grupos || GRUPOS;
 
   const [categoria, setCategoria] = useState("imovel");
   const [idx, setIdx] = useState(4);
