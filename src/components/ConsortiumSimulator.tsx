@@ -1,4 +1,26 @@
 import { useState, useEffect, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Target,
+  BarChart3,
+  Shield,
+  Clock,
+  Anchor,
+  Award,
+  CircleDollarSign,
+  TrendingDown,
+  Calculator,
+  Info,
+  Send,
+  FileText
+} from "lucide-react";
+import { WhatsAppIcon } from './SocialIcons';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { jsPDF } from "jspdf";
+import { useProfile } from "@/hooks/useProfile";
 
 const sliderThumbStyles = `
   input[type=range].custom-slider::-webkit-slider-thumb {
@@ -40,30 +62,6 @@ const sliderThumbStyles = `
     transform: scale(0.95);
   }
 `;
-
-import { useToast } from "@/hooks/use-toast";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Target,
-  BarChart3,
-  Shield,
-  Clock,
-  Anchor,
-  Award,
-  CircleDollarSign,
-  TrendingDown,
-  Calculator,
-  Info,
-  Send
-} from "lucide-react";
-import { WhatsAppIcon } from './SocialIcons';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-
-import { useProfile } from "@/hooks/useProfile";
-
-
 
 export type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
 export type Category = { id: string; label: string; icon: string; };
@@ -215,6 +213,90 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
 
   const pct = lista.length > 1 ? (safeIdx / (lista.length - 1)) * 100 : 0;
 
+  const handleExportPDF = () => {
+    if (!resultado) return;
+    
+    const doc = new jsPDF();
+    const primaryColor = "#0D214F";
+    const accentColor = "#f47920";
+    
+    // Header
+    doc.setFillColor(primaryColor);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("PROPOSTA DE CONSÓRCIO", 105, 25, { align: "center" });
+    
+    // Client Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Cliente: ${simNome || "Não informado"}`, 20, 55);
+    doc.text(`WhatsApp: ${simWpp || "Não informado"}`, 20, 62);
+    doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 150, 55);
+    
+    // Simulation Box
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(15, 75, 180, 100, 3, 3);
+    
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Detalhes da Simulação", 25, 87);
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("Crédito:", 25, 100);
+    doc.setFont("helvetica", "bold");
+    doc.text(fmtFull(resultado.credito), 80, 100);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text("Prazo:", 25, 110);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${resultado.prazo} meses`, 80, 110);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text("Parcela Reduzida (50%):", 25, 120);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor("#16a34a");
+    doc.text(fmtFull(resultado.r50), 80, 120);
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    if (resultado.tx) {
+        doc.text("Taxa Administrativa:", 25, 130);
+        doc.text(`${resultado.tx}%`, 80, 130);
+    }
+    
+    if (resultado.fr) {
+        doc.text("Fundo de Reserva:", 25, 140);
+        doc.text(`${resultado.fr}%`, 80, 140);
+    }
+    
+    if (lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Estratégia de Lance:", 25, 155);
+        doc.setFont("helvetica", "normal");
+        const lanceTotal = resultado.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100;
+        doc.text(`Total: ${fmtFull(lanceTotal)} (${lanceDinheiroPct + lanceEmbutidoPct}%)`, 80, 155);
+    }
+    
+    // Footer
+    doc.setFillColor(245, 245, 245);
+    doc.rect(0, 277, 210, 20, 'F');
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(10);
+    doc.text("www.oespecialistaconsorcio.com.br", 105, 288, { align: "center" });
+    
+    doc.save(`simulacao_consorcio_${simNome.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+    
+    toast({
+        title: "PDF Gerado!",
+        description: "A proposta foi baixada com sucesso.",
+    });
+  };
+
   const confirmarSimulacao = async () => {
     const nomeOk = simNome.trim().length > 0;
     const wppOk = simWpp.replace(/\D/g, "").length >= 10;
@@ -263,7 +345,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <style>{sliderThumbStyles}</style>
-      {/* ===== SIMULADOR COMPLETO (inline) ===== */}
       <section id="simulator" className="py-20 bg-background">
         <div className="container max-w-[620px] mx-auto px-4">
           <p className="text-xs font-bold tracking-[0.16em] uppercase text-center mb-2" style={{ color: "#f47920" }}>Simulador</p>
@@ -274,9 +355,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
             Descubra agora o valor do seu crédito, parcelas e o prazo ideal para o seu planejamento.
           </p>
 
-          {/* Simulator Card */}
           <div className="rounded-[22px] p-6 sm:p-8 bg-card border border-border shadow-xl">
-            {/* Slider */}
             <p className="text-xs font-semibold text-center mb-2 text-muted-foreground">Valor do crédito desejado</p>
             <div className="text-center mb-5">
               <span className="text-sm font-bold mr-1 text-muted-foreground">R$</span>
@@ -302,7 +381,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               <span>R$ {lista[lista.length - 1].credito.toLocaleString("pt-BR")}</span>
             </div>
 
-            {/* Segmentos */}
             <div className="flex flex-wrap gap-2 justify-center mb-6">
               {dynamicCategorias.map((cat) => (
                 <button
@@ -319,7 +397,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               ))}
             </div>
 
-            {/* Parcela verde */}
             {isInternal && (
               <>
                 <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
@@ -330,7 +407,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                   <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "monospace", color: "#16a34a" }}>
                     {fmtFull(g.r50)}
                   </p>
-                  <div className="flex gap-2 mt-3.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:gap-2 mt-3.5 gap-2">
                     {[
                       { label: "Crédito", value: fmt(g.credito) },
                       { label: "Prazo", value: `${g.prazo} meses` },
@@ -338,7 +415,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                       ...(isInternal && g.tx !== undefined ? [{ label: "Tx Adm", value: `${g.tx}%` }] : []),
                       ...(isInternal && g.fr !== undefined ? [{ label: "F. Reserva", value: `${g.fr}%` }] : [])
                     ].map((m) => (
-                      <div key={m.label} className="flex-1 bg-white rounded-lg py-2 px-2.5 text-center" style={{ border: "1px solid #d1fae5" }}>
+                      <div key={m.label} className="bg-white rounded-lg py-2 px-2.5 text-center border border-green-100 shadow-sm">
                         <p className="text-[0.58rem] uppercase tracking-wider mb-0.5 text-muted-foreground whitespace-nowrap">{m.label}</p>
                         <p className="text-sm font-bold text-foreground" style={{ fontFamily: "monospace" }}>{m.value}</p>
                       </div>
@@ -349,7 +426,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               </>
             )}
 
-            {/* Formulário */}
             <input
               type="text"
               placeholder="Seu nome completo *"
@@ -384,7 +460,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               <ArrowRight className="w-5 h-5" />
             </button>
 
-            {/* Estratégia de Lance (Opcional) */}
             {isInternal && (
               <div className="mt-8 pt-6 border-t border-border">
                 <div className="flex items-center gap-2 mb-4">
@@ -414,17 +489,9 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                     />
                   </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-2 italic">
-                  * O lance embutido utiliza parte do próprio crédito para contemplação.
-                </p>
               </div>
             )}
 
-            <p className="text-center text-xs text-muted-foreground mt-3.5">
-              Ao simular, você concorda com nossa <a href="#" className="text-primary underline hover:no-underline font-medium">Política de Privacidade</a>
-            </p>
-
-            {/* Resultado */}
             {resultado && (
               <div ref={resultRef} className="rounded-[18px] p-0 mt-8 animate-fade-in overflow-hidden border-2 border-primary bg-card shadow-xl">
                 <div className="bg-primary p-4 text-white">
@@ -436,15 +503,13 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                 </div>
                 
                 <div className="p-5 space-y-4">
-                  {/* Row 1: Parcela Destaque */}
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
                     <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">Parcela Reduzida (50%)</p>
                     <p className="text-3xl font-black text-[#16a34a]" style={{ fontFamily: "monospace" }}>{fmtFull(resultado.r50)}</p>
                     <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">Investimento inteligente até a contemplação</p>
                   </div>
 
-                  {/* Grid: Crédito e Prazo */}
-                  <div className={`grid gap-3 ${isInternal && (resultado.tx !== undefined || resultado.fr !== undefined) ? 'grid-cols-4' : 'grid-cols-2'}`}>
+                  <div className={`grid gap-3 ${isInternal && (resultado.tx !== undefined || resultado.fr !== undefined) ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2'}`}>
                     <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
                       <p className="text-[0.6rem] uppercase font-bold text-muted-foreground mb-1">Crédito</p>
                       <p className="text-lg font-bold text-foreground">{fmtFull(resultado.credito)}</p>
@@ -467,7 +532,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                     )}
                   </div>
 
-                  {/* Estratégia de Lance (Se existir) */}
                   {(lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) && (
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -476,12 +540,11 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                       </div>
                       <div className="flex justify-between items-center text-sm font-bold text-blue-900">
                         <span>Total do Lance ({lanceDinheiroPct + lanceEmbutidoPct}%)</span>
-                        <span>{fmtFull(g.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100)}</span>
+                        <span>{fmtFull(resultado.credito * (lanceDinheiroPct + lanceEmbutidoPct) / 100)}</span>
                       </div>
                     </div>
                   )}
 
-                  {/* Comparativo */}
                   {incluirComp && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <div className="flex items-center gap-2 mb-3">
@@ -492,7 +555,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                       {(() => {
                         const isIm = categoria === 'imovel';
                         const taxaM = isIm ? 0.00887 : 0.025;
-                        const pmtF = g.credito * taxaM / (1 - Math.pow(1 + taxaM, -g.prazo));
+                        const pmtF = resultado.credito * taxaM / (1 - Math.pow(1 + taxaM, -resultado.prazo));
                         return (
                           <div className="space-y-2">
                             <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -517,31 +580,38 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                     Para condições especiais e lances personalizados <strong className="text-secondary">fale com o especialista ✉️</strong>
                   </div>
 
-                  {isInternal && (
-                    <div className="pt-4 border-t border-border mt-4">
-                      <button
-                        onClick={() => {
-                          let msg = `*Simulação de Consórcio*\n\n`;
-                          msg += `*Crédito:* ${fmtFull(resultado.credito)}\n`;
-                          msg += `*Prazo:* ${resultado.prazo} meses\n`;
-                          msg += `*Parcela Reduzida (50%):* ${fmtFull(resultado.r50)}\n\n`;
-                          if (resultado.tx !== undefined) msg += `*Taxa Adm:* ${resultado.tx}%\n`;
-                          if (resultado.fr !== undefined) msg += `*Fundo Reserva:* ${resultado.fr}%\n\n`;
-                          msg += `_Para mais detalhes, fale com o especialista!_`;
-                          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                        }}
-                        className="w-full py-3 rounded-[10px] text-sm font-extrabold flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg transition-all"
-                      >
-                        <Send className="w-4 h-4" />
-                        Enviar Proposta via WhatsApp
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border mt-4">
+                    <button
+                      onClick={() => {
+                        let msg = `*Simulação de Consórcio*\n\n`;
+                        msg += `*Crédito:* ${fmtFull(resultado.credito)}\n`;
+                        msg += `*Prazo:* ${resultado.prazo} meses\n`;
+                        msg += `*Parcela Reduzida (50%):* ${fmtFull(resultado.r50)}\n\n`;
+                        if (resultado.tx !== undefined) msg += `*Taxa Adm:* ${resultado.tx}%\n`;
+                        if (resultado.fr !== undefined) msg += `*Fundo Reserva:* ${resultado.fr}%\n`;
+                        if (lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) {
+                            msg += `*Estratégia de Lance:* ${lanceDinheiroPct + lanceEmbutidoPct}%\n`;
+                        }
+                        msg += `\n_Para mais detalhes, visite: www.oespecialistaconsorcio.com.br_`;
+                        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                      }}
+                      className="flex-1 py-3.5 rounded-[10px] text-sm font-extrabold flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg transition-all"
+                    >
+                      <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                      <span className="hidden sm:inline">Enviar via WhatsApp</span>
+                    </button>
+                    <button
+                      onClick={handleExportPDF}
+                      className="flex-1 py-3.5 rounded-[10px] text-sm font-extrabold flex items-center justify-center gap-2.5 bg-secondary hover:bg-secondary/90 text-white shadow-lg transition-all"
+                    >
+                      <FileText className="w-5 h-5 shrink-0" />
+                      <span>Baixar PDF</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Histórico */}
             {historico.length > 0 && (
               <div className="mt-4">
                 <p className="text-[0.64rem] font-bold tracking-[0.1em] uppercase mb-2 text-muted-foreground">Suas simulações</p>
@@ -560,7 +630,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               </div>
             )}
 
-            {/* Bloqueio */}
             {bloqueado && (
               <div className="rounded-[14px] p-7 text-center mt-5 animate-fade-in bg-card border-2 border-secondary shadow-lg">
                 <p className="text-3xl mb-2">🔐</p>
@@ -569,7 +638,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                   ⏰ As melhores cotas são contempladas rapidamente!
                 </div>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Você utilizou suas 5 simulações gratuitas.<br />Fale agora com o especialista e garanta sua cota!
+                  Você utilizou suas {MAX_CONSULTAS} simulações gratuitas.<br />Fale agora com o especialista e garanta sua cota!
                 </p>
                 <a
                   href={lockWppUrl}
@@ -586,8 +655,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
           </div>
         </div>
       </section>
-
-    </div >
+    </div>
   );
 };
 

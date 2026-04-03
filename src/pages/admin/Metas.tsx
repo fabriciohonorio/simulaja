@@ -283,18 +283,41 @@ export default function Metas() {
     };
 
     async function fetchTermometro() {
-        const { data, error } = await (supabase.from('termometro_mercado' as any) as any)
-            .select('*')
-            .order('mes_referencia', { ascending: false })
-            .limit(1)
-            .single();
+        try {
+            const { data, error } = await (supabase.from('termometro_mercado' as any) as any)
+                .select('*')
+                .order('mes_referencia', { ascending: false })
+                .limit(1)
+                .maybeSingle();
 
-        if (error) {
-            console.error('Erro ao buscar termômetro:', error);
-            return;
+            if (error) throw error;
+
+            if (data) {
+                setTermometro(data as unknown as TermometroMercado);
+            } else {
+                // Fallback com dados ABAC 2025 (Consolidado 2024)
+                setTermometro({
+                    id: 'fallback-2025',
+                    mes_referencia: '2025-01',
+                    participantes_ativos: 10.29,
+                    participantes_ativos_variacao: 3.7,
+                    vendas_cotas: 4280000,
+                    vendas_cotas_variacao: 3.4,
+                    creditos_comercializados: 334.16,
+                    creditos_comercializados_variacao: 5.6,
+                    ticket_medio: 165.4,
+                    ticket_medio_variacao: 11.7,
+                    contemplacoes: 1600000,
+                    contemplacoes_variacao: 5.2,
+                    creditos_disponibilizados: 84.1,
+                    creditos_disponibilizados_variacao: 4.8,
+                    temperatura: 'quente',
+                    temperatura_score: 92
+                });
+            }
+        } catch (err) {
+            console.error('Erro ao buscar termômetro:', err);
         }
-
-        setTermometro(data as unknown as TermometroMercado);
     }
 
     async function fetchDicas(termometroId: string) {
@@ -638,7 +661,10 @@ export default function Metas() {
             {/* Chart + Thermometer */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 <Card className="lg:col-span-2">
-                    <CardHeader><CardTitle className="text-sm sm:text-base">Meta vs Realizado ({currentYear})</CardTitle></CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm sm:text-base">Meta vs Realizado ({currentYear})</CardTitle>
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5">Interno</Badge>
+                    </CardHeader>
                     <CardContent className="h-56 sm:h-72">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={monthsData}>
@@ -651,6 +677,52 @@ export default function Metas() {
                                 <Bar dataKey="realizado" name="Realizado" fill="hsl(207,90%,35%)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+                <Card className="lg:col-span-3">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <div>
+                            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5 text-green-500" />
+                                Crescimento do Mercado de Consórcios (ABAC)
+                            </CardTitle>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Volume de Créditos Comercializados (Bilhões de R$)</p>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700 border-green-200">Recorde 2024</Badge>
+                    </CardHeader>
+                    <CardContent className="h-64 pt-6">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={[
+                                { ano: '2021', valor: 222.04 },
+                                { ano: '2022', valor: 252.10 },
+                                { ano: '2023', valor: 316.70 },
+                                { ano: '2024', valor: 334.16 },
+                            ]}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="ano" tick={{ fontSize: 11, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                <YAxis hide />
+                                <Tooltip 
+                                    formatter={(v: number) => [`R$ ${v} Bi`, 'Créditos']} 
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Bar 
+                                    dataKey="valor" 
+                                    fill="url(#colorGrowth)" 
+                                    radius={[8, 8, 0, 0]} 
+                                    label={{ position: 'top', formatter: (v: number) => `R$ ${v}B`, fontSize: 12, fontWeight: 'bold', fill: '#0f172a' }}
+                                >
+                                    <defs>
+                                        <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="#059669" stopOpacity={0.8}/>
+                                        </linearGradient>
+                                    </defs>
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100 italic text-[11px] text-green-800 text-center">
+                            "O consórcio vive seu melhor momento histórico, com recordes sucessivos de venda e créditos liberados." — Anuário ABAC 2025
+                        </div>
                     </CardContent>
                 </Card>
                 <Card>

@@ -31,6 +31,7 @@ export default function Agendamentos() {
         .from("leads")
         .select("*")
         .not("data_vencimento", "is", null)
+        .not("status", "in", '("fechado","perdido","morto","aguardando_pagamento")')
         .order("data_vencimento", { ascending: true });
       
       setAgendas((data as any[]) ?? []);
@@ -40,9 +41,11 @@ export default function Agendamentos() {
     fetchAgendas();
   }, []);
 
+  const excludedStatuses = ["fechado", "perdido", "morto", "aguardando_pagamento"];
   const filteredAgendas = agendas.filter(a => 
-    a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (a.cidade && a.cidade.toLowerCase().includes(searchTerm.toLowerCase()))
+    !excludedStatuses.includes(a.status?.toLowerCase() || "") &&
+    (a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (a.cidade && a.cidade.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
   const openWhatsApp = (lead: Lead) => {
