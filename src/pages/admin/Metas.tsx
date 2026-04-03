@@ -26,13 +26,14 @@ import {
     Truck, 
     AlertCircle,
     CheckCircle2,
+    ArrowRight,
     LucideIcon,
     Settings2
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { ComposedChart, Bar, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -659,121 +660,90 @@ export default function Metas() {
             </div>
 
             {/* Chart + Thermometer */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                <Card className="lg:col-span-2">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm sm:text-base">Meta vs Realizado ({currentYear})</CardTitle>
-                        <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5">Interno</Badge>
-                    </CardHeader>
-                    <CardContent className="h-56 sm:h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={monthsData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 11 }} />
-                                <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                                <Bar dataKey="meta" name="Meta" fill="hsl(215,20%,65%)" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="realizado" name="Realizado" fill="hsl(207,90%,35%)" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-                <Card className="lg:col-span-3">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+            {/* Chart + Thermometer Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* 1. Meta vs Realizado (Internal) */}
+                <Card className="lg:col-span-2 shadow-sm border-slate-200/60 bg-white/50 backdrop-blur-sm overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/30">
                         <div>
-                            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-green-500" />
-                                Crescimento do Mercado de Consórcios (ABAC)
-                            </CardTitle>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Volume de Créditos Comercializados (Bilhões de R$)</p>
+                           <CardTitle className="text-sm sm:text-base font-bold text-slate-800">Meta vs Realizado ({currentYear})</CardTitle>
+                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Desempenho da consultoria</p>
                         </div>
-                        <Badge className="bg-green-100 text-green-700 border-green-200">Recorde 2024</Badge>
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5 px-2 py-0.5">Operação Interna</Badge>
                     </CardHeader>
-                    <CardContent className="h-64 pt-6">
+                    <CardContent className="h-56 sm:h-72 pt-6">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={[
-                                { ano: '2021', valor: 222.04 },
-                                { ano: '2022', valor: 252.10 },
-                                { ano: '2023', valor: 316.70 },
-                                { ano: '2024', valor: 334.16 },
-                            ]}>
+                            <ComposedChart data={monthsData}>
+                                <defs>
+                                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="hsl(207,90%,45%)" stopOpacity={1}/>
+                                        <stop offset="100%" stopColor="hsl(207,90%,25%)" stopOpacity={1}/>
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="ano" tick={{ fontSize: 11, fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                                <YAxis hide />
+                                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                                 <Tooltip 
-                                    formatter={(v: number) => [`R$ ${v} Bi`, 'Créditos']} 
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                                    formatter={(v: number) => [formatCurrency(v), "Valor"]}
                                 />
-                                <Bar 
-                                    dataKey="valor" 
-                                    fill="url(#colorGrowth)" 
-                                    radius={[8, 8, 0, 0]} 
-                                    label={{ position: 'top', formatter: (v: number) => `R$ ${v}B`, fontSize: 12, fontWeight: 'bold', fill: '#0f172a' }}
-                                >
-                                    <defs>
-                                        <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor="#059669" stopOpacity={0.8}/>
-                                        </linearGradient>
-                                    </defs>
-                                </Bar>
-                            </BarChart>
+                                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} iconType="circle" />
+                                <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={24} />
+                                <Bar dataKey="realizado" name="Realizado" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={24} />
+                            </ComposedChart>
                         </ResponsiveContainer>
-                        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-100 italic text-[11px] text-green-800 text-center">
-                            "O consórcio vive seu melhor momento histórico, com recordes sucessivos de venda e créditos liberados." — Anuário ABAC 2025
-                        </div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader>
+
+                {/* 2. Termômetro de Mercado (Sidebar) */}
+                <Card className="lg:col-span-1 shadow-sm border-slate-200/60">
+                    <CardHeader className="pb-2">
                         <CardTitle className="text-sm sm:text-base flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Flame className={`h-5 w-5 ${termometro?.temperatura === 'quente' ? 'text-red-500' : termometro?.temperatura === 'morno' ? 'text-yellow-500' : 'text-blue-500'}`} />
-                                Termômetro de Mercado
+                                Termômetro do Setor
                             </div>
                             {termometro && (
-                                <Badge variant="secondary" className={`${
-                                    termometro.temperatura === 'quente' ? 'bg-red-100 text-red-700 border-red-200' : 
-                                    termometro.temperatura === 'morno' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 
-                                    'bg-blue-100 text-blue-700 border-blue-200'
-                                }`}>
+                                <Badge className={`${
+                                    termometro.temperatura === 'quente' ? 'bg-red-500' : 
+                                    termometro.temperatura === 'morno' ? 'bg-amber-500' : 
+                                    'bg-blue-500'
+                                } text-white border-transparent text-[10px]`}>
                                     {termometro.temperatura.toUpperCase()}
                                 </Badge>
                             )}
                         </CardTitle>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Resiliência do Consórcio 2025</p>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-5">
                         {termometro ? (
                             <>
                                 <div className="space-y-2">
-                                    <div className="flex justify-between text-sm font-medium">
-                                        <span>Temperatura do Mercado</span>
-                                        <span>{termometro.temperatura_score}/100</span>
+                                    <div className="flex justify-between text-[11px] font-bold text-slate-600 uppercase tracking-tight">
+                                        <span>Confiança do Mercado</span>
+                                        <span>{termometro.temperatura_score}%</span>
                                     </div>
-                                    <Progress value={termometro.temperatura_score} className={`h-3 ${
+                                    <Progress value={termometro.temperatura_score} className={`h-2 ${
                                         termometro.temperatura === 'quente' ? '[&>div]:bg-red-500' : 
-                                        termometro.temperatura === 'morno' ? '[&>div]:bg-yellow-500' : 
+                                        termometro.temperatura === 'morno' ? '[&>div]:bg-amber-500' : 
                                         '[&>div]:bg-blue-500'
                                     }`} />
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-1 gap-2.5">
                                     {[
-                                        { label: 'Créditos Comercializados', val: `R$ ${termometro.creditos_comercializados} bi`, var: termometro.creditos_comercializados_variacao },
-                                        { label: 'Vendas de Cotas', val: `${(termometro.vendas_cotas / 1000).toFixed(2)} mil`, var: termometro.vendas_cotas_variacao },
-                                        { label: 'Ticket Médio', val: `R$ ${termometro.ticket_medio} mil`, var: termometro.ticket_medio_variacao },
-                                        { label: 'Participantes Ativos', val: `${termometro.participantes_ativos}M`, var: termometro.participantes_ativos_variacao },
-                                        { label: 'Contemplações', val: `${(termometro.contemplacoes / 1000).toFixed(2)} mil`, var: termometro.contemplacoes_variacao },
-                                        { label: 'Créditos Disponíveis', val: `R$ ${termometro.creditos_disponibilizados} bi`, var: termometro.creditos_disponibilizados_variacao },
+                                        { label: 'Volume (Bi)', val: `R$ ${termometro.creditos_comercializados}`, var: termometro.creditos_comercializados_variacao },
+                                        { label: 'Contemplações', val: `${(termometro.contemplacoes / 1000).toFixed(0)}k`, var: termometro.contemplacoes_variacao },
+                                        { label: 'Ticket Médio', val: `R$ ${termometro.ticket_medio}k`, var: termometro.ticket_medio_variacao },
+                                        { label: 'Ativos', val: `${termometro.participantes_ativos}M`, var: termometro.participantes_ativos_variacao },
                                     ].map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-secondary/10 border border-secondary/20">
-                                            <span className="text-xs text-muted-foreground">{item.label}</span>
+                                        <div key={idx} className="flex justify-between items-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors">
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{item.label}</span>
                                             <div className="text-right">
-                                                <div className="text-sm font-bold">{item.val}</div>
-                                                <div className={`text-[10px] flex items-center justify-end gap-1 ${item.var >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {item.var >= 0 ? <TrendingUp className="h-2 w-2" /> : <TrendingDown className="h-2 w-2" />}
-                                                    {Math.abs(item.var)}%
+                                                <div className="text-xs font-black text-slate-800">{item.val}</div>
+                                                <div className={`text-[9px] font-bold flex items-center justify-end gap-0.5 ${item.var >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {item.var >= 0 ? '+' : ''}{item.var}%
                                                 </div>
                                             </div>
                                         </div>
@@ -781,8 +751,150 @@ export default function Metas() {
                                 </div>
                             </>
                         ) : (
-                            <p className="text-sm text-center text-muted-foreground">Carregando dados do mercado...</p>
+                            <div className="flex flex-col items-center justify-center py-10 opacity-40">
+                                <BarChart3 className="h-8 w-8 animate-pulse mb-2" />
+                                <p className="text-[10px] uppercase font-bold">Carregando dados ABAC...</p>
+                            </div>
                         )}
+                    </CardContent>
+                </Card>
+
+                {/* 3. Market Intelligence Dashboard (ABAC 2021-2024) - Full Width Below */}
+                <Card className="lg:col-span-3 border-none bg-slate-900 text-white relative overflow-hidden shadow-2xl rounded-[32px]">
+                    {/* Background effects */}
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -mr-64 -mt-64"></div>
+                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] -ml-32 -mb-32"></div>
+                    
+                    <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-8 gap-6 relative z-10 p-8 sm:p-10">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="h-10 w-10 rounded-2xl bg-green-500/20 backdrop-blur-md flex items-center justify-center border border-green-500/30">
+                                    <TrendingUp className="h-6 w-6 text-green-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                                        Market Intelligence <span className="text-green-400">ABAC 2025</span>
+                                    </h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">volume recorde de créditos comercializados</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            <div className="hidden sm:flex flex-col items-end px-6 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Crescimento Acumulado</p>
+                                <p className="text-2xl font-black text-white">+50.5% <span className="text-xs text-green-400 font-medium ml-1">📈</span></p>
+                            </div>
+                            <Badge className="bg-green-500 hover:bg-green-400 text-slate-950 font-black py-2 px-4 rounded-xl text-xs shadow-lg shadow-green-500/20 transition-all uppercase tracking-tighter">
+                                Recorde 2024: R$ 334.1 Bi
+                            </Badge>
+                        </div>
+                    </CardHeader>
+
+                    <CardContent className="relative z-10 px-6 sm:px-10 pb-10">
+                        <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
+                            {/* Gráfico Principal */}
+                            <div className="xl:col-span-3 h-[320px] sm:h-[400px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={[
+                                        { ano: '2021', valor: 222.04 },
+                                        { ano: '2022', valor: 252.10 },
+                                        { ano: '2023', valor: 316.70 },
+                                        { ano: '2024', valor: 334.16 },
+                                    ]}>
+                                        <defs>
+                                            <linearGradient id="abacBarGrad" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#4ade80" stopOpacity={0.9}/>
+                                                <stop offset="100%" stopColor="#22c55e" stopOpacity={1}/>
+                                            </linearGradient>
+                                            <linearGradient id="abacAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#22c55e" stopOpacity={0.2}/>
+                                                <stop offset="100%" stopColor="#22c55e" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" strokeOpacity={0.05} />
+                                        <XAxis 
+                                            dataKey="ano" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 13, fontWeight: 900, fill: '#94a3b8' }}
+                                            dy={15}
+                                        />
+                                        <YAxis hide domain={[0, 400]} />
+                                        <Tooltip 
+                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                            contentStyle={{ backgroundColor: '#0f172a', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '16px' }}
+                                            itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                                            formatter={(v: number) => [`R$ ${v} Bilhões`, "Volume Anual"]}
+                                        />
+                                        <Area 
+                                            type="monotone" 
+                                            dataKey="valor" 
+                                            fill="url(#abacAreaGrad)" 
+                                            stroke="none" 
+                                            animationDuration={2000}
+                                        />
+                                        <Bar 
+                                            dataKey="valor" 
+                                            fill="url(#abacBarGrad)" 
+                                            radius={[15, 15, 5, 5]} 
+                                            barSize={60}
+                                            label={{ position: 'top', fill: '#4ade80', fontSize: 14, fontWeight: 900, offset: 15 }}
+                                            animationDuration={1500}
+                                        >
+                                            { [0,1,2,3].map((_, index) => (
+                                                <Cell key={`cell-${index}`} fillOpacity={0.4 + (index * 0.2)} />
+                                            ))}
+                                        </Bar>
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="valor" 
+                                            stroke="#4ade80" 
+                                            strokeWidth={5} 
+                                            dot={{ r: 8, fill: '#0f172a', stroke: '#4ade80', strokeWidth: 4 }}
+                                            activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff' }}
+                                            animationDuration={2500}
+                                        />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            {/* Dashboard Sidebar Stats */}
+                            <div className="flex flex-col gap-6 justify-center max-w-sm mx-auto xl:mx-0">
+                                <div className="p-6 rounded-[24px] bg-white/5 border border-white/10 backdrop-blur-xl group hover:bg-white/10 transition-all cursor-default">
+                                    <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4 border border-amber-500/30">
+                                        <Flame className="h-5 w-5 text-amber-400" />
+                                    </div>
+                                    <h4 className="text-lg font-black text-white group-hover:text-amber-300 transition-colors">Oportunidade 2025</h4>
+                                    <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+                                        Com a economia estabilizada, a projeção é de mais um ano recorde. O consultor que domina os números tem fechamento garantido.
+                                    </p>
+                                </div>
+                                
+                                <div className="p-6 rounded-[24px] bg-green-500 text-slate-950 shadow-xl shadow-green-500/10 group overflow-hidden relative active:scale-95 transition-transform cursor-pointer">
+                                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-150 transition-transform duration-500">
+                                        <Trophy className="h-24 w-24" />
+                                    </div>
+                                    <h4 className="text-lg font-black tracking-tight">Potencial Consultivo</h4>
+                                    <p className="text-sm font-bold opacity-80 mt-1">O volume de participantes ativos atingiu 10.29 milhões em dezembro.</p>
+                                    <div className="mt-5 flex items-center gap-2 font-black text-xs uppercase tracking-tighter">
+                                        <span>Explorar dados ABAC</span>
+                                        <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Professional Quote */}
+                        <div className="mt-12 flex items-start gap-4 p-6 rounded-2xl bg-white/5 border border-white/5 italic text-slate-300">
+                            <Lightbulb className="h-6 w-6 text-amber-400 shrink-0 mt-1 opacity-50" />
+                            <div className="space-y-1">
+                                <p className="text-sm sm:text-base leading-relaxed tracking-wide">
+                                    "O consórcio vive seu melhor momento histórico, consolidando-se como a principal escolha de autofinanciamento do brasileiro. Este crescimento de 50% em 4 anos é um divisor de águas."
+                                </p>
+                                <p className="text-[10px] font-black text-slate-500 not-italic uppercase tracking-[0.2em] mt-3">Anuário consolidado ABAC 2025 &middot; volume de créditos</p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
