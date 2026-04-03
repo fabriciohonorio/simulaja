@@ -55,7 +55,8 @@ import {
   CircleDollarSign,
   TrendingDown,
   Calculator,
-  Info
+  Info,
+  Send
 } from "lucide-react";
 import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
 import { Input } from "@/components/ui/input";
@@ -590,7 +591,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
               <Clock className="w-3.5 h-3.5 text-primary opacity-75" />
-              Saiba o valor da sua parcela após a contemplação.
+              Após clicar em SIMULAR AGORA, você terá o valor da sua simulação.
             </div>
 
             <button
@@ -734,6 +735,27 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
                   <div className="pt-2 text-center text-[0.7rem] text-muted-foreground bg-muted/30 p-2 rounded-lg">
                     Para condições especiais e lances personalizados <strong className="text-secondary">fale com o especialista ✉️</strong>
                   </div>
+
+                  {isInternal && (
+                    <div className="pt-4 border-t border-border mt-4">
+                      <button
+                        onClick={() => {
+                          let msg = `*Simulação de Consórcio*\n\n`;
+                          msg += `*Crédito:* ${fmtFull(resultado.credito)}\n`;
+                          msg += `*Prazo:* ${resultado.prazo} meses\n`;
+                          msg += `*Parcela Reduzida (50%):* ${fmtFull(resultado.r50)}\n\n`;
+                          if (resultado.tx !== undefined) msg += `*Taxa Adm:* ${resultado.tx}%\n`;
+                          if (resultado.fr !== undefined) msg += `*Fundo Reserva:* ${resultado.fr}%\n\n`;
+                          msg += `_Para mais detalhes, fale com o especialista!_`;
+                          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                        }}
+                        className="w-full py-3 rounded-[10px] text-sm font-extrabold flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg transition-all"
+                      >
+                        <Send className="w-4 h-4" />
+                        Enviar Proposta via WhatsApp
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
