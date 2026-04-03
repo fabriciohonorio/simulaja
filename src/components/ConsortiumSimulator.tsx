@@ -41,7 +41,6 @@ const sliderThumbStyles = `
   }
 `;
 
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowRight,
@@ -58,23 +57,13 @@ import {
   Info,
   Send
 } from "lucide-react";
-import { WhatsAppIcon, InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon } from "./SocialIcons";
+import { WhatsAppIcon } from './SocialIcons';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { useProfile } from "@/hooks/useProfile";
 
-import fabricioReal from "@/assets/fabricio-real.jpg";
-import heroBg from "@/assets/hero-bg.png";
 
-import cardImovel from "@/assets/card-imovel.jpg";
-import cardVeiculo from "@/assets/card-veiculo.jpg";
-import cardMoto from "@/assets/card-moto.jpg";
-import cardAgro from "@/assets/card-agro.jpg";
-import cardInvestimento from "@/assets/card-investimento.jpg";
-import cardNautica from "@/assets/card-nautica.jpg";
-
-const WHATSAPP_LINK = "https://wa.me/55?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
 
 export type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
 export type Category = { id: string; label: string; icon: string; };
@@ -146,14 +135,6 @@ const MAX_CONSULTAS = 5;
 
 type HistItem = { credito: number; grupo: string; prazo: number; r50: number; nome: string; ts: string };
 
-const consortiumCards = [
-  { title: "Consórcio Imobiliário", desc: "Casa própria, apartamento ou terreno com planejamento inteligente.", img: cardImovel },
-  { title: "Consórcio de Veículos", desc: "SUV, sedan ou utilitário — sem juros e com poder de compra à vista.", img: cardVeiculo },
-  { title: "Consórcio de Motos", desc: "A moto dos seus sonhos com parcelas que cabem no bolso.", img: cardMoto },
-  { title: "Consórcio Náutico", desc: "Jet ski, lancha ou barco — realize o sonho náutico com planejamento.", img: cardNautica },
-  { title: "Consórcio Agro", desc: "Tratores, máquinas e implementos para alavancar sua produção.", img: cardAgro },
-  { title: "Consórcio para Investimento", desc: "Construa patrimônio com estratégia e sem juros bancários.", img: cardInvestimento },
-];
 
 interface ConsortiumSimulatorProps {
   overrideConfig?: {
@@ -161,9 +142,19 @@ interface ConsortiumSimulatorProps {
     grupos: Record<string, GrupoItem[]>;
   };
   isInternal?: boolean;
+  onSimulateSubmit?: (leadData: {
+    nome: string;
+    celular: string;
+    categoriaId: string;
+    categoriaLabel: string;
+    credito: number;
+    prazo: number;
+    r50: number;
+    leadScoreValor: string;
+  }) => void;
 }
 
-const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulatorProps) => {
+const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: ConsortiumSimulatorProps) => {
   const { profile } = useProfile();
   const { toast } = useToast();
 
@@ -249,58 +240,17 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
     else if (g.credito >= 200000) leadScoreValor = "alto";
     else if (g.credito >= 80000) leadScoreValor = "medio";
 
-    // 1. Save to Supabase (CRM)
-    try {
-      console.log("Tentando salvar no CRM...", { nome: simNome, celular: simWpp });
-      const { error: dbError } = await supabase.from("leads").insert({
+    if (onSimulateSubmit && !isInternal) {
+      onSimulateSubmit({
         nome: simNome.trim(),
-        celular: simWpp.replace(/\D/g, ""),
-        tipo_consorcio: dynamicCategorias.find(c => c.id === categoria)?.label || categoria,
-        valor_credito: g.credito,
-        prazo_meses: g.prazo,
-        status: "novo_lead",
-        lead_score_valor: leadScoreValor,
-        lead_temperatura: "quente"
+        celular: simWpp,
+        categoriaId: categoria,
+        categoriaLabel: dynamicCategorias.find(c => c.id === categoria)?.label || categoria,
+        credito: g.credito,
+        prazo: g.prazo,
+        r50: g.r50,
+        leadScoreValor
       });
-
-      if (dbError) {
-        console.error("❌ ERRO CRM:", dbError);
-        toast({ 
-          title: "Erro ao sincronizar CRM", 
-          description: dbError.message || "Ocorreu um erro ao salvar o lead no banco de dados.",
-          variant: "destructive"
-        });
-      } else {
-        console.log("✅ Lead salvo no CRM!");
-        toast({ title: "✅ Lead registrado no CRM com sucesso!" });
-      }
-    } catch (e: any) {
-      console.error("🚨 CRITICAL EXCEPTION CRM:", e);
-      toast({ title: "Erro Crítico", description: e.message, variant: "destructive" });
-    }
-
-    // 2. Webhook Make (Telegram/Notificações)
-    try {
-      const response = await fetch("https://hook.us2.make.com/t71aks5bg9zhk7briz86yxfeq98n65a1", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: simNome.trim(),
-          celular: simWpp,
-          valor_credito: fmt(g.credito),
-          tipo_consorcio: dynamicCategorias.find(c => c.id === categoria)?.label || categoria,
-          pagina: window.location.href,
-          origem: utmParams.origem || "Simulador Web",
-          score: leadScoreValor,
-        }),
-      });
-      
-      if (response.ok) {
-        console.log("✅ Webhook enviado!");
-        toast({ title: "✅ Notificação enviada ao especialista!" });
-      }
-    } catch (e) {
-      console.error("Webhook Error:", e);
     }
 
     if (novaConsulta >= MAX_CONSULTAS) setTimeout(() => setBloqueado(true), 700);
@@ -313,126 +263,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <style>{sliderThumbStyles}</style>
-      {/* ===== HERO SECTION ===== */}
-      <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 30%) 100%)" }}>
-        <div className="absolute inset-0" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center", opacity: 0.1 }} />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
-
-        <div className="relative container max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20 lg:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            {/* Left column */}
-            <div className="text-white space-y-8 animate-fade-in-up">
-              <div>
-                <p className="text-sm md:text-base font-semibold tracking-[0.2em] uppercase text-white/60 mb-3">
-                  FABRICIO | Especialista em Consórcio
-                </p>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
-                  CONSÓRCIO
-                  <br />
-                  <span className="text-secondary">INTELIGENTE</span>
-                </h1>
-                <p className="text-lg md:text-xl text-white/70 mt-5 max-w-lg leading-relaxed">
-                  Imóveis, veículos e investimentos com planejamento financeiro e <strong className="text-white">sem juros</strong>.
-                </p>
-              </div>
-
-              {/* Benefits list */}
-              <ul className="space-y-3">
-                {[
-                  "Consórcio imobiliário",
-                  "Consórcio de veículos",
-                  "Consórcio de motos",
-                  "Consórcio agro",
-                  "Consórcio para investimento",
-                  "Consórcio para Náutica",
-                  "Cartas Contempladas",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-white/90">
-                    <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
-                    <span className="text-base md:text-lg">{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <a
-                href="#simulator"
-                className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
-              >
-                SIMULAR CONSÓRCIO AGORA
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
-            </div>
-
-            {/* Right column — Specialist image */}
-            <div className="relative flex justify-center lg:justify-end">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-secondary/20 rounded-3xl blur-2xl" />
-                <img
-                  src={fabricioReal}
-                  alt="Fabrício — Especialista em Consórcio"
-                  className="relative w-full max-w-md lg:max-w-lg rounded-2xl shadow-2xl object-cover border-2 border-white/10"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== SOBRE O ESPECIALISTA ===== */}
-      <section className="py-20 bg-background">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3">Sobre</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Consultoria <span className="text-primary">Especializada</span> em Consórcio
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Ajudo pessoas a conquistarem imóveis, veículos e patrimônio utilizando o consórcio como estratégia financeira inteligente.
-          </p>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-4">
-            Com planejamento correto é possível adquirir bens de alto valor <strong className="text-foreground">sem pagar juros</strong> e com segurança.
-          </p>
-        </div>
-      </section>
-
-      {/* ===== TIPOS DE CONSÓRCIO — Cards ===== */}
-      <section className="py-20" style={{ background: "linear-gradient(180deg, hsl(210 20% 96%) 0%, hsl(210 20% 98%) 100%)" }}>
-        <div className="container max-w-7xl mx-auto px-4">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3 text-center">Segmentos</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
-            Tipos de Consórcio
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {consortiumCards.map((card) => (
-              <div
-                key={card.title}
-                className="group bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={card.img}
-                    alt={card.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
-                  <h3 className="absolute bottom-4 left-4 text-xl font-bold text-white">{card.title}</h3>
-                </div>
-                <div className="p-5">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{card.desc}</p>
-                  <a
-                    href="#simulator"
-                    className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary transition-colors group/link"
-                  >
-                    SIMULAR
-                    <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ===== SIMULADOR COMPLETO (inline) ===== */}
       <section id="simulator" className="py-20 bg-background">
         <div className="container max-w-[620px] mx-auto px-4">
@@ -757,118 +587,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal }: ConsortiumSimulator
         </div>
       </section>
 
-      {/* ===== DIFERENCIAL / CONSULTORIA ===== */}
-      <section className="py-20" style={{ background: "linear-gradient(180deg, hsl(210 20% 96%) 0%, hsl(210 20% 98%) 100%)" }}>
-        <div className="container max-w-5xl mx-auto px-4">
-          <p className="text-sm font-semibold tracking-[0.15em] uppercase text-secondary mb-3 text-center">Diferencial</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-12">
-            Consultoria <span className="text-primary">Inteligente</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { icon: Target, title: "Análise do melhor valor de carta", desc: "Análise do melhor valor de sua carta após a contemplação. Lucratividade com a venda da carta contemplada." },
-              { icon: Clock, title: "Acompanhamento e estratégia de lance", desc: "Garante a agilidade e eficiência na contemplação com a melhor estratégia de lance." },
-              { icon: Shield, title: "Planejamento Patrimonial", desc: "Após reunião e conversa com o cliente, alinhamos o melhor projeto capaz de entregar o bem de acordo com suas necessidades." },
-              { icon: BarChart3, title: "Atendimento Completo", desc: "Atendimento pessoal e online de norte a sul, com as melhores tecnologias." },
-            ].map((item) => (
-              <div key={item.title} className="flex items-start gap-4 bg-card rounded-xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground mb-1">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CTA FINAL ===== */}
-      <section className="py-20 relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(213 70% 14%) 0%, hsl(213 50% 25%) 100%)" }}>
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
-        <div className="relative container max-w-3xl mx-auto px-4 text-center text-white">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6">
-            Seu próximo patrimônio pode começar <span className="text-secondary">hoje</span>.
-          </h2>
-          <p className="text-lg text-white/70 mb-10 max-w-xl mx-auto">
-            Não espere mais. Simule seu consórcio ou fale diretamente com o especialista.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#simulator"
-              className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
-            >
-              Simular Consórcio
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all hover:scale-[1.02]"
-            >
-              <WhatsAppIcon className="w-5 h-5" />
-              Falar com Especialista
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== FOOTER ===== */}
-      <footer className="py-12 px-4" style={{ background: "hsl(213 70% 10%)" }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2">
-                FABRICIO <span className="text-white/40">|</span> <span className="text-secondary">Especialista em Consórcio</span>
-              </h3>
-              <p className="text-sm text-white/50 leading-relaxed">
-                Planejamento financeiro inteligente para conquistar seus bens sem juros abusivos.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Links</h4>
-              <ul className="space-y-2 text-sm text-white/40">
-                <li><a href="#simulator" className="hover:text-secondary transition-colors">Simular Consórcio</a></li>
-                <li><a href="https://www.abac.org.br" target="_blank" rel="noopener noreferrer" className="hover:text-secondary transition-colors">ABAC — Associação Brasileira de Administradores de Consórcio</a></li>
-                <li><a href="#" className="hover:text-secondary transition-colors">Política de Privacidade</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Redes Sociais</h4>
-              <div className="flex gap-3">
-                {[
-                  { icon: WhatsAppIcon, href: "https://wa.me/5541997925357", label: "WhatsApp", hoverBg: "hover:bg-[#25D366]" },
-                  { icon: InstagramIcon, href: "https://instagram.com/fabricioespecialistaconsorcio", label: "Instagram", hoverBg: "hover:bg-gradient-to-tr hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF]" },
-                  { icon: TikTokIcon, href: "#", label: "TikTok", hoverBg: "hover:bg-white/20" },
-                  { icon: FacebookIcon, href: "#", label: "Facebook", hoverBg: "hover:bg-[#1877F2]" },
-                  { icon: LinkedInIcon, href: "#", label: "LinkedIn", hoverBg: "hover:bg-[#0A66C2]" },
-                ].map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={social.label}
-                    className={`w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white transition-all hover:scale-110 ${social.hoverBg}`}
-                  >
-                    <social.icon className="w-5 h-5" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 pt-6 text-center text-sm text-white/30">
-            © {new Date().getFullYear()} Fabrício — Especialista em Consórcio Inteligente. Todos os direitos reservados.
-          </div>
-        </div>
-      </footer>
     </div >
   );
 };
