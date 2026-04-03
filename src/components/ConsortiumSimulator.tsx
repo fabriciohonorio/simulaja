@@ -76,10 +76,10 @@ import cardNautica from "@/assets/card-nautica.jpg";
 
 const WHATSAPP_LINK = "https://wa.me/55?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20cons%C3%B3rcio.";
 
-type Category = { id: string; label: string; icon: string };
-type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
+export type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
+export type Category = { id: string; label: string; icon: string; };
 
-const GRUPOS: Record<string, GrupoItem[]> = {
+export const GRUPOS: Record<string, GrupoItem[]> = {
   imovel: [
     { grupo: "6040", credito: 110000, r50: 440.55, prazo: 209, tx: 26, fr: 1 },
     { grupo: "6040", credito: 120000, r50: 480.60, prazo: 209, tx: 26, fr: 1 },
@@ -136,7 +136,7 @@ const GRUPOS: Record<string, GrupoItem[]> = {
   ],
 };
 
-const CATEGORIAS: Category[] = [
+export const CATEGORIAS: Category[] = [
   { id: "imovel", label: "Imóvel / Investimento", icon: "🏠" },
   { id: "veiculo", label: "Moto / Veículos / Náutico", icon: "🚗" },
   { id: "pesados", label: "Pesados / Agrícola", icon: "🚛" },

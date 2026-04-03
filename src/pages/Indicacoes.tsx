@@ -1,4 +1,46 @@
 import { useState, useRef, useEffect } from "react";
+
+const sliderThumbStyles = `
+  input[type=range].custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 4px solid #0057a8;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  input[type=range].custom-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 0 4px rgba(0,0,0,0.1);
+  }
+  input[type=range].custom-slider:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+    background: #0057a8;
+    border-color: #ffffff;
+  }
+  input[type=range].custom-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 4px solid #0057a8;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  input[type=range].custom-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 0 4px rgba(0,0,0,0.1);
+  }
+  input[type=range].custom-slider:active::-moz-range-thumb {
+    transform: scale(0.95);
+  }
+`;
+
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { UserCheck } from "lucide-react";
@@ -26,17 +68,20 @@ const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
   ],
   veiculo: [
-    { grupo: "5293", credito: 25000, r50: 264.63, prazo: 77 },
-    { grupo: "5294", credito: 37000, r50: 273.98, prazo: 100 },
-    { grupo: "5294", credito: 40000, r50: 296.2, prazo: 100 },
-    { grupo: "5294", credito: 45000, r50: 333.22, prazo: 100 },
-    { grupo: "5294", credito: 50000, r50: 370.25, prazo: 100 },
-    { grupo: "5294", credito: 60000, r50: 444.3, prazo: 100 },
-    { grupo: "5295", credito: 80000, r50: 592.39, prazo: 100 },
-    { grupo: "5295", credito: 100000, r50: 740.49, prazo: 100 },
-    { grupo: "5295", credito: 120000, r50: 888.59, prazo: 100 },
-    { grupo: "5282", credito: 150000, r50: 1249.79, prazo: 91 },
-    { grupo: "5282", credito: 160000, r50: 1333.11, prazo: 91 },
+    { grupo: "5294", credito: 37000, r50: 276.62, prazo: 100 },
+    { grupo: "5294", credito: 40000, r50: 299.04, prazo: 100 },
+    { grupo: "5294", credito: 50000, r50: 373.80, prazo: 100 },
+    { grupo: "5294", credito: 60000, r50: 448.56, prazo: 100 },
+    { grupo: "5294", credito: 70000, r50: 523.31, prazo: 100 },
+    { grupo: "5295", credito: 80000, r50: 575.99, prazo: 100 },
+    { grupo: "5295", credito: 90000, r50: 647.99, prazo: 100 },
+    { grupo: "5295", credito: 100000, r50: 719.99, prazo: 100 },
+    { grupo: "5295", credito: 110000, r50: 791.99, prazo: 100 },
+    { grupo: "5295", credito: 120000, r50: 863.99, prazo: 100 },
+    { grupo: "5295", credito: 130000, r50: 935.98, prazo: 100 },
+    { grupo: "5286", credito: 140000, r50: 1259.99, prazo: 100 },
+    { grupo: "5286", credito: 150000, r50: 1349.99, prazo: 100 },
+    { grupo: "5286", credito: 160000, r50: 1439.99, prazo: 100 },
   ],
   pesados: [
     { grupo: "5996", credito: 180000, r50: 932.64, prazo: 135 },
@@ -173,6 +218,7 @@ export default function Indicacoes() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
+      <style>{sliderThumbStyles}</style>
       {/* Hero */}
       <p className="text-xs font-bold tracking-[0.16em]" style={{ color: "#f47920" }}>Área do Parceiro</p>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mt-2 mb-2" style={{ color: "#0f2044", lineHeight: 1.18 }}>
@@ -232,8 +278,8 @@ export default function Indicacoes() {
         <input
           type="range" min={0} max={lista.length - 1} step={1} value={idx}
           onChange={(e) => setIdx(Number(e.target.value))}
-          className="w-full h-1.5 rounded-full cursor-pointer appearance-none mb-2"
-          style={{ background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #f47920 ${pct}%, #f47920 100%)` }}
+          className="custom-slider w-full h-3 rounded-full cursor-pointer appearance-none mb-2"
+          style={{ background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)` }}
         />
         <div className="flex justify-between text-xs mb-6" style={{ color: "#6b7a99" }}>
           <span>R$ {lista[0].credito.toLocaleString("pt-BR")}</span>

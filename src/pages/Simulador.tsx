@@ -1,4 +1,46 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+
+const sliderThumbStyles = `
+  input[type=range].custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 4px solid #0057a8;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  input[type=range].custom-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 0 4px rgba(0,0,0,0.1);
+  }
+  input[type=range].custom-slider:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+    background: #0057a8;
+    border-color: #ffffff;
+  }
+  input[type=range].custom-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    border: 4px solid #0057a8;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 0 4px rgba(0,0,0,0.1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  input[type=range].custom-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 0 4px rgba(0,0,0,0.1);
+  }
+  input[type=range].custom-slider:active::-moz-range-thumb {
+    transform: scale(0.95);
+  }
+`;
+
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -20,56 +62,7 @@ import {
   Info
 } from "lucide-react";
 
-type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
-
-const GRUPOS: Record<string, GrupoItem[]> = {
-  imovel: [
-    { grupo: "6041", credito: 110000, r50: 405.9, prazo: 216 },
-    { grupo: "6041", credito: 120000, r50: 442.8, prazo: 216 },
-    { grupo: "6041", credito: 130000, r50: 479.69, prazo: 216 },
-    { grupo: "6041", credito: 140000, r50: 516.59, prazo: 216 },
-    { grupo: "6041", credito: 150000, r50: 553.49, prazo: 216 },
-    { grupo: "6041", credito: 160000, r50: 590.39, prazo: 216 },
-    { grupo: "6041", credito: 170000, r50: 627.29, prazo: 216 },
-    { grupo: "6041", credito: 180000, r50: 664.19, prazo: 216 },
-    { grupo: "6041", credito: 190000, r50: 701.09, prazo: 216 },
-    { grupo: "6041", credito: 200000, r50: 737.99, prazo: 216 },
-    { grupo: "6030", credito: 250000, r50: 941.72, prazo: 199 },
-    { grupo: "6030", credito: 300000, r50: 1130.06, prazo: 199 },
-    { grupo: "6035", credito: 350000, r50: 1286.42, prazo: 220 },
-    { grupo: "6039", credito: 500000, r50: 1672.7, prazo: 230 },
-    { grupo: "6039", credito: 700000, r50: 2341.78, prazo: 230 },
-    { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
-  ],
-  veiculo: [
-    { grupo: "5293", credito: 25000, r50: 264.63, prazo: 77 },
-    { grupo: "5294", credito: 37000, r50: 273.98, prazo: 100 },
-    { grupo: "5294", credito: 40000, r50: 296.2, prazo: 100 },
-    { grupo: "5294", credito: 45000, r50: 333.22, prazo: 100 },
-    { grupo: "5294", credito: 50000, r50: 370.25, prazo: 100 },
-    { grupo: "5294", credito: 60000, r50: 444.3, prazo: 100 },
-    { grupo: "5295", credito: 80000, r50: 592.39, prazo: 100 },
-    { grupo: "5295", credito: 100000, r50: 740.49, prazo: 100 },
-    { grupo: "5295", credito: 120000, r50: 888.59, prazo: 100 },
-    { grupo: "5282", credito: 150000, r50: 1249.79, prazo: 91 },
-    { grupo: "5282", credito: 160000, r50: 1333.11, prazo: 91 },
-  ],
-  pesados: [
-    { grupo: "5996", credito: 180000, r50: 932.64, prazo: 135 },
-    { grupo: "5996", credito: 200000, r50: 1036.26, prazo: 135 },
-    { grupo: "5996", credito: 250000, r50: 1295.33, prazo: 135 },
-    { grupo: "5996", credito: 280000, r50: 1450.77, prazo: 135 },
-    { grupo: "5996", credito: 300000, r50: 1554.4, prazo: 135 },
-    { grupo: "5996", credito: 400000, r50: 2072.52, prazo: 135 },
-    { grupo: "5996", credito: 500000, r50: 2590.66, prazo: 135 },
-  ],
-};
-
-const CATEGORIAS = [
-  { id: "imovel", label: "Imóvel / Investimento", icon: "🏠" },
-  { id: "veiculo", label: "Moto / Veículos / Náutico", icon: "🚗" },
-  { id: "pesados", label: "Pesados / Agrícola", icon: "🚛" },
-];
+import { GRUPOS, CATEGORIAS, GrupoItem } from "@/components/ConsortiumSimulator";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -378,6 +371,7 @@ _app.contemplarcrm.com.br_`;
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 md:py-16" style={{ background: "#f0f2f5", fontFamily: "'Inter', sans-serif" }}>
+      <style>{sliderThumbStyles}</style>
       {/* Banner indicação */}
       {isIndicacao && (
         <div className="w-full max-w-[580px] rounded-full px-5 py-2.5 mb-4 flex items-center justify-center gap-2 text-xs font-semibold"
@@ -412,9 +406,9 @@ _app.contemplarcrm.com.br_`;
           step={1}
           value={idx}
           onChange={(e) => setIdx(Number(e.target.value))}
-          className="w-full h-1.5 rounded-full cursor-pointer appearance-none mb-2"
+          className="custom-slider w-full h-3 rounded-full cursor-pointer appearance-none mb-2"
           style={{
-            background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #f47920 ${pct}%, #f47920 100%)`,
+            background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
           }}
         />
         <div className="flex justify-between text-xs mb-6" style={{ color: "#6b7a99" }}>

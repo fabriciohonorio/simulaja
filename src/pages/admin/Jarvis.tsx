@@ -27,6 +27,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon } from "lucide-react";
 import JarvisHero from "@/components/admin/JarvisHero";
+import { GRUPOS } from "@/components/ConsortiumSimulator";
 
 interface Message {
     id: string;
@@ -160,26 +161,7 @@ export default function Jarvis() {
         }
     };
 
-    // Motor de Simulação Portado do ConsortiumSimulator
-    const GRUPOS: Record<string, GrupoItem[]> = {
-        imovel: [
-            { grupo: "6041", credito: 110000, r50: 405.9, prazo: 216 },
-            { grupo: "6041", credito: 150000, r50: 553.49, prazo: 216 },
-            { grupo: "6041", credito: 200000, r50: 737.99, prazo: 216 },
-            { grupo: "6030", credito: 300000, r50: 1130.06, prazo: 199 },
-            { grupo: "6039", credito: 500000, r50: 1672.7, prazo: 230 },
-            { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
-        ],
-        veiculo: [
-            { grupo: "5293", credito: 25000, r50: 264.63, prazo: 77 },
-            { grupo: "5294", credito: 50000, r50: 370.25, prazo: 100 },
-            { grupo: "5295", credito: 100000, r50: 740.49, prazo: 100 },
-        ],
-        pesados: [
-            { grupo: "5996", credito: 200000, r50: 1036.26, prazo: 135 },
-            { grupo: "5996", credito: 500000, r50: 2590.66, prazo: 135 },
-        ],
-    };
+    // Motor de Simulação Portado do ConsortiumSimulator (Importado nativamente)
 
     const findParcela = (valor: number, segmento: string) => {
         const seg = segmento.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");

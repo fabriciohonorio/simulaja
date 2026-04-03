@@ -19,11 +19,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ConsortiumSimulator from "@/components/ConsortiumSimulator";
-
-// Types matching ConsortiumSimulator
-type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
-type Category = { id: string; label: string; icon: string };
+import ConsortiumSimulator, { GRUPOS, CATEGORIAS, GrupoItem, Category } from "@/components/ConsortiumSimulator";
 
 export default function SimuladorAdmin() {
   const { profile } = useProfile();
@@ -64,13 +60,8 @@ export default function SimuladorAdmin() {
         }
       } else {
         // Default initial state if none exists
-        const defaultCats = [
-          { id: "imovel", label: "Imóvel / Investimento", icon: "🏠" },
-          { id: "veiculo", label: "Moto / Veículos / Náutico", icon: "🚗" },
-          { id: "pesados", label: "Pesados / Agrícola", icon: "🚛" },
-        ];
-        setCategorias(defaultCats);
-        setGrupos({ imovel: [], veiculo: [], pesados: [] });
+        setCategorias(CATEGORIAS);
+        setGrupos(GRUPOS);
         setSelectedCatForBulk("imovel");
       }
     } catch (err) {
@@ -341,7 +332,7 @@ export default function SimuladorAdmin() {
             </p>
             {/* Inject our local state into the simulator for preview */}
             <div className="max-w-7xl mx-auto">
-               <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 pointer-events-none opacity-80">
+               <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
                   <div className="p-4 bg-primary text-white text-center text-xs font-bold uppercase">
                     Modo Visualização (Simule para testar as regras)
                   </div>
