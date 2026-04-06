@@ -236,19 +236,22 @@ export default function Metas() {
 
             setLeads(allLeads);
             
+            let currentSegmentMetas = segmentMetas;
+            
             if (metaData) {
                 setMetaAnual(metaData.meta_anual || 0);
                 setMetaInput(String(metaData.meta_anual || 0));
                 
-                // Carregar metas por segmento se for a visão global
+                currentSegmentMetas = {
+                    imoveis: metaData.meta_imoveis || 0,
+                    veiculos: metaData.meta_veiculos || 0,
+                    motos: metaData.meta_motos || 0,
+                    pesados: metaData.meta_pesados || 0,
+                    investimentos: metaData.meta_investimentos || 0
+                };
+                
                 if (selectedVendedor === "all" && isManager) {
-                    setSegmentMetas({
-                        imoveis: metaData.meta_imoveis || 0,
-                        veiculos: metaData.meta_veiculos || 0,
-                        motos: metaData.meta_motos || 0,
-                        pesados: metaData.meta_pesados || 0,
-                        investimentos: metaData.meta_investimentos || 0
-                    });
+                    setSegmentMetas(currentSegmentMetas);
                 }
             } else {
                 setMetaAnual(0);
@@ -272,7 +275,7 @@ export default function Metas() {
                 const currentMonthVendas = segmentVendas.filter(l => l.created_at?.startsWith(mesStr));
                 
                 const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-                const metaValue = segmentMetas[config.segmento];
+                const metaValue = currentSegmentMetas[config.segmento as keyof typeof currentSegmentMetas] || 0;
                 
                 const vendasCount = currentMonthVendas.length;
                 const leadsCount = currentMonthLeads.length;
@@ -310,13 +313,13 @@ export default function Metas() {
         } finally {
             setLoading(false);
         }
-    }, [profile, isManager, selectedVendedor, currentYear, mesStr, segmentMetas, fetchTermometro]);
+    }, [profile?.organizacao_id, profile?.id, isManager, selectedVendedor, currentYear, mesStr, fetchTermometro]);
 
     useEffect(() => { 
-        if (!profile) return;
+        if (!profile?.organizacao_id) return;
         fetchData(); 
         
-        const channel = supabaseAny
+        const channel = supabase
             .channel('metas-leads-changes')
             .on('postgres_changes' as any, { 
                 event: '*', 
@@ -329,9 +332,9 @@ export default function Metas() {
             .subscribe();
 
         return () => {
-            supabaseAny.removeChannel(channel);
+            supabase.removeChannel(channel);
         };
-    }, [profile, fetchData, supabaseAny]);
+    }, [profile?.organizacao_id, fetchData]);
 
     useEffect(() => {
         if (termometro) {
