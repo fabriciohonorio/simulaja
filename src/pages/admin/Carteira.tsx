@@ -145,12 +145,12 @@ export default function Carteira() {
     if (!profile?.organizacao_id) return;
     setLoading(true);
     try {
-      // 1. Bulk fix existing records to MAGALU (excluding Cristiano)
+      // 1. Bulk fix existing records to MAGALU (excluding those already set to ADEMICON)
       await (supabase as any)
         .from("carteira")
         .update({ administradora: "MAGALU" })
         .eq("organizacao_id", profile.organizacao_id)
-        .neq("nome", "Cristiano Gonçalves Lima");
+        .neq("administradora", "ADEMICON");
 
       // 2. Buscar leads fechados
       const { data: closedLeads } = await (supabase as any)
@@ -188,7 +188,7 @@ export default function Carteira() {
         nome: l.nome,
         tipo_consorcio: l.tipo_consorcio,
         valor_credito: Number(l.valor_credito),
-        administradora: l.nome === "Cristiano Gonçalves Lima" ? l.administradora : "MAGALU",
+        administradora: l.administradora === "ADEMICON" ? "ADEMICON" : "MAGALU",
         status: "aguardando",
         data_adesao: new Date().toISOString().split('T')[0],
         organizacao_id: profile.organizacao_id
