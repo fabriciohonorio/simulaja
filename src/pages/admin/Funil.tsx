@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, Profile } from "@/hooks/useProfile";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -73,7 +73,6 @@ interface Lead {
   last_interaction_at: string | null;
   propensity_score: number | null;
   propensity_reason: string | null;
-  // Novos campos de inteligência (adicionados para compatibilidade)
   score_final?: string | null;
   qualidade?: string | null;
   urgencia?: string | null;
@@ -81,7 +80,7 @@ interface Lead {
   indicador_nome?: string | null;
   indicador_celular?: string | null;
   data_vencimento?: string | null;
-  organizacao_id?: string | null;
+  organizacao_id: string | null;
   responsavel_id?: string | null;
   administradora?: string | null;
 }
@@ -243,7 +242,6 @@ const isPastDue = (dateStr: string | null | undefined) => {
   return d < today;
 };
 
-// ─── Lead Card ───────────────────────────────────────────────────────────────
 function LeadCard({
   lead,
   snapshot,
@@ -531,7 +529,7 @@ function HistoricoModal({
   const [observacao, setObservacao] = useState("");
   const [resultado, setResultado] = useState("positivo");
 
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
 
   const fetchHistorico = useCallback(async (leadId: string) => {
     setLoadingHistorico(true);
@@ -769,7 +767,7 @@ export default function Funil() {
     window.addEventListener("resize", handleResize);
     
     // Buscar membros para o select de responsável
-    (supabase.from("perfis" as any) as any).select("id, nome_completo").then(({ data }: any) => {
+    (supabase as any).from("perfis").select("id, nome_completo").then(({ data }: any) => {
       setMembros(data || []);
     });
 
@@ -1099,7 +1097,7 @@ export default function Funil() {
     if (!celebrationLead) return;
     setSaving(true);
 
-    const { error } = await (supabase.from("carteira" as any) as any).insert({
+    const { error } = await (supabase as any).from("carteira").insert({
       lead_id: celebrationLead.id,
       nome: celebrationLead.nome,
       tipo_consorcio: celebrationLead.tipo_consorcio,
@@ -1109,6 +1107,7 @@ export default function Funil() {
       administradora: (administradora === "none" ? null : administradora) || celebrationLead.administradora,
       status: "aguardando",
       data_adesao: new Date().toISOString().split('T')[0],
+      organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
     });
 
     setSaving(false);

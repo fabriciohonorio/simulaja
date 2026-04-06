@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,8 @@ export interface MetricaSegmento {
   taxa_conversao: number;
   meta_vendas: number;
   progresso_meta: number;
+  full_previsao: number;
+  leads_necessarios_total: number;
 }
 
 interface Lead {
@@ -107,6 +109,7 @@ const SEGMENT_CONFIG: Record<string, { icon: LucideIcon, color: string, textColo
 export default function Metas() {
     const { toast } = useToast();
     const { profile, isManager } = useProfile();
+    const supabaseAny: any = supabase;
     const [leads, setLeads] = useState<Lead[]>([]);
     const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
@@ -115,7 +118,7 @@ export default function Metas() {
     const [dicas, setDicas] = useState<DicaEstrategica[]>([]);
     const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
     const [loading, setLoading] = useState(true);
-    const [membros, setMembros] = useState<any[]>([]);
+    const [membros, setMembros] = useState<{ id: string; nome_completo: string | null }[]>([]);
     const [inadimplentesCount, setInadimplentesCount] = useState(0);
     const [selectedVendedor, setSelectedVendedor] = useState<string>("all");
     const [segmentMetas, setSegmentMetas] = useState<Record<string, number>>({
@@ -131,161 +134,10 @@ export default function Metas() {
     const currentMonth = new Date().getMonth() + 1;
     const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
 
-    useEffect(() => { 
-        if (!profile) return;
-        fetchData(); 
-        
-        const channel = (supabase as any)
-            .channel('metas-leads-changes')
-            .on('postgres_changes', { 
-                event: '*', 
-                schema: 'public', 
-                table: 'leads',
-                filter: `organizacao_id=eq.${profile.organizacao_id}`
-            }, () => {
-                fetchData();
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [profile, selectedVendedor]);
-
-    const fetchData = async () => {
+    const fetchTermometro = useCallback(async () => {
         try {
-            setLoading(true);
-
-            if (isManager && profile?.organizacao_id) {
-                const { data: membrosData } = await (supabase.from("perfis" as any) as any)
-                    .select("id, nome_completo")
-                    .eq("organizacao_id", profile.organizacao_id);
-                setMembros(membrosData || []);
-            }
-
-            const { data: leadsData } = await (supabase.from("leads") as any).select("*").eq("organizacao_id", profile.organizacao_id);
-            const { data: carteiraData } = await (supabase.from("carteira") as any).select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
-            const { count: countInad } = await (supabase.from("inadimplentes") as any).select("*", { count: 'exact', head: true }).neq("status", "regularizado").eq("organizacao_id", profile.organizacao_id);
-            
-            setCarteira((carteiraData as any[]) || []);
-            setInadimplentesCount(countInad || 0);
-            
-            let metaData = null;
-            if (selectedVendedor !== "all" || !isManager) {
-                const targetId = !isManager ? profile?.id : selectedVendedor;
-                const { data: mvData } = await (supabase.from("metas_vendedor" as any) as any)
-                    .select("*")
-                    .eq("vendedor_id", targetId)
-                    .eq("ano", currentYear)
-                    .eq("organizacao_id", profile.organizacao_id)
-                    .maybeSingle();
-                metaData = mvData;
-            } else {
-                const { data: globalMeta } = await (supabase.from("meta") as any)
-                    .select("*")
-                    .eq("ano", currentYear)
-                    .eq("organizacao_id", profile.organizacao_id)
-                    .maybeSingle();
-                metaData = globalMeta;
-            }
-            
-            let allLeads = (leadsData as Lead[]) || [];
-            if (!isManager) {
-                allLeads = allLeads.filter((l: any) => l.responsavel_id === profile?.id);
-            } else if (selectedVendedor !== "all") {
-                allLeads = allLeads.filter((l: any) => l.responsavel_id === selectedVendedor);
-            }
-
-            setLeads(allLeads);
-            
-            if (metaData) {
-                setMetaAnual(metaData.meta_anual || 0);
-                setMetaInput(String(metaData.meta_anual || 0));
-                
-                // Carregar metas por segmento se for a visão global
-                if (selectedVendedor === "all" && isManager) {
-                    setSegmentMetas({
-                        imoveis: metaData.meta_imoveis || 0,
-                        veiculos: metaData.meta_veiculos || 0,
-                        motos: metaData.meta_motos || 0,
-                        pesados: metaData.meta_pesados || 0,
-                        investimentos: metaData.meta_investimentos || 0
-                    });
-                }
-            } else {
-                setMetaAnual(0);
-                setMetaInput("0");
-            }
-            
-            // Metas Mensais Pessoais (Agora Dinâmicas)
-            const monthlyMetas = segmentMetas;
-
-            const segs: MetricaSegmento[] = [
-                { segmento: 'imoveis', keywords: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'] },
-                { segmento: 'veiculos', keywords: ['veiculo', 'veículo', 'carro', 'auto', 'automovel', 'automóvel'] },
-                { segmento: 'motos', keywords: ['moto', 'motocicleta'] },
-                { segmento: 'pesados', keywords: ['pesados', 'agricolas', 'caminhao', 'caminhão', 'trator', 'maquina', 'máquina'] },
-                { segmento: 'investimentos', keywords: ['investimento', 'capitalizacao', 'aposentadoria', 'investimentos'] }
-            ].map(config => {
-                const segmentLeads = allLeads.filter(l => {
-                    const type = (l.tipo_consorcio || "").toLowerCase();
-                    return config.keywords.some(keyword => type.includes(keyword));
-                });
-                
-                const currentMonthLeads = segmentLeads.filter(l => l.created_at?.startsWith(mesStr));
-                const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado");
-                const currentMonthVendas = segmentVendas.filter(l => l.created_at?.startsWith(mesStr));
-                
-                const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-                
-                // Meta fixa mensal (pessoal) conforme solicitado pelo usuário
-                const metaValue = monthlyMetas[config.segmento];
-                
-                const vendasCount = currentMonthVendas.length;
-                const leadsCount = currentMonthLeads.length;
-                const conversao = leadsCount > 0 ? (vendasCount / leadsCount) * 100 : 0;
-                
-                // Using historical ticket médio for planning if current month has few sales
-                const historicalVendas = segmentVendas.length;
-                const historicalValor = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-                const ticketMedioRef = historicalVendas > 0 ? historicalValor / historicalVendas : (valorTotal / (vendasCount || 1)) || 100000;
-                
-                const previsao = leadsCount * (conversao / 100) * ticketMedioRef;
-                const progresso = metaValue > 0 ? (valorTotal / metaValue) * 100 : 0;
-                
-                const leadsNeeded = (conversao > 0 && ticketMedioRef > 0) 
-                    ? Math.ceil(metaValue / ((conversao / 100) * ticketMedioRef))
-                    : 0;
-
-                return {
-                    segmento: config.segmento as any,
-                    total_leads: leadsCount,
-                    total_vendas: vendasCount,
-                    valor_total: valorTotal,
-                    ticket_medio: ticketMedioRef,
-                    taxa_conversao: conversao,
-                    meta_vendas: metaValue,
-                    progresso_meta: progresso,
-                    full_previsao: previsao,
-                    leads_necessarios_total: leadsNeeded
-                } as any;
-            });
-
-            setSegmentos(segs);
-            
-            await Promise.all([
-                fetchTermometro()
-            ]);
-        } catch (err) {
-            // Error already logged by Supabase if relevant
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    async function fetchTermometro() {
-        try {
-            const { data, error } = await (supabase.from('termometro_mercado' as any) as any)
+            const { data, error } = await supabaseAny
+                .from('termometro_mercado')
                 .select('*')
                 .order('mes_referencia', { ascending: false })
                 .limit(1)
@@ -319,10 +171,11 @@ export default function Metas() {
         } catch (err) {
             console.error('Erro ao buscar termômetro:', err);
         }
-    }
+    }, []);
 
-    async function fetchDicas(termometroId: string) {
-        const { data, error } = await (supabase.from('dicas_estrategicas' as any) as any)
+    const fetchDicas = useCallback(async (termometroId: string) => {
+        const { data, error } = await supabaseAny
+            .from('dicas_estrategicas')
             .select('*')
             .eq('termometro_id', termometroId)
             .eq('ativo', true)
@@ -330,14 +183,161 @@ export default function Metas() {
             .order('created_at');
 
         if (!error) setDicas((data as unknown as DicaEstrategica[]) || []);
-    }
+    }, []);
 
+    const fetchData = useCallback(async () => {
+        if (!profile?.organizacao_id) return;
+        
+        try {
+            setLoading(true);
+
+            if (isManager) {
+                const { data: membrosData } = await supabaseAny
+                    .from("perfis")
+                    .select("id, nome_completo")
+                    .eq("organizacao_id", profile.organizacao_id);
+                setMembros((membrosData as { id: string; nome_completo: string | null }[]) || []);
+            }
+
+            const { data: leadsData } = await supabaseAny.from("leads").select("*").eq("organizacao_id", profile.organizacao_id);
+            const { data: carteiraData } = await supabaseAny.from("carteira").select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
+            const { count: countInad } = await supabaseAny.from("inadimplentes").select("*", { count: 'exact', head: true }).neq("status", "regularizado").eq("organizacao_id", profile.organizacao_id);
+            
+            setCarteira((carteiraData as any[]) || []);
+            setInadimplentesCount(countInad || 0);
+            
+            let metaData = null;
+            if (selectedVendedor !== "all" || !isManager) {
+                const targetId = !isManager ? profile?.id : selectedVendedor;
+                const { data: mvData } = await supabaseAny
+                    .from("metas_vendedor")
+                    .select("*")
+                    .eq("vendedor_id", targetId)
+                    .eq("ano", currentYear)
+                    .eq("organizacao_id", profile.organizacao_id)
+                    .maybeSingle();
+                metaData = mvData;
+            } else {
+                const { data: globalMeta } = await supabaseAny
+                    .from("meta")
+                    .select("*")
+                    .eq("ano", currentYear)
+                    .eq("organizacao_id", profile.organizacao_id)
+                    .maybeSingle();
+                metaData = globalMeta;
+            }
+            
+            let allLeads = (leadsData as Lead[]) || [];
+            if (!isManager) {
+                allLeads = allLeads.filter((l: Lead) => (l as any).responsavel_id === profile?.id);
+            } else if (selectedVendedor !== "all") {
+                allLeads = allLeads.filter((l: Lead) => (l as any).responsavel_id === selectedVendedor);
+            }
+
+            setLeads(allLeads);
+            
+            if (metaData) {
+                setMetaAnual(metaData.meta_anual || 0);
+                setMetaInput(String(metaData.meta_anual || 0));
+                
+                // Carregar metas por segmento se for a visão global
+                if (selectedVendedor === "all" && isManager) {
+                    setSegmentMetas({
+                        imoveis: metaData.meta_imoveis || 0,
+                        veiculos: metaData.meta_veiculos || 0,
+                        motos: metaData.meta_motos || 0,
+                        pesados: metaData.meta_pesados || 0,
+                        investimentos: metaData.meta_investimentos || 0
+                    });
+                }
+            } else {
+                setMetaAnual(0);
+                setMetaInput("0");
+            }
+            
+            const segs: MetricaSegmento[] = [
+                { segmento: 'imoveis', keywords: ['imovel', 'imóvel', 'casa', 'apartamento', 'terreno', 'construcao', 'reforma'] },
+                { segmento: 'veiculos', keywords: ['veiculo', 'veículo', 'carro', 'auto', 'automovel', 'automóvel'] },
+                { segmento: 'motos', keywords: ['moto', 'motocicleta'] },
+                { segmento: 'pesados', keywords: ['pesados', 'agricolas', 'caminhao', 'caminhão', 'trator', 'maquina', 'máquina'] },
+                { segmento: 'investimentos', keywords: ['investimento', 'capitalizacao', 'aposentadoria', 'investimentos'] }
+            ].map(config => {
+                const segmentLeads = allLeads.filter(l => {
+                    const type = (l.tipo_consorcio || "").toLowerCase();
+                    return (config as any).keywords.some((keyword: string) => type.includes(keyword));
+                });
+                
+                const currentMonthLeads = segmentLeads.filter(l => l.created_at?.startsWith(mesStr));
+                const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado");
+                const currentMonthVendas = segmentVendas.filter(l => l.created_at?.startsWith(mesStr));
+                
+                const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                const metaValue = segmentMetas[config.segmento];
+                
+                const vendasCount = currentMonthVendas.length;
+                const leadsCount = currentMonthLeads.length;
+                const conversao = leadsCount > 0 ? (vendasCount / leadsCount) * 100 : 0;
+                
+                const historicalVendas = segmentVendas.length;
+                const historicalValor = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                const ticketMedioRef = historicalVendas > 0 ? historicalValor / historicalVendas : (valorTotal / (vendasCount || 1)) || 100000;
+                
+                const previsao = leadsCount * (conversao / 100) * ticketMedioRef;
+                const progresso = metaValue > 0 ? (valorTotal / metaValue) * 100 : 0;
+                
+                const leadsNeeded = (conversao > 0 && ticketMedioRef > 0) 
+                    ? Math.ceil(metaValue / ((conversao / 100) * ticketMedioRef))
+                    : 0;
+
+                return {
+                    segmento: config.segmento as 'imoveis' | 'veiculos' | 'motos' | 'investimentos' | 'pesados',
+                    total_leads: leadsCount,
+                    total_vendas: vendasCount,
+                    valor_total: valorTotal,
+                    ticket_medio: ticketMedioRef,
+                    taxa_conversao: conversao,
+                    meta_vendas: metaValue,
+                    progresso_meta: progresso,
+                    full_previsao: previsao,
+                    leads_necessarios_total: leadsNeeded
+                };
+            });
+
+            setSegmentos(segs);
+            await fetchTermometro();
+        } catch (err) {
+            console.error("Erro ao buscar dados:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, [profile, isManager, selectedVendedor, currentYear, mesStr, segmentMetas, fetchTermometro]);
+
+    useEffect(() => { 
+        if (!profile) return;
+        fetchData(); 
+        
+        const channel = supabaseAny
+            .channel('metas-leads-changes')
+            .on('postgres_changes' as any, { 
+                event: '*', 
+                schema: 'public', 
+                table: 'leads',
+                filter: `organizacao_id=eq.${profile.organizacao_id}`
+            }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        return () => {
+            supabaseAny.removeChannel(channel);
+        };
+    }, [profile, fetchData, supabaseAny]);
 
     useEffect(() => {
         if (termometro) {
             fetchDicas(termometro.id);
         }
-    }, [termometro]);
+    }, [termometro, fetchDicas]);
 
     const salvarMeta = async () => {
         const novoValor = parseFloat(metaInput);
@@ -346,7 +346,7 @@ export default function Metas() {
         try {
             if (selectedVendedor !== "all" || !isManager) {
                 const targetId = !isManager ? profile?.id : selectedVendedor;
-                const { error } = await (supabase.from("metas_vendedor" as any) as any).upsert({ 
+                const { error } = await supabaseAny.from("metas_vendedor").upsert({ 
                     vendedor_id: targetId, 
                     ano: currentYear, 
                     meta_anual: novoValor,
@@ -355,7 +355,7 @@ export default function Metas() {
                 
                 if (error) throw error;
             } else {
-                const { error } = await (supabase.from("meta" as any) as any).upsert({ 
+                const { error } = await supabaseAny.from("meta").upsert({ 
                     ano: currentYear, 
                     meta_anual: novoValor,
                     organizacao_id: profile?.organizacao_id
@@ -382,7 +382,7 @@ export default function Metas() {
         }
 
         try {
-            const { error } = await (supabase.from("meta" as any) as any).upsert({
+            const { error } = await supabaseAny.from("meta").upsert({
                 ano: currentYear,
                 meta_imoveis: newMetas.imoveis,
                 meta_veiculos: newMetas.veiculos,
@@ -390,7 +390,7 @@ export default function Metas() {
                 meta_pesados: newMetas.pesados,
                 meta_investimentos: newMetas.investimentos,
                 organizacao_id: profile?.organizacao_id
-            }, { onConflict: "ano" });
+            }, { onConflict: "ano" } as any);
 
             if (error) throw error;
 
@@ -686,7 +686,7 @@ export default function Metas() {
                                 <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                                 <Tooltip 
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
-                                    formatter={(v: number) => [formatCurrency(v), "Valor"]}
+                                    formatter={(value: number) => [formatCurrency(value), "Valor"]}
                                 />
                                 <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} iconType="circle" />
                                 <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={24} />
@@ -991,7 +991,7 @@ export default function Metas() {
                 </h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                    {segmentos.map((seg: any) => {
+                    {segmentos.map((seg) => {
                         const { icon: Icon, color, textColor, label } = SEGMENT_CONFIG[seg.segmento] || { icon: BarChart3, color: 'bg-gray-600', textColor: 'text-gray-600', label: seg.segmento };
                         
                         const alertColor = seg.progresso_meta >= 70 ? 'text-green-600' : seg.progresso_meta >= 40 ? 'text-yellow-600' : 'text-red-600';

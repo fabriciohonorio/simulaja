@@ -62,6 +62,7 @@ interface CarteiraItem {
   celular?: string | null;
   indicador_nome?: string | null;
   administradora?: string | null;
+  organizacao_id?: string | null;
 }
 
 
@@ -121,19 +122,84 @@ export default function Carteira() {
 
   const fetchData = async () => {
     if (!profile?.organizacao_id) return;
+    setLoading(true);
     const { data } = await (supabase as any)
       .from("carteira")
       .select("*, leads:lead_id(celular, indicador_nome)")
       .eq("organizacao_id", profile.organizacao_id)
       .order("created_at", { ascending: false });
-    const mapped = (data ?? []).map((item: any) => ({
-      ...item,
-      celular: (item.leads as any)?.celular ?? null,
-      indicador_nome: (item.leads as any)?.indicador_nome ?? null,
-      administradora: item.administradora ?? null,
-    }));
-    setItems(mapped);
+    
+    if (data) {
+      const mapped = (data as any[]).map((item) => ({
+        ...item,
+        celular: item.leads?.celular ?? null,
+        indicador_nome: item.leads?.indicador_nome ?? null,
+        administradora: item.administradora ?? null,
+      }));
+      setItems(mapped);
+    }
     setLoading(false);
+  };
+
+  const handleSyncFromFunil = async () => {
+    if (!profile?.organizacao_id) return;
+    setLoading(true);
+    try {
+      // 1. Buscar leads fechados
+      const { data: closedLeads } = await (supabase as any)
+        .from("leads")
+        .select("*")
+        .eq("status", "fechado")
+        .eq("organizacao_id", profile.organizacao_id);
+
+      if (!closedLeads || closedLeads.length === 0) {
+        toast({ title: "Sincronização", description: "Não foram encontradas vendas fechadas para resgatar." });
+        return;
+      }
+
+      // 2. Buscar carteira atual
+      const { data: currentPort } = await (supabase as any)
+        .from("carteira")
+        .select("lead_id")
+        .eq("organizacao_id", profile.organizacao_id);
+
+      const portLeadIds = new Set(currentPort?.map((i: any) => i.lead_id) || []);
+      
+      // 3. Identificar o que falta
+      const missing = closedLeads.filter((l: any) => !portLeadIds.has(l.id));
+
+      if (missing.length === 0) {
+        toast({ title: "Sincronização", description: "Sua carteira já está 100% sincronizada com o funil." });
+        return;
+      }
+
+      // 4. Inserir os faltantes
+      const inserts = missing.map((l: any) => ({
+        lead_id: l.id,
+        nome: l.nome,
+        tipo_consorcio: l.tipo_consorcio,
+        valor_credito: Number(l.valor_credito),
+        administradora: l.administradora,
+        status: "aguardando",
+        data_adesao: new Date().toISOString().split('T')[0],
+        organizacao_id: profile.organizacao_id
+      }));
+
+      const { error } = await (supabase as any).from("carteira").insert(inserts);
+
+      if (error) throw error;
+
+      toast({ 
+        title: "Sucesso!", 
+        description: `${missing.length} ${missing.length === 1 ? 'venda resgatada' : 'vendas resgatadas'} com sucesso.` 
+      });
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Erro no resgate", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calculateTimeElapsed = (start: string | null, end: string | null) => {
@@ -565,6 +631,15 @@ export default function Carteira() {
             <Button 
                 size="sm" 
                 variant="outline" 
+                onClick={handleSyncFromFunil} 
+                className="h-9 px-3 border-green-200 text-green-600 hover:bg-green-50 shadow-sm"
+                disabled={loading}
+              >
+              <TrendingUp className="h-4 w-4" />
+            </Button>
+            <Button 
+                size="sm" 
+                variant="outline" 
                 onClick={handleGenerateReport} 
                 className="h-9 px-3 border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
               >
@@ -574,6 +649,16 @@ export default function Carteira() {
         </div>
 
         <div className="hidden md:flex items-center gap-2 shrink-0">
+          <Button 
+            size="sm" 
+            onClick={handleSyncFromFunil} 
+            variant="outline" 
+            className="border-green-200 text-green-600 hover:bg-green-50 shadow-sm"
+            disabled={loading}
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Resgatar Vendas
+          </Button>
           <Button 
             size="sm" 
             onClick={handleSyncInadimplentes} 

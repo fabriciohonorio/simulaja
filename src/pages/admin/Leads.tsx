@@ -113,6 +113,18 @@ export default function Leads() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const fetchLeads = useCallback(async () => {
+    if (!profile?.organizacao_id) return;
+    setLoading(true);
+    const { data } = await (supabase as any)
+      .from("leads")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("created_at", { ascending: false });
+    setLeads((data as Lead[]) ?? []);
+    setLoading(false);
+  }, [profile?.organizacao_id]);
+
   useEffect(() => {
     if (!profile) return;
     fetchLeads();
@@ -123,19 +135,7 @@ export default function Leads() {
       };
       fetchMembros();
     }
-  }, [profile]);
-
-  const fetchLeads = async () => {
-    if (!profile?.organizacao_id) return;
-    setLoading(true);
-    const { data } = await (supabase as any)
-      .from("leads")
-      .select("*")
-      .eq("organizacao_id", profile.organizacao_id)
-      .order("created_at", { ascending: false });
-    setLeads((data as Lead[]) ?? []);
-    setLoading(false);
-  };
+  }, [profile, fetchLeads, isManager]);
 
   const assignLead = async (leadId: string, responsavelId: string) => {
     const val = responsavelId === "none" ? null : responsavelId;
