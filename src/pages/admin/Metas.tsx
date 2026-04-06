@@ -130,11 +130,12 @@ export default function Metas() {
     });
     const [isEditingSegmentMetas, setIsEditingSegmentMetas] = useState(false);
     const [tempSegmentMetas, setTempSegmentMetas] = useState<Record<string, string>>({});
-    const { currentYear, mesStr } = React.useMemo(() => {
+    const { currentYear, currentMonth, mesStr } = React.useMemo(() => {
         const year = new Date().getFullYear();
         const month = new Date().getMonth() + 1;
         return {
             currentYear: year,
+            currentMonth: month,
             mesStr: `${year}-${month.toString().padStart(2, "0")}`
         };
     }, []);
