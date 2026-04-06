@@ -145,7 +145,14 @@ export default function Carteira() {
     if (!profile?.organizacao_id) return;
     setLoading(true);
     try {
-      // 1. Buscar leads fechados
+      // 1. Bulk fix existing records to MAGALU (excluding Cristiano)
+      await (supabase as any)
+        .from("carteira")
+        .update({ administradora: "MAGALU" })
+        .eq("organizacao_id", profile.organizacao_id)
+        .neq("nome", "Cristiano Gonçalves Lima");
+
+      // 2. Buscar leads fechados
       const { data: closedLeads } = await (supabase as any)
         .from("leads")
         .select("*")
@@ -153,11 +160,12 @@ export default function Carteira() {
         .eq("organizacao_id", profile.organizacao_id);
 
       if (!closedLeads || closedLeads.length === 0) {
-        toast({ title: "Sincronização", description: "Não foram encontradas vendas fechadas para resgatar." });
+        toast({ title: "Sincronização", description: "Dados padronizados para MAGALU. Nenhuma nova venda pendente found." });
+        fetchData();
         return;
       }
 
-      // 2. Buscar carteira atual
+      // 3. Buscar carteira atual
       const { data: currentPort } = await (supabase as any)
         .from("carteira")
         .select("lead_id")
@@ -165,21 +173,22 @@ export default function Carteira() {
 
       const portLeadIds = new Set(currentPort?.map((i: any) => i.lead_id) || []);
       
-      // 3. Identificar o que falta
+      // 4. Identificar o que falta
       const missing = closedLeads.filter((l: any) => !portLeadIds.has(l.id));
 
       if (missing.length === 0) {
-        toast({ title: "Sincronização", description: "Sua carteira já está 100% sincronizada com o funil." });
+        toast({ title: "Sincronização", description: "Portfolio padronizado e sincronizado com o funil." });
+        fetchData();
         return;
       }
 
-      // 4. Inserir os faltantes
+      // 5. Inserir os faltantes (sempre como MAGALU se forem novos)
       const inserts = missing.map((l: any) => ({
         lead_id: l.id,
         nome: l.nome,
         tipo_consorcio: l.tipo_consorcio,
         valor_credito: Number(l.valor_credito),
-        administradora: l.administradora,
+        administradora: l.nome === "Cristiano Gonçalves Lima" ? l.administradora : "MAGALU",
         status: "aguardando",
         data_adesao: new Date().toISOString().split('T')[0],
         organizacao_id: profile.organizacao_id
@@ -193,7 +202,7 @@ export default function Carteira() {
 
       toast({ 
         title: "Sucesso!", 
-        description: `${missing.length} ${missing.length === 1 ? 'venda resgatada' : 'vendas resgatadas'} com sucesso.` 
+        description: `Dados padronizados e ${missing.length} ${missing.length === 1 ? 'venda resgatada' : 'vendas resgatadas'}.` 
       });
       fetchData();
     } catch (err: any) {
@@ -771,8 +780,8 @@ export default function Carteira() {
                           COTA: <span className="text-orange-700 text-xs">{item.cota || "—"}</span>
                         </div>
                         {item.administradora && (
-                          <div className="bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
-                            ADMIN: <span className="text-blue-700 text-xs">{item.administradora}</span>
+                          <div className={`${item.administradora === "ADEMICON" ? "bg-red-50 text-red-600 border-red-200" : "bg-blue-50 text-blue-600 border-blue-200"} border text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5`}>
+                            ADMIN: <span className={`${item.administradora === "ADEMICON" ? "text-red-700" : "text-blue-700"} text-xs`}>{item.administradora}</span>
                           </div>
                         )}
                       </div>
@@ -900,7 +909,9 @@ export default function Carteira() {
                 {item.administradora && (
                   <div>
                     <p className="text-xs text-muted-foreground">Administradora</p>
-                    <p className="font-bold text-blue-600 uppercase text-xs">{item.administradora}</p>
+                    <p className={`font-bold uppercase text-xs ${item.administradora === "ADEMICON" ? "text-red-600" : "text-blue-600"}`}>
+                      {item.administradora}
+                    </p>
                   </div>
                 )}
                 <div className="col-span-2 flex items-center gap-2.5 bg-gradient-to-r from-orange-50/50 to-white p-2 rounded-xl border border-orange-100 mb-1 shadow-sm">
