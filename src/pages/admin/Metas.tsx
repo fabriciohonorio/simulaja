@@ -130,9 +130,14 @@ export default function Metas() {
     });
     const [isEditingSegmentMetas, setIsEditingSegmentMetas] = useState(false);
     const [tempSegmentMetas, setTempSegmentMetas] = useState<Record<string, string>>({});
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
-    const mesStr = `${currentYear}-${currentMonth.toString().padStart(2, "0")}`;
+    const { currentYear, mesStr } = React.useMemo(() => {
+        const year = new Date().getFullYear();
+        const month = new Date().getMonth() + 1;
+        return {
+            currentYear: year,
+            mesStr: `${year}-${month.toString().padStart(2, "0")}`
+        };
+    }, []);
 
     const fetchTermometro = useCallback(async () => {
         try {
@@ -321,18 +326,27 @@ export default function Metas() {
         }
     }, [profile?.organizacao_id, profile?.id, isManager, selectedVendedor, currentYear, mesStr, fetchTermometro]);
 
+    // 1. Initial Load
     useEffect(() => { 
         if (!profile?.organizacao_id) return;
         fetchData(); 
-        
+    }, [profile?.organizacao_id, fetchData]);
+
+    // 2. Separate Realtime Subscription (Only depends on orgId)
+    useEffect(() => {
+        const orgId = profile?.organizacao_id;
+        if (!orgId) return;
+
         const channel = supabase
-            .channel('metas-leads-changes')
+            .channel(`metas-leads-changes-${orgId}`)
             .on('postgres_changes' as any, { 
                 event: '*', 
                 schema: 'public', 
                 table: 'leads',
-                filter: `organizacao_id=eq.${profile.organizacao_id}`
+                filter: `organizacao_id=eq.${orgId}`
             }, () => {
+                // We call fetchData, but this effect DOES NOT depend on fetchData
+                // to avoid re-subscribing if fetchData happens to change.
                 fetchData();
             })
             .subscribe();
@@ -340,7 +354,7 @@ export default function Metas() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [profile?.organizacao_id, fetchData]);
+    }, [profile?.organizacao_id]); // DO NOT add fetchData here
 
     useEffect(() => {
         if (termometro) {
