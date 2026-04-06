@@ -141,6 +141,15 @@ export default function Carteira() {
     setLoading(false);
   };
 
+  const handleUpdateField = async (item: CarteiraItem, field: string, value: string) => {
+    const { error } = await supabase.from("carteira").update({ [field]: value }).eq("id", item.id);
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível atualizar o campo.", variant: "destructive" });
+    } else {
+      fetchData();
+    }
+  };
+
   const handleSyncFromFunil = async () => {
     if (!profile?.organizacao_id) return;
     setLoading(true);
@@ -160,54 +169,72 @@ export default function Carteira() {
         .eq("organizacao_id", profile.organizacao_id);
 
       if (!closedLeads || closedLeads.length === 0) {
-        toast({ title: "Sincronização", description: "Dados padronizados para MAGALU. Nenhuma nova venda pendente found." });
+        toast({ title: "Sincronização", description: "Dashboard atualizado. Nenhuma nova venda pendente encontrada." });
         fetchData();
         return;
       }
 
-      // 3. Buscar carteira atual
+      // 3. Buscar carteira atual para evitar duplicatas por lead_id ou nome (se lead_id for nulo)
       const { data: currentPort } = await (supabase as any)
         .from("carteira")
-        .select("lead_id")
+        .select("id, lead_id, nome")
         .eq("organizacao_id", profile.organizacao_id);
 
-      const portLeadIds = new Set(currentPort?.map((i: any) => i.lead_id) || []);
+      const portLeadIds = new Set(currentPort?.filter(i => i.lead_id).map(i => i.lead_id) || []);
+      const portNamesMap = new Map(currentPort?.filter(i => !i.lead_id).map(i => [i.nome.toLowerCase().trim(), i.id]) || []);
       
-      // 4. Identificar o que falta
-      const missing = closedLeads.filter((l: any) => !portLeadIds.has(l.id));
+      // 4. Identificar o que falta ou o que precisa ser vinculado (merge por nome)
+      const toInsert: any[] = [];
+      const toUpdateIds: {id: string, lead_id: string}[] = [];
 
-      if (missing.length === 0) {
-        toast({ title: "Sincronização", description: "Portfolio padronizado e sincronizado com o funil." });
-        fetchData();
-        return;
+      closedLeads.forEach((l: any) => {
+        if (portLeadIds.has(l.id)) return; // Já existe com este lead_id
+
+        const existingIdByName = portNamesMap.get(l.nome.toLowerCase().trim());
+        if (existingIdByName) {
+          // Existe o nome mas sem lead_id vinculado: vamos vincular
+          toUpdateIds.push({ id: existingIdByName, lead_id: l.id });
+        } else {
+          // Totalmente novo
+          toInsert.push({
+            lead_id: l.id,
+            nome: l.nome,
+            tipo_consorcio: l.tipo_consorcio,
+            valor_credito: Number(l.valor_credito),
+            administradora: l.administradora === "ADEMICON" ? "ADEMICON" : "MAGALU",
+            status: "aguardando",
+            data_adesao: new Date().toISOString().split('T')[0],
+            organizacao_id: profile.organizacao_id
+          });
+        }
+      });
+
+      // 5. Executar Updates (vínculos por nome)
+      if (toUpdateIds.length > 0) {
+        await Promise.all(toUpdateIds.map(upd => 
+          supabase.from("carteira").update({ lead_id: upd.lead_id }).eq("id", upd.id)
+        ));
       }
 
-      // 5. Inserir os faltantes (sempre como MAGALU se forem novos)
-      const inserts = missing.map((l: any) => ({
-        lead_id: l.id,
-        nome: l.nome,
-        tipo_consorcio: l.tipo_consorcio,
-        valor_credito: Number(l.valor_credito),
-        administradora: l.administradora === "ADEMICON" ? "ADEMICON" : "MAGALU",
-        status: "aguardando",
-        data_adesao: new Date().toISOString().split('T')[0],
-        organizacao_id: profile.organizacao_id
-      }));
+      // 6. Executar Inserts (novos registros)
+      if (toInsert.length > 0) {
+        const { error } = await (supabase as any)
+          .from("carteira")
+          .upsert(toInsert, { onConflict: 'lead_id' });
+        if (error) throw error;
+      }
 
-      const { error } = await (supabase as any)
-        .from("carteira")
-        .upsert(inserts, { onConflict: 'lead_id' });
-
-      if (error) throw error;
-
+      const totalAcoes = toInsert.length + toUpdateIds.length;
       toast({ 
-        title: "Sucesso!", 
-        description: `Dados padronizados e ${missing.length} ${missing.length === 1 ? 'venda resgatada' : 'vendas resgatadas'}.` 
+        title: "Sincronização Concluída", 
+        description: totalAcoes > 0 
+          ? `${totalAcoes} registros atualizados/adicionados.` 
+          : "Tudo em dia! Nenhuma nova venda para importar." 
       });
       fetchData();
     } catch (err: any) {
       console.error(err);
-      toast({ title: "Erro no resgate", description: err.message, variant: "destructive" });
+      toast({ title: "Erro na sincronização", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -584,6 +611,44 @@ export default function Carteira() {
     );
   };
 
+  const EditableBadge = ({ item, field, value }: { item: CarteiraItem, field: string, value: string | null }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempValue, setTempValue] = useState(value || "");
+
+    if (isEditing) {
+      return (
+        <Input 
+          autoFocus
+          className="h-6 w-20 text-[10px] p-1 bg-white border-orange-300"
+          value={tempValue}
+          placeholder="..."
+          onChange={(e) => setTempValue(e.target.value)}
+          onBlur={() => {
+            setIsEditing(false);
+            if (tempValue !== (value || "")) {
+              handleUpdateField(item, field, tempValue);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setIsEditing(false);
+              handleUpdateField(item, field, tempValue);
+            }
+          }}
+        />
+      );
+    }
+
+    return (
+      <button 
+        onClick={() => setIsEditing(true)}
+        className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5 hover:bg-orange-50 hover:border-orange-300 transition-all cursor-pointer"
+      >
+        {field.toUpperCase()}: <span className="text-orange-700 text-xs">{value || "—"}</span>
+      </button>
+    );
+  };
+
   const handleGenerateReport = () => {
     const doc = new jsPDF();
     const title = "Relatorio de Carteira de Clientes";
@@ -773,12 +838,8 @@ export default function Carteira() {
                     <div className="text-sm font-bold text-slate-800">{item.nome}</div>
                     <div className="flex flex-col gap-1.5 mt-2">
                       <div className="flex items-center gap-2">
-                        <div className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
-                          GRUP: <span className="text-orange-700 text-xs">{item.grupo || "—"}</span>
-                        </div>
-                        <div className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5">
-                          COTA: <span className="text-orange-700 text-xs">{item.cota || "—"}</span>
-                        </div>
+                        <EditableBadge item={item} field="grupo" value={item.grupo} />
+                        <EditableBadge item={item} field="cota" value={item.cota} />
                         {item.administradora && (
                           <div className={`${item.administradora === "ADEMICON" ? "bg-red-50 text-red-600 border-red-200" : "bg-blue-50 text-blue-600 border-blue-200"} border text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5`}>
                             ADMIN: <span className={`${item.administradora === "ADEMICON" ? "text-red-700" : "text-blue-700"} text-xs`}>{item.administradora}</span>
@@ -915,13 +976,13 @@ export default function Carteira() {
                   </div>
                 )}
                 <div className="col-span-2 flex items-center gap-2.5 bg-gradient-to-r from-orange-50/50 to-white p-2 rounded-xl border border-orange-100 mb-1 shadow-sm">
-                  <div className="flex-1 text-center bg-white p-1 rounded border border-orange-50">
-                    <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter">Grupo</p>
-                    <p className="text-lg font-black text-orange-600 leading-none">{item.grupo || "—"}</p>
+                  <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50">
+                    <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter mb-1">Grupo</p>
+                    <EditableBadge item={item} field="grupo" value={item.grupo} />
                   </div>
-                  <div className="flex-1 text-center bg-white p-1 rounded border border-orange-50">
-                    <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter">Cota</p>
-                    <p className="text-lg font-black text-orange-600 leading-none">{item.cota || "—"}</p>
+                  <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50">
+                    <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter mb-1">Cota</p>
+                    <EditableBadge item={item} field="cota" value={item.cota} />
                   </div>
                 </div>
                 {(() => {
