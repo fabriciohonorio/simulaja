@@ -1097,7 +1097,7 @@ export default function Funil() {
     if (!celebrationLead) return;
     setSaving(true);
 
-    const { error } = await (supabase as any).from("carteira").insert({
+    const { error } = await (supabase as any).from("carteira").upsert({
       lead_id: celebrationLead.id,
       nome: celebrationLead.nome,
       tipo_consorcio: celebrationLead.tipo_consorcio,
@@ -1108,7 +1108,7 @@ export default function Funil() {
       status: "aguardando",
       data_adesao: new Date().toISOString().split('T')[0],
       organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
-    });
+    }, { onConflict: 'lead_id' });
 
     setSaving(false);
 

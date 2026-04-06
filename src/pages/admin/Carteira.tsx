@@ -185,7 +185,9 @@ export default function Carteira() {
         organizacao_id: profile.organizacao_id
       }));
 
-      const { error } = await (supabase as any).from("carteira").insert(inserts);
+      const { error } = await (supabase as any)
+        .from("carteira")
+        .upsert(inserts, { onConflict: 'lead_id' });
 
       if (error) throw error;
 
