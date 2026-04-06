@@ -199,9 +199,15 @@ export default function Metas() {
                 setMembros((membrosData as { id: string; nome_completo: string | null }[]) || []);
             }
 
-            const { data: leadsData } = await supabaseAny.from("leads").select("*").eq("organizacao_id", profile.organizacao_id);
-            const { data: carteiraData } = await supabaseAny.from("carteira").select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
-            const { count: countInad } = await supabaseAny.from("inadimplentes").select("*", { count: 'exact', head: true }).neq("status", "regularizado").eq("organizacao_id", profile.organizacao_id);
+            const { data: leadsData } = await supabase.from("leads").select("*").eq("organizacao_id", profile.organizacao_id);
+            const { data: carteiraData } = await supabase.from("carteira").select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
+            
+            // Defensivo: Usar select("id") para contagem para evitar 400 dependendo da versão do PostgREST
+            const { count: countInad } = await supabase
+                .from("inadimplentes")
+                .select("id", { count: 'exact', head: true })
+                .neq("status", "regularizado")
+                .eq("organizacao_id", profile.organizacao_id);
             
             setCarteira((carteiraData as any[]) || []);
             setInadimplentesCount(countInad || 0);
@@ -209,7 +215,7 @@ export default function Metas() {
             let metaData = null;
             if (selectedVendedor !== "all" || !isManager) {
                 const targetId = !isManager ? profile?.id : selectedVendedor;
-                const { data: mvData } = await supabaseAny
+                const { data: mvData } = await supabase
                     .from("metas_vendedor")
                     .select("*")
                     .eq("vendedor_id", targetId)
@@ -218,7 +224,7 @@ export default function Metas() {
                     .maybeSingle();
                 metaData = mvData;
             } else {
-                const { data: globalMeta } = await supabaseAny
+                const { data: globalMeta } = await supabase
                     .from("meta")
                     .select("*")
                     .eq("ano", currentYear)
