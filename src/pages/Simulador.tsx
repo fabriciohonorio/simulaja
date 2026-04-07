@@ -153,12 +153,13 @@ export default function Simulador() {
       const { error: dbError } = await supabase.from("leads").insert({
         nome: nome.trim(),
         celular: wpp.replace(/\D/g, ""),
-        tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+        tipo_consorcio: `${CATEGORIAS.find(c => c.id === categoria)?.label || categoria} (G: ${g.grupo})`,
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo_lead",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
+        organizacao_id: "8b1a2dcc-83cd-4985-a828-f3870dcbc2a4",
         ...(isIndicacao ? { indicador_nome: refNome, indicador_celular: refCelular } : {}),
       });
 
@@ -220,7 +221,7 @@ export default function Simulador() {
       const { error } = await supabase.from("leads").update({
         valor_credito: g.credito,
         prazo_meses: g.prazo,
-        tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+        tipo_consorcio: `${CATEGORIAS.find(c => c.id === categoria)?.label || categoria} (G: ${g.grupo})`,
         updated_at: new Date().toISOString()
       }).eq("id", leadId);
 
@@ -339,7 +340,7 @@ export default function Simulador() {
     const text = `*📋 SIMULAÇÃO DE CONSÓRCIO - FABRICIO*
 
 *Cliente:* ${nome || 'Não informado'}
-*Bem:* ${CATEGORIAS.find(c => c.id === categoria)?.label || categoria}
+*Bem:* ${CATEGORIAS.find(c => c.id === categoria)?.label || categoria} (G: ${g.grupo})
 *Crédito:* ${fmt(g.credito)}
 *Prazo:* ${g.prazo} meses
 *Grupo:* ${g.grupo}

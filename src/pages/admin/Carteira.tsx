@@ -43,6 +43,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { jsPDF } from "jspdf";
+import { GRUPOS, CATEGORIAS } from "@/components/ConsortiumSimulator";
 
 interface CarteiraItem {
   id: string;
@@ -150,18 +151,28 @@ export default function Carteira() {
     }
   };
 
+  // Helper para tentar adivinhar o grupo baseado no valor do crédito (retroativo)
+  const guesstimateGroup = (tipo: string, valor: number) => {
+    try {
+      const t = tipo?.toLowerCase() || "";
+      const catKey = t.includes("imóvel") ? "imovel" : 
+                    t.includes("veículo") ? "veiculo" : 
+                    t.includes("pesados") ? "pesados" : null;
+      if (!catKey || !GRUPOS[catKey]) return null;
+      
+      // Tenta encontrar o grupo exato pelo valor do crédito
+      const match = GRUPOS[catKey].find(g => Math.abs(g.credito - valor) < 10);
+      return match ? match.grupo : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const handleSyncFromFunil = async () => {
     if (!profile?.organizacao_id) return;
     setLoading(true);
     try {
-      // 1. Bulk fix existing records to MAGALU (excluding those already set to ADEMICON)
-      await (supabase as any)
-        .from("carteira")
-        .update({ administradora: "MAGALU" })
-        .eq("organizacao_id", profile.organizacao_id)
-        .neq("administradora", "ADEMICON");
-
-      // 2. Buscar leads fechados
+      // 1. Buscar leads fechados
       const { data: closedLeads } = await (supabase as any)
         .from("leads")
         .select("*")
@@ -174,49 +185,65 @@ export default function Carteira() {
         return;
       }
 
-      // 3. Buscar carteira atual para evitar duplicatas por lead_id ou nome (se lead_id for nulo)
+      // 2. Buscar carteira atual para evitar duplicatas por lead_id ou nome (se lead_id for nulo)
       const { data: currentPort } = await (supabase as any)
         .from("carteira")
-        .select("id, lead_id, nome")
+        .select("id, lead_id, nome, valor_credito, grupo")
         .eq("organizacao_id", profile.organizacao_id);
 
       const portLeadIds = new Set(currentPort?.filter(i => i.lead_id).map(i => i.lead_id) || []);
-      const portNamesMap = new Map(currentPort?.filter(i => !i.lead_id).map(i => [i.nome.toLowerCase().trim(), i.id]) || []);
       
-      // 4. Identificar o que falta ou o que precisa ser vinculado (merge por nome)
+      // 3. Identificar o que falta ou o que precisa ser vinculado
       const toInsert: any[] = [];
       const toUpdateIds: {id: string, lead_id: string}[] = [];
 
       closedLeads.forEach((l: any) => {
         if (portLeadIds.has(l.id)) return; // Já existe com este lead_id
 
-        const existingIdByName = portNamesMap.get(l.nome.toLowerCase().trim());
-        if (existingIdByName) {
-          // Existe o nome mas sem lead_id vinculado: vamos vincular
-          toUpdateIds.push({ id: existingIdByName, lead_id: l.id });
+        // Tenta encontrar por nome e valor para vincular registros manuais antigos
+        const existingManual = currentPort?.find(i => 
+          !i.lead_id && 
+          i.nome?.toUpperCase() === l.nome?.toUpperCase() && 
+          Math.abs(Number(i.valor_credito) - Number(l.valor_credito)) < 10
+        );
+
+        if (existingManual) {
+          toUpdateIds.push({ id: existingManual.id, lead_id: l.id });
         } else {
-          // Totalmente novo
+          // Totalmente novo - EXTRAÇÃO DE GRUPO
+          let extractedGrupo = null;
+          if (l.tipo_consorcio && l.tipo_consorcio.includes("(G: ")) {
+            const match = l.tipo_consorcio.match(/\(G: (.*?)\)/);
+            if (match) extractedGrupo = match[1];
+          }
+
+          if (!extractedGrupo) {
+            extractedGrupo = guesstimateGroup(l.tipo_consorcio || "", Number(l.valor_credito));
+          }
+
           toInsert.push({
             lead_id: l.id,
             nome: l.nome,
-            tipo_consorcio: l.tipo_consorcio,
+            tipo_consorcio: l.tipo_consorcio?.split(" (G:")[0] || l.tipo_consorcio,
             valor_credito: Number(l.valor_credito),
-            administradora: l.administradora === "ADEMICON" ? "ADEMICON" : "MAGALU",
+            administradora: l.administradora || "MAGALU",
             status: "aguardando",
-            data_adesao: new Date().toISOString().split('T')[0],
-            organizacao_id: profile.organizacao_id
+            grupo: extractedGrupo,
+            data_adesao: (l.status_updated_at || l.created_at || new Date().toISOString()).split('T')[0],
+            organizacao_id: profile.organizacao_id,
+            protocolo_lance_fixo: `Resgatado ${new Date().toLocaleDateString("pt-BR")}`
           });
         }
       });
 
-      // 5. Executar Updates (vínculos por nome)
+      // 4. Executar Updates (vínculos por nome)
       if (toUpdateIds.length > 0) {
         await Promise.all(toUpdateIds.map(upd => 
           supabase.from("carteira").update({ lead_id: upd.lead_id }).eq("id", upd.id)
         ));
       }
 
-      // 6. Executar Inserts (novos registros)
+      // 5. Executar Inserts (novos registros)
       if (toInsert.length > 0) {
         const { error } = await (supabase as any)
           .from("carteira")
@@ -224,12 +251,22 @@ export default function Carteira() {
         if (error) throw error;
       }
 
+      // 6. Correção retroativa para itens atuais sem grupo
+      const itemsToFix = currentPort?.filter(i => !i.grupo) || [];
+      if (itemsToFix.length > 0) {
+        await Promise.all(itemsToFix.map(item => {
+          const guessed = guesstimateGroup(item.tipo_consorcio || "", Number(item.valor_credito));
+          if (guessed) {
+            return supabase.from("carteira").update({ grupo: guessed }).eq("id", item.id);
+          }
+          return Promise.resolve();
+        }));
+      }
+
       const totalAcoes = toInsert.length + toUpdateIds.length;
       toast({ 
         title: "Sincronização Concluída", 
-        description: totalAcoes > 0 
-          ? `${totalAcoes} registros atualizados/adicionados.` 
-          : "Tudo em dia! Nenhuma nova venda para importar." 
+        description: `${totalAcoes} registros vinculados/adicionados. Grupos corrigidos automaticamente.`
       });
       fetchData();
     } catch (err: any) {
@@ -842,7 +879,7 @@ export default function Carteira() {
                         <EditableBadge item={item} field="cota" value={item.cota} />
                         {item.administradora && (
                           <div className={`${item.administradora === "ADEMICON" ? "bg-red-50 text-red-600 border-red-200" : "bg-blue-50 text-blue-600 border-blue-200"} border text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5`}>
-                            ADMIN: <span className={`${item.administradora === "ADEMICON" ? "text-red-700" : "text-blue-700"} text-xs`}>{item.administradora}</span>
+                            <span className={`${item.administradora === "ADEMICON" ? "text-red-700" : "text-blue-700"} text-xs`}>{item.administradora}</span>
                           </div>
                         )}
                       </div>

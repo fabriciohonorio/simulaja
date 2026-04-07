@@ -221,7 +221,7 @@ export default function Metas() {
             let metaData = null;
             if (selectedVendedor !== "all" || !isManager) {
                 const targetId = !isManager ? profile?.id : selectedVendedor;
-                const { data: mvData } = await supabase
+                const { data: mvData } = await (supabase as any)
                     .from("metas_vendedor")
                     .select("*")
                     .eq("vendedor_id", targetId)

@@ -178,12 +178,13 @@ export default function Indicacoes() {
       await (supabase.from("leads") as any).insert({
         nome: nomeCliente.trim(),
         celular: wppCliente.replace(/\D/g, ""),
-        tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+        tipo_consorcio: `${CATEGORIAS.find(c => c.id === categoria)?.label || categoria} (G: ${g.grupo})`,
         valor_credito: g.credito,
         prazo_meses: g.prazo,
         status: "novo",
         lead_score_valor: leadScoreValor,
         lead_temperatura: "quente",
+        organizacao_id: "8b1a2dcc-83cd-4985-a828-f3870dcbc2a4",
         indicador_nome: pNome.trim(),
         indicador_celular: pWpp.replace(/\D/g, ""),
       });
@@ -197,7 +198,7 @@ export default function Indicacoes() {
           nome: nomeCliente.trim(),
           celular: wppCliente,
           valor_credito: fmt(g.credito),
-          tipo_consorcio: CATEGORIAS.find(c => c.id === categoria)?.label || categoria,
+          tipo_consorcio: `${CATEGORIAS.find(c => c.id === categoria)?.label || categoria} (G: ${g.grupo})`,
           pagina: window.location.href,
           origem: "indicacao",
           score: leadScoreValor,

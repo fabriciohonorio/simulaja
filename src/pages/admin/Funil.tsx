@@ -1106,7 +1106,7 @@ export default function Funil() {
       cota,
       administradora: (administradora === "none" ? null : administradora) || celebrationLead.administradora,
       status: "aguardando",
-      data_adesao: new Date().toISOString().split('T')[0],
+      data_adesao: celebrationLead.status_updated_at ? celebrationLead.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
       organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
     }, { onConflict: 'lead_id' });
 
