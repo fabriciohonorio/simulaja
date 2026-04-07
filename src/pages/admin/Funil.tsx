@@ -245,6 +245,77 @@ const isPastDue = (dateStr: string | null | undefined) => {
   return d < today;
 };
 
+// ─── Editable Badge (extraído para evitar violação de Hook Rules) ────────────
+function KanbanEditableBadge({
+  leadId, field, value, label, inputType = "text", hideLabel = false, compact = false,
+  isEditingField, setIsEditingField, onUpdateField,
+}: {
+  leadId: string;
+  field: string;
+  value: string | null;
+  label?: string;
+  inputType?: string;
+  hideLabel?: boolean;
+  compact?: boolean;
+  isEditingField: { field: string; value: string } | null;
+  setIsEditingField: (v: { field: string; value: string } | null) => void;
+  onUpdateField?: (leadId: string, field: string, value: string) => void;
+}) {
+  const [tempValue, setTempValue] = useState(value || "");
+
+  const getDisplayLabel = () => {
+    if (label) return label;
+    if (field === "grupo") return "G";
+    if (field === "cota") return "C";
+    if (field === "administradora") return "ADM";
+    if (field === "data_adesao") return "📅";
+    return field.toUpperCase();
+  };
+
+  const getDisplayValue = () => {
+    if (!value) return "—";
+    if (inputType === "date" && value.includes("-")) {
+      const [y, m, d] = value.split("-");
+      return `${d}/${m}/${y.slice(2)}`;
+    }
+    return value;
+  };
+
+  if (isEditingField?.field === field) {
+    return (
+      <input
+        type={inputType}
+        autoFocus
+        className={`${compact ? "h-4 text-[8px]" : "h-5 text-[10px]"} ${inputType === "date" ? "w-28" : "w-16"} p-0.5 bg-white border border-orange-300 rounded outline-none ring-1 ring-orange-200`}
+        value={tempValue}
+        placeholder="..."
+        onChange={(e) => setTempValue(e.target.value)}
+        onBlur={() => {
+          setIsEditingField(null);
+          if (tempValue !== (value || "")) onUpdateField?.(leadId, field, tempValue);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { setIsEditingField(null); onUpdateField?.(leadId, field, tempValue); }
+          if (e.key === "Escape") setIsEditingField(null);
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); setIsEditingField({ field, value: value || "" }); }}
+      className={`bg-orange-50 text-orange-600 border border-orange-200 font-black rounded shadow-sm flex items-center gap-1 hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer ${compact ? "text-[7px] px-0.5" : "text-[9px] px-1"}`}
+    >
+      {hideLabel ? (
+        <span className="text-orange-700">{getDisplayValue()}</span>
+      ) : (
+        <>{getDisplayLabel()}: <span className="text-orange-700">{getDisplayValue()}</span></>
+      )}
+    </button>
+  );
+}
+
 function LeadCard({
   lead,
   snapshot,
@@ -274,42 +345,8 @@ function LeadCard({
 }) {
   const [isEditingField, setIsEditingField] = useState<{field: string, value: string} | null>(null);
 
-  const EditableBadge = ({ field, value }: { field: string, value: string | null }) => {
-    const [tempValue, setTempValue] = useState(value || "");
 
-    if (isEditingField?.field === field) {
-      return (
-        <Input 
-          autoFocus
-          className={`${compact ? "h-4 w-12 text-[8px]" : "h-5 w-16 text-[10px]"} p-0.5 bg-white border-orange-300`}
-          value={tempValue}
-          placeholder="..."
-          onChange={(e) => setTempValue(e.target.value)}
-          onBlur={() => {
-            setIsEditingField(null);
-            if (tempValue !== (value || "")) {
-              onUpdateField?.(lead.id, field, tempValue);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              setIsEditingField(null);
-              onUpdateField?.(lead.id, field, tempValue);
-            }
-          }}
-        />
-      );
-    }
 
-    return (
-      <button 
-        onClick={(e) => { e.stopPropagation(); setIsEditingField({ field, value: value || "" }); }}
-        className={`bg-orange-50 text-orange-600 border border-orange-200 font-black rounded shadow-sm flex items-center gap-1 hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer ${compact ? "text-[7px] px-0.5" : "text-[9px] px-1"}`}
-      >
-        {field === "grupo" ? "G:" : "C:"} <span className="text-orange-700">{value || "—"}</span>
-      </button>
-    );
-  };
 
   const statusNormalized = normalizeStatus(lead.status);
   const isAguardando = statusNormalized === "aguardando_pagamento";
@@ -434,25 +471,7 @@ function LeadCard({
               via {lead.indicador_nome}
             </span>
           )}
-          {lead.administradora && (
-            <span className="text-[9px] text-blue-600 font-black uppercase bg-blue-50 px-1 rounded border border-blue-100">
-              {lead.administradora}
-            </span>
-          )}
-          {(lead.grupo || lead.cota) && (
-            <div className="flex items-center gap-1">
-              <EditableBadge field="grupo" value={lead.grupo} />
-              <EditableBadge field="cota" value={lead.cota} />
-            </div>
-          )}
-          {!lead.grupo && !lead.cota && !compact && (
-             <button 
-                onClick={(e) => { e.stopPropagation(); setIsEditingField({ field: "grupo", value: "" }); }}
-                className="text-[8px] text-muted-foreground/40 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"
-             >
-               + Gr/Cota
-             </button>
-          )}
+
         </div>
         
         {/* Indicador de dias sem contato - Oculto se fechado */}
@@ -531,6 +550,15 @@ function LeadCard({
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <CalendarIcon className="h-3 w-3" /> {lead.prazo_meses}m
           </div>
+        </div>
+      )}
+
+      {isFechado && (
+        <div className="mt-1 pt-1.5 border-t border-green-200 flex flex-wrap items-center gap-1">
+          <KanbanEditableBadge leadId={lead.id} field="administradora" value={lead.administradora ?? null} hideLabel compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
+          <KanbanEditableBadge leadId={lead.id} field="grupo" value={lead.grupo ?? null} label="G" compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
+          <KanbanEditableBadge leadId={lead.id} field="cota" value={lead.cota ?? null} label="C" compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
+          <KanbanEditableBadge leadId={lead.id} field="data_adesao" value={lead.data_adesao ?? null} inputType="date" label="📅" compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
         </div>
       )}
 
@@ -852,7 +880,7 @@ export default function Funil() {
     const { error } = await supabase.from("leads").update({ [field]: value }).eq("id", leadId);
     
     if (error) {
-      toast.error(`Erro ao atualizar ${field}: ${error.message}`);
+      toast.error(`Erro ao atualizar campo: ${error.message}`);
       return;
     }
 
@@ -863,7 +891,14 @@ export default function Funil() {
     }
 
     setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, [field]: value } : l)));
-    toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} atualizado!`);
+
+    const fieldLabels: Record<string, string> = {
+      grupo: "Grupo",
+      cota: "Cota",
+      administradora: "Administradora",
+      data_adesao: "Data de Adesão",
+    };
+    toast.success(`${fieldLabels[field] ?? field} atualizado com sucesso!`);
   };
 
   useEffect(() => {
