@@ -144,6 +144,12 @@ export default function Carteira() {
 
   const handleUpdateField = async (item: CarteiraItem, field: string, value: string) => {
     const { error } = await supabase.from("carteira").update({ [field]: value }).eq("id", item.id);
+    
+    if (!error && item.lead_id && ["grupo", "cota", "administradora"].includes(field)) {
+      // Mirror back to leads table
+      await supabase.from("leads").update({ [field]: value }).eq("id", item.lead_id);
+    }
+
     if (error) {
       toast({ title: "Erro", description: "Não foi possível atualizar o campo.", variant: "destructive" });
     } else {
@@ -521,6 +527,14 @@ export default function Carteira() {
     setSaving(true);
     const { error } = await supabase.from("carteira").update({ data_adesao: newAdesaoDate }).eq("id", selectedItem.id);
     
+    if (!error && selectedItem.lead_id) {
+      // Mirror back to leads table (using status_updated_at for the funnel card date)
+      await supabase.from("leads").update({ 
+        status_updated_at: newAdesaoDate + "T00:00:00Z",
+        data_adesao: newAdesaoDate // mirroring to the new column as well
+      }).eq("id", selectedItem.lead_id);
+    }
+
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
@@ -573,14 +587,22 @@ export default function Carteira() {
   const handleContemplacao = async () => {
     if (!selectedItem) return;
     setSaving(true);
-    await supabase.from("carteira")
+    const admin = administradora === "none" ? null : (administradora || selectedItem.administradora);
+    
+    const { error } = await supabase.from("carteira")
       .update({ 
         status: "contemplada", 
         cota_contemplada: cotaContemplada, 
         data_contemplacao: dataContemplacao,
-        administradora: administradora === "none" ? null : (administradora || selectedItem.administradora)
+        administradora: admin
       })
       .eq("id", selectedItem.id);
+    
+    if (!error && selectedItem.lead_id) {
+      // Mirror administradora back to leads
+      await supabase.from("leads").update({ administradora: admin }).eq("id", selectedItem.lead_id);
+    }
+
     setSaving(false);
     setSelectedItem(null);
     fetchData();

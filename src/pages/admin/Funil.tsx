@@ -83,6 +83,9 @@ interface Lead {
   organizacao_id: string | null;
   responsavel_id?: string | null;
   administradora?: string | null;
+  grupo?: string | null;
+  cota?: string | null;
+  data_adesao?: string | null;
 }
 
 interface HistoricoContato {
@@ -254,6 +257,7 @@ function LeadCard({
   isManager = false,
   ultimaTratativa,
   compact = false,
+  onUpdateField,
 }: {
   lead: Lead;
   snapshot: any;
@@ -266,7 +270,47 @@ function LeadCard({
   isManager?: boolean;
   ultimaTratativa?: HistoricoContato | null;
   compact?: boolean;
+  onUpdateField?: (leadId: string, field: string, value: string) => void;
 }) {
+  const [isEditingField, setIsEditingField] = useState<{field: string, value: string} | null>(null);
+
+  const EditableBadge = ({ field, value }: { field: string, value: string | null }) => {
+    const [tempValue, setTempValue] = useState(value || "");
+
+    if (isEditingField?.field === field) {
+      return (
+        <Input 
+          autoFocus
+          className={`${compact ? "h-4 w-12 text-[8px]" : "h-5 w-16 text-[10px]"} p-0.5 bg-white border-orange-300`}
+          value={tempValue}
+          placeholder="..."
+          onChange={(e) => setTempValue(e.target.value)}
+          onBlur={() => {
+            setIsEditingField(null);
+            if (tempValue !== (value || "")) {
+              onUpdateField?.(lead.id, field, tempValue);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setIsEditingField(null);
+              onUpdateField?.(lead.id, field, tempValue);
+            }
+          }}
+        />
+      );
+    }
+
+    return (
+      <button 
+        onClick={(e) => { e.stopPropagation(); setIsEditingField({ field, value: value || "" }); }}
+        className={`bg-orange-50 text-orange-600 border border-orange-200 font-black rounded shadow-sm flex items-center gap-1 hover:bg-orange-100 hover:border-orange-300 transition-all cursor-pointer ${compact ? "text-[7px] px-0.5" : "text-[9px] px-1"}`}
+      >
+        {field === "grupo" ? "G:" : "C:"} <span className="text-orange-700">{value || "—"}</span>
+      </button>
+    );
+  };
+
   const statusNormalized = normalizeStatus(lead.status);
   const isAguardando = statusNormalized === "aguardando_pagamento";
   const isFechado = statusNormalized === "fechado";
@@ -394,6 +438,20 @@ function LeadCard({
             <span className="text-[9px] text-blue-600 font-black uppercase bg-blue-50 px-1 rounded border border-blue-100">
               {lead.administradora}
             </span>
+          )}
+          {(lead.grupo || lead.cota) && (
+            <div className="flex items-center gap-1">
+              <EditableBadge field="grupo" value={lead.grupo} />
+              <EditableBadge field="cota" value={lead.cota} />
+            </div>
+          )}
+          {!lead.grupo && !lead.cota && !compact && (
+             <button 
+                onClick={(e) => { e.stopPropagation(); setIsEditingField({ field: "grupo", value: "" }); }}
+                className="text-[8px] text-muted-foreground/40 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"
+             >
+               + Gr/Cota
+             </button>
           )}
         </div>
         
@@ -790,6 +848,24 @@ export default function Funil() {
     return {};
   });
 
+  const handleUpdateLeadField = async (leadId: string, field: string, value: string) => {
+    const { error } = await supabase.from("leads").update({ [field]: value }).eq("id", leadId);
+    
+    if (error) {
+      toast.error(`Erro ao atualizar ${field}: ${error.message}`);
+      return;
+    }
+
+    // Mirror to carteira if it exists
+    const { data: carteiraItem } = await (supabase as any).from("carteira").select("id").eq("lead_id", leadId).maybeSingle();
+    if (carteiraItem) {
+      await (supabase as any).from("carteira").update({ [field]: value }).eq("lead_id", leadId);
+    }
+
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, [field]: value } : l)));
+    toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} atualizado!`);
+  };
+
   useEffect(() => {
     localStorage.setItem("crm_wide_view", String(isWideView));
   }, [isWideView]);
@@ -1049,8 +1125,9 @@ export default function Funil() {
 
     if (newStatus === "fechado") {
       setCelebrationLead({ ...lead, status: "fechado" });
-      setGrupo("");
-      setCota("");
+      setGrupo(lead.grupo || "");
+      setCota(lead.cota || "");
+      setAdministradora(lead.administradora || "");
       fireConfetti();
     }
     
@@ -1097,7 +1174,7 @@ export default function Funil() {
     if (!celebrationLead) return;
     setSaving(true);
 
-    const { error } = await (supabase as any).from("carteira").upsert({
+    const { error: carteiraError } = await (supabase as any).from("carteira").upsert({
       lead_id: celebrationLead.id,
       nome: celebrationLead.nome,
       tipo_consorcio: celebrationLead.tipo_consorcio,
@@ -1110,9 +1187,18 @@ export default function Funil() {
       organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
     }, { onConflict: 'lead_id' });
 
+    // Mirroring back to leads table
+    if (!carteiraError) {
+      await supabase.from("leads").update({
+        grupo,
+        cota,
+        administradora: (administradora === "none" ? null : administradora) || celebrationLead.administradora,
+      }).eq("id", celebrationLead.id);
+    }
+
     setSaving(false);
 
-    if (error) {
+    if (carteiraError) {
       toast.error("Erro ao salvar na carteira");
       return;
     }
@@ -1161,10 +1247,11 @@ export default function Funil() {
       </div>
     );
   }
-
   const currentCol = COLUMNS[mobileColIdx];
   const currentColLeads = getColumnLeads(currentCol.id);
   const currentColTotal = currentColLeads.reduce((s, l) => s + Number(l.valor_credito), 0);
+
+
 
   const renderLeadCard = (lead: Lead, idx: number) => (
     <Draggable draggableId={lead.id} index={idx} key={lead.id}>
@@ -1203,6 +1290,7 @@ export default function Funil() {
               isManager={isManager}
               ultimaTratativa={ultimasTratativas[lead.id] ?? null}
               compact={isWideView}
+              onUpdateField={handleUpdateLeadField}
             />
           </div>
         );
