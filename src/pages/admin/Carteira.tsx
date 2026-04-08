@@ -529,9 +529,9 @@ export default function Carteira() {
     
     if (!error && selectedItem.lead_id) {
       // Mirror back to leads table (using status_updated_at for the funnel card date)
-      await supabase.from("leads").update({ 
+      await (supabase as any).from("leads").update({ 
         status_updated_at: newAdesaoDate + "T00:00:00Z",
-        data_adesao: newAdesaoDate // mirroring to the new column as well
+        data_adesao: newAdesaoDate
       }).eq("id", selectedItem.lead_id);
     }
 

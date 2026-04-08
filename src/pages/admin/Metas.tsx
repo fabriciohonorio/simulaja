@@ -205,11 +205,11 @@ export default function Metas() {
                 setMembros((membrosData as { id: string; nome_completo: string | null }[]) || []);
             }
 
-            const { data: leadsData } = await supabase.from("leads").select("*").eq("organizacao_id", profile.organizacao_id);
-            const { data: carteiraData } = await supabase.from("carteira").select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
+            const { data: leadsData } = await (supabase as any).from("leads").select("*").eq("organizacao_id", profile.organizacao_id);
+            const { data: carteiraData } = await (supabase as any).from("carteira").select("id, data_adesao, data_contemplacao, status").eq("organizacao_id", profile.organizacao_id);
             
             // Defensivo: Usar select("id") para contagem para evitar 400 dependendo da versão do PostgREST
-            const { count: countInad } = await supabase
+            const { count: countInad } = await (supabase as any)
                 .from("inadimplentes")
                 .select("id", { count: 'exact', head: true })
                 .neq("status", "regularizado")
@@ -230,7 +230,7 @@ export default function Metas() {
                     .maybeSingle();
                 metaData = mvData;
             } else {
-                const { data: globalMeta } = await supabase
+                const { data: globalMeta } = await (supabase as any)
                     .from("meta")
                     .select("*")
                     .eq("ano", currentYear)
