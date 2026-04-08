@@ -117,6 +117,7 @@ export default function Metas() {
     const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
     const [metaInput, setMetaInput] = useState<string>("0");
+    const [metaMensalInput, setMetaMensalInput] = useState<string>("0");
     const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
     const [loading, setLoading] = useState(true);
     const [membros, setMembros] = useState<{ id: string; nome_completo: string | null }[]>([]);
@@ -201,8 +202,10 @@ export default function Metas() {
             let currentSegmentMetas = segmentMetas;
             
             if (metaData) {
-                setMetaAnual(metaData.meta_anual || 0);
-                setMetaInput(String(metaData.meta_anual || 0));
+                const valAnual = metaData.meta_anual || 0;
+                setMetaAnual(valAnual);
+                setMetaInput(String(valAnual));
+                setMetaMensalInput(String(Math.floor(valAnual / 12)));
                 
                 currentSegmentMetas = {
                     imoveis: metaData.meta_imoveis || 0,
@@ -218,6 +221,7 @@ export default function Metas() {
             } else {
                 setMetaAnual(0);
                 setMetaInput("0");
+                setMetaMensalInput("0");
             }
             
             const segs: MetricaSegmento[] = [
@@ -306,8 +310,8 @@ export default function Metas() {
         };
     }, [profile?.organizacao_id]); // DO NOT add fetchData here
 
-    const salvarMeta = async () => {
-        const novoValor = parseFloat(metaInput);
+    const salvarMeta = async (valorOverride?: number) => {
+        const novoValor = valorOverride !== undefined ? valorOverride : parseFloat(metaInput);
         if (isNaN(novoValor)) return;
         
         try {
@@ -331,6 +335,8 @@ export default function Metas() {
             }
             
             setMetaAnual(novoValor);
+            setMetaInput(String(novoValor));
+            setMetaMensalInput(String(Math.floor(novoValor / 12)));
             toast({ title: "Meta salva com sucesso!" });
         } catch (error) {
             console.error("Erro ao salvar meta:", error);
@@ -340,6 +346,12 @@ export default function Metas() {
                 variant: "destructive" 
             });
         }
+    };
+
+    const salvarMetaMensal = () => {
+        const mensalVal = parseFloat(metaMensalInput);
+        if (isNaN(mensalVal)) return;
+        salvarMeta(mensalVal * 12);
     };
 
     const salvarMetasSegmento = async (newMetas: Record<string, number>) => {
@@ -492,14 +504,31 @@ export default function Metas() {
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaInput(e.target.value)}
                                         className="h-8 text-right font-bold text-xs"
                                     />
-                                    <Button size="sm" variant="outline" onClick={salvarMeta} className="h-8 px-2 text-xs">Salvar</Button>
+                                    <Button size="sm" variant="outline" onClick={() => salvarMeta()} className="h-8 px-2 text-xs">Salvar</Button>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 border-t sm:border-t-0 sm:border-l border-primary/10 pt-3 sm:pt-0 sm:pl-4">
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <Clock className="h-5 w-5 text-primary" />
+                                    <span className="font-semibold text-sm">Meta Mensal (Média)</span>
+                                </div>
+                                <div className="flex items-center gap-2 max-w-[200px]">
+                                    <span className="text-muted-foreground text-xs">R$</span>
+                                    <Input
+                                        type="number"
+                                        value={metaMensalInput}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaMensalInput(e.target.value)}
+                                        className="h-8 text-right font-bold text-xs"
+                                    />
+                                    <Button size="sm" variant="outline" onClick={salvarMetaMensal} className="h-8 px-2 text-xs">Salvar</Button>
                                 </div>
                             </div>
                             
                             <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-8 gap-2 bg-white/50"
+                                className="h-8 gap-2 bg-white/50 shrink-0"
                                 onClick={() => {
                                     const temp: Record<string, string> = {};
                                     Object.entries(segmentMetas).forEach(([k, v]) => temp[k] = String(v));
