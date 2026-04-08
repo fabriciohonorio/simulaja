@@ -3,11 +3,10 @@ import ConsortiumSimulator from "@/components/ConsortiumSimulator";
 import AIChatbot from "@/components/AIChatbot";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Benefits from "@/components/Benefits";
-import AboutConsortium from "@/components/AboutConsortium";
-import Comparison from "@/components/Comparison";
-import SocialProof from "@/components/SocialProof";
-import ContactLinks from "@/components/ContactLinks";
+import AboutSection from "@/components/AboutSection";
+import SegmentCards from "@/components/SegmentCards";
+import Diferencial from "@/components/Diferencial";
+import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -88,27 +87,38 @@ const Index = () => {
     <main className="min-h-screen bg-background selection:bg-primary/20">
       <Header />
       
-      <Hero>
-        <div id="simulator" className="scroll-mt-32">
-          <ConsortiumSimulator onSimulateSubmit={handleSimulateSubmit} />
-        </div>
-      </Hero>
-
-      <div id="benefits" className="scroll-mt-20">
-        <Benefits />
-      </div>
+      <Hero />
 
       <div id="about" className="scroll-mt-20">
-        <AboutConsortium />
+        <AboutSection />
       </div>
 
-      <Comparison />
-
-      <div id="social-proof" className="scroll-mt-20">
-        <SocialProof />
+      <div id="segments" className="scroll-mt-20">
+        <SegmentCards />
       </div>
 
-      <ContactLinks />
+      <div id="simulator" className="scroll-mt-20">
+        <section className="py-24 bg-background">
+          <div className="container max-w-4xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
+                Simulador
+              </p>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4">
+                Simule seu Consórcio em segundos
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Descubra agora o valor do seu crédito, parcelas e o prazo ideal para o seu planejamento.
+              </p>
+            </div>
+            <ConsortiumSimulator onSimulateSubmit={handleSimulateSubmit} />
+          </div>
+        </section>
+      </div>
+
+      <Diferencial />
+
+      <FinalCTA />
       
       <Footer />
       
