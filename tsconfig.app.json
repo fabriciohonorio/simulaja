@@ -1,9 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -20,6 +16,11 @@
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
     "skipLibCheck": true,
     "strict": false,
     "target": "ES2020",

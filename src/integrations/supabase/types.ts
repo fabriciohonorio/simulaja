@@ -14,58 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamentos: {
+        Row: {
+          concluido_em: string | null
+          created_at: string | null
+          criado_por: string | null
+          data_agendada: string
+          descricao: string | null
+          id: string
+          lead_id: string
+          observacoes: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          concluido_em?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          data_agendada: string
+          descricao?: string | null
+          id?: string
+          lead_id: string
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          concluido_em?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          data_agendada?: string
+          descricao?: string | null
+          id?: string
+          lead_id?: string
+          observacoes?: string | null
+          status?: string | null
+          tipo?: string | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carteira: {
         Row: {
+          administradora: string | null
           boleto_url: string | null
           cota: string | null
           cota_contemplada: string | null
           created_at: string
-          data_contemplacao: string | null
           data_adesao: string | null
+          data_contemplacao: string | null
           grupo: string | null
           id: string
           lead_id: string | null
           nome: string
+          organizacao_id: string | null
+          protocolo_lance_fixo: string | null
           status: string
           tipo_consorcio: string | null
-          protocolo_lance_fixo: string | null
-          administradora: string | null
           updated_at: string
           valor_credito: number | null
         }
         Insert: {
+          administradora?: string | null
           boleto_url?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
-          data_contemplacao?: string | null
           data_adesao?: string | null
+          data_contemplacao?: string | null
           grupo?: string | null
           id?: string
           lead_id?: string | null
           nome: string
+          organizacao_id?: string | null
+          protocolo_lance_fixo?: string | null
           status?: string
           tipo_consorcio?: string | null
-          protocolo_lance_fixo?: string | null
-          administradora?: string | null
           updated_at?: string
           valor_credito?: number | null
         }
         Update: {
+          administradora?: string | null
           boleto_url?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
-          data_contemplacao?: string | null
           data_adesao?: string | null
+          data_contemplacao?: string | null
           grupo?: string | null
           id?: string
           lead_id?: string | null
           nome?: string
+          organizacao_id?: string | null
+          protocolo_lance_fixo?: string | null
           status?: string
           tipo_consorcio?: string | null
-          protocolo_lance_fixo?: string | null
-          administradora?: string | null
           updated_at?: string
           valor_credito?: number | null
         }
@@ -77,6 +133,107 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "carteira_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      convites: {
+        Row: {
+          convidado_por: string | null
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          organizacao_id: string | null
+          status: string | null
+          tipo_acesso: string
+          token: string
+          updated_at: string | null
+        }
+        Insert: {
+          convidado_por?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          organizacao_id?: string | null
+          status?: string | null
+          tipo_acesso?: string
+          token: string
+          updated_at?: string | null
+        }
+        Update: {
+          convidado_por?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          organizacao_id?: string | null
+          status?: string | null
+          tipo_acesso?: string
+          token?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dicas_estrategicas: {
+        Row: {
+          ativo: boolean | null
+          categoria: string | null
+          created_at: string | null
+          descricao: string
+          emoji: string | null
+          id: string
+          organizacao_id: string | null
+          prioridade: number | null
+          termometro_id: string | null
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria?: string | null
+          created_at?: string | null
+          descricao: string
+          emoji?: string | null
+          id?: string
+          organizacao_id?: string | null
+          prioridade?: number | null
+          termometro_id?: string | null
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria?: string | null
+          created_at?: string | null
+          descricao?: string
+          emoji?: string | null
+          id?: string
+          organizacao_id?: string | null
+          prioridade?: number | null
+          termometro_id?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dicas_estrategicas_termometro_id_fkey"
+            columns: ["termometro_id"]
+            isOneToOne: false
+            referencedRelation: "termometro_mercado"
+            referencedColumns: ["id"]
+          },
         ]
       }
       historico_contatos: {
@@ -85,6 +242,7 @@ export type Database = {
           id: string
           lead_id: string | null
           observacao: string | null
+          organizacao_id: string | null
           resultado: string | null
           tipo: string | null
         }
@@ -93,6 +251,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           observacao?: string | null
+          organizacao_id?: string | null
           resultado?: string | null
           tipo?: string | null
         }
@@ -101,6 +260,7 @@ export type Database = {
           id?: string
           lead_id?: string | null
           observacao?: string | null
+          organizacao_id?: string | null
           resultado?: string | null
           tipo?: string | null
         }
@@ -110,6 +270,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_contatos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
             referencedColumns: ["id"]
           },
         ]
@@ -123,6 +290,7 @@ export type Database = {
           grupo: string | null
           id: string
           nome: string
+          organizacao_id: string | null
           parcelas_atrasadas: number | null
           parcelas_pagas: number | null
           status: string
@@ -138,6 +306,7 @@ export type Database = {
           grupo?: string | null
           id?: string
           nome: string
+          organizacao_id?: string | null
           parcelas_atrasadas?: number | null
           parcelas_pagas?: number | null
           status?: string
@@ -153,6 +322,7 @@ export type Database = {
           grupo?: string | null
           id?: string
           nome?: string
+          organizacao_id?: string | null
           parcelas_atrasadas?: number | null
           parcelas_pagas?: number | null
           status?: string
@@ -160,7 +330,15 @@ export type Database = {
           updated_at?: string
           valor_parcela?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inadimplentes_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       interacoes: {
         Row: {
@@ -168,6 +346,7 @@ export type Database = {
           descricao: string
           id: string
           lead_id: string | null
+          organizacao_id: string | null
           tipo: string
         }
         Insert: {
@@ -175,6 +354,7 @@ export type Database = {
           descricao: string
           id?: string
           lead_id?: string | null
+          organizacao_id?: string | null
           tipo: string
         }
         Update: {
@@ -182,6 +362,7 @@ export type Database = {
           descricao?: string
           id?: string
           lead_id?: string | null
+          organizacao_id?: string | null
           tipo?: string
         }
         Relationships: [
@@ -192,70 +373,150 @@ export type Database = {
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "interacoes_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       leads: {
         Row: {
+          administradora: string | null
           celular: string | null
           cidade: string | null
+          cota: string | null
           created_at: string | null
+          data_adesao: string | null
           data_vencimento: string | null
           email: string | null
+          grupo: string | null
           id: string
           indicador_celular: string | null
           indicador_nome: string | null
+          last_interaction_at: string | null
           lead_score_valor: string | null
           lead_temperatura: string | null
           nome: string
+          organizacao_id: string | null
           prazo_meses: number | null
+          propensity_reason: string | null
+          propensity_score: number | null
+          responsavel_id: string | null
           status: string | null
+          status_updated_at: string | null
           tipo_consorcio: string | null
           ultimo_contato: string | null
-          administradora: string | null
           updated_at: string | null
           valor_credito: number | null
         }
         Insert: {
+          administradora?: string | null
           celular?: string | null
           cidade?: string | null
+          cota?: string | null
           created_at?: string | null
+          data_adesao?: string | null
           data_vencimento?: string | null
           email?: string | null
+          grupo?: string | null
           id?: string
           indicador_celular?: string | null
           indicador_nome?: string | null
+          last_interaction_at?: string | null
           lead_score_valor?: string | null
           lead_temperatura?: string | null
           nome: string
+          organizacao_id?: string | null
           prazo_meses?: number | null
+          propensity_reason?: string | null
+          propensity_score?: number | null
+          responsavel_id?: string | null
           status?: string | null
+          status_updated_at?: string | null
           tipo_consorcio?: string | null
-          administradora?: string | null
           ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
         }
         Update: {
+          administradora?: string | null
           celular?: string | null
           cidade?: string | null
+          cota?: string | null
           created_at?: string | null
+          data_adesao?: string | null
           data_vencimento?: string | null
           email?: string | null
+          grupo?: string | null
           id?: string
           indicador_celular?: string | null
           indicador_nome?: string | null
+          last_interaction_at?: string | null
           lead_score_valor?: string | null
           lead_temperatura?: string | null
           nome?: string
+          organizacao_id?: string | null
           prazo_meses?: number | null
+          propensity_reason?: string | null
+          propensity_score?: number | null
+          responsavel_id?: string | null
           status?: string | null
+          status_updated_at?: string | null
           tipo_consorcio?: string | null
-          administradora?: string | null
           ultimo_contato?: string | null
           updated_at?: string | null
           valor_credito?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_leads_organizacao"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mensagens: {
+        Row: {
+          created_at: string
+          destinatario_id: string | null
+          id: string
+          lida: boolean
+          mensagem: string
+          organizacao_id: string
+          remetente_id: string
+        }
+        Insert: {
+          created_at?: string
+          destinatario_id?: string | null
+          id?: string
+          lida?: boolean
+          mensagem: string
+          organizacao_id: string
+          remetente_id: string
+        }
+        Update: {
+          created_at?: string
+          destinatario_id?: string | null
+          id?: string
+          lida?: boolean
+          mensagem?: string
+          organizacao_id?: string
+          remetente_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mercado_termometro: {
         Row: {
@@ -285,16 +546,10 @@ export type Database = {
           id: number
           meta_anual: number | null
           meta_imoveis: number | null
-          meta_investimentos: number | null
           meta_motos: number | null
           meta_outros: number | null
-          meta_pesados: number | null
           meta_veiculos: number | null
-          ticket_medio_imoveis: number | null
-          ticket_medio_investimentos: number | null
-          ticket_medio_motos: number | null
-          ticket_medio_pesados: number | null
-          ticket_medio_veiculos: number | null
+          organizacao_id: string | null
         }
         Insert: {
           ano?: number | null
@@ -302,16 +557,10 @@ export type Database = {
           id?: number
           meta_anual?: number | null
           meta_imoveis?: number | null
-          meta_investimentos?: number | null
           meta_motos?: number | null
           meta_outros?: number | null
-          meta_pesados?: number | null
           meta_veiculos?: number | null
-          ticket_medio_imoveis?: number | null
-          ticket_medio_investimentos?: number | null
-          ticket_medio_motos?: number | null
-          ticket_medio_pesados?: number | null
-          ticket_medio_veiculos?: number | null
+          organizacao_id?: string | null
         }
         Update: {
           ano?: number | null
@@ -319,31 +568,263 @@ export type Database = {
           id?: number
           meta_anual?: number | null
           meta_imoveis?: number | null
-          meta_investimentos?: number | null
           meta_motos?: number | null
           meta_outros?: number | null
-          meta_pesados?: number | null
           meta_veiculos?: number | null
-          ticket_medio_imoveis?: number | null
-          ticket_medio_investimentos?: number | null
-          ticket_medio_motos?: number | null
-          ticket_medio_pesados?: number | null
-          ticket_medio_veiculos?: number | null
+          organizacao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metas_vendedor: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          meta_anual: number
+          updated_at: string
+          vendedor_id: string | null
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          id?: string
+          meta_anual?: number
+          updated_at?: string
+          vendedor_id?: string | null
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          meta_anual?: number
+          updated_at?: string
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_vendedor_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metricas_segmentos: {
+        Row: {
+          created_at: string | null
+          id: string
+          mes_referencia: string
+          meta_vendas: number | null
+          organizacao_id: string | null
+          progresso_meta: number | null
+          segmento: string
+          taxa_conversao: number | null
+          ticket_medio: number | null
+          total_leads: number | null
+          total_vendas: number | null
+          valor_total: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mes_referencia: string
+          meta_vendas?: number | null
+          organizacao_id?: string | null
+          progresso_meta?: number | null
+          segmento: string
+          taxa_conversao?: number | null
+          ticket_medio?: number | null
+          total_leads?: number | null
+          total_vendas?: number | null
+          valor_total?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mes_referencia?: string
+          meta_vendas?: number | null
+          organizacao_id?: string | null
+          progresso_meta?: number | null
+          segmento?: string
+          taxa_conversao?: number | null
+          ticket_medio?: number | null
+          total_leads?: number | null
+          total_vendas?: number | null
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metricas_segmentos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modulos: {
+        Row: {
+          ativo: boolean
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+          slug: string
+        }
+        Update: {
+          ativo?: boolean
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+          slug?: string
         }
         Relationships: []
+      }
+      organizacoes: {
+        Row: {
+          created_at: string | null
+          id: string
+          max_leads: number | null
+          max_usuarios: number | null
+          nome: string
+          plano: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          max_leads?: number | null
+          max_usuarios?: number | null
+          nome: string
+          plano?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          max_leads?: number | null
+          max_usuarios?: number | null
+          nome?: string
+          plano?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      perfis: {
+        Row: {
+          ativo: boolean
+          avatar_url: string | null
+          cargo: string | null
+          created_at: string
+          id: string
+          nome_completo: string | null
+          organizacao_id: string | null
+          telefone: string | null
+          tipo_acesso: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          avatar_url?: string | null
+          cargo?: string | null
+          created_at?: string
+          id: string
+          nome_completo?: string | null
+          organizacao_id?: string | null
+          telefone?: string | null
+          tipo_acesso: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          avatar_url?: string | null
+          cargo?: string | null
+          created_at?: string
+          id?: string
+          nome_completo?: string | null
+          organizacao_id?: string | null
+          telefone?: string | null
+          tipo_acesso?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permissoes: {
+        Row: {
+          acao: string
+          descricao: string | null
+          id: string
+          modulo_id: string
+        }
+        Insert: {
+          acao: string
+          descricao?: string | null
+          id?: string
+          modulo_id: string
+        }
+        Update: {
+          acao?: string
+          descricao?: string | null
+          id?: string
+          modulo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissoes_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       Prompts: {
         Row: {
           created_at: string
           id: number
+          organizacao_id: string | null
         }
         Insert: {
           created_at?: string
           id?: number
+          organizacao_id?: string | null
         }
         Update: {
           created_at?: string
           id?: number
+          organizacao_id?: string | null
         }
         Relationships: []
       }
@@ -353,6 +834,7 @@ export type Database = {
           fundo_reserva: number
           id: string
           lead_id: string | null
+          organizacao_id: string | null
           pdf_url: string | null
           prazo_meses: number
           status: string | null
@@ -366,6 +848,7 @@ export type Database = {
           fundo_reserva: number
           id?: string
           lead_id?: string | null
+          organizacao_id?: string | null
           pdf_url?: string | null
           prazo_meses: number
           status?: string | null
@@ -379,6 +862,7 @@ export type Database = {
           fundo_reserva?: number
           id?: string
           lead_id?: string | null
+          organizacao_id?: string | null
           pdf_url?: string | null
           prazo_meses?: number
           status?: string | null
@@ -393,6 +877,111 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simulador_config: {
+        Row: {
+          categorias: Json
+          grupos: Json
+          id: string
+          organizacao_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          categorias?: Json
+          grupos?: Json
+          id?: string
+          organizacao_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          categorias?: Json
+          grupos?: Json
+          id?: string
+          organizacao_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      termometro_mercado: {
+        Row: {
+          contemplacoes: number | null
+          contemplacoes_variacao: number | null
+          created_at: string | null
+          creditos_comercializados: number | null
+          creditos_comercializados_variacao: number | null
+          creditos_disponibilizados: number | null
+          creditos_disponibilizados_variacao: number | null
+          id: string
+          mes_referencia: string
+          organizacao_id: string | null
+          participantes_ativos: number | null
+          participantes_ativos_variacao: number | null
+          temperatura: string | null
+          temperatura_score: number | null
+          ticket_medio: number | null
+          ticket_medio_variacao: number | null
+          updated_at: string | null
+          vendas_cotas: number | null
+          vendas_cotas_variacao: number | null
+        }
+        Insert: {
+          contemplacoes?: number | null
+          contemplacoes_variacao?: number | null
+          created_at?: string | null
+          creditos_comercializados?: number | null
+          creditos_comercializados_variacao?: number | null
+          creditos_disponibilizados?: number | null
+          creditos_disponibilizados_variacao?: number | null
+          id?: string
+          mes_referencia: string
+          organizacao_id?: string | null
+          participantes_ativos?: number | null
+          participantes_ativos_variacao?: number | null
+          temperatura?: string | null
+          temperatura_score?: number | null
+          ticket_medio?: number | null
+          ticket_medio_variacao?: number | null
+          updated_at?: string | null
+          vendas_cotas?: number | null
+          vendas_cotas_variacao?: number | null
+        }
+        Update: {
+          contemplacoes?: number | null
+          contemplacoes_variacao?: number | null
+          created_at?: string | null
+          creditos_comercializados?: number | null
+          creditos_comercializados_variacao?: number | null
+          creditos_disponibilizados?: number | null
+          creditos_disponibilizados_variacao?: number | null
+          id?: string
+          mes_referencia?: string
+          organizacao_id?: string | null
+          participantes_ativos?: number | null
+          participantes_ativos_variacao?: number | null
+          temperatura?: string | null
+          temperatura_score?: number | null
+          ticket_medio?: number | null
+          ticket_medio_variacao?: number | null
+          updated_at?: string | null
+          vendas_cotas?: number | null
+          vendas_cotas_variacao?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "termometro_mercado_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
             referencedColumns: ["id"]
           },
         ]
@@ -415,6 +1004,42 @@ export type Database = {
         }
         Relationships: []
       }
+      usuario_permissoes: {
+        Row: {
+          concedida: boolean
+          id: string
+          perfil_id: string
+          permissao_id: string
+        }
+        Insert: {
+          concedida?: boolean
+          id?: string
+          perfil_id: string
+          permissao_id: string
+        }
+        Update: {
+          concedida?: boolean
+          id?: string
+          perfil_id?: string
+          permissao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuario_permissoes_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuario_permissoes_permissao_id_fkey"
+            columns: ["permissao_id"]
+            isOneToOne: false
+            referencedRelation: "permissoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           ativo: boolean | null
@@ -422,6 +1047,7 @@ export type Database = {
           email: string
           id: string
           nome: string
+          organizacao_id: string
           role: string | null
           senha_hash: string
         }
@@ -431,6 +1057,7 @@ export type Database = {
           email: string
           id?: string
           nome: string
+          organizacao_id: string
           role?: string | null
           senha_hash: string
         }
@@ -440,22 +1067,51 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
+          organizacao_id?: string
           role?: string | null
           senha_hash?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_organizacao"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_usuarios_organizacao"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calcular_temperatura_mercado: {
+        Args: {
+          p_creditos_var: number
+          p_ticket_var: number
+          p_vendas_var: number
+        }
+        Returns: Json
+      }
+      get_my_org_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      update_member_role: {
+        Args: { new_role: string; target_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

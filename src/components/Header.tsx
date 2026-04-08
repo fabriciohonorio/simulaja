@@ -16,35 +16,30 @@ const Header = () => {
   }, []);
 
   const navLinks = [
+    { label: "Sobre", href: "#about" },
+    { label: "Segmentos", href: "#segments" },
     { label: "Simulador", href: "#simulator" },
-    { label: "Benefícios", href: "#benefits" },
-    { label: "Como funciona", href: "#about" },
-    { label: "Sobre", href: "#social-proof" },
   ];
 
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-background/95 backdrop-blur-md shadow-md py-3" : "bg-transparent py-5"
+        isScrolled ? "bg-[hsl(var(--navy))]/95 backdrop-blur-md shadow-md py-3" : "bg-transparent py-5"
       }`}
     >
       <div className="container max-w-7xl mx-auto px-4 flex items-center justify-between">
-        {/* Logo */}
         <div className="flex items-center gap-2">
-          <span className={`text-2xl font-black tracking-tighter ${isScrolled ? "text-primary" : "text-white"}`}>
-            SimulaJá
+          <span className="text-xl font-black tracking-tight text-white">
+            FABRICIO <span className="text-white/50">|</span> <span className="text-white/70 font-medium text-sm">Especialista em Consórcio</span>
           </span>
         </div>
 
-        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a 
               key={link.label} 
               href={link.href}
-              className={`text-sm font-bold transition-colors hover:text-secondary ${
-                isScrolled ? "text-foreground" : "text-white/90"
-              }`}
+              className="text-sm font-bold transition-colors hover:text-secondary text-white/80 hover:text-white"
             >
               {link.label}
             </a>
@@ -60,24 +55,22 @@ const Header = () => {
           </a>
         </nav>
 
-        {/* Mobile menu button */}
         <button 
-          className="md:hidden text-white bg-primary p-2 rounded-lg"
+          className="md:hidden text-white bg-white/10 p-2 rounded-lg"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X /> : <Menu />}
         </button>
       </div>
 
-      {/* Mobile Nav Overlay */}
       {isMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-background border-t border-border p-4 shadow-2xl md:hidden animate-in slide-in-from-top duration-300">
+        <div className="absolute top-full left-0 right-0 bg-[hsl(var(--navy))] border-t border-white/10 p-4 shadow-2xl md:hidden animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-4">
             {navLinks.map((link) => (
               <a 
                 key={link.label} 
                 href={link.href}
-                className="text-lg font-bold p-2 hover:bg-muted rounded-lg"
+                className="text-lg font-bold p-2 text-white/80 hover:text-white hover:bg-white/5 rounded-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}

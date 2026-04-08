@@ -218,8 +218,8 @@ export default function Jarvis() {
                         imoveis: Number(metaRes.data.meta_imoveis || 500000),
                         veiculos: Number(metaRes.data.meta_veiculos || 100000),
                         motos: Number(metaRes.data.meta_motos || 100000),
-                        pesados: Number(metaRes.data.meta_pesados || 180000),
-                        investimentos: Number(metaRes.data.meta_investimentos || 120000)
+                        pesados: Number((metaRes.data as any).meta_pesados || 180000),
+                        investimentos: Number((metaRes.data as any).meta_investimentos || 120000)
                     };
 
                     const segConfig = [
