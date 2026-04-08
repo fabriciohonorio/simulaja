@@ -585,20 +585,40 @@ export default function Metas() {
             </Dialog>
 
             {/* Resumo Executivo IA */}
-            <div className={`bg-slate-900 border p-4 sm:p-5 rounded-2xl relative overflow-hidden shadow-lg mb-6 ${ritmoStatus === 'verde' ? 'border-emerald-900/50' : ritmoStatus === 'amarelo' ? 'border-amber-900/50' : 'border-red-900/50'}`}>
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                     <Sparkles className="h-24 w-24" />
+            <div className={`border p-4 sm:p-5 rounded-2xl relative overflow-hidden shadow-sm mb-6 ${
+                ritmoStatus === 'verde' ? 'border-emerald-200 bg-emerald-50' : 
+                ritmoStatus === 'amarelo' ? 'border-amber-200 bg-amber-50' : 
+                'border-red-200 bg-red-50'
+            }`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                     <Sparkles className={`h-24 w-24 ${ritmoStatus === 'verde' ? 'text-emerald-400' : ritmoStatus === 'amarelo' ? 'text-amber-400' : 'text-red-400'}`} />
                 </div>
                 <div className="relative z-10 flex gap-3 sm:gap-4 items-start">
-                    <div className={`p-2 rounded-lg border shrink-0 mt-1 ${ritmoStatus === 'verde' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : ritmoStatus === 'amarelo' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : 'bg-red-500/20 border-red-500/30 text-red-400'}`}>
+                    <div className={`p-2 rounded-lg border shrink-0 mt-1 ${
+                        ritmoStatus === 'verde' ? 'bg-emerald-100 border-emerald-200 text-emerald-600' : 
+                        ritmoStatus === 'amarelo' ? 'bg-amber-100 border-amber-200 text-amber-600' : 
+                        'bg-red-100 border-red-200 text-red-600'
+                    }`}>
                         <Sparkles className="h-5 w-5 fill-current" />
                     </div>
                     <div>
-                        <h3 className={`text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 ${ritmoStatus === 'verde' ? 'text-emerald-400' : ritmoStatus === 'amarelo' ? 'text-amber-400' : 'text-red-400'}`}>
+                        <h3 className={`text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 ${
+                            ritmoStatus === 'verde' ? 'text-emerald-700' : 
+                            ritmoStatus === 'amarelo' ? 'text-amber-700' : 
+                            'text-red-700'
+                        }`}>
                            Resumo Executivo IA
-                           <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${ritmoStatus === 'verde' ? 'bg-emerald-500/20' : ritmoStatus === 'amarelo' ? 'bg-amber-500/20' : 'bg-red-500/20'}`}>AUTO</span>
+                           <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${
+                               ritmoStatus === 'verde' ? 'bg-emerald-200 text-emerald-800' : 
+                               ritmoStatus === 'amarelo' ? 'bg-amber-200 text-amber-800' : 
+                               'bg-red-200 text-red-800'
+                           }`}>AUTO</span>
                         </h3>
-                        <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                        <p className={`text-sm leading-relaxed font-bold ${
+                            ritmoStatus === 'verde' ? 'text-emerald-900' : 
+                            ritmoStatus === 'amarelo' ? 'text-amber-900' : 
+                            'text-red-900'
+                        }`}>
                             {resumoIA}
                         </p>
                     </div>
