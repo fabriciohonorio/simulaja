@@ -379,8 +379,8 @@ export default function Metas() {
     const faltaAno = Math.max(0, metaAnual - realizadoAno);
     const mesesRestantes = Math.max(1, 12 - currentMonth + 1);
     const necessarioPorMes = faltaAno / mesesRestantes;
-    const progressoMes = metaMensal > 0 ? Math.min(100, (realizadoMes / metaMensal) * 100) : 0;
-    const progressoAno = metaAnual > 0 ? Math.min(100, (realizadoAno / metaAnual) * 100) : 0;
+    const progressoMes = metaMensal > 0 ? (realizadoMes / metaMensal) * 100 : 0;
+    const progressoAno = metaAnual > 0 ? (realizadoAno / metaAnual) * 100 : 0;
     const ticketMedio = fechados.length > 0 ? realizadoAno / fechados.length : 0;
     const leadsAno = leads.filter(l => l.created_at?.startsWith(String(currentYear)));
     const taxaConversao = leadsAno.length > 0 ? (fechados.length / leadsAno.length) * 100 : 0;
@@ -552,18 +552,18 @@ export default function Metas() {
             </Dialog>
 
             {/* Resumo Executivo IA */}
-            <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden shadow-lg mb-6">
+            <div className={`bg-slate-900 border p-4 sm:p-5 rounded-2xl relative overflow-hidden shadow-lg mb-6 ${ritmoStatus === 'verde' ? 'border-emerald-900/50' : ritmoStatus === 'amarelo' ? 'border-amber-900/50' : 'border-red-900/50'}`}>
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                      <Sparkles className="h-24 w-24" />
                 </div>
                 <div className="relative z-10 flex gap-3 sm:gap-4 items-start">
-                    <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30 shrink-0 mt-1">
-                        <Sparkles className="h-5 w-5 text-indigo-400" />
+                    <div className={`p-2 rounded-lg border shrink-0 mt-1 ${ritmoStatus === 'verde' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : ritmoStatus === 'amarelo' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : 'bg-red-500/20 border-red-500/30 text-red-400'}`}>
+                        <Sparkles className="h-5 w-5 fill-current" />
                     </div>
                     <div>
-                        <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                        <h3 className={`text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 ${ritmoStatus === 'verde' ? 'text-emerald-400' : ritmoStatus === 'amarelo' ? 'text-amber-400' : 'text-red-400'}`}>
                            Resumo Executivo IA
-                           <span className="px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[8px] font-bold">AUTO</span>
+                           <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${ritmoStatus === 'verde' ? 'bg-emerald-500/20' : ritmoStatus === 'amarelo' ? 'bg-amber-500/20' : 'bg-red-500/20'}`}>AUTO</span>
                         </h3>
                         <p className="text-sm text-slate-300 leading-relaxed font-medium">
                             {resumoIA}
