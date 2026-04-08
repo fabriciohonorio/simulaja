@@ -266,7 +266,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Seção Emocional/Foco de Vendas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02]">
+        {/* Card 1: Quase no Bolso */}
+        <div className="relative group overflow-visible p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02] cursor-default z-10 hover:z-50">
           <div className="flex flex-col gap-1">
              <div className="flex items-center gap-2 opacity-90">
                <span className="p-1.5 bg-white/20 rounded-lg"><TrendingUp className="h-4 w-4" /></span>
@@ -275,9 +276,34 @@ export default function Dashboard() {
              <p className="text-2xl font-black">{formatCurrency(leads.filter(l => l.status === 'negociacao' || l.status === 'simulacao_enviada').reduce((acc, l) => acc + Number(l.valor_credito || 0), 0))}</p>
              <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Volume em Negociação Final</p>
           </div>
+          
+          {/* Popover Hover */}
+          <div className="absolute top-[105%] left-0 w-full min-w-[300px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-border p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-200 z-50 flex flex-col gap-2">
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tight mb-1 border-b pb-1">Em Negociação Final</p>
+              {(() => {
+                  const filtered = leads.filter(l => l.status === 'negociacao' || l.status === 'simulacao_enviada');
+                  if (filtered.length === 0) return <p className="text-xs text-muted-foreground p-2 text-center">Nenhum lead nesta fase.</p>;
+                  return filtered.map(l => (
+                      <div key={l.id} className="flex flex-col gap-1.5 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
+                          <div className="flex justify-between items-center text-slate-800 dark:text-slate-200">
+                              <span className="text-sm font-bold truncate max-w-[150px]">{l.nome}</span>
+                              <span className="text-xs font-black text-emerald-600">{formatCurrency(Number(l.valor_credito))}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">{(l.status || '').replace('_', ' ')}</span>
+                              <div className="flex gap-1.5">
+                                  <button onClick={() => window.open(`/admin/leads?id=${l.id}`, '_self')} className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2 py-1 rounded font-bold transition-colors">Abrir</button>
+                                  <button onClick={() => openWhatsApp(l)} className="text-[10px] bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded font-bold transition-colors">Ligar</button>
+                              </div>
+                          </div>
+                      </div>
+                  ));
+              })()}
+          </div>
         </div>
 
-        <div className="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02]">
+        {/* Card 2: Prontos para Fechar */}
+        <div className="relative group overflow-visible p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-default z-10 hover:z-50">
           <div className="flex flex-col gap-1">
              <div className="flex items-center gap-2 opacity-90">
                <span className="p-1.5 bg-white/20 rounded-lg"><Sparkles className="h-4 w-4" /></span>
@@ -286,9 +312,37 @@ export default function Dashboard() {
              <p className="text-2xl font-black">{leads.filter(l => l.lead_temperatura === 'quente' && l.status !== 'fechado').length} Leads</p>
              <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Temperatura Quente Ativa</p>
           </div>
+
+          {/* Popover Hover */}
+          <div className="absolute top-[105%] left-0 w-full min-w-[300px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-border p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-200 z-50 flex flex-col gap-2">
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tight mb-1 border-b pb-1">Leads Quentes</p>
+              {(() => {
+                  const filtered = leads.filter(l => l.lead_temperatura === 'quente' && l.status !== 'fechado').sort((a,b) => {
+                      const aTime = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
+                      const bTime = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
+                      return aTime - bTime; // oldest first
+                  });
+                  if (filtered.length === 0) return <p className="text-xs text-muted-foreground p-2 text-center">Nenhum lead quente no momento.</p>;
+                  return filtered.map(l => (
+                      <div key={l.id} className="flex flex-col gap-1.5 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
+                          <div className="flex justify-between items-center text-slate-800 dark:text-slate-200">
+                              <span className="text-sm font-bold truncate max-w-[150px]">{l.nome}</span>
+                              <span className="text-xs font-black text-blue-600">{formatCurrency(Number(l.valor_credito))}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+                                  {l.last_interaction_at ? `Contato há ${Math.floor((Date.now() - new Date(l.last_interaction_at).getTime()) / (1000 * 60 * 60 * 24))}d` : 'Sem contato'}
+                              </span>
+                              <button onClick={() => window.open(`/admin/leads?id=${l.id}`, '_self')} className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded font-bold transition-colors">Abrir Lead</button>
+                          </div>
+                      </div>
+                  ));
+              })()}
+          </div>
         </div>
 
-        <div className="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-xl shadow-violet-500/20 transition-all hover:scale-[1.02]">
+        {/* Card 3: Alvos de Hoje */}
+        <div className="relative group overflow-visible p-4 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-xl shadow-violet-500/20 transition-all hover:scale-[1.02] cursor-default z-10 hover:z-50">
           <div className="flex flex-col gap-1">
              <div className="flex items-center gap-2 opacity-90">
                <span className="p-1.5 bg-white/20 rounded-lg"><Target className="h-4 w-4" /></span>
@@ -296,6 +350,40 @@ export default function Dashboard() {
              </div>
              <p className="text-2xl font-black">{leads.filter(l => (l.propensity_score || 0) >= 80 && l.status !== 'fechado').length} Oportunidades</p>
              <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Alta Chance de Fechamento</p>
+          </div>
+
+          {/* Popover Hover */}
+          <div className="absolute top-[105%] left-0 w-full min-w-[300px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-border p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-200 z-50 flex flex-col gap-2">
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tight mb-1 border-b pb-1">Alta Propensão {'>'}80%</p>
+              {(() => {
+                  const filtered = leads.filter(l => (l.propensity_score || 0) >= 80 && l.status !== 'fechado');
+                  if (filtered.length === 0) {
+                      const neglected = leads.filter(l => l.last_interaction_at && (Date.now() - new Date(l.last_interaction_at).getTime()) > 7 * 24 * 60 * 60 * 1000 && l.status !== 'fechado');
+                      return (
+                          <div className="p-2 text-center text-slate-800 dark:text-slate-200">
+                              <p className="text-[11px] mb-2 font-medium bg-slate-100 dark:bg-slate-800 py-1 rounded">Nenhum alvo de altíssima propensão.</p>
+                              {neglected.length > 0 && (
+                                  <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded border border-orange-100 dark:border-orange-800 text-left">
+                                      <p className="text-[10px] text-orange-700 dark:text-orange-400 font-bold mb-1">Sugestão Automática:</p>
+                                      <p className="text-[10px] font-medium">{neglected.length} leads sem contato há +7d</p>
+                                      <button onClick={() => window.open(`/admin/leads`, '_self')} className="mt-2 w-full text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-800/50 dark:text-orange-300 py-1.5 rounded font-bold transition-colors">👉 Ver lista</button>
+                                  </div>
+                              )}
+                          </div>
+                      );
+                  }
+                  return filtered.map(l => (
+                      <div key={l.id} className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
+                          <div>
+                              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">{l.nome}</p>
+                              <p className="text-[10px] uppercase font-bold text-slate-500">Score: {l.propensity_score}%</p>
+                          </div>
+                          <button onClick={() => openWhatsApp(l)} className="text-[10px] bg-violet-100 text-violet-700 hover:bg-violet-200 px-2 py-1.5 flex items-center gap-1 rounded font-bold transition-colors">
+                            <span className="text-xs">👋</span> Contato
+                          </button>
+                      </div>
+                  ));
+              })()}
           </div>
         </div>
       </div>

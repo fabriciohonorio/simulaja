@@ -28,7 +28,9 @@ import {
     CheckCircle2,
     ArrowRight,
     LucideIcon,
-    Settings2
+    Settings2,
+    Sparkles,
+    Activity
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -454,10 +456,38 @@ export default function Metas() {
         const u = l.updated_at ? new Date(l.updated_at) : new Date(l.created_at || "");
         return u < seteDias;
     }).length;
-    const monthsData = Array.from({ length: 12 }, (_, i) => {
-        const m = `${currentYear}-${(i + 1).toString().padStart(2, "0")}`;
-        const r = fechados.filter(l => l.created_at?.startsWith(m)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
-        return { name: new Date(currentYear, i, 1).toLocaleString("pt-BR", { month: "short" }), realizado: r, meta: metaMensal };
+
+    // Ritmo Diário (Pace) Calculations
+    const hojeObj = new Date();
+    let diasUteisPassados = 0;
+    let diasUteisTotais = 0;
+    for (let d = 1; d <= diasMes; d++) {
+        const date = new Date(currentYear, currentMonth - 1, d);
+        const isBusinessDay = date.getDay() !== 0 && date.getDay() !== 6;
+        if (isBusinessDay) {
+            diasUteisTotais++;
+            if (d <= diaHoje) diasUteisPassados++;
+        }
+    }
+    const diasUteisRestantes = Math.max(1, diasUteisTotais - diasUteisPassados);
+    const ritmoNecessario = faltaMes / diasUteisRestantes;
+    const ritmoAtual = realizadoMes / Math.max(1, diasUteisPassados);
+    const getRitmoStatus = () => {
+        if (ritmoAtual >= ritmoNecessario) return 'verde';
+        if (ritmoAtual >= ritmoNecessario * 0.7) return 'amarelo';
+        return 'vermelho';
+    };
+    const ritmoStatus = getRitmoStatus();
+
+    // Resumo Executivo IA
+    const mesesParaFim = 12 - currentMonth + 1;
+    const segmentosZerados = segmentos.filter(s => s.total_leads === 0).length;
+    const resumoIA = `${new Date(currentYear, currentMonth - 1).toLocaleString("pt-BR", { month: "long" }).charAt(0).toUpperCase() + new Date(currentYear, currentMonth - 1).toLocaleString("pt-BR", { month: "long" }).slice(1)} fechou ${progressoMes.toFixed(1)}% da meta mensal. No acumulado do ano, o desempenho está em ${progressoAno.toFixed(1)}% da meta anual de R$ ${metaAnual.toLocaleString('pt-br')}. Para fechar o ano, são necessários R$ ${necessarioPorMes.toLocaleString('pt-br', { maximumFractionDigits: 0 })}/mês nos ${mesesRestantes} meses restantes — ${ritmoAtual >= necessarioPorMes ? "no ritmo atual" : "acima do ritmo atual"}. Atenção prioritária: ${semFollowUp} leads sem contato e ${segmentosZerados} segmentos zerados.`;
+    const monthsData = Array.from({ length: 4 }, (_, i) => {
+        const d = new Date(currentYear, currentMonth - 1 - (3 - i), 1);
+        const mStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+        const r = fechados.filter(l => l.created_at?.startsWith(mStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+        return { name: d.toLocaleString("pt-BR", { month: "short" }).toUpperCase(), realizado: r, meta: metaMensal };
     });
 
     const contempladosCarteira = carteira.filter(c => c.status === "contemplada" && c.data_adesao && c.data_contemplacao);
@@ -580,6 +610,64 @@ export default function Metas() {
                 </DialogContent>
             </Dialog>
 
+            {/* Resumo Executivo IA */}
+            <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden shadow-lg mb-6">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                     <Sparkles className="h-24 w-24" />
+                </div>
+                <div className="relative z-10 flex gap-3 sm:gap-4 items-start">
+                    <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30 shrink-0 mt-1">
+                        <Sparkles className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                           Resumo Executivo IA
+                           <span className="px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-[8px] font-bold">AUTO</span>
+                        </h3>
+                        <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                            {resumoIA}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            {/* Ritmo Diário (Pace) */}
+            <div className="mb-6">
+                <Card className={`border ${ritmoStatus === 'verde' ? 'border-emerald-200 bg-emerald-50' : ritmoStatus === 'amarelo' ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50'}`}>
+                    <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-full ${ritmoStatus === 'verde' ? 'bg-emerald-100 text-emerald-600' : ritmoStatus === 'amarelo' ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'}`}>
+                                <Activity className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <p className={`text-xs font-black uppercase tracking-widest ${ritmoStatus === 'verde' ? 'text-emerald-700' : ritmoStatus === 'amarelo' ? 'text-amber-700' : 'text-red-700'}`}>Ritmo Diário (Pace)</p>
+                                <div className="flex items-baseline gap-2 mt-0.5">
+                                    <p className={`text-2xl font-black ${ritmoStatus === 'verde' ? 'text-emerald-800' : ritmoStatus === 'amarelo' ? 'text-amber-800' : 'text-red-800'}`}>
+                                        {formatCurrency(ritmoAtual)} <span className="text-xs font-bold opacity-70">/ dia</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2 w-full sm:w-auto text-sm">
+                            <div className="flex justify-between sm:justify-start gap-4">
+                                <span className="text-muted-foreground font-medium">Ritmo necessário:</span>
+                                <span className="font-bold">{formatCurrency(ritmoNecessario)}/dia</span>
+                            </div>
+                            <div className="flex justify-between sm:justify-start gap-4">
+                                <span className="text-muted-foreground font-medium">Dias úteis restantes:</span>
+                                <span className="font-bold">{diasUteisRestantes} de {diasUteisTotais}</span>
+                            </div>
+                            {ritmoStatus !== 'verde' && (
+                                <p className={`text-xs font-bold flex items-center justify-end gap-1 ${ritmoStatus === 'amarelo' ? 'text-amber-600' : 'text-red-600'}`}>
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {ritmoStatus === 'amarelo' ? 'Atenção ao ritmo' : 'Ritmo Crítico - Abaixo do Necessário'}
+                                </p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Progress Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Card>
@@ -654,8 +742,8 @@ export default function Metas() {
                 </Card>
             </div>
 
-            {/* KPI Grid — 2 cols on phones, 4 on md, 7 on xl */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3">
+            {/* KPI Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {(() => {
                     const faltaMetaMesColor = progressoMes >= 99 ? "text-green-600" : progressoMes >= 70 ? "text-amber-500" : "text-red-500";
                     const faltaMetaMesBg = progressoMes >= 99 ? "bg-green-50 border-green-200" : progressoMes >= 70 ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200";
@@ -663,13 +751,7 @@ export default function Metas() {
                         { icon: DollarSign, color: "text-blue-500", val: formatCurrency(ticketMedio), label: "Ticket Médio", cardClass: "" },
                         { icon: TrendingUp, color: "text-green-500", val: `${taxaConversao.toFixed(1)}%`, label: "Conversão", cardClass: "" },
                         { icon: Users, color: "text-orange-500", val: leadsNecessarios, label: "Leads Necessários", cardClass: "" },
-                        { icon: Clock, color: "text-purple-500", val: `${diasMes - diaHoje} dias`, label: "Dias p/ Fechar Mês", cardClass: "" },
-                        { icon: Target, color: faltaMetaMesColor, val: formatCurrency(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg },
-                        { icon: UserX, color: "text-red-500", val: `${taxaPerda.toFixed(1)}%`, label: "Taxa de Perda", cardClass: "" },
-                        { icon: BarChart3, color: "text-indigo-500", val: formatCurrency(projecaoMes), label: "Projeção do Mês", cardClass: "" },
-                        { icon: AlertTriangle, color: semFollowUp > 0 ? "text-red-600" : "text-gray-400", val: semFollowUp, label: "Sem Follow-up >7d", cardClass: semFollowUp > 0 ? "bg-red-100 border-red-400 border-2 shadow-sm scale-105 transition-all" : "" },
-                        { icon: Clock, color: "text-primary", val: `${prazoMedio} meses`, label: "Prazo Médio Contem.", cardClass: "" },
-                        { icon: UserX, color: inadimplentesCount > 0 ? "text-red-600" : "text-gray-400", val: inadimplentesCount, label: "Inadimplentes", cardClass: inadimplentesCount > 0 ? "bg-red-50 border-red-200 shadow-sm" : "" },
+                        { icon: Target, color: faltaMetaMesColor, val: formatCurrency(faltaMes), label: "Falta p/ Meta Mês", cardClass: faltaMetaMesBg }
                     ];
                     return items.map((k, i) => (
                         <Card key={i} className={k.cardClass}>
@@ -684,17 +766,14 @@ export default function Metas() {
             </div>
 
             {/* Chart + Thermometer */}
-            {/* Chart + Thermometer Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                {/* 1. Meta vs Realizado (Internal) */}
-                <Card className="lg:col-span-2 shadow-sm border-slate-200/60 bg-white/50 backdrop-blur-sm overflow-hidden">
+            {/* Chart Section */}
+            <div className="w-full">
+                <Card className="w-full shadow-sm border-slate-200/60 bg-white/50 backdrop-blur-sm overflow-hidden">
                     <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/30">
                         <div>
-                           <CardTitle className="text-sm sm:text-base font-bold text-slate-800">Meta vs Realizado ({currentYear})</CardTitle>
-                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Desempenho da consultoria</p>
+                           <CardTitle className="text-sm sm:text-base font-bold text-slate-800">Evolução Mensal (Últimos 4 Meses)</CardTitle>
+                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Desempenho de metas vs realizado</p>
                         </div>
-                        <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5 px-2 py-0.5">Operação Interna</Badge>
                     </CardHeader>
                     <CardContent className="h-56 sm:h-72 pt-6">
                         <ResponsiveContainer width="100%" height="100%">
@@ -713,296 +792,73 @@ export default function Metas() {
                                     formatter={(value: number) => [formatCurrency(value), "Valor"]}
                                 />
                                 <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} iconType="circle" />
-                                <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={24} />
-                                <Bar dataKey="realizado" name="Realizado" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={24} />
+                                <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={40} />
+                                <Bar dataKey="realizado" name="Realizado" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={40} />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
-
-                {/* 2. Termômetro de Mercado (Sidebar) */}
-                <Card className="lg:col-span-1 shadow-sm border-slate-200/60">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm sm:text-base flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Flame className={`h-5 w-5 ${termometro?.temperatura === 'quente' ? 'text-red-500' : termometro?.temperatura === 'morno' ? 'text-yellow-500' : 'text-blue-500'}`} />
-                                Termômetro do Setor
-                            </div>
-                            {termometro && (
-                                <Badge className={`${
-                                    termometro.temperatura === 'quente' ? 'bg-red-500' : 
-                                    termometro.temperatura === 'morno' ? 'bg-amber-500' : 
-                                    'bg-blue-500'
-                                } text-white border-transparent text-[10px]`}>
-                                    {termometro.temperatura.toUpperCase()}
-                                </Badge>
-                            )}
-                        </CardTitle>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Resiliência do Consórcio 2025</p>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                        {termometro ? (
-                            <>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-[11px] font-bold text-slate-600 uppercase tracking-tight">
-                                        <span>Confiança do Mercado</span>
-                                        <span>{termometro.temperatura_score}%</span>
-                                    </div>
-                                    <Progress value={termometro.temperatura_score} className={`h-2 ${
-                                        termometro.temperatura === 'quente' ? '[&>div]:bg-red-500' : 
-                                        termometro.temperatura === 'morno' ? '[&>div]:bg-amber-500' : 
-                                        '[&>div]:bg-blue-500'
-                                    }`} />
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-2.5">
-                                    {[
-                                        { label: 'Volume (Bi)', val: `R$ ${termometro.creditos_comercializados}`, var: termometro.creditos_comercializados_variacao },
-                                        { label: 'Contemplações', val: `${(termometro.contemplacoes / 1000).toFixed(0)}k`, var: termometro.contemplacoes_variacao },
-                                        { label: 'Ticket Médio', val: `R$ ${termometro.ticket_medio}k`, var: termometro.ticket_medio_variacao },
-                                        { label: 'Ativos', val: `${termometro.participantes_ativos}M`, var: termometro.participantes_ativos_variacao },
-                                    ].map((item, idx) => (
-                                        <div key={idx} className="flex justify-between items-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors">
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{item.label}</span>
-                                            <div className="text-right">
-                                                <div className="text-xs font-black text-slate-800">{item.val}</div>
-                                                <div className={`text-[9px] font-bold flex items-center justify-end gap-0.5 ${item.var >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                    {item.var >= 0 ? '+' : ''}{item.var}%
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-10 opacity-40">
-                                <BarChart3 className="h-8 w-8 animate-pulse mb-2" />
-                                <p className="text-[10px] uppercase font-bold">Carregando dados ABAC...</p>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* 3. Market Intelligence Dashboard (ABAC 2021-2024) - Full Width Below */}
-                <Card className="lg:col-span-3 border-none bg-slate-900 text-white relative overflow-hidden shadow-2xl rounded-[32px]">
-                    {/* Background effects */}
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -mr-64 -mt-64"></div>
-                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] -ml-32 -mb-32"></div>
-                    
-                    <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-8 gap-6 relative z-10 p-8 sm:p-10">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="h-10 w-10 rounded-2xl bg-green-500/20 backdrop-blur-md flex items-center justify-center border border-green-500/30">
-                                    <TrendingUp className="h-6 w-6 text-green-400" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                                        Market Intelligence <span className="text-green-400">ABAC 2025</span>
-                                    </h2>
-                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">volume recorde de créditos comercializados</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                            <div className="hidden sm:flex flex-col items-end px-6 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Crescimento Acumulado</p>
-                                <p className="text-2xl font-black text-white">+50.5% <span className="text-xs text-green-400 font-medium ml-1">📈</span></p>
-                            </div>
-                            <Badge className="bg-green-500 hover:bg-green-400 text-slate-950 font-black py-2 px-4 rounded-xl text-xs shadow-lg shadow-green-500/20 transition-all uppercase tracking-tighter">
-                                Recorde 2024: R$ 334.1 Bi
-                            </Badge>
-                        </div>
-                    </CardHeader>
-
-                    <CardContent className="relative z-10 px-6 sm:px-10 pb-10">
-                        <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
-                            {/* Gráfico Principal */}
-                            <div className="xl:col-span-3 h-[320px] sm:h-[400px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={[
-                                        { ano: '2021', valor: 222.04 },
-                                        { ano: '2022', valor: 252.10 },
-                                        { ano: '2023', valor: 316.70 },
-                                        { ano: '2024', valor: 334.16 },
-                                    ]}>
-                                        <defs>
-                                            <linearGradient id="abacBarGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="#4ade80" stopOpacity={0.9}/>
-                                                <stop offset="100%" stopColor="#22c55e" stopOpacity={1}/>
-                                            </linearGradient>
-                                            <linearGradient id="abacAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="#22c55e" stopOpacity={0.2}/>
-                                                <stop offset="100%" stopColor="#22c55e" stopOpacity={0}/>
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" strokeOpacity={0.05} />
-                                        <XAxis 
-                                            dataKey="ano" 
-                                            axisLine={false} 
-                                            tickLine={false} 
-                                            tick={{ fontSize: 13, fontWeight: 900, fill: '#94a3b8' }}
-                                            dy={15}
-                                        />
-                                        <YAxis hide domain={[0, 400]} />
-                                        <Tooltip 
-                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                            contentStyle={{ backgroundColor: '#0f172a', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '16px' }}
-                                            itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                                            formatter={(v: number) => [`R$ ${v} Bilhões`, "Volume Anual"]}
-                                        />
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="valor" 
-                                            fill="url(#abacAreaGrad)" 
-                                            stroke="none" 
-                                            animationDuration={2000}
-                                        />
-                                        <Bar 
-                                            dataKey="valor" 
-                                            fill="url(#abacBarGrad)" 
-                                            radius={[15, 15, 5, 5]} 
-                                            barSize={60}
-                                            label={{ position: 'top', fill: '#4ade80', fontSize: 14, fontWeight: 900, offset: 15 }}
-                                            animationDuration={1500}
-                                        >
-                                            { [0,1,2,3].map((_, index) => (
-                                                <Cell key={`cell-${index}`} fillOpacity={0.4 + (index * 0.2)} />
-                                            ))}
-                                        </Bar>
-                                        <Line 
-                                            type="monotone" 
-                                            dataKey="valor" 
-                                            stroke="#4ade80" 
-                                            strokeWidth={5} 
-                                            dot={{ r: 8, fill: '#0f172a', stroke: '#4ade80', strokeWidth: 4 }}
-                                            activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff' }}
-                                            animationDuration={2500}
-                                        />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            {/* Dashboard Sidebar Stats */}
-                            <div className="flex flex-col gap-6 justify-center max-w-sm mx-auto xl:mx-0">
-                                <div className="p-6 rounded-[24px] bg-white/5 border border-white/10 backdrop-blur-xl group hover:bg-white/10 transition-all cursor-default">
-                                    <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4 border border-amber-500/30">
-                                        <Flame className="h-5 w-5 text-amber-400" />
-                                    </div>
-                                    <h4 className="text-lg font-black text-white group-hover:text-amber-300 transition-colors">Oportunidade 2025</h4>
-                                    <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-                                        Com a economia estabilizada, a projeção é de mais um ano recorde. O consultor que domina os números tem fechamento garantido.
-                                    </p>
-                                </div>
-                                
-                                <div className="p-6 rounded-[24px] bg-green-500 text-slate-950 shadow-xl shadow-green-500/10 group overflow-hidden relative active:scale-95 transition-transform cursor-pointer">
-                                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:scale-150 transition-transform duration-500">
-                                        <Trophy className="h-24 w-24" />
-                                    </div>
-                                    <h4 className="text-lg font-black tracking-tight">Potencial Consultivo</h4>
-                                    <p className="text-sm font-bold opacity-80 mt-1">O volume de participantes ativos atingiu 10.29 milhões em dezembro.</p>
-                                    <div className="mt-5 flex items-center gap-2 font-black text-xs uppercase tracking-tighter">
-                                        <span>Explorar dados ABAC</span>
-                                        <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Professional Quote */}
-                        <div className="mt-12 flex items-start gap-4 p-6 rounded-2xl bg-white/5 border border-white/5 italic text-slate-300">
-                            <Lightbulb className="h-6 w-6 text-amber-400 shrink-0 mt-1 opacity-50" />
-                            <div className="space-y-1">
-                                <p className="text-sm sm:text-base leading-relaxed tracking-wide">
-                                    "O consórcio vive seu melhor momento histórico, consolidando-se como a principal escolha de autofinanciamento do brasileiro. Este crescimento de 50% em 4 anos é um divisor de águas."
-                                </p>
-                                <p className="text-[10px] font-black text-slate-500 not-italic uppercase tracking-[0.2em] mt-3">Anuário consolidado ABAC 2025 &middot; volume de créditos</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
-            {/* Alertas de Desempenho Segmentado */}
-            <div className="mt-6">
+            {/* Fila de Ação Prioritária */}
+            <div className="mt-6 mb-8">
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-orange-500" />
-                    🚨 Alertas de Desempenho por Segmento
+                    <Zap className="h-5 w-5 text-orange-500" />
+                    ⚡ Fila de Ação Prioritária
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {segmentos.map(seg => {
-                        const alerts = [];
-                        if (seg.total_leads === 0) {
-                            alerts.push({ title: `Zero Leads: ${SEGMENT_CONFIG[seg.segmento].label}`, desc: "Este segmento não recebeu nenhum lead. Verifique as campanhas de marketing.", variant: "destructive" });
-                        } else if (seg.taxa_conversao < 2 && seg.total_leads > 10) {
-                            alerts.push({ title: `Baixa Conversão: ${SEGMENT_CONFIG[seg.segmento].label}`, desc: `Taxa de ${seg.taxa_conversao.toFixed(1)}% está abaixo da média esperada.`, variant: "warning" });
-                        }
-                        if (seg.progresso_meta < 50 && currentMonth > 6) {
-                            alerts.push({ title: `Meta em Risco: ${SEGMENT_CONFIG[seg.segmento].label}`, desc: `Apenas ${seg.progresso_meta.toFixed(1)}% da meta atingida no segundo semestre.`, variant: "warning" });
-                        }
-
-                        return alerts.map((alert, i) => (
-                            <Alert key={`${seg.segmento}-${i}`} variant={alert.variant === "destructive" ? "destructive" : "default"} className={alert.variant === "warning" ? "border-orange-200 bg-orange-50" : ""}>
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertTitle className="font-bold">{alert.title}</AlertTitle>
-                                <AlertDescription>{alert.desc}</AlertDescription>
-                            </Alert>
-                        ));
-                    })}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {semFollowUp > 0 && (
-                        <Alert variant="destructive" className="border-red-600 bg-red-50 animate-pulse">
-                            <Clock className="h-4 w-4 text-red-600" />
-                            <AlertTitle className="font-bold text-red-700">Atenção: Leads Negligenciados</AlertTitle>
-                            <AlertDescription className="text-red-600">
-                                Existem <b>{semFollowUp} leads</b> sem contato há mais de 7 dias. Priorize o atendimento para evitar a perda dessas oportunidades.
-                            </AlertDescription>
-                        </Alert>
+                        <Card className="border-red-200 bg-red-50/50 hover:bg-red-50 transition-colors shadow-sm">
+                            <CardContent className="p-4 flex flex-col justify-between h-full">
+                                <div>
+                                    <div className="flex items-center gap-2 text-red-700 font-bold mb-2">
+                                        <Clock className="h-4 w-4" /> Leads sem contato
+                                    </div>
+                                    <p className="text-sm text-red-800 mb-4">{semFollowUp} leads sem contato há mais de 7 dias.</p>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full bg-white text-red-700 border-red-200 hover:bg-red-100" onClick={() => window.open('/admin/leads', '_self')}>
+                                    Retomar Contato
+                                </Button>
+                            </CardContent>
+                        </Card>
                     )}
                     {aguardandoUrgente > 0 && (
-                        <Alert variant="default" className="border-orange-600 bg-orange-100">
-                            <Clock className="h-4 w-4 text-orange-600" />
-                            <AlertTitle className="font-bold text-orange-700">Atenção: Clientes em Espera Longa</AlertTitle>
-                            <AlertDescription className="text-orange-600">
-                                Existem <b>{aguardandoUrgente} clientes</b> aguardando contemplação há mais de 6 meses. Verifique se há estratégias de lance para acelerar o processo.
-                            </AlertDescription>
-                        </Alert>
+                        <Card className="border-amber-200 bg-amber-50/50 hover:bg-amber-50 transition-colors shadow-sm">
+                            <CardContent className="p-4 flex flex-col justify-between h-full">
+                                <div>
+                                    <div className="flex items-center gap-2 text-amber-700 font-bold mb-2">
+                                        <AlertTriangle className="h-4 w-4" /> Fila de espera
+                                    </div>
+                                    <p className="text-sm text-amber-900 mb-4">{aguardandoUrgente} clientes aguardando contemplação há mais de 6 meses.</p>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full bg-white text-amber-700 border-amber-200 hover:bg-amber-100" onClick={() => window.open('/admin/carteira', '_self')}>
+                                    Revisar Estratégia
+                                </Button>
+                            </CardContent>
+                        </Card>
                     )}
-                    {segmentos.every(seg => seg.total_leads > 0 && seg.taxa_conversao >= 2) && (
-                        <div className="md:col-span-2 p-8 bg-green-50 border border-dashed border-green-200 rounded-lg text-center">
-                            <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                            <p className="text-sm text-green-700 font-medium">Todos os segmentos estão operando dentro das métricas saudáveis!</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Dicas Estratégicas */}
-            <div className="mt-6">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-yellow-500" />
-                    💡 Dicas Estratégicas do Mês
-                </h3>
-                
-                <div className="grid gap-4">
-                    {dicas.map(dica => (
-                        <Alert key={dica.id} className={dica.prioridade === 1 ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}>
-                            <AlertCircle className={`h-4 w-4 ${dica.prioridade === 1 ? 'text-red-600' : 'text-blue-600'}`} />
-                            <AlertTitle className="flex items-center gap-2">
-                                <span className="text-xl">{dica.emoji}</span>
-                                <span className="font-bold">{dica.titulo}</span>
-                                <Badge variant="outline" className={`ml-auto ${dica.prioridade === 1 ? 'border-red-300 text-red-700' : 'border-blue-300 text-blue-700'}`}>
-                                    Prioridade {dica.prioridade}
-                                </Badge>
-                            </AlertTitle>
-                            <AlertDescription className="mt-2 text-sm leading-relaxed">
-                                {dica.descricao}
-                            </AlertDescription>
-                        </Alert>
+                    {segmentos.filter(seg => seg.total_leads === 0).map(seg => (
+                        <Card key={`seg-zero-${seg.segmento}`} className="border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors shadow-sm relative overflow-hidden">
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-300"></div>
+                            <CardContent className="p-4 flex flex-col justify-between h-full">
+                                <div>
+                                    <div className="flex items-center gap-2 text-slate-700 font-bold mb-2">
+                                        <Users className="h-4 w-4" /> Alerta de Captação
+                                    </div>
+                                    <p className="text-sm text-slate-800 mb-4">Segmento de {SEGMENT_CONFIG[seg.segmento]?.label || seg.segmento} com 0 leads gerados.</p>
+                                </div>
+                                <Button variant="outline" size="sm" className="w-full bg-white text-slate-700 border-slate-200 hover:bg-slate-200">
+                                    Ajustar Campanhas
+                                </Button>
+                            </CardContent>
+                        </Card>
                     ))}
-                    {dicas.length === 0 && (
-                        <p className="text-sm text-center text-muted-foreground py-8 bg-muted/10 rounded-lg border border-dashed">
-                            Nenhuma dica estratégica disponível para este mês.
-                        </p>
+                    {semFollowUp === 0 && aguardandoUrgente === 0 && segmentos.filter(s => s.total_leads === 0).length === 0 && (
+                        <div className="col-span-full p-8 border border-dashed border-emerald-200 bg-emerald-50/50 rounded-xl flex flex-col items-center justify-center text-center">
+                            <CheckCircle2 className="h-8 w-8 text-emerald-500 mb-2" />
+                            <p className="text-emerald-800 font-bold">Inbox Zerada!</p>
+                            <p className="text-emerald-600 text-sm">Todas as ações pendentes estão em dia. Bom trabalho!</p>
+                        </div>
                     )}
                 </div>
             </div>
@@ -1081,19 +937,19 @@ export default function Metas() {
                                         <p className="text-sm font-black text-foreground">{seg.leads_necessarios_total}</p>
                                     </div>
 
-                                    <div className="pt-1 space-y-1">
-                                        {seg.taxa_conversao < 10 && seg.total_leads > 0 && (
-                                            <div className="flex items-center gap-1 text-red-600 bg-red-50 p-1 rounded border border-red-100">
-                                                <AlertCircle className="h-3 w-3" />
-                                                <span className="text-[8px] font-bold uppercase">Meta de Conv. Baixa</span>
+                                    <div className="pt-2">
+                                        <div className="flex flex-col gap-1 text-xs p-2 bg-indigo-50/80 border border-indigo-100 rounded-md">
+                                            <div className="flex items-center gap-1 text-indigo-700 font-bold mb-0.5">
+                                                <Sparkles className="h-3 w-3" />
+                                                <span className="text-[9px] uppercase tracking-wider">Ação Recomendada</span>
                                             </div>
-                                        )}
-                                        {seg.full_previsao < seg.meta_vendas && seg.total_leads > 0 && (
-                                            <div className="flex items-center gap-1 text-orange-600 bg-orange-50 p-1 rounded border border-orange-100">
-                                                <AlertTriangle className="h-3 w-3" />
-                                                <span className="text-[8px] font-bold uppercase">Volume Crítico</span>
-                                            </div>
-                                        )}
+                                            <p className="text-[10px] font-medium text-indigo-900 leading-tight">
+                                                {seg.total_leads === 0 ? "Zerar gap: ativar nova campanha urgente." 
+                                                : seg.taxa_conversao < 2 ? "Focar em quebra de objeções e reuniões." 
+                                                : seg.progresso_meta < 70 ? "Pipeline lento: oferecer lance embutido."
+                                                : "Upsell e indicação: contatar clientes recém-fechados."}
+                                            </p>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -1102,29 +958,7 @@ export default function Metas() {
                 </div>
             </div>
 
-            {/* Destaque do Ano */}
-            <div className="mt-8">
-                <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/10">
-                    <CardHeader className="pb-2 text-center">
-                        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Destaque do Ano</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4 py-6">
-                        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center shadow-inner">
-                            <Trophy className="h-10 w-10 text-primary" />
-                        </div>
-                        <div className="text-center">
-                            <p className="text-sm text-muted-foreground font-medium">Melhor Mês de Vendas</p>
-                            <p className="text-2xl font-black text-primary mt-1">
-                                {monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.name}
-                            </p>
-                            <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                                <DollarSign className="h-3.5 w-3.5" />
-                                {formatCurrency(monthsData.reduce((best, m) => m.realizado > best.realizado ? m : best, monthsData[0])?.realizado || 0)}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+
         </div>
     );
 }
