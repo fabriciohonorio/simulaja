@@ -1,0 +1,21 @@
+
+C:\Users\Samsung\Documents\Projetos\simulaja\src\pages\admin\Metas.tsx
+  114:24  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  182:8   warning  React Hook useCallback has a missing dependency: 'supabaseAny'. Either include it or remove the dependency array                       react-hooks/exhaustive-deps
+  194:8   warning  React Hook useCallback has a missing dependency: 'supabaseAny'. Either include it or remove the dependency array                       react-hooks/exhaustive-deps
+  210:60  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  211:63  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  214:61  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  220:42  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  226:61  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  235:65  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  246:63  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  248:63  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  284:39  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  330:8   warning  React Hook useCallback has missing dependencies: 'segmentMetas' and 'supabaseAny'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  345:39  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+  360:8   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                           react-hooks/exhaustive-deps
+  419:41  error    Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+
+✖ 16 problems (12 errors, 4 warnings)
+

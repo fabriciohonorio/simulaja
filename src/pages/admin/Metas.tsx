@@ -30,7 +30,8 @@ import {
     LucideIcon,
     Settings2,
     Sparkles,
-    Activity
+    Activity,
+    Zap
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -116,8 +117,6 @@ export default function Metas() {
     const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
     const [metaInput, setMetaInput] = useState<string>("0");
-    const [termometro, setTermometro] = useState<TermometroMercado | null>(null);
-    const [dicas, setDicas] = useState<DicaEstrategica[]>([]);
     const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
     const [loading, setLoading] = useState(true);
     const [membros, setMembros] = useState<{ id: string; nome_completo: string | null }[]>([]);
@@ -140,57 +139,6 @@ export default function Metas() {
             currentMonth: month,
             mesStr: `${year}-${month.toString().padStart(2, "0")}`
         };
-    }, []);
-
-    const fetchTermometro = useCallback(async () => {
-        try {
-            const { data, error } = await supabaseAny
-                .from('termometro_mercado')
-                .select('*')
-                .order('mes_referencia', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (data) {
-                setTermometro(data as unknown as TermometroMercado);
-            } else {
-                // Fallback com dados ABAC 2025 (Consolidado 2024)
-                setTermometro({
-                    id: 'fallback-2025',
-                    mes_referencia: '2025-01',
-                    participantes_ativos: 10.29,
-                    participantes_ativos_variacao: 3.7,
-                    vendas_cotas: 4280000,
-                    vendas_cotas_variacao: 3.4,
-                    creditos_comercializados: 334.16,
-                    creditos_comercializados_variacao: 5.6,
-                    ticket_medio: 165.4,
-                    ticket_medio_variacao: 11.7,
-                    contemplacoes: 1600000,
-                    contemplacoes_variacao: 5.2,
-                    creditos_disponibilizados: 84.1,
-                    creditos_disponibilizados_variacao: 4.8,
-                    temperatura: 'quente',
-                    temperatura_score: 92
-                });
-            }
-        } catch (err) {
-            console.error('Erro ao buscar termômetro:', err);
-        }
-    }, []);
-
-    const fetchDicas = useCallback(async (termometroId: string) => {
-        const { data, error } = await supabaseAny
-            .from('dicas_estrategicas')
-            .select('*')
-            .eq('termometro_id', termometroId)
-            .eq('ativo', true)
-            .order('prioridade')
-            .order('created_at');
-
-        if (!error) setDicas((data as unknown as DicaEstrategica[]) || []);
     }, []);
 
     const fetchData = useCallback(async () => {
@@ -321,13 +269,12 @@ export default function Metas() {
             });
 
             setSegmentos(segs);
-            await fetchTermometro();
         } catch (err) {
             console.error("Erro ao buscar dados:", err);
         } finally {
             setLoading(false);
         }
-    }, [profile?.organizacao_id, profile?.id, isManager, selectedVendedor, currentYear, mesStr, fetchTermometro]);
+    }, [profile?.organizacao_id, profile?.id, isManager, selectedVendedor, currentYear, mesStr]);
 
     // 1. Initial Load
     useEffect(() => { 
@@ -358,12 +305,6 @@ export default function Metas() {
             supabase.removeChannel(channel);
         };
     }, [profile?.organizacao_id]); // DO NOT add fetchData here
-
-    useEffect(() => {
-        if (termometro) {
-            fetchDicas(termometro.id);
-        }
-    }, [termometro, fetchDicas]);
 
     const salvarMeta = async () => {
         const novoValor = parseFloat(metaInput);
