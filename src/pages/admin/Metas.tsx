@@ -333,6 +333,7 @@ export default function Metas() {
                 const { error } = await supabaseAny.from("meta").upsert({ 
                     ano: currentYear, 
                     meta_anual: novoValor,
+                    meta_outros: metaMensal, // Ensure monthly goal is preserved
                     organizacao_id: profile?.organizacao_id
                 }, { onConflict: "ano" });
                 if (error) throw error;
@@ -363,6 +364,7 @@ export default function Metas() {
             } else {
                 const { error } = await supabaseAny.from("meta").upsert({ 
                     ano: currentYear, 
+                    meta_anual: metaAnual, // Ensure annual goal is preserved
                     meta_outros: novoValor, // Hijack meta_outros for independent monthly goal
                     organizacao_id: profile?.organizacao_id
                 }, { onConflict: "ano" });
