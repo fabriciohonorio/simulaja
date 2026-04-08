@@ -2,9 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -49,6 +51,21 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
+  const { toast } = useToast();
+
+  const handleDeleteLead = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("Tem certeza que deseja excluir permanentemente este lead?")) return;
+    try {
+      const { error } = await supabase.from("leads").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Lead excluído com sucesso!" });
+      setLeads(prev => prev.filter(l => l.id !== id));
+    } catch (error) {
+      console.error("Erro ao excluir lead:", error);
+      toast({ title: "Erro ao excluir lead", variant: "destructive" });
+    }
+  };
 
   const loteriaFederal = localStorage.getItem("simulaja_loteria_federal") || "";
   const groupQuotaMap: Record<string, number> = {
@@ -291,9 +308,10 @@ export default function Dashboard() {
                           </div>
                           <div className="flex justify-between items-center">
                               <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">{(l.status || '').replace('_', ' ')}</span>
-                              <div className="flex gap-1.5">
-                                  <button onClick={() => window.open(`/admin/leads?id=${l.id}`, '_self')} className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2 py-1 rounded font-bold transition-colors">Abrir</button>
-                                  <button onClick={() => openWhatsApp(l)} className="text-[10px] bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded font-bold transition-colors">Ligar</button>
+                              <div className="flex gap-1">
+                                  <button onClick={(e) => { e.stopPropagation(); window.open(`/admin/leads?id=${l.id}`, '_self'); }} className="p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded transition-colors" title="Editar Lead"><Pencil className="h-3.5 w-3.5" /></button>
+                                  <button onClick={(e) => handleDeleteLead(l.id, e)} className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors" title="Excluir Lead"><Trash2 className="h-3.5 w-3.5" /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); openWhatsApp(l); }} className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded transition-colors" title="WhatsApp"><WhatsAppIcon className="h-3.5 w-3.5 text-emerald-600" /></button>
                               </div>
                           </div>
                       </div>
@@ -333,7 +351,11 @@ export default function Dashboard() {
                               <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
                                   {l.last_interaction_at ? `Contato há ${Math.floor((Date.now() - new Date(l.last_interaction_at).getTime()) / (1000 * 60 * 60 * 24))}d` : 'Sem contato'}
                               </span>
-                              <button onClick={() => window.open(`/admin/leads?id=${l.id}`, '_self')} className="text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded font-bold transition-colors">Abrir Lead</button>
+                              <div className="flex gap-1 mt-1">
+                                  <button onClick={(e) => { e.stopPropagation(); window.open(`/admin/leads?id=${l.id}`, '_self'); }} className="p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded transition-colors" title="Editar Lead"><Pencil className="h-3.5 w-3.5" /></button>
+                                  <button onClick={(e) => handleDeleteLead(l.id, e)} className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors" title="Excluir Lead"><Trash2 className="h-3.5 w-3.5" /></button>
+                                  <button onClick={(e) => { e.stopPropagation(); openWhatsApp(l); }} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" title="WhatsApp"><WhatsAppIcon className="h-3.5 w-3.5 text-blue-600" /></button>
+                              </div>
                           </div>
                       </div>
                   ));
@@ -378,9 +400,11 @@ export default function Dashboard() {
                               <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">{l.nome}</p>
                               <p className="text-[10px] uppercase font-bold text-slate-500">Score: {l.propensity_score}%</p>
                           </div>
-                          <button onClick={() => openWhatsApp(l)} className="text-[10px] bg-violet-100 text-violet-700 hover:bg-violet-200 px-2 py-1.5 flex items-center gap-1 rounded font-bold transition-colors">
-                            <span className="text-xs">👋</span> Contato
-                          </button>
+                          <div className="flex gap-1">
+                                <button onClick={(e) => { e.stopPropagation(); window.open(`/admin/leads?id=${l.id}`, '_self'); }} className="p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded transition-colors" title="Editar Lead"><Pencil className="h-3.5 w-3.5" /></button>
+                                <button onClick={(e) => handleDeleteLead(l.id, e)} className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors" title="Excluir Lead"><Trash2 className="h-3.5 w-3.5" /></button>
+                                <button onClick={(e) => { e.stopPropagation(); openWhatsApp(l); }} className="p-1.5 text-violet-600 hover:bg-violet-100 rounded transition-colors" title="WhatsApp"><WhatsAppIcon className="h-3.5 w-3.5 text-violet-600" /></button>
+                          </div>
                       </div>
                   ));
               })()}
