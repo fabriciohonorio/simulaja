@@ -559,7 +559,7 @@ export default function Metas() {
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaMensalInput(e.target.value)}
                                             className="h-8 w-24 sm:w-32 text-right font-bold text-xs"
                                         />
-                                        <Button size="sm" variant="outline" onClick={salvarMetaMensal} className="h-8 px-2 text-xs">Salvar</Button>
+                                        <Button size="sm" variant="outline" onClick={() => salvarMetaMensal()} className="h-8 px-2 text-xs">Salvar</Button>
                                     </div>
                                 </div>
                             </div>
@@ -638,19 +638,19 @@ export default function Metas() {
                     </div>
                     <div>
                         <h3 className={`text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 ${
-                            ritmoStatus === 'verde' ? 'text-slate-900' : 
+                            ritmoStatus === 'verde' ? 'text-blue-900' : 
                             ritmoStatus === 'amarelo' ? 'text-amber-950' : 
                             'text-red-950'
                         }`}>
                            Resumo Executivo IA
                            <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${
-                               ritmoStatus === 'verde' ? 'bg-slate-200 text-slate-800' : 
+                               ritmoStatus === 'verde' ? 'bg-blue-100 text-blue-800' : 
                                ritmoStatus === 'amarelo' ? 'bg-amber-200 text-amber-950' : 
                                'bg-red-200 text-red-950'
                            }`}>AUTO</span>
                         </h3>
                         <p className={`text-sm leading-relaxed font-bold ${
-                            ritmoStatus === 'verde' ? 'text-slate-900' : 
+                            ritmoStatus === 'verde' ? 'text-blue-900 font-extrabold' : 
                             ritmoStatus === 'amarelo' ? 'text-amber-950' : 
                             'text-red-950'
                         }`}>
