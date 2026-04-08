@@ -628,7 +628,7 @@ export default function Metas() {
                 </div>
                 <div className="relative z-10 flex gap-3 sm:gap-4 items-start">
                     <div className={`p-2 rounded-lg border shrink-0 mt-1 ${
-                        ritmoStatus === 'verde' ? 'bg-emerald-100 border-emerald-200 text-emerald-600' : 
+                        ritmoStatus === 'verde' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 
                         ritmoStatus === 'amarelo' ? 'bg-amber-100 border-amber-200 text-amber-600' : 
                         'bg-red-100 border-red-200 text-red-600'
                     }`}>
@@ -636,19 +636,19 @@ export default function Metas() {
                     </div>
                     <div>
                         <h3 className={`text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 ${
-                            ritmoStatus === 'verde' ? 'text-emerald-950' : 
+                            ritmoStatus === 'verde' ? 'text-slate-900' : 
                             ritmoStatus === 'amarelo' ? 'text-amber-950' : 
                             'text-red-950'
                         }`}>
                            Resumo Executivo IA
                            <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${
-                               ritmoStatus === 'verde' ? 'bg-emerald-200 text-emerald-950' : 
+                               ritmoStatus === 'verde' ? 'bg-slate-200 text-slate-800' : 
                                ritmoStatus === 'amarelo' ? 'bg-amber-200 text-amber-950' : 
                                'bg-red-200 text-red-950'
                            }`}>AUTO</span>
                         </h3>
                         <p className={`text-sm leading-relaxed font-bold ${
-                            ritmoStatus === 'verde' ? 'text-emerald-950' : 
+                            ritmoStatus === 'verde' ? 'text-slate-900' : 
                             ritmoStatus === 'amarelo' ? 'text-amber-950' : 
                             'text-red-950'
                         }`}>
