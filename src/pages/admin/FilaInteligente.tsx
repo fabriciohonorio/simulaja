@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles, Calendar, Users, Shield, Zap, Target, Search, Filter, ChevronRight, DollarSign, ArrowUpDown } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -153,7 +153,7 @@ export default function FilaInteligente() {
                                 </div>
 
                                 <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
-                                    <p className="text-xl font-black text-foreground">{formatCurrency(Number(lead.valor_credito))}</p>
+                                    <p className="text-xl font-black text-foreground">{formatLeadValue(Number(lead.valor_credito))}</p>
                                     <div className="flex items-center gap-2">
                                         <a
                                             href="/admin/sdr"

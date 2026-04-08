@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
@@ -304,7 +304,7 @@ export default function Dashboard() {
                       <div key={l.id} className="flex flex-col gap-1.5 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
                           <div className="flex justify-between items-center text-slate-800 dark:text-slate-200">
                               <span className="text-sm font-bold truncate max-w-[150px]">{l.nome}</span>
-                              <span className="text-xs font-black text-emerald-600">{formatCurrency(Number(l.valor_credito))}</span>
+                              <span className="text-xs font-black text-emerald-600">{formatLeadValue(Number(l.valor_credito))}</span>
                           </div>
                           <div className="flex justify-between items-center">
                               <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">{(l.status || '').replace('_', ' ')}</span>
@@ -345,7 +345,7 @@ export default function Dashboard() {
                       <div key={l.id} className="flex flex-col gap-1.5 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
                           <div className="flex justify-between items-center text-slate-800 dark:text-slate-200">
                               <span className="text-sm font-bold truncate max-w-[150px]">{l.nome}</span>
-                              <span className="text-xs font-black text-blue-600">{formatCurrency(Number(l.valor_credito))}</span>
+                              <span className="text-xs font-black text-blue-600">{formatLeadValue(Number(l.valor_credito))}</span>
                           </div>
                           <div className="flex justify-between items-center">
                               <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
@@ -480,7 +480,7 @@ export default function Dashboard() {
                     <p className={`text-xs font-bold uppercase tracking-widest ${
                       i === 0 ? "text-emerald-500" : i === 1 ? "text-blue-400" : "text-violet-500"
                     }`}>
-                      {formatCurrency(item.total)}
+                      {formatLeadValue(item.total)}
                     </p>
                   </div>
                 </div>
@@ -600,14 +600,14 @@ export default function Dashboard() {
                     />
                 </div>
                 <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
-                    <span>{formatCurrency(realizadoMes)}</span>
-                    <span>{formatCurrency(metaMensal)}</span>
+                    <span>{formatLeadValue(realizadoMes)}</span>
+                    <span>{formatLeadValue(metaMensal)}</span>
                 </div>
             </div>
 
             <div className={`p-3 rounded-lg border text-center ${progressoMes >= 100 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
                 <p className="text-xs font-bold uppercase">
-                    {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatCurrency(Math.max(0, metaMensal - realizadoMes))}`}
+                    {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatLeadValue(Math.max(0, metaMensal - realizadoMes))}`}
                 </p>
             </div>
           </CardContent>
@@ -819,7 +819,7 @@ export default function Dashboard() {
                         <p className="text-[10px] text-muted-foreground capitalize">{l.status?.replace("_", " ") ?? "novo"}</p>
                       </div>
                     </div>
-                    <p className="text-sm font-bold text-primary shrink-0">{formatCurrency(Number(l.valor_credito))}</p>
+                    <p className="text-sm font-bold text-primary shrink-0">{formatLeadValue(Number(l.valor_credito))}</p>
                   </div>
                 ))}
               {leads.filter(l => l.status !== "fechado" && l.status !== "morto" && l.status !== "perdido" && l.status !== "inadimplente").length === 0 && (
@@ -853,7 +853,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <p className="text-xs sm:text-sm font-medium hidden sm:block">{formatCurrency(Number(l.valor_credito))}</p>
+                    <p className="text-xs sm:text-sm font-medium hidden sm:block">{formatLeadValue(Number(l.valor_credito))}</p>
                     <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-primary/10 text-primary capitalize shrink-0">
                       {(l.status ?? 'novo').replace(/_/g, ' ')}
                     </span>

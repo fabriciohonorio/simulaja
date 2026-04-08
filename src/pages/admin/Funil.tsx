@@ -24,7 +24,7 @@ import {
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -465,7 +465,7 @@ function LeadCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <p className={`text-primary font-bold ${compact ? "text-xs" : "text-base"}`}>
-            {formatCurrency(Number(lead.valor_credito))}
+            {formatLeadValue(Number(lead.valor_credito))}
           </p>
           {!compact && lead.indicador_nome && (
             <span className="text-[9px] text-muted-foreground font-medium truncate max-w-[60px]">

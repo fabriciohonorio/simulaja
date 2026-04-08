@@ -6,7 +6,7 @@ import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isPast, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -110,7 +110,7 @@ export default function Agendamentos() {
                   <h3 className="font-bold text-lg truncate leading-tight">{lead.nome}</h3>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground font-medium">
                     <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {lead.cidade || "N/Inf"}</span>
-                    <span className="flex items-center gap-1 text-primary font-bold"><DollarSign className="h-3 w-3" /> {formatCurrency(Number(lead.valor_credito))}</span>
+                    <span className="flex items-center gap-1 text-primary font-bold"><DollarSign className="h-3 w-3" /> {formatLeadValue(Number(lead.valor_credito))}</span>
                   </div>
                 </div>
 

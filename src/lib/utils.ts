@@ -17,3 +17,13 @@ export function formatCurrency(value: number | string | null | undefined): strin
     maximumFractionDigits: 2,
   });
 }
+
+/**
+ * Especial para Leads: Trata o valor 1 como 0.
+ * Comum em dados importados que usam 1 como placeholder.
+ */
+export function formatLeadValue(value: number | string | null | undefined): string {
+  const num = typeof value === "string" ? parseFloat(value) : (value || 0);
+  if (num === 1) return formatCurrency(0);
+  return formatCurrency(num);
+}

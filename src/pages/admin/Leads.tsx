@@ -7,16 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2, FileText } from "lucide-react";
+import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2, FileText, Loader2 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
-import { format } from "date-fns";
+import { format, formatDistanceToNow, parseISO } from "date-fns";
 import { jsPDF } from "jspdf";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { LeadForm, LeadFormData, STATUS_OPTIONS, TIPO_OPTIONS, TEMPERATURA_OPTIONS, SCORE_OPTIONS } from "@/components/admin/LeadForm";
 import { zapiService } from "@/services/zapi";
 import { aiService } from "@/services/aiService";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 
 interface Lead {
   id: string;
@@ -361,7 +360,7 @@ export default function Leads() {
       }
       doc.text(l.nome.substring(0, 35), 10, y);
       doc.text(l.celular || "—", 80, y);
-      doc.text(formatCurrency(Number(l.valor_credito || 0)), 120, y);
+      doc.text(formatLeadValue(Number(l.valor_credito || 0)), 120, y);
       doc.text((l.status || "Novo").replace("_", " "), 155, y);
       doc.text(l.created_at?.slice(0, 10) || "—", 185, y);
       y += 6;
@@ -529,7 +528,7 @@ export default function Leads() {
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
-                <td className="px-3 py-1">{formatCurrency(filtered.reduce((s, l) => s + Number(l.valor_credito || 0), 0))}</td>
+                <td className="px-3 py-1">{formatLeadValue(filtered.reduce((s, l) => s + Number(l.valor_credito || 0), 0))}</td>
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
                 <td className="px-3 py-1"></td>
@@ -586,7 +585,7 @@ export default function Leads() {
                   </td>
                   <td className="px-3 py-2">{l.celular}</td>
                   <td className="px-3 py-2">{l.cidade || "N/Inf"}</td>
-                  <td className="px-3 py-2 font-medium">{formatCurrency(Number(l.valor_credito))}</td>
+                  <td className="px-3 py-2 font-medium">{formatLeadValue(Number(l.valor_credito))}</td>
                   <td className="px-3 py-2">
                     <span className="text-[10px] font-bold uppercase">{SCORE_LABELS[l.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}</span>
                   </td>
@@ -664,7 +663,7 @@ export default function Leads() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase font-black">Valor</p>
-                  <p className="font-bold text-primary">{formatCurrency(Number(l.valor_credito))}</p>
+                  <p className="font-bold text-primary">{formatLeadValue(Number(l.valor_credito))}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase font-black">Celular</p>
