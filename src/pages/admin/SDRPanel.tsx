@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Phone, MessageSquare, ClipboardList, TrendingUp, AlertCircle, Clock, CheckCircle2, Search, Filter, ChevronRight, MessageCircle, DollarSign, Calendar, UserPlus, Bot, Zap, Sparkles, ShieldCheck, Check, Copy } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -143,7 +144,7 @@ export default function SDRPanel() {
 
                                 <div className="space-y-3">
                                     <p className="text-sm font-bold flex items-center gap-2">
-                                        <MessageCircle className="h-4 w-4 text-green-500" /> Script Sugerido pela IA
+                                        <WhatsAppIcon className="h-4 w-4" /> Script Sugerido pela IA
                                     </p>
                                     <div className="relative group">
                                         <div className="p-4 bg-slate-900 text-slate-100 rounded-xl text-sm leading-relaxed border-2 border-slate-800 italic">
@@ -162,7 +163,7 @@ export default function SDRPanel() {
                                 <div className="grid grid-cols-2 gap-3 pt-4">
                                     <Button variant="default" className="w-full gap-2 bg-green-500 hover:bg-green-600 h-12" asChild>
                                         <a href={`https://wa.me/55${selectedLead.celular.replace(/\D/g, "")}?text=${encodeURIComponent("Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?")}`} target="_blank" rel="noreferrer">
-                                            <MessageCircle className="h-5 w-5" /> Enviar WhatsApp
+                                            <WhatsAppIcon className="h-5 w-5" /> Enviar WhatsApp
                                         </a>
                                     </Button>
                                     <Button variant="outline" className="w-full gap-2 h-12" asChild>

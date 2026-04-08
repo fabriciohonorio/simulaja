@@ -21,6 +21,7 @@ import {
   MessageSquare,
   FileText,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/utils";
@@ -171,7 +172,7 @@ const SCORE_LABELS: Record<string, string> = {
 };
 
 const TIPO_CONTATO_OPTIONS = [
-  { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { value: "whatsapp", label: "WhatsApp", icon: WhatsAppIcon },
   { value: "ligacao", label: "Ligação", icon: PhoneCall },
   { value: "email", label: "E-mail", icon: Mail },
   { value: "presencial", label: "Presencial", icon: MessageSquare },
@@ -430,7 +431,7 @@ function LeadCard({
             className={`text-green-500 hover:text-green-600 shrink-0 bg-green-50 rounded-full ${compact ? "p-0.5 border border-green-100" : "p-1"}`}
             title="WhatsApp"
           >
-            <MessageCircle className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
+            <WhatsAppIcon className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
           </a>
           <button
             onClick={(e) => {

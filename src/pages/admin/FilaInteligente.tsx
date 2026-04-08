@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Phone, MapPin, TrendingUp, Clock, AlertCircle, Sparkles, Calendar, Users, Shield, Zap, Target, Search, Filter, ChevronRight, DollarSign, ArrowUpDown } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -168,7 +169,7 @@ export default function FilaInteligente() {
                                             className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
                                             title="WhatsApp"
                                         >
-                                            <MessageCircle className="h-5 w-5" />
+                                            <WhatsAppIcon className="h-5 w-5" />
                                         </a>
                                         <a
                                             href={`tel:${(lead.celular || "").replace(/\D/g, "")}`}

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Search, Filter, Mail, Phone, MapPin, Calendar, Clock, ChevronRight, User, DollarSign, MessageCircle, MoreHorizontal, UserCheck, UserPlus, ShieldCheck, HeartPulse, Zap, Download, ArrowUpDown, Pencil, Trash2, FileText } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/utils";
@@ -548,7 +549,7 @@ export default function Leads() {
                         title="WhatsApp Manual"
                         onClick={() => openWhatsApp(l)}
                       >
-                        <MessageCircle className="h-4 w-4" />
+                        <WhatsAppIcon className="h-4 w-4" />
                       </Button>
                       {/* Jarvis Auto WhatsApp */}
                       <Button
@@ -716,7 +717,7 @@ export default function Leads() {
                   title="WhatsApp Manual"
                   onClick={() => openWhatsApp(l)}
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <WhatsAppIcon className="h-4 w-4" />
                 </Button>
                 <Button
                   size="icon"

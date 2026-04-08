@@ -3,6 +3,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2, FileText } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
@@ -376,7 +377,7 @@ export default function Inadimplentes() {
                                   className="text-green-500 hover:text-green-600 p-1"
                                   title="WhatsApp"
                                 >
-                                  <MessageCircle className="h-4 w-4" />
+                                  <WhatsAppIcon className="h-4 w-4" />
                                 </a>
                               )}
                               <button 
@@ -471,7 +472,7 @@ export default function Inadimplentes() {
                                       className="text-green-500 hover:text-green-600 p-1"
                                       title="WhatsApp"
                                     >
-                                      <MessageCircle className="h-4 w-4" />
+                                      <WhatsAppIcon className="h-4 w-4" />
                                     </a>
                                   )}
                                   <button 

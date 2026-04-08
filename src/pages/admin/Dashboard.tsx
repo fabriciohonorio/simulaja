@@ -858,7 +858,7 @@ export default function Dashboard() {
                       {(l.status ?? 'novo').replace(/_/g, ' ')}
                     </span>
                     <button onClick={() => openWhatsApp(l)} className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors active:scale-95">
-                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <WhatsAppIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   </div>
                 </div>

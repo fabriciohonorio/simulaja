@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, MessageCircle, Phone, Clock, AlertCircle, Search, MapPin, DollarSign, ExternalLink } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isPast, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -120,7 +121,7 @@ export default function Agendamentos() {
                     className="flex-1 gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                     onClick={() => openWhatsApp(lead)}
                   >
-                    <MessageCircle className="h-4 w-4" /> WhatsApp
+                    <WhatsAppIcon className="h-4 w-4" /> WhatsApp
                   </Button>
                   <Button 
                     variant="outline" 
