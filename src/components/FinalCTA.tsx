@@ -1,0 +1,42 @@
+import { MessageCircle } from "lucide-react";
+
+const WHATSAPP_NUMBER = "5541997925357";
+
+const FinalCTA = () => {
+  return (
+    <section className="py-24 bg-[hsl(var(--navy))] text-white relative overflow-hidden">
+      {/* Decorative */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+      <div className="container max-w-4xl mx-auto px-4 text-center relative z-10">
+        <h2 className="text-3xl md:text-5xl font-extrabold mb-6 leading-tight">
+          Seu próximo patrimônio pode começar hoje.
+        </h2>
+        <p className="text-white/70 text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
+          Não espere mais. Simule seu consórcio ou fale diretamente com o especialista.
+        </p>
+
+        <div className="flex flex-wrap justify-center gap-4">
+          <a
+            href="#simulator"
+            className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-full font-black text-lg uppercase tracking-wider shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
+          >
+            Simular Consórcio
+          </a>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá Fabrício! Quero saber mais sobre consórcio.")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#20bd5a] text-white px-8 py-4 rounded-full font-black text-lg transition-all shadow-xl hover:scale-105 hover:shadow-2xl"
+          >
+            <MessageCircle className="w-5 h-5" />
+            Falar com Especialista
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default FinalCTA;
