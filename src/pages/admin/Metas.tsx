@@ -435,7 +435,14 @@ export default function Metas() {
     // Resumo Executivo IA
     const mesesParaFim = 12 - currentMonth + 1;
     const segmentosZerados = segmentos.filter(s => s.total_leads === 0).length;
-    const resumoIA = `${new Date(currentYear, currentMonth - 1).toLocaleString("pt-BR", { month: "long" }).charAt(0).toUpperCase() + new Date(currentYear, currentMonth - 1).toLocaleString("pt-BR", { month: "long" }).slice(1)} fechou ${progressoMes.toFixed(1)}% da meta mensal. No acumulado do ano, o desempenho está em ${progressoAno.toFixed(1)}% da meta anual de R$ ${metaAnual.toLocaleString('pt-br')}. Para fechar o ano, são necessários R$ ${necessarioPorMes.toLocaleString('pt-br', { maximumFractionDigits: 0 })}/mês nos ${mesesRestantes} meses restantes — ${ritmoAtual >= necessarioPorMes ? "no ritmo atual" : "acima do ritmo atual"}. Atenção prioritária: ${semFollowUp} leads sem contato e ${segmentosZerados} segmentos zerados.`;
+    const nomeMes = new Date(currentYear, currentMonth - 1).toLocaleString("pt-BR", { month: "long" });
+    const capitalizedMes = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+    
+    let resumoIA = `${capitalizedMes} apresenta ${progressoMes.toFixed(1)}% da meta mensal atingida. `;
+    resumoIA += `Faltam ${diasUteisRestantes} dias úteis para o encerramento do mês. `;
+    resumoIA += `No acumulado do ano, o desempenho está em ${progressoAno.toFixed(1)}% da meta de R$ ${metaAnual.toLocaleString('pt-br')}. `;
+    resumoIA += `Ritmo atual: ${formatCurrency(ritmoAtual)}/dia vs necessário de ${formatCurrency(ritmoNecessario)}/dia. `;
+    resumoIA += `Atenção: ${semFollowUp} leads sem contato e ${segmentosZerados} segmentos zerados.`;
     const monthsData = Array.from({ length: 4 }, (_, i) => {
         const d = new Date(currentYear, currentMonth - 1 - (3 - i), 1);
         const mStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
@@ -673,13 +680,25 @@ export default function Metas() {
                     <CardContent>
                         <div className="flex justify-between items-end mb-2">
                             <div>
-                                <p className="text-xl sm:text-2xl font-bold text-primary">{formatCurrency(realizadoMes)}</p>
+                                <p className={`text-xl sm:text-2xl font-bold ${
+                                    ritmoStatus === 'verde' ? 'text-emerald-600' : 
+                                    ritmoStatus === 'amarelo' ? 'text-amber-600' : 
+                                    'text-red-600'
+                                }`}>{formatCurrency(realizadoMes)}</p>
                                 <p className="text-xs text-muted-foreground">de {formatCurrency(metaMensal)}</p>
                             </div>
-                            <span className="text-lg sm:text-xl font-bold">{progressoMes.toFixed(1)}%</span>
+                            <span className={`text-lg sm:text-xl font-bold ${
+                                ritmoStatus === 'verde' ? 'text-emerald-700' : 
+                                ritmoStatus === 'amarelo' ? 'text-amber-700' : 
+                                'text-red-700'
+                            }`}>{progressoMes.toFixed(1)}%</span>
                         </div>
                         <div className="w-full bg-secondary/20 rounded-full h-2.5">
-                            <div className="bg-primary h-2.5 rounded-full" style={{ width: `${progressoMes}%` }} />
+                            <div className={`${
+                                ritmoStatus === 'verde' ? 'bg-emerald-500' : 
+                                ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
+                                'bg-red-500'
+                            } h-2.5 rounded-full`} style={{ width: `${progressoMes}%` }} />
                         </div>
                     </CardContent>
                 </Card>
