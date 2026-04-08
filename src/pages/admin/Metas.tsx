@@ -491,37 +491,41 @@ export default function Metas() {
                 <Card className="bg-primary/5 border-primary/20">
                     <CardContent className="p-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <Target className="h-5 w-5 text-primary" />
-                                    <span className="font-semibold text-sm">Meta Anual ({currentYear})</span>
+                            <div className="flex flex-wrap items-center gap-6 flex-1">
+                                {/* Meta Anual */}
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 shrinks-0">
+                                        <Target className="h-5 w-5 text-primary" />
+                                        <span className="font-bold text-sm">Meta Anual ({currentYear})</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-muted-foreground text-xs">R$</span>
+                                        <Input
+                                            type="number"
+                                            value={metaInput}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaInput(e.target.value)}
+                                            className="h-8 w-24 sm:w-32 text-right font-bold text-xs"
+                                        />
+                                        <Button size="sm" variant="outline" onClick={() => salvarMeta()} className="h-8 px-2 text-xs">Salvar</Button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 max-w-[200px]">
-                                    <span className="text-muted-foreground text-xs">R$</span>
-                                    <Input
-                                        type="number"
-                                        value={metaInput}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaInput(e.target.value)}
-                                        className="h-8 text-right font-bold text-xs"
-                                    />
-                                    <Button size="sm" variant="outline" onClick={() => salvarMeta()} className="h-8 px-2 text-xs">Salvar</Button>
-                                </div>
-                            </div>
 
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 border-t sm:border-t-0 sm:border-l border-primary/10 pt-3 sm:pt-0 sm:pl-4">
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <Clock className="h-5 w-5 text-primary" />
-                                    <span className="font-semibold text-sm">Meta Mensal (Média)</span>
-                                </div>
-                                <div className="flex items-center gap-2 max-w-[200px]">
-                                    <span className="text-muted-foreground text-xs">R$</span>
-                                    <Input
-                                        type="number"
-                                        value={metaMensalInput}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaMensalInput(e.target.value)}
-                                        className="h-8 text-right font-bold text-xs"
-                                    />
-                                    <Button size="sm" variant="outline" onClick={salvarMetaMensal} className="h-8 px-2 text-xs">Salvar</Button>
+                                {/* Meta Mensal */}
+                                <div className="flex items-center gap-3 border-l border-primary/10 pl-6">
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Clock className="h-5 w-5 text-primary" />
+                                        <span className="font-bold text-sm">Meta Mensal (Média)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-muted-foreground text-xs">R$</span>
+                                        <Input
+                                            type="number"
+                                            value={metaMensalInput}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMetaMensalInput(e.target.value)}
+                                            className="h-8 w-24 sm:w-32 text-right font-bold text-xs"
+                                        />
+                                        <Button size="sm" variant="outline" onClick={salvarMetaMensal} className="h-8 px-2 text-xs">Salvar</Button>
+                                    </div>
                                 </div>
                             </div>
                             
