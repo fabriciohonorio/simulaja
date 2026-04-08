@@ -116,6 +116,7 @@ export default function Metas() {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
     const [metaAnual, setMetaAnual] = useState<number>(0);
+    const [metaMensal, setMetaMensal] = useState<number>(0);
     const [metaInput, setMetaInput] = useState<string>("0");
     const [metaMensalInput, setMetaMensalInput] = useState<string>("0");
     const [segmentos, setSegmentos] = useState<MetricaSegmento[]>([]);
@@ -203,9 +204,11 @@ export default function Metas() {
             
             if (metaData) {
                 const valAnual = metaData.meta_anual || 0;
+                const valMensal = metaData.meta_outros || Math.floor(valAnual / 12);
                 setMetaAnual(valAnual);
                 setMetaInput(String(valAnual));
-                setMetaMensalInput(String(Math.floor(valAnual / 12)));
+                setMetaMensal(valMensal);
+                setMetaMensalInput(String(valMensal));
                 
                 currentSegmentMetas = {
                     imoveis: metaData.meta_imoveis || 0,
@@ -221,6 +224,7 @@ export default function Metas() {
             } else {
                 setMetaAnual(0);
                 setMetaInput("0");
+                setMetaMensal(0);
                 setMetaMensalInput("0");
             }
             
@@ -336,8 +340,7 @@ export default function Metas() {
             
             setMetaAnual(novoValor);
             setMetaInput(String(novoValor));
-            setMetaMensalInput(String(Math.floor(novoValor / 12)));
-            toast({ title: "Meta salva com sucesso!" });
+            toast({ title: "Meta anual salva!" });
         } catch (error) {
             console.error("Erro ao salvar meta:", error);
             toast({ 
@@ -348,10 +351,34 @@ export default function Metas() {
         }
     };
 
-    const salvarMetaMensal = () => {
-        const mensalVal = parseFloat(metaMensalInput);
-        if (isNaN(mensalVal)) return;
-        salvarMeta(mensalVal * 12);
+    const salvarMetaMensal = async (valorOverride?: number) => {
+        const novoValor = valorOverride !== undefined ? valorOverride : parseFloat(metaMensalInput);
+        if (isNaN(novoValor)) return;
+        
+        try {
+            if (selectedVendedor !== "all" || !isManager) {
+                // Sellers can't set their own monthly goals independently yet in this schema
+                toast({ title: "Ação limitada ao gestor", variant: "destructive" });
+                return;
+            } else {
+                const { error } = await supabaseAny.from("meta").upsert({ 
+                    ano: currentYear, 
+                    meta_outros: novoValor, // Hijack meta_outros for independent monthly goal
+                    organizacao_id: profile?.organizacao_id
+                }, { onConflict: "ano" });
+                if (error) throw error;
+            }
+            
+            setMetaMensal(novoValor);
+            setMetaMensalInput(String(novoValor));
+            toast({ title: "Meta mensal salva!" });
+        } catch (error) {
+            console.error("Erro ao salvar meta mensal:", error);
+            toast({ 
+                title: "Erro ao salvar meta mensal", 
+                variant: "destructive" 
+            });
+        }
     };
 
     const salvarMetasSegmento = async (newMetas: Record<string, number>) => {
@@ -384,7 +411,6 @@ export default function Metas() {
         }
     };
 
-        const metaMensal = metaAnual / 12;
     const fechados = leads.filter(l => (l.status || "").toLowerCase() === "fechado");
     const realizadoMes = fechados.filter(l => l.created_at?.startsWith(mesStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const realizadoAno = fechados.filter(l => l.created_at?.startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
@@ -610,21 +636,21 @@ export default function Metas() {
                     </div>
                     <div>
                         <h3 className={`text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 ${
-                            ritmoStatus === 'verde' ? 'text-emerald-700' : 
-                            ritmoStatus === 'amarelo' ? 'text-amber-700' : 
-                            'text-red-700'
+                            ritmoStatus === 'verde' ? 'text-emerald-950' : 
+                            ritmoStatus === 'amarelo' ? 'text-amber-950' : 
+                            'text-red-950'
                         }`}>
                            Resumo Executivo IA
                            <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${
-                               ritmoStatus === 'verde' ? 'bg-emerald-200 text-emerald-800' : 
-                               ritmoStatus === 'amarelo' ? 'bg-amber-200 text-amber-800' : 
-                               'bg-red-200 text-red-800'
+                               ritmoStatus === 'verde' ? 'bg-emerald-200 text-emerald-950' : 
+                               ritmoStatus === 'amarelo' ? 'bg-amber-200 text-amber-950' : 
+                               'bg-red-200 text-red-950'
                            }`}>AUTO</span>
                         </h3>
                         <p className={`text-sm leading-relaxed font-bold ${
-                            ritmoStatus === 'verde' ? 'text-emerald-900' : 
-                            ritmoStatus === 'amarelo' ? 'text-amber-900' : 
-                            'text-red-900'
+                            ritmoStatus === 'verde' ? 'text-emerald-950' : 
+                            ritmoStatus === 'amarelo' ? 'text-amber-950' : 
+                            'text-red-950'
                         }`}>
                             {resumoIA}
                         </p>
