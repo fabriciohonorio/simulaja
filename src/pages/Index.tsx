@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import ConsortiumSimulator from "@/components/ConsortiumSimulator";
 import AIChatbot from "@/components/AIChatbot";
+import Header from "@/components/Header";
+import Hero from "@/components/Hero";
+import Benefits from "@/components/Benefits";
+import AboutConsortium from "@/components/AboutConsortium";
+import Comparison from "@/components/Comparison";
+import SocialProof from "@/components/SocialProof";
+import ContactLinks from "@/components/ContactLinks";
+import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -77,8 +85,33 @@ const Index = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <ConsortiumSimulator onSimulateSubmit={handleSimulateSubmit} />
+    <main className="min-h-screen bg-background selection:bg-primary/20">
+      <Header />
+      
+      <Hero>
+        <div id="simulator" className="scroll-mt-32">
+          <ConsortiumSimulator onSimulateSubmit={handleSimulateSubmit} />
+        </div>
+      </Hero>
+
+      <div id="benefits" className="scroll-mt-20">
+        <Benefits />
+      </div>
+
+      <div id="about" className="scroll-mt-20">
+        <AboutConsortium />
+      </div>
+
+      <Comparison />
+
+      <div id="social-proof" className="scroll-mt-20">
+        <SocialProof />
+      </div>
+
+      <ContactLinks />
+      
+      <Footer />
+      
       <AIChatbot />
     </main>
   );
