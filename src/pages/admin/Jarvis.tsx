@@ -375,7 +375,7 @@ export default function Jarvis() {
                 const pior = segmentMetas.sort((a,b) => (a.valor_total/a.meta_vendas) - (b.valor_total/b.meta_vendas))[0];
                 const pctPior = Math.round((pior.valor_total / pior.meta_vendas) * 100);
                 responseContent = `${pior.segmento.toUpperCase()} tá em ${pctPior}%, Fabricio — isso tá feio. Faltam ${formatCurrency(pior.meta_vendas - pior.valor_total)} pra cota do mês. Puxa a lista desse segmento e liga agora!`;
-            } else if (queryLower.includes("bom dia") || queryLower.includes("novidades") || queryLower.includes("resumo") || queryLower.includes("e aí")) {
+            } else if (queryLower.includes("bom dia") || queryLower.includes("novidades") || queryLower.includes("resumo") || queryLower.includes("e aí") || queryLower.includes("funil") || queryLower.includes("crm") || queryLower.includes("tudo") || queryLower.includes("geral") || queryLower.includes("carteira")) {
                 const score = emNegociacao.length > 0 ? Math.min(100, Math.round((realizadoMes / metaMensal) * 100)) : 0;
                 const dataHoje = new Date().toLocaleDateString('pt-BR');
                 
@@ -457,7 +457,12 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                     ]
                 };
             } else {
-                responseContent = "Cara, pipeline rolando mas o foco tem que ser em conversão rápida. Puxa os maiores leads da base que estão parados hoje e fecha isso. Vai lá!";
+                const getCount = (st: string) => leads.filter(l => (l.status || "").toLowerCase() === st).length;
+                const fechados = getCount('fechado');
+                const andamento = emNegociacao.length;
+                const totCotas = cotasContempladas.length;
+                
+                responseContent = `Eu monitorei todas as bases do CRM agora. No total da sua operação temos:\n- ${fechados} clientes fechados (Carteira)\n- ${andamento} negócios em andamento no Funil, somando ${formatCurrency(pipelineValue)} em negociação.\n- ${totCotas} cotas ganhadoras registradas no histórico dos grupos.\n\nTudo está atualizado e visível na minha memória. Posso calcular uma simulação, analisar a chance de um cliente específico ou te dar o resumo financeiro (fale 'resumo'). O que manda?`;
             }
 
             const jarvisMsg: Message = {
