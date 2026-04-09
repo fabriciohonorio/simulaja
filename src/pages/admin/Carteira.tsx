@@ -44,6 +44,7 @@ import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { jsPDF } from "jspdf";
 import { GRUPOS, CATEGORIAS } from "@/components/ConsortiumSimulator";
+import { getLoteriaStatus } from "@/lib/consortium-logic";
 
 interface CarteiraItem {
   id: string;
@@ -84,42 +85,9 @@ export default function Carteira() {
   const [participantesPadrao, setParticipantesPadrao] = useState<number>(600);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const groupQuotaMap: Record<string, number> = {
-    "5290": 1800,
-    "5292": 2500,
-    "5291": 1800,
-    "6041": 3100,
-    "5996": 1800,
-    "6037": 2500,
-    "5294": 2500,
-  };
-
   useEffect(() => {
     localStorage.setItem("simulaja_loteria_federal", loteriaFederal);
   }, [loteriaFederal]);
-
-  const getLoteriaStatus = (cotaStr: string | null, grupoStr: string | null) => {
-    if (!loteriaFederal) return null;
-    const lotId = parseInt(loteriaFederal.replace(/\D/g, ''));
-    if (isNaN(lotId)) return null;
-    
-    // Get participants for this group specifically as requested by user
-    const participants = grupoStr ? (groupQuotaMap[grupoStr] || participantesPadrao) : participantesPadrao;
-    
-    if (participants <= 0) return null;
-    
-    // Lotus algorithm modulo participants
-    const winCota = lotId % participants === 0 ? participants : lotId % participants;
-    const clientCota = parseInt(cotaStr || "0");
-    if (!clientCota) return { winCota, isWinner: false, isClose: false, diff: null, participants };
-    
-    // Calculate circular distance
-    const diff = Math.min(
-      Math.abs(clientCota - winCota), 
-      participants - Math.abs(clientCota - winCota)
-    );
-    return { winCota, isWinner: diff === 0, isClose: diff > 0 && diff <= 10, diff, participants };
-  };
 
   const fetchData = async () => {
     if (!profile?.organizacao_id) return;
@@ -906,7 +874,7 @@ export default function Carteira() {
                         )}
                       </div>
                       {(() => {
-                        const lot = getLoteriaStatus(item.cota, item.grupo);
+                        const lot = getLoteriaStatus(loteriaFederal, item.cota, item.grupo, item.administradora, item.tipo_consorcio, participantesPadrao);
                         if (!lot) return null;
                         if (lot.isWinner) {
                           return (
@@ -1045,7 +1013,7 @@ export default function Carteira() {
                   </div>
                 </div>
                 {(() => {
-                  const lot = getLoteriaStatus(item.cota, item.grupo);
+                  const lot = getLoteriaStatus(loteriaFederal, item.cota, item.grupo, item.administradora, item.tipo_consorcio, participantesPadrao);
                   if (!lot) return null;
                   return (
                     <div className="col-span-2 flex items-center justify-center p-1.5 rounded-lg border">

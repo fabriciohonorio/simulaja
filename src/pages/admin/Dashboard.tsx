@@ -11,6 +11,7 @@ import DashboardCalendar from "@/components/admin/DashboardCalendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from "recharts";
+import { getLoteriaStatus } from "@/lib/consortium-logic";
 
 interface Lead {
   id: string;
@@ -33,6 +34,8 @@ interface CarteiraItem {
   cota: string | null;
   valor_credito: number | null;
   celular: string | null;
+  administradora: string | null;
+  tipo_consorcio: string | null;
 }
 
 
@@ -68,21 +71,6 @@ export default function Dashboard() {
   };
 
   const loteriaFederal = localStorage.getItem("simulaja_loteria_federal") || "";
-  const groupQuotaMap: Record<string, number> = {
-    "5290": 1800, "5292": 2500, "5291": 1800, "6041": 3100, "5996": 1800, "6037": 2500, "5294": 2500
-  };
-
-  const getLoteriaStatus = (cotaStr: string | null, grupoStr: string | null) => {
-    if (!loteriaFederal) return null;
-    const lotId = parseInt(loteriaFederal.replace(/\D/g, ''));
-    if (isNaN(lotId)) return null;
-    const participants = grupoStr ? (groupQuotaMap[grupoStr] || 600) : 600;
-    const winCota = lotId % participants === 0 ? participants : lotId % participants;
-    const clientCota = parseInt(cotaStr || "0");
-    if (!clientCota) return null;
-    const diff = Math.min(Math.abs(clientCota - winCota), participants - Math.abs(clientCota - winCota));
-    return { winCota, isWinner: diff === 0, isClose: diff > 0 && diff <= 10, diff };
-  };
 
   useEffect(() => {
     if (!profile?.organizacao_id) return;
@@ -107,7 +95,7 @@ export default function Dashboard() {
 
       (supabase as any)
         .from("carteira")
-        .select("id, nome, grupo, cota, valor_credito, celular")
+        .select("id, nome, grupo, cota, valor_credito, celular, administradora, tipo_consorcio")
         .eq("organizacao_id", profile.organizacao_id)
         .then(({ data }: any) => {
           setCarteira((data as any[]) || []);
@@ -739,7 +727,7 @@ export default function Dashboard() {
             {/* Alerta de Contemplação (Loteria) */}
             {(() => {
               const proximos = carteira
-                .map(item => ({ item, lot: getLoteriaStatus(item.cota, item.grupo) }))
+                .map(item => ({ item, lot: getLoteriaStatus(loteriaFederal, item.cota, item.grupo, item.administradora, item.tipo_consorcio) }))
                 .filter(res => res.lot && (res.lot.isWinner || res.lot.isClose));
 
               return proximos.length > 0 ? (
