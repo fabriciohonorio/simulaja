@@ -88,6 +88,8 @@ export default function Jarvis() {
     const [analysis, setAnalysis] = useState<JarvisAnalysis | null>(null);
     const [leads, setLeads] = useState<Lead[]>([]);
     const [inadimplentes, setInadimplentes] = useState<Inadimplente[]>([]);
+    const [cotasContempladas, setCotasContempladas] = useState<any[]>([]);
+    const [historicoContatos, setHistoricoContatos] = useState<any[]>([]);
     const [segmentMetas, setSegmentMetas] = useState<MetricaSegmento[]>([]);
     const [metaAnual, setMetaAnual] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -187,10 +189,12 @@ export default function Jarvis() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [leadsRes, metaRes, inadRes] = await Promise.all([
+                const [leadsRes, metaRes, inadRes, cotasRes, histRes] = await Promise.all([
                     supabase.from("leads").select("*"),
                     supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).maybeSingle(),
-                    supabase.from("inadimplentes").select("*")
+                    supabase.from("inadimplentes").select("*"),
+                    supabase.from("cotas_contempladas").select("*"),
+                    supabase.from("historico_contatos").select("*").order("data_contato", { ascending: false })
                 ]);
 
                 let allLeads: Lead[] = [];
@@ -207,6 +211,14 @@ export default function Jarvis() {
 
                 if (inadRes.data) {
                     setInadimplentes(inadRes.data as Inadimplente[]);
+                }
+                
+                if (cotasRes.data) {
+                    setCotasContempladas(cotasRes.data);
+                }
+
+                if (histRes.data) {
+                    setHistoricoContatos(histRes.data);
                 }
 
                 if (metaRes.data) {
@@ -299,6 +311,29 @@ export default function Jarvis() {
                 if (valor > 0) {
                     const sim = findParcela(valor * (queryLower.includes("mil") ? 1000 : 1), queryLower);
                     responseContent = `Cara, pra ${formatCurrency(sim.credito)} a parcela fica R$ ${sim.r50.toFixed(2)} em ${sim.prazo} meses no Grupo ${sim.grupo}. Essa é a carta na manga. Liga e oferece agora!`;
+                }
+            } else if (queryLower.includes("cotas contempladas") || (queryLower.includes("numeros") && queryLower.includes("contemplado"))) {
+                const qtdAgrupada = cotasContempladas.reduce((acc, cota) => {
+                    acc[cota.grupo] = (acc[cota.grupo] || 0) + 1;
+                    return acc;
+                }, {} as Record<string, number>);
+                const total = Object.values(qtdAgrupada).reduce((a, b) => a + b, 0);
+                const resumo = Object.entries(qtdAgrupada).map(([g, q]) => `Grupo ${g}: ${q} cotas`).join(", ");
+                responseContent = `Atualmente temos ${total} cotas contempladas registradas no histórico do sistema. Resumo: ${resumo || "Ainda não temos registros."}`;
+            } else if (queryLower.includes("cliente") || queryLower.includes("sobre o") || queryLower.includes("como ta o lead")) {
+                const nameWords = queryLower.replace(/cliente|sobre o|como ta o lead|trata|onde ta|em que etapa|o lead/g, "").trim().split(" ");
+                // find potential lead
+                const specificLead = leads.find(l => {
+                    const lName = ((l as any).nome || "").toLowerCase();
+                    return nameWords.length > 0 && nameWords[0] !== "" && lName.includes(nameWords[0]);
+                });
+                if (specificLead) {
+                    const lHist = historicoContatos.filter(h => h.lead_id === specificLead.id);
+                    const lastInter = lHist.length > 0 ? lHist[0].resumo : "Nenhuma tratativa registrada ainda.";
+                    const statusVal = ((specificLead.status || specificLead.id ? "em prospecção" : specificLead.status) as string).toUpperCase();
+                    responseContent = `Vamos lá! O cliente ${(specificLead as any).nome} está na etapa [${statusVal}] do funil. O valor sondado é de ${formatCurrency(specificLead.valor_credito || 0)}. A última tratativa diz: "${lastInter}". Manda bala!`;
+                } else {
+                    responseContent = `Não consegui encontrar nenhum cliente com esse nome exato ativo hoje no funil. Pode repetir o nome completo?`;
                 }
             } else if (queryLower.includes("inadimplencia") || queryLower.includes("devendo") || queryLower.includes("pagar") || queryLower.includes("atraso")) {
                 responseContent = `Fabricio, tão devendo ${formatCurrency(dividaTotal)} de ${inadCount} clientes. Isso tá crítico. Manda mensagem pros 3 piores devedores da lista agora e resolve isso.`;
