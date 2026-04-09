@@ -1287,41 +1287,32 @@ export default function Carteira() {
               </Button>
             </div>
 
-            <div className="border rounded-md max-h-[300px] overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted sticky top-0">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground w-full">Cota</th>
-                    <th className="px-3 py-2 text-right font-medium text-muted-foreground">Ação</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {cotasContempladasGrupo.length === 0 ? (
-                    <tr>
-                      <td colSpan={2} className="px-3 py-6 text-center text-muted-foreground text-xs">
-                        Nenhuma cota registrada.
-                      </td>
-                    </tr>
-                  ) : (
-                    cotasContempladasGrupo.map((c: any) => (
-                      <tr key={c.id} className="hover:bg-muted/30">
-                        <td className="px-3 py-2 font-bold text-slate-700">{c.cota}</td>
-                        <td className="px-3 py-2 text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0 text-red-500 hover:bg-red-50"
-                            onClick={() => handleDeleteCotaGrupo(c.id)}
-                            title="Remover"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div className="border rounded-md p-3 max-h-[300px] overflow-auto bg-muted/20">
+              {cotasContempladasGrupo.length === 0 ? (
+                <p className="text-center text-muted-foreground text-xs py-4">
+                  Nenhuma cota registrada.
+                </p>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  {[...cotasContempladasGrupo]
+                    .sort((a, b) => parseInt(a.cota) - parseInt(b.cota))
+                    .map((c: any) => (
+                    <div 
+                      key={c.id} 
+                      className="group flex flex-col items-center justify-center p-2 border rounded-md bg-white hover:border-red-200 hover:bg-red-50 transition-all relative overflow-hidden shadow-sm"
+                    >
+                      <span className="font-black text-slate-700 text-sm">{c.cota}</span>
+                      <button 
+                        onClick={() => handleDeleteCotaGrupo(c.id)}
+                        className="absolute inset-0 bg-red-500/90 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        title="Remover"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           
