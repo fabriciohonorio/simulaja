@@ -91,10 +91,17 @@ export default function Carteira() {
   const [selectedGrupoCotas, setSelectedGrupoCotas] = useState<{grupo: string, segmento: string, administradora: string} | null>(null);
   const [cotasContempladasGrupo, setCotasContempladasGrupo] = useState<any[]>([]);
   const [novaCotaGrupo, setNovaCotaGrupo] = useState("");
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     localStorage.setItem("simulaja_loteria_federal", loteriaFederal);
   }, [loteriaFederal]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [administradoraFilter]);
 
   const fetchData = async () => {
     if (!profile?.organizacao_id) return;
@@ -949,9 +956,15 @@ export default function Carteira() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {items
-                .filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter)
-                .map((item) => {
+              {(() => {
+                const filtered = items.filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter);
+                const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+                
+                if (filtered.length === 0) {
+                  return <tr><td colSpan={8} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</td></tr>;
+                }
+
+                return paginated.map((item) => {
                 const indicator = item.indicador_nome?.toLowerCase() || "";
                 const rowColor = 
                   (indicator.includes("emily") || indicator.includes("emilly")) ? "bg-blue-50/50 hover:bg-blue-100/50" :
@@ -1056,10 +1069,7 @@ export default function Carteira() {
                   </td>
                 </tr>
               );
-              })}
-              {items.length === 0 && (
-                <tr><td colSpan={8} className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</td></tr>
-              )}
+              })})()}
             </tbody>
           </table>
         </CardContent>
@@ -1067,12 +1077,15 @@ export default function Carteira() {
 
       {/* Mobile Card List */}
       <div className="md:hidden space-y-3">
-        {items.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</p>
-        )}
-        {items
-          .filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter)
-          .map((item) => {
+        {(() => {
+          const filtered = items.filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter);
+          const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+          
+          if (filtered.length === 0) {
+            return <p className="text-center text-muted-foreground py-8">Nenhum cliente na carteira</p>;
+          }
+
+          return paginated.map((item) => {
           const indicator = item.indicador_nome?.toLowerCase() || "";
           const cardColor = 
             (indicator.includes("emily") || indicator.includes("emilly")) ? "border-blue-500 bg-blue-50" :
@@ -1191,8 +1204,40 @@ export default function Carteira() {
             </CardContent>
           </Card>
         );
-      })}
+        })})()}
       </div>
+
+      {/* Pagination Controls */}
+      {(() => {
+        const filtered = items.filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter);
+        const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+        if (totalPages <= 1) return null;
+        return (
+          <div className="flex items-center justify-between border-t py-4">
+            <span className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Próxima
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
 
       <Dialog open={!!selectedItem} onOpenChange={(open: boolean) => !open && setSelectedItem(null)}>
         <DialogContent className="sm:max-w-md">
@@ -1263,7 +1308,7 @@ export default function Carteira() {
 
       {/* Cotas Contempladas Grupo Dialog */}
       <Dialog open={modalGrupoOpen} onOpenChange={setModalGrupoOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-4xl w-[95vw]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-orange-500" />
@@ -1293,7 +1338,7 @@ export default function Carteira() {
                   Nenhuma cota registrada.
                 </p>
               ) : (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-10 gap-2">
                   {[...cotasContempladasGrupo]
                     .sort((a, b) => parseInt(a.cota) - parseInt(b.cota))
                     .map((c: any) => (
