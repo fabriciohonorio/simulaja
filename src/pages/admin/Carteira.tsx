@@ -40,6 +40,7 @@ import {
   Send,
   UserX,
   List,
+  Edit2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -718,7 +719,7 @@ export default function Carteira() {
     );
   };
 
-  const EditableBadge = ({ item, field, value }: { item: CarteiraItem, field: string, value: string | null }) => {
+  const EditableBadge = ({ item, field, value, onClickAction, showEditIcon }: { item: CarteiraItem, field: string, value: string | null, onClickAction?: () => void, showEditIcon?: boolean }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [tempValue, setTempValue] = useState(value || "");
 
@@ -747,12 +748,31 @@ export default function Carteira() {
     }
 
     return (
-      <button 
-        onClick={() => setIsEditing(true)}
-        className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5 hover:bg-orange-50 hover:border-orange-300 transition-all cursor-pointer"
-      >
-        {field.toUpperCase()}: <span className="text-orange-700 text-xs">{value || "—"}</span>
-      </button>
+      <div className="flex items-center gap-1">
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            onClickAction ? onClickAction() : setIsEditing(true);
+          }}
+          className="bg-white text-orange-600 border border-orange-200 text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5 hover:bg-orange-50 hover:border-orange-300 transition-all cursor-pointer"
+        >
+          {field.toUpperCase()}: <span className="text-orange-700 text-xs">{value || "—"}</span>
+        </button>
+        {showEditIcon && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-5 w-5 p-0 text-orange-400 hover:text-orange-600 hover:bg-orange-50"
+            onClick={(e) => {
+              e.preventDefault();
+              setIsEditing(true);
+            }}
+            title="Editar"
+          >
+            <Edit2 className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
     );
   };
 
@@ -945,16 +965,13 @@ export default function Carteira() {
                     <div className="text-sm font-bold text-slate-800">{item.nome}</div>
                     <div className="flex flex-col gap-1.5 mt-2">
                       <div className="flex items-center gap-2 group/grupo">
-                        <EditableBadge item={item} field="grupo" value={item.grupo} />
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-5 w-5 p-0 md:opacity-0 group-hover/grupo:opacity-100 transition-opacity text-orange-600 ml-1"
-                          onClick={() => handleOpenGrupoCotas(item)}
-                          title="Cotas Contempladas"
-                        >
-                          <List className="h-3 w-3" />
-                        </Button>
+                        <EditableBadge 
+                          item={item} 
+                          field="grupo" 
+                          value={item.grupo} 
+                          onClickAction={() => handleOpenGrupoCotas(item)}
+                          showEditIcon={true}
+                        />
                         <EditableBadge item={item} field="cota" value={item.cota} />
                         {item.administradora && (
                           <div className={`${item.administradora === "ADEMICON" ? "bg-red-50 text-red-600 border-red-200" : "bg-blue-50 text-blue-600 border-blue-200"} border text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5`}>
@@ -1095,15 +1112,13 @@ export default function Carteira() {
                   <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50 relative group">
                     <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter mb-1">Grupo</p>
                     <div className="flex items-center justify-center gap-1">
-                      <EditableBadge item={item} field="grupo" value={item.grupo} />
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-5 w-5 p-0 text-orange-600"
-                        onClick={() => handleOpenGrupoCotas(item)}
-                      >
-                        <List className="h-3 w-3" />
-                      </Button>
+                      <EditableBadge 
+                        item={item} 
+                        field="grupo" 
+                        value={item.grupo} 
+                        onClickAction={() => handleOpenGrupoCotas(item)}
+                        showEditIcon={true}
+                      />
                     </div>
                   </div>
                   <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50">
