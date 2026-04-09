@@ -32,28 +32,30 @@ export const getLoteriaStatus = (
   defaultParticipants: number = 600
 ): LoteriaResult | null => {
   if (!loteriaFederal) return null;
-  
   const lotId = parseInt(loteriaFederal.replace(/\D/g, ''));
   if (isNaN(lotId)) return null;
 
+  // Extreme cleaning for robustness
+  const cleanGrupo = grupoStr?.replace(/\D/g, '') || ""; // Extrai apenas os números (ex: "GRUPO: 1703" -> "1703")
+  const cleanAdmin = administradora?.trim().toUpperCase() || "";
+  const cleanTipo = tipoConsorcio?.trim().toLowerCase() || "";
+
   // Get participants for this group
-  const participants = grupoStr ? (groupQuotaMap[grupoStr] || defaultParticipants) : defaultParticipants;
+  const participants = cleanGrupo ? (groupQuotaMap[cleanGrupo] || defaultParticipants) : defaultParticipants;
   if (participants <= 0) return null;
 
   let calculationBasis = lotId;
 
   // Rule for Ademicon Vehicles: Use only the "milhar" (last 4 digits)
-  // The user specified that for Ademicon vehicles, we take the milhar and subtract 
-  // the group size until it's below the group size, which is effectively (lotId % 10000) % participants.
-  const isAdemiconVehicle = administradora === "ADEMICON" && 
-    (tipoConsorcio?.toLowerCase().includes("veículo") || tipoConsorcio?.toLowerCase().includes("veiculo"));
+  const isAdemiconVehicle = cleanAdmin.includes("ADEMICON") && 
+    (cleanTipo.includes("veículo") || cleanTipo.includes("veiculo"));
 
   if (isAdemiconVehicle) {
     calculationBasis = lotId % 10000;
   }
 
   const winCota = calculationBasis % participants === 0 ? participants : calculationBasis % participants;
-  const clientCota = parseInt(cotaStr || "0");
+  const clientCota = parseInt(cotaStr?.replace(/\D/g, '') || "0");
   
   if (!clientCota) return { winCota, isWinner: false, isClose: false, diff: null, participants };
 
