@@ -331,7 +331,41 @@ export default function Jarvis() {
                     const lHist = historicoContatos.filter(h => h.lead_id === specificLead.id);
                     const lastInter = lHist.length > 0 ? lHist[0].resumo : "Nenhuma tratativa registrada ainda.";
                     const statusVal = ((specificLead.status || specificLead.id ? "em prospecção" : specificLead.status) as string).toUpperCase();
-                    responseContent = `Vamos lá! O cliente ${(specificLead as any).nome} está na etapa [${statusVal}] do funil. O valor sondado é de ${formatCurrency(specificLead.valor_credito || 0)}. A última tratativa diz: "${lastInter}". Manda bala!`;
+                    
+                    let cotaInsight = "";
+                    const grupo = (specificLead as any).grupo;
+                    const cota = (specificLead as any).cota;
+                    
+                    if (grupo && cota && cotasContempladas) {
+                        const clienteCota = parseInt(cota.toString().replace(/\D/g, ''));
+                        const cotasDoGrupo = cotasContempladas.filter(c => c.grupo === grupo);
+                        
+                        if (cotasDoGrupo.length > 0 && !isNaN(clienteCota)) {
+                            let minDiff = Infinity;
+                            let closest = "";
+                            cotasDoGrupo.forEach(c => {
+                                const parseC = parseInt(c.cota.toString().replace(/\D/g, ''));
+                                if (!isNaN(parseC)) {
+                                    const diff = Math.abs(parseC - clienteCota);
+                                    if (diff < minDiff) {
+                                        minDiff = diff;
+                                        closest = c.cota;
+                                    }
+                                }
+                            });
+                            
+                            if (closest !== "") {
+                                const chanceText = minDiff <= 30 ? "ALTÍSSIMA 🚀" : minDiff <= 100 ? "BOA 🔥" : "Média 📊";
+                                cotaInsight = `\n\n🎯 Análise de Contemplação:\nO cliente está no Grupo ${grupo}, Cota ${cota}.\nVerifiquei o histórico do grupo e a cota contemplada mais próxima foi a ${closest} (distância de ${minDiff} números).\nA chance empírica dele puxar por lance fixo no momento é ${chanceText}.`;
+                            }
+                        } else {
+                            cotaInsight = `\n\n🎯 Análise de Contemplação: Cliente no grupo ${grupo}, porém não temos registros numéricos suficientes de cotas sorteadas desse grupo para medir a chance de lance fixo.`;
+                        }
+                    } else if (!grupo || !cota) {
+                        cotaInsight = "\n\n💡 Dica: Preencha o Grupo e a Cota desse cliente na carteira para eu analisar a distância pros lances da Loteria Federal.";
+                    }
+
+                    responseContent = `Vamos lá! O cliente ${(specificLead as any).nome} está na etapa [${statusVal}] do funil. O valor sondado é de ${formatCurrency(specificLead.valor_credito || 0)}.\n Última tratativa registrada: "${lastInter}"${cotaInsight}`;
                 } else {
                     responseContent = `Não consegui encontrar nenhum cliente com esse nome exato ativo hoje no funil. Pode repetir o nome completo?`;
                 }
