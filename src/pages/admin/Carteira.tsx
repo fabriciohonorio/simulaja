@@ -39,6 +39,7 @@ import {
   Trash2,
   Send,
   UserX,
+  List,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -84,6 +85,11 @@ export default function Carteira() {
   const [loteriaFederal, setLoteriaFederal] = useState(() => localStorage.getItem("simulaja_loteria_federal") || "");
   const [participantesPadrao, setParticipantesPadrao] = useState<number>(600);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const [modalGrupoOpen, setModalGrupoOpen] = useState(false);
+  const [selectedGrupoCotas, setSelectedGrupoCotas] = useState<{grupo: string, segmento: string, administradora: string} | null>(null);
+  const [cotasContempladasGrupo, setCotasContempladasGrupo] = useState<any[]>([]);
+  const [novaCotaGrupo, setNovaCotaGrupo] = useState("");
 
   useEffect(() => {
     localStorage.setItem("simulaja_loteria_federal", loteriaFederal);
@@ -571,9 +577,83 @@ export default function Carteira() {
       await supabase.from("leads").update({ administradora: admin }).eq("id", selectedItem.lead_id);
     }
 
+    // Registrar na nova tabela historico_cotas
+    if (!error && cotaContemplada && selectedItem.grupo) {
+      const { error: insertError } = await supabase.from("cotas_contempladas").insert({
+        organizacao_id: profile?.organizacao_id,
+        grupo: selectedItem.grupo,
+        cota: cotaContemplada,
+        segmento: selectedItem.tipo_consorcio,
+        administradora: admin
+      });
+      if (insertError) {
+        console.error("Erro ao registrar cota contemplada do grupo:", insertError);
+      }
+    }
+
     setSaving(false);
     setSelectedItem(null);
     fetchData();
+  };
+
+  const fetchCotasDoGrupo = async (grupo: string) => {
+    if (!profile?.organizacao_id) return;
+    try {
+      const { data, error } = await supabase
+        .from("cotas_contempladas")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .eq("grupo", grupo)
+        .order("created_at", { ascending: false });
+      
+      if (error && error.code !== "42P01") { // Ignore table doesn't exist just in case
+        console.error(error);
+      }
+      setCotasContempladasGrupo(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleOpenGrupoCotas = (item: CarteiraItem) => {
+    if (!item.grupo) {
+      toast({ title: "Aviso", description: "O cliente precisa ter um grupo definido." });
+      return;
+    }
+    setSelectedGrupoCotas({
+      grupo: item.grupo,
+      segmento: item.tipo_consorcio || "",
+      administradora: item.administradora || ""
+    });
+    fetchCotasDoGrupo(item.grupo);
+    setModalGrupoOpen(true);
+  };
+
+  const handleAddCotaGrupo = async () => {
+    if (!novaCotaGrupo || !selectedGrupoCotas || !profile?.organizacao_id) return;
+    setSaving(true);
+    const { error } = await supabase.from("cotas_contempladas").insert({
+      organizacao_id: profile.organizacao_id,
+      grupo: selectedGrupoCotas.grupo,
+      segmento: selectedGrupoCotas.segmento,
+      administradora: selectedGrupoCotas.administradora,
+      cota: novaCotaGrupo
+    });
+
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      setNovaCotaGrupo("");
+      fetchCotasDoGrupo(selectedGrupoCotas.grupo);
+    }
+    setSaving(false);
+  };
+
+  const handleDeleteCotaGrupo = async (id: string) => {
+    const { error } = await supabase.from("cotas_contempladas").delete().eq("id", id);
+    if (!error && selectedGrupoCotas) {
+      fetchCotasDoGrupo(selectedGrupoCotas.grupo);
+    }
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -864,8 +944,17 @@ export default function Carteira() {
                   <td className="px-3 py-2 font-medium">
                     <div className="text-sm font-bold text-slate-800">{item.nome}</div>
                     <div className="flex flex-col gap-1.5 mt-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 group/grupo">
                         <EditableBadge item={item} field="grupo" value={item.grupo} />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-5 w-5 p-0 md:opacity-0 group-hover/grupo:opacity-100 transition-opacity text-orange-600 ml-1"
+                          onClick={() => handleOpenGrupoCotas(item)}
+                          title="Cotas Contempladas"
+                        >
+                          <List className="h-3 w-3" />
+                        </Button>
                         <EditableBadge item={item} field="cota" value={item.cota} />
                         {item.administradora && (
                           <div className={`${item.administradora === "ADEMICON" ? "bg-red-50 text-red-600 border-red-200" : "bg-blue-50 text-blue-600 border-blue-200"} border text-[11px] font-black py-0.5 px-3 rounded shadow-sm flex items-center gap-1.5`}>
@@ -1003,9 +1092,19 @@ export default function Carteira() {
                   </div>
                 )}
                 <div className="col-span-2 flex items-center gap-2.5 bg-gradient-to-r from-orange-50/50 to-white p-2 rounded-xl border border-orange-100 mb-1 shadow-sm">
-                  <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50">
+                  <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50 relative group">
                     <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter mb-1">Grupo</p>
-                    <EditableBadge item={item} field="grupo" value={item.grupo} />
+                    <div className="flex items-center justify-center gap-1">
+                      <EditableBadge item={item} field="grupo" value={item.grupo} />
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-5 w-5 p-0 text-orange-600"
+                        onClick={() => handleOpenGrupoCotas(item)}
+                      >
+                        <List className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex-1 text-center bg-white p-2 rounded border border-orange-50">
                     <p className="text-[9px] text-orange-400 uppercase font-black tracking-tighter mb-1">Cota</p>
@@ -1143,6 +1242,76 @@ export default function Carteira() {
             <Button onClick={handleUpdateAdesao} disabled={saving}>
               {saving ? "Salvando..." : "Salvar Alteração"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cotas Contempladas Grupo Dialog */}
+      <Dialog open={modalGrupoOpen} onOpenChange={setModalGrupoOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-orange-500" />
+              Cotas Contempladas - Grupo {selectedGrupoCotas?.grupo}
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie as cotas que já foram contempladas neste grupo de {selectedGrupoCotas?.administradora || "consórcio"} ({selectedGrupoCotas?.segmento || "Geral"}).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            <div className="flex gap-2 items-center">
+              <Input 
+                placeholder="Ex: 0145" 
+                value={novaCotaGrupo} 
+                onChange={(e) => setNovaCotaGrupo(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCotaGrupo()}
+              />
+              <Button onClick={handleAddCotaGrupo} disabled={saving || !novaCotaGrupo}>
+                Incluir
+              </Button>
+            </div>
+
+            <div className="border rounded-md max-h-[300px] overflow-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground w-full">Cota</th>
+                    <th className="px-3 py-2 text-right font-medium text-muted-foreground">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {cotasContempladasGrupo.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} className="px-3 py-6 text-center text-muted-foreground text-xs">
+                        Nenhuma cota registrada.
+                      </td>
+                    </tr>
+                  ) : (
+                    cotasContempladasGrupo.map((c: any) => (
+                      <tr key={c.id} className="hover:bg-muted/30">
+                        <td className="px-3 py-2 font-bold text-slate-700">{c.cota}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-red-500 hover:bg-red-50"
+                            onClick={() => handleDeleteCotaGrupo(c.id)}
+                            title="Remover"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalGrupoOpen(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
