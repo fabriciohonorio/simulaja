@@ -2,9 +2,7 @@
  * AI Service Integration (Claude / Gemini)
  * Handles lead analysis and sales script generation.
  */
-
-const AI_PROVIDER = import.meta.env.VITE_AI_PROVIDER || "gemini"; // "claude" or "gemini"
-const AI_API_KEY = import.meta.env.VITE_AI_API_KEY;
+import { env } from '../config/env';
 
 export interface LeadContext {
     nome: string;
@@ -18,7 +16,7 @@ export const aiService = {
      * Generates a personalized sales script for a lead.
      */
     async generateSalesScript(lead: LeadContext) {
-        if (!AI_API_KEY) {
+        if (!env.ai.apiKey) {
             console.warn("AI API Key not configured. Please add VITE_AI_API_KEY to .env");
             return { script: "Olá, bom dia! Gostaria de falar sobre o seu consórcio.", error: "AI Key missing" };
         }
@@ -31,7 +29,7 @@ export const aiService = {
         Responda apenas com o texto da mensagem.`;
 
         try {
-            if (AI_PROVIDER === "claude") {
+            if (env.ai.provider === "claude") {
                 return await this.callClaude(prompt);
             } else {
                 return await this.callGemini(prompt);
@@ -50,11 +48,11 @@ export const aiService = {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": AI_API_KEY,
+                "x-api-key": env.ai.apiKey,
                 "anthropic-version": "2023-06-01"
             },
             body: JSON.stringify({
-                model: "claude-3-5-sonnet-20240620",
+                model: "claude-sonnet-4-5",
                 max_tokens: 500,
                 messages: [{ role: "user", content: prompt }]
             })
@@ -67,7 +65,7 @@ export const aiService = {
      * Call Google Gemini API
      */
     async callGemini(prompt: string) {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AI_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.ai.apiKey}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

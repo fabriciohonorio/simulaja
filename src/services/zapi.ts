@@ -2,9 +2,7 @@
  * Z-API Service Integration
  * Handles WhatsApp messaging using Z-API.
  */
-
-const ZAPI_INSTANCE = import.meta.env.VITE_ZAPI_INSTANCE;
-const ZAPI_TOKEN = import.meta.env.VITE_ZAPI_TOKEN;
+import { env } from '../config/env';
 
 export interface ZApiMessage {
     phone: string;
@@ -16,13 +14,13 @@ export const zapiService = {
      * Sends a text message via WhatsApp.
      */
     async sendMessage({ phone, message }: ZApiMessage) {
-        if (!ZAPI_INSTANCE || !ZAPI_TOKEN) {
+        if (!env.zapi.instance || !env.zapi.token) {
             console.warn("Z-API credentials not configured. Please add VITE_ZAPI_INSTANCE and VITE_ZAPI_TOKEN to .env");
             return { error: "Z-API credentials missing" };
         }
 
         const cleanPhone = phone.replace(/\D/g, "");
-        const url = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
+        const url = `https://api.z-api.io/instances/${env.zapi.instance}/token/${env.zapi.token}/send-text`;
 
         try {
             const response = await fetch(url, {
