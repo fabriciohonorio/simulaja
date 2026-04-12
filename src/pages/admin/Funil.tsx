@@ -26,60 +26,53 @@ export default function Funil() {
 
   return (
     <div className="space-y-6 select-none no-scrollbar w-full animate-in fade-in duration-700">
-      {/* Gamified Funnel Hero */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8">
-          <AdminHeroCard 
-            title="Gestão de Funil" 
-            subtitle="Controle Operacional de Vendas"
-            icon={TrendingUp} 
-            bgIcon={TrendingUp}
-            accentColor="primary"
-          >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div className="space-y-2">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
-                  Seu Funil de <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Alta Performance</span>
-                </h1>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
-                  Acompanhe a jornada de cada cliente, do primeiro contato ao fechamento. Mova os cards para atualizar o status e ganhar ritmo.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
-                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-                  <p className="text-[10px] font-black uppercase text-slate-700 tracking-wider">Potential Volume</p>
-                  <p className="text-lg font-black text-blue-600">{formatLeadValue(volumeTotal)}</p>
-                </div>
-                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-                  <p className="text-[10px] font-black uppercase text-slate-700 tracking-wider">Active Leads</p>
-                  <p className="text-lg font-black text-slate-900">{emAndamento}</p>
-                </div>
-              </div>
+      {/* Operational Summary Bar */}
+      <div className="flex flex-col xl:flex-row gap-4">
+        {/* Rapid Status Stats */}
+        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-white border border-red-100 p-3 rounded-2xl shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔥</span>
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Quentes</span>
             </div>
-          </AdminHeroCard>
+            <p className="text-xl font-black text-red-600">{leadsQuentes.length}</p>
+          </div>
+          <div className="bg-white border border-amber-100 p-3 rounded-2xl shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🌤️</span>
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Mornos</span>
+            </div>
+            <p className="text-xl font-black text-amber-600">{leadsMornos.length}</p>
+          </div>
+          <div className="bg-white border border-blue-100 p-3 rounded-2xl shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">❄️</span>
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Frios</span>
+            </div>
+            <p className="text-xl font-black text-blue-600">{leadsFrios.length}</p>
+          </div>
+          <div className="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-slate-400" />
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Total Ativos</span>
+            </div>
+            <p className="text-xl font-black text-slate-900">{emAndamento}</p>
+          </div>
         </div>
 
-        <div className="lg:col-span-4 grid grid-cols-1 gap-4">
-          {/* Quick Stats Column */}
-          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-500/20 transition-all flex flex-col h-full min-h-[140px]">
-             <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 opacity-90">
-                  <span className="p-1.5 bg-white/20 rounded-lg"><Zap className="h-4 w-4" /></span>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-white">Leads Quentes ({leadsQuentes})</p>
-                </div>
-                <span className="text-[8px] font-black bg-red-400 px-1.5 py-0.5 rounded-full animate-pulse">ALERTA</span>
-             </div>
-             <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pr-1">
-                {funilState.leads.filter((l: any) => l.lead_temperatura === 'quente').slice(0, 5).map((l: any) => (
-                  <div key={l.id} className="text-[10px] font-bold bg-white/10 hover:bg-white/20 p-1.5 rounded-lg flex items-center justify-between transition-colors border border-white/5">
-                    <span className="truncate max-w-[120px]">{l.nome}</span>
-                    <span className="text-[8px] opacity-70">{formatLeadValue(Number(l.valor_credito) || 0)}</span>
-                  </div>
-                ))}
-                {leadsQuentes > 5 && <p className="text-[8px] opacity-50 text-center pt-1">+ {leadsQuentes - 5} outros leads quentes</p>}
-             </div>
-             <TrendingUp className="absolute -bottom-4 -right-4 h-20 w-20 opacity-10 rotate-12" />
+        {/* Compact Hot Leads List */}
+        <div className="xl:w-1/3 bg-white border border-blue-100 p-3 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-center">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="h-3 w-3 text-blue-600" />
+            <span className="text-[9px] font-black uppercase text-slate-500">Próximos Fechamentos:</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {leadsQuentes.slice(0, 4).map(l => (
+              <span key={l.id} className="text-[9px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-100 truncate max-w-[120px]">
+                {l.nome.split(' ')[0]} {l.nome.split(' ')[1] ? l.nome.split(' ')[1][0] + '.' : ''}
+              </span>
+            ))}
+            {leadsQuentes.length > 4 && <span className="text-[8px] text-slate-300 font-bold">+{leadsQuentes.length - 4} mais</span>}
           </div>
         </div>
       </div>
