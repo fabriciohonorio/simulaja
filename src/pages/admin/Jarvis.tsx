@@ -492,7 +492,7 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                 subtitle="Sistema Central de Inteligência Comercial"
                 icon={Zap} 
                 bgIcon={BrainCircuit}
-                accentColor="primary"
+                accentColor="purple"
             >
                 <div className="flex flex-col md:flex-row items-center gap-6">
                     {/* Visual Premium Gerado - Smaller Container */}
@@ -503,14 +503,14 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                     </div>
 
                     <div className="text-center md:text-left space-y-3 flex-1">
-                        <div className="inline-flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">
-                            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-wider text-primary">v2.0 Online</span>
+                        <div className="inline-flex items-center gap-2 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
+                            <Sparkles className="h-3 w-3 text-purple-500 animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-wider text-purple-600">v2.0 Online</span>
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight text-white">
-                            Inteligência <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Jarvis</span>
+                        <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight text-slate-900">
+                            Inteligência <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Jarvis</span>
                         </h1>
-                        <p className="text-xs text-white/50 font-medium leading-relaxed max-w-xl">
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-xl">
                             Estrategista dedicado à sua operação. Analisando leads, metas e performance em tempo real para maximizar conversões.
                         </p>
                     </div>

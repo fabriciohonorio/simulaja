@@ -11,7 +11,7 @@ interface AdminHeroCardProps {
   children: React.ReactNode;
   className?: string;
   iconColor?: string;
-  accentColor?: string; // e.g., 'primary', 'emerald', 'amber'
+  accentColor?: string; // e.g., 'primary', 'emerald', 'amber', 'purple'
 }
 
 export function AdminHeroCard({
@@ -24,58 +24,58 @@ export function AdminHeroCard({
   iconColor = "text-primary",
   accentColor = "primary"
 }: AdminHeroCardProps) {
+  
+  // Mapping accent colors to light mode gradients
+  const accentGradients: Record<string, string> = {
+    primary: "from-blue-600 to-indigo-600",
+    emerald: "from-emerald-500 to-teal-600",
+    amber: "from-amber-400 to-orange-500",
+    purple: "from-purple-500 to-pink-600",
+  };
+
+  const currentGradient = accentGradients[accentColor] || accentGradients.primary;
+
   return (
     <Card className={cn(
-      "group relative border-none shadow-2xl bg-[#09090b] text-white overflow-hidden rounded-[24px] transition-all duration-300 hover:ring-1 hover:ring-white/20",
+      "group relative border-none shadow-xl bg-white text-slate-900 overflow-hidden rounded-[24px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-slate-100",
       className
     )}>
-      {/* Gamification Glow - Corner Accent */}
-      <div className={cn(
-        "absolute -top-12 -left-12 w-24 h-24 blur-[40px] opacity-30 pointer-events-none transition-opacity group-hover:opacity-50",
-        accentColor === 'primary' ? 'bg-primary' : 
-        accentColor === 'emerald' ? 'bg-emerald-500' :
-        accentColor === 'amber' ? 'bg-amber-500' : 'bg-purple-500'
-      )} />
-
-      {/* Standardized Background Icon - Compact & Subtle */}
-      <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-[0.03] pointer-events-none group-hover:opacity-[0.07] transition-all duration-500 group-hover:scale-110">
-        <BgIcon className="h-24 w-24 md:h-32 md:w-32 rotate-6" />
+      {/* Background Icon - Subtle transparency */}
+      <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-[0.05] pointer-events-none group-hover:opacity-[0.1] transition-all duration-500 group-hover:scale-110">
+        <BgIcon className={cn("h-24 w-24 md:h-32 md:w-32 rotate-6 text-slate-400")} />
       </div>
       
-      {/* Layout: Slim Header + Content */}
-      <div className="flex flex-col">
-        {/* Slim Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 bg-white/[0.02]">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "p-1.5 rounded-lg backdrop-blur-md border border-white/10 shadow-inner",
-              "bg-white/5"
-            )}>
-              <Icon className={cn("h-4 w-4", iconColor)} />
-            </div>
-            <div className="flex flex-col -space-y-0.5">
-              <h3 className="text-[10px] md:text-xs font-black tracking-[0.2em] uppercase text-white/90">
-                {title}
-              </h3>
-              {subtitle && (
-                <span className="text-[8px] font-bold text-white/40 uppercase tracking-tighter">
-                  {subtitle}
-                </span>
-              )}
-            </div>
+      {/* Gamified Header: Vibrant Gradient */}
+      <div className={cn(
+        "flex items-center justify-between px-5 py-2.5 bg-gradient-to-r text-white shadow-md",
+        currentGradient
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
+            <Icon className="h-4 w-4 text-white" />
           </div>
-          
-          {/* Status Indicator (Gamification feel) */}
-          <div className="flex gap-1 items-center">
-             <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Live</span>
+          <div className="flex flex-col -space-y-0.5">
+            <h3 className="text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">
+              {title}
+            </h3>
+            {subtitle && (
+              <span className="text-[8px] font-bold text-white/70 uppercase tracking-tighter">
+                {subtitle}
+              </span>
+            )}
           </div>
         </div>
         
-        {/* Content Section - Compact Padding */}
-        <div className="px-5 py-4 relative z-10">
-          {children}
+        {/* Status indicator */}
+        <div className="flex gap-1 items-center bg-white/20 px-2 py-0.5 rounded-full border border-white/20 backdrop-blur-sm">
+           <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+           <span className="text-[8px] font-black uppercase tracking-widest">Ativo</span>
         </div>
+      </div>
+      
+      {/* Content Section - Light and airy */}
+      <div className="px-5 py-4 relative z-10 bg-white/40">
+        {children}
       </div>
     </Card>
   );

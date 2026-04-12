@@ -654,90 +654,86 @@ export default function Metas() {
                 </AdminHeroCard>
             </div>
             
-            {/* Ritmo Diário (Pace) - Standardized Dark Style */}
+            {/* Ritmo Diário (Pace) - Standardized Light & Vibrant Style */}
             <div className="mb-6">
-                <Card className="relative overflow-hidden border-none shadow-2xl bg-[#09090b] text-white rounded-[24px]">
+                <Card className="relative overflow-hidden border-none shadow-xl bg-white text-slate-900 rounded-[24px] border border-slate-100 transition-all hover:shadow-2xl">
                     {/* Glowing side accent based on status */}
                     <div className={`absolute inset-y-0 left-0 w-1.5 ${
-                        ritmoStatus === 'verde' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 
-                        ritmoStatus === 'amarelo' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 
-                        'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                        ritmoStatus === 'verde' ? 'bg-emerald-500' : 
+                        ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
+                        'bg-red-500'
                     }`} />
 
-                    <div className="absolute top-1/2 -translate-y-1/2 right-12 opacity-[0.05] pointer-events-none">
-                        <Activity className="h-40 w-40 rotate-12" />
+                    <div className="absolute top-1/2 -translate-y-1/2 right-12 opacity-[0.03] pointer-events-none">
+                        <Activity className="h-40 w-40 rotate-12 text-slate-400" />
                     </div>
 
                     <CardContent className="p-0">
-                        {/* Header Area - Consistent with Hero Cards */}
-                        <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-white/[0.02]">
+                        {/* Header Area - Vibrant Light Header */}
+                        <div className={`flex items-center justify-between px-6 py-2.5 text-white bg-gradient-to-r shadow-sm ${
+                            ritmoStatus === 'verde' ? 'from-emerald-500 to-teal-600' : 
+                            ritmoStatus === 'amarelo' ? 'from-amber-400 to-orange-500' : 
+                            'from-red-500 to-pink-600'
+                        }`}>
                             <div className="flex items-center gap-3">
-                                <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
-                                    <Activity className={`h-4 w-4 ${
-                                        ritmoStatus === 'verde' ? 'text-emerald-500' : 
-                                        ritmoStatus === 'amarelo' ? 'text-amber-500' : 
-                                        'text-red-500'
-                                    }`} />
+                                <div className="p-1.5 rounded-lg bg-white/20 border border-white/30 backdrop-blur-md">
+                                    <Activity className="h-4 w-4 text-white" />
                                 </div>
-                                <h3 className="text-[10px] font-black tracking-[0.2em] uppercase text-white/90">
-                                    Desempenho & Cronograma
+                                <h3 className="text-[10px] font-black tracking-[0.2em] uppercase">
+                                    Status de Performance
                                 </h3>
                             </div>
-                            <div className="flex gap-1 items-center">
-                                <span className={`h-1 w-1 rounded-full animate-pulse ${
-                                    ritmoStatus === 'verde' ? 'bg-emerald-500' : 
-                                    ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
-                                    'bg-red-500'
-                                }`} />
-                                <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Analytics</span>
+                            <div className="flex gap-1 items-center bg-white/20 px-2 py-0.5 rounded-full border border-white/20">
+                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                <span className="text-[8px] font-black uppercase tracking-widest">Real-time</span>
                             </div>
                         </div>
 
-                        {/* Main Body */}
-                        <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                        {/* Main Body - Light Background */}
+                        <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10 bg-white/50">
                             <div className="flex items-center gap-6">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">Falta para Atingimento da Meta</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Falta para Atingimento da Meta</p>
                                     <div className="flex items-baseline gap-2">
-                                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-pulse">
+                                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-red-500 drop-shadow-sm animate-pulse">
                                             {formatCurrency(faltaMes)}
                                         </h2>
-                                        <span className="text-xs font-bold text-white/30 uppercase tracking-widest leading-none">restante</span>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">restante</span>
                                     </div>
                                     <div className="flex items-center gap-2 pt-1">
-                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                                            <Target className="h-3 w-3 text-white/60" />
-                                            <span className="text-[10px] text-white/60 font-medium">Meta Diária:</span>
-                                            <span className="text-[10px] font-black text-white">{formatCurrency(ritmoNecessario)}</span>
+                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200">
+                                            <Target className="h-3 w-3 text-slate-500" />
+                                            <span className="text-[10px] text-slate-500 font-medium">Meta Diária:</span>
+                                            <span className="text-[10px] font-black text-slate-900">{formatCurrency(ritmoNecessario)}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div className="w-full md:w-auto flex flex-col gap-4">
-                                <div className="px-6 py-5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-xl min-w-[280px]">
+                                <div className="px-6 py-5 rounded-2xl bg-slate-50 border border-slate-100 min-w-[280px]">
                                     <div className="flex justify-between items-end mb-3">
                                         <div className="space-y-0.5">
-                                            <span className="text-[10px] text-white/40 uppercase font-black tracking-[0.1em]">Cronograma</span>
+                                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.1em]">Cronograma</span>
                                             <p className="text-xs font-black text-red-500 flex items-center gap-2">
                                                 {diasUteisRestantes} / {diasUteisTotais} 
-                                                <span className="text-[9px] text-white/30 font-bold">DIAS RESTANTES</span>
+                                                <span className="text-[9px] text-slate-300 font-bold">DIAS RESTANTES</span>
                                             </p>
                                         </div>
-                                        <span className="text-lg font-black text-white/90">
+                                        <span className="text-lg font-black text-slate-900">
                                             {((diasUteisPassados / diasUteisTotais) * 100).toFixed(0)}%
                                         </span>
                                     </div>
-                                    <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                                         <div 
-                                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 shadow-sm" 
                                             style={{ width: `${(diasUteisPassados / diasUteisTotais) * 100}%` }} 
                                         />
                                     </div>
                                 </div>
 
                                 {ritmoStatus !== 'verde' && (
-                                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-400 animate-bounce">
+                                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 animate-bounce">
                                         <Zap className="h-3 w-3 fill-red-500" />
                                         {ritmoStatus === 'amarelo' ? 'Aumentar pressão operacional' : 'Alerta: Ritmo Crítico'}
                                     </div>

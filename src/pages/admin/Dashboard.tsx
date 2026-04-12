@@ -429,14 +429,13 @@ export default function Dashboard() {
           subtitle="Performance Mensal da Equipe"
           icon={Trophy} 
           bgIcon={Trophy}
-          iconColor="text-amber-500"
           accentColor="amber"
           className="mb-6"
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {ranking.map((item, i) => (
-              <div key={item.id} className={`group/rank relative flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.03] transition-all hover:bg-white/10 ${
-                i === 0 ? "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]" : ""
+              <div key={item.id} className={`group/rank relative flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50 transition-all hover:bg-white hover:shadow-md ${
+                i === 0 ? "border-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.1)]" : ""
               }`}>
                 <div className="relative">
                   <div className={`h-12 w-12 rounded-full border-2 overflow-hidden flex items-center justify-center text-lg font-black shrink-0 ${
@@ -444,7 +443,7 @@ export default function Dashboard() {
                     i === 1 ? "border-blue-400" : "border-violet-500"
                   }`}>
                     {item.avatar ? (
-                      <img src={item.avatar} alt={item.nome} className="h-full w-full object-cover" />
+                       <img src={item.avatar} alt={item.nome} className="h-full w-full object-cover" />
                     ) : (
                       item.nome.charAt(0).toUpperCase()
                     )}
@@ -458,7 +457,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-xs truncate text-white/90">{item.nome}</p>
+                  <p className="font-bold text-xs truncate text-slate-900">{item.nome}</p>
                   <p className={`text-[10px] font-black uppercase tracking-wider ${
                     i === 0 ? "text-emerald-500" : i === 1 ? "text-blue-400" : "text-violet-500"
                   }`}>
