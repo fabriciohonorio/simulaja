@@ -27,8 +27,8 @@ export function AdminHeroCard({
   
   // Mapping accent colors to light mode gradients
   const accentGradients: Record<string, string> = {
-    primary: "from-blue-600 to-indigo-600",
-    emerald: "from-emerald-500 to-teal-600",
+    primary: "from-red-600 to-pink-600",
+    emerald: "from-red-600 to-pink-600",
     amber: "from-amber-400 to-orange-500",
     purple: "from-purple-500 to-pink-600",
   };
