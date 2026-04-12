@@ -13,6 +13,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from "recharts";
 import { getLoteriaStatus } from "@/lib/consortium-logic";
+import StreakBadge from "@/components/admin/StreakBadge";
 
 interface Lead {
   id: string;
@@ -400,6 +401,12 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {profile?.id && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <StreakBadge userId={profile.id} variant="full" />
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>

@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import StreakBadge from "@/components/admin/StreakBadge";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface MenuGroup {
@@ -135,6 +136,12 @@ export default function AdminLayout() {
                     <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase">
                         {profile?.tipo_acesso === 'admin' ? 'Administrador' : profile?.tipo_acesso === 'manager' ? 'Manager' : 'Vendedor'}
                     </div>
+
+                    {profile?.id && (
+                        <div className="mt-3 scale-95 origin-left">
+                            <StreakBadge userId={profile.id} variant="compact" />
+                        </div>
+                    )}
                 </div>
             )}
 

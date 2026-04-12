@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { WhatsAppIcon } from "@/components/SocialIcons";
+import { atualizarStreak } from "@/lib/streakService";
 
 import {
   Dialog,
@@ -110,6 +111,14 @@ export function HistoricoModal({
     }
 
     toast.success("Tratativa registrada!");
+
+    // Atualiza o streak do usuário
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await atualizarStreak(user.id);
+    } catch (e) {
+      console.error("Erro silencioso ao atualizar streak:", e);
+    }
     setObservacao("");
     setResultado("positivo");
     setTipoContato("whatsapp");
