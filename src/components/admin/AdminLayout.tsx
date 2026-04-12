@@ -104,17 +104,17 @@ export default function AdminLayout() {
 
     const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
         <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
-            <div className={`p-4 border-b border-sidebar-border text-center overflow-hidden h-28 flex items-center justify-center bg-white/50 backdrop-blur-sm`}>
+            <div className={`p-2 border-b border-sidebar-border text-center overflow-hidden h-20 flex items-center justify-center bg-white/50 backdrop-blur-sm`}>
                 {!collapsed ? (
-                    <div className="flex flex-col items-center gap-1 transition-all duration-300 hover:scale-105">
+                    <div className="flex flex-col items-center transition-all duration-300 hover:scale-105">
                         <img 
                             src="/icon-512.png" 
                             alt="Logo Contemplar" 
-                            className="h-14 w-auto object-contain drop-shadow-sm" 
+                            className="h-10 w-auto object-contain drop-shadow-sm" 
                         />
                         <div className="flex flex-col items-center leading-tight">
-                            <span className="text-[14px] font-black tracking-tighter text-slate-900 uppercase">CONTEMPLAR</span>
-                            <span className="text-[11px] font-bold tracking-[0.25em] text-[#84CC16] -mt-0.5 ml-1">CRM</span>
+                            <span className="text-[12px] font-black tracking-tighter text-slate-900 uppercase leading-none">CONTEMPLAR</span>
+                            <span className="text-[9px] font-bold tracking-[0.25em] text-[#84CC16] -mt-0.5 ml-1">CRM</span>
                         </div>
                     </div>
                 ) : (
@@ -129,23 +129,23 @@ export default function AdminLayout() {
             </div>
 
             {!collapsed && org && (
-                <div className="mx-4 mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">EMPRESA</div>
-                    <div className="font-black text-slate-900 truncate mb-1">{org.nome}</div>
-                    <div className="text-xs font-semibold text-slate-600 truncate mb-2">{profile?.nome_completo || "Usuário"}</div>
-                    <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase mb-3">
+                <div className="mx-2 mt-4 p-2 bg-slate-50 border border-slate-100 rounded-xl">
+                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">EMPRESA</div>
+                    <div className="font-black text-[11px] text-slate-900 truncate">{org.nome}</div>
+                    <div className="text-[10px] font-semibold text-slate-600 truncate mb-1">{profile?.nome_completo || "Usuário"}</div>
+                    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-primary/10 text-primary uppercase mb-1.5">
                         {profile?.tipo_acesso === 'admin' ? 'Administrador' : profile?.tipo_acesso === 'manager' ? 'Manager' : 'Vendedor'}
                     </div>
 
                     {profile?.id && (
-                        <div className="mt-2">
+                        <div className="mt-1">
                             <StreakBadge userId={profile.id} variant="compact" />
                         </div>
                     )}
                 </div>
             )}
 
-            <nav className="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar">
+            <nav className="flex-1 p-2 space-y-1 overflow-y-auto no-scrollbar">
                 {menuGroups.map((group) => {
                     const groupItems = group.items.filter(item => 
                         !item.adminOnly || profile?.tipo_acesso === 'admin'
@@ -154,9 +154,9 @@ export default function AdminLayout() {
                     if (groupItems.length === 0) return null;
 
                     return (
-                        <div key={group.label} className="space-y-1">
+                        <div key={group.label} className="space-y-0.5">
                             {!collapsed && (
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-2">
+                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-1">
                                     {group.label}
                                 </div>
                             )}
@@ -168,14 +168,14 @@ export default function AdminLayout() {
                                     end={item.path === "/admin"}
                                     title={collapsed ? item.label : ""}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${isActive
-                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
+                                        `flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all duration-300 group ${isActive
+                                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/25 scale-[1.01]"
                                             : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
                                         } ${collapsed ? 'justify-center px-0' : ''}`
                                     }
                                 >
-                                    <item.icon className={`h-5 w-5 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
-                                    {!collapsed && <span className="font-semibold tracking-tight">{item.label}</span>}
+                                    <item.icon className={`h-4 w-4 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
+                                    {!collapsed && <span className="font-bold text-xs tracking-tight">{item.label}</span>}
                                 </NavLink>
                             ))}
                         </div>
@@ -187,11 +187,11 @@ export default function AdminLayout() {
                 <Button
                     variant="ghost"
                     onClick={() => signOut()}
-                    className={`w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-6 ${collapsed ? 'justify-center px-0' : ''}`}
+                    className={`w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-4 h-auto ${collapsed ? 'justify-center px-0' : ''}`}
                     title={collapsed ? "Sair" : ""}
                 >
-                    <LogOut className={`h-5 w-5 ${collapsed ? 'h-6 w-6' : ''}`} />
-                    {!collapsed && <span className="font-semibold">Sair</span>}
+                    <LogOut className={`h-4 w-4 ${collapsed ? 'h-6 w-6' : ''}`} />
+                    {!collapsed && <span className="font-bold text-xs">Sair</span>}
                 </Button>
             </div>
         </div>

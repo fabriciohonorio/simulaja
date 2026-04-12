@@ -157,9 +157,10 @@ export function LeadCard({
       );
     }
     if (statusNormalized === "fechado") {
+      const displayDate = lead.status_updated_at || lead.created_at;
       return (
         <span className="flex items-center gap-1 text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
-          🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : '--/--'} · {diasDesdeEntrada}d
+          🏆 Vendido: {displayDate ? format(parseISO(displayDate), "dd/MM/yy") : '--/--'} · {diasDesdeEntrada}d
         </span>
       );
     }

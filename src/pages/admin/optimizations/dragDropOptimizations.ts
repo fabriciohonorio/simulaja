@@ -30,8 +30,13 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
 
   // 2. Persistence
   try {
+    const updatePayload: any = { 
+      status: newStatus,
+      status_updated_at: new Date().toISOString()
+    };
+    
     const { error } = await (supabase.from(tableName as any) as any)
-      .update({ status: newStatus })
+      .update(updatePayload)
       .eq("id", draggableId);
 
     if (error) {
