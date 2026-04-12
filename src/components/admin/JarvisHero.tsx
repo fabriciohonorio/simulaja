@@ -12,8 +12,8 @@ const JarvisHero = () => {
       <svg viewBox="0 0 200 200" className="w-full h-full relative z-10 drop-shadow-[0_0_15px_rgba(var(--primary),0.5)]">
         <defs>
           <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#a855f7', stopOpacity: 1 }} />
+            <stop offset="0%" style={{ stopColor: '#8b5cf6', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#ec4899', stopOpacity: 1 }} />
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -41,13 +41,13 @@ const JarvisHero = () => {
         {/* House */}
         <g className="animate-bounce" style={{ animationDuration: '4s' }}>
           <circle cx="50" cy="60" r="22" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" />
-          <Home x="40" y="50" size={20} className="text-blue-300" />
+          <Home x="40" y="50" size={20} className="text-purple-300" />
         </g>
 
         {/* Car */}
         <g className="animate-bounce" style={{ animationDuration: '5.5s', animationDelay: '0.5s' }}>
           <circle cx="150" cy="70" r="22" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" />
-          <Car x="140" y="60" size={20} className="text-purple-300" />
+          <Car x="140" y="60" size={20} className="text-indigo-300" />
         </g>
 
         {/* Motorcycle */}

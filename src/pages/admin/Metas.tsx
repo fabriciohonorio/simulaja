@@ -31,8 +31,23 @@ import {
     Settings2,
     Sparkles,
     Activity,
-    Zap
+    Zap,
+    Briefcase,
+    Wallet,
+    Filter,
+    ChevronRight,
+    PieChart,
+    Plus,
+    Settings,
+    BarChart,
+    FileText,
+    Download,
+    Building,
+    Ship,
+    Tractor,
+    Plane
 } from "lucide-react";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';

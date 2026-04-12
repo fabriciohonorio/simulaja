@@ -33,9 +33,9 @@ export function AdminHeroCard({
       {/* Dynamic gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-900/20 opacity-40 pointer-events-none" />
 
-      <CardHeader className="pb-2 border-b border-white/5 relative z-10 p-6 md:p-8">
+      <CardHeader className="pb-2 border-b border-white/5 relative z-10 p-4 md:p-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md border border-white/5 shadow-inner">
+          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md border border-white/5 shadow-inner">
             <Icon className={cn("h-5 w-5", iconColor)} />
           </div>
           <CardTitle className="text-sm md:text-lg font-black tracking-[0.15em] uppercase text-white/95">
@@ -44,7 +44,7 @@ export function AdminHeroCard({
         </div>
       </CardHeader>
       
-      <CardContent className="pt-6 relative z-10 p-6 md:p-8">
+      <CardContent className="pt-4 relative z-10 p-4 md:p-5">
         {children}
       </CardContent>
     </Card>

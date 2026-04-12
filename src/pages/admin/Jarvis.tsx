@@ -505,7 +505,7 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                             <span className="text-xs font-bold uppercase tracking-widest text-primary-foreground/90">Estrategista Comercial v2.0</span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-                            Sistema Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Jarvis</span>
+                            Sistema Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Jarvis</span>
                         </h1>
                         <p className="text-lg text-primary-foreground/70 font-medium leading-relaxed">
                             Gerenciando o cérebro das suas vendas com foco em mobilidade (carro/moto) e patrimônio (casas). Sua inteligência artificial dedicada.
