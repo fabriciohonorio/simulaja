@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock } from "lucide-react";
+import { format, parseISO, differenceInDays } from "date-fns";
 import { formatLeadValue } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -145,16 +145,41 @@ export function LeadCard({
   const vencHoje = isToday(lead.data_vencimento);
   const vencAtrasado = isPastDue(lead.data_vencimento);
 
+  const dataReferenciaDias = isFechado && lead.status_updated_at ? parseISO(lead.status_updated_at) : new Date();
+  const diasDesdeEntrada = lead.created_at ? Math.max(0, differenceInDays(dataReferenciaDias, parseISO(lead.created_at))) : 0;
+
+  const timeInfoText = () => {
+    if (statusNormalized === "novo_lead") {
+      return (
+        <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
+          Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : '--/--'} · {diasDesdeEntrada}d
+        </span>
+      );
+    }
+    if (statusNormalized === "fechado") {
+      return (
+        <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
+          Venda: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM") : '--/--'} · {diasDesdeEntrada}d
+        </span>
+      );
+    }
+    return (
+      <span className="flex items-center gap-1 text-muted-foreground/80 bg-muted/30 px-1.5 py-0.5 rounded font-semibold uppercase tracking-tighter">
+        <Clock className="w-2.5 h-2.5" /> {diasDesdeEntrada}d no funil
+      </span>
+    );
+  };
+
   return (
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`relative bg-background border border-border/60 rounded-xl overflow-hidden transition-all
+      className={`group relative bg-background border border-border/60 rounded-xl overflow-hidden transition-all duration-300
         ${compact ? "text-[11px]" : "text-sm"}
-        ${statusNormalized === "fechado" ? "border-green-300" : ""}
+        ${statusNormalized === "fechado" ? "border-green-300 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : "hover:shadow-md hover:border-primary/20"}
         ${statusNormalized === "morto" ? "opacity-60" : ""}
-        ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : "shadow-sm"}
+        ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 scale-105 z-[9999] rotate-2 bg-white/95 backdrop-blur-sm" : "shadow-sm"}
       `}
     >
       {/* Faixa lateral colorida */}
@@ -202,18 +227,18 @@ export function LeadCard({
                 )}
               </div>
             )}
+            
+            {/* Timing info */}
+            <div className="flex items-center gap-1 mt-1 text-[9px]">
+               {timeInfoText()}
+            </div>
           </div>
         </div>
 
         {/* Linha de Valor + Prazo */}
         <div className="flex items-baseline gap-1.5">
-          <p className={`text-primary font-bold ${compact ? "text-xs" : "text-lg"} ${
-            Number(lead.valor_credito) === 0 ? "text-muted-foreground/50" : ""
-          }`}>
-            {Number(lead.valor_credito) === 0
-              ? "R$ — (preencher)"
-              : formatLeadValue(Number(lead.valor_credito))
-            }
+          <p className={`text-primary font-bold ${compact ? "text-xs" : "text-lg"}`}>
+            {formatLeadValue(Number(lead.valor_credito) || 0)}
           </p>
           {!compact && (
             <span className="text-[10px] text-muted-foreground">

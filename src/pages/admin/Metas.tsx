@@ -619,58 +619,93 @@ export default function Metas() {
                 </DialogContent>
             </Dialog>
 
-            {/* Resumo Executivo IA */}
-            <div className="border border-white/10 p-4 sm:p-5 rounded-2xl relative overflow-hidden shadow-sm mb-6 bg-[#09090b]">
-                <div className="absolute top-0 right-0 p-4 opacity-50 pointer-events-none">
-                     <Target className="h-24 w-24 text-red-500/50" />
-                </div>
-                <div className="relative z-10 flex gap-3 sm:gap-4 items-start">
-                    <div className="p-2 rounded-lg border shrink-0 mt-1 bg-white/5 border-white/10 text-white">
-                        <Target className="h-5 w-5 text-red-500" />
-                    </div>
-                    <div>
-                        <h3 className="text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-2 text-white/90">
-                           Resumo Executivo IA
-                           <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-white/10 text-white">AUTO</span>
-                        </h3>
-                        <p className="text-sm leading-relaxed font-medium text-white">
-                            {resumoIA}
-                        </p>
+            {/* Resumo Executivo IA - Premium Style */}
+            <div className="relative group/ia mb-6">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/60 to-purple-600/60 rounded-2xl blur opacity-20 group-hover/ia:opacity-40 transition duration-1000"></div>
+                <div className="relative border border-white/10 p-5 sm:p-6 rounded-2xl overflow-hidden shadow-2xl bg-slate-950">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/5 rounded-full -ml-16 -mb-16 blur-2xl" />
+                    
+                    <div className="relative z-10 flex gap-4 sm:gap-5 items-start">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg shadow-primary/20 shrink-0">
+                            <Sparkles className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground/60">
+                                   Jarvis Strategist • IA Insight
+                                </h3>
+                                <div className="flex gap-1">
+                                    <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                                    <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
+                                    <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
+                                </div>
+                            </div>
+                            <p className="text-sm sm:text-base leading-relaxed font-semibold text-white/90">
+                                {resumoIA}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            {/* Ritmo Diário (Pace) */}
+            {/* Ritmo Diário (Pace) - Premium Layout */}
             <div className="mb-6">
-                <Card className={`border ${ritmoStatus === 'verde' ? 'border-emerald-200 bg-emerald-50' : ritmoStatus === 'amarelo' ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50'}`}>
-                    <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-full ${ritmoStatus === 'verde' ? 'bg-emerald-100 text-emerald-600' : ritmoStatus === 'amarelo' ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'}`}>
-                                <Activity className="h-6 w-6" />
+                <Card className={`relative overflow-hidden border-none shadow-xl ${
+                    ritmoStatus === 'verde' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white' : 
+                    ritmoStatus === 'amarelo' ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950' : 
+                    'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                }`}>
+                    <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+                        <Activity className="h-32 w-32" />
+                    </div>
+                    <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+                        <div className="flex items-center gap-6">
+                            <div className={`p-4 rounded-2xl backdrop-blur-md shadow-2xl ${
+                                ritmoStatus === 'verde' ? 'bg-white/20' : 
+                                ritmoStatus === 'amarelo' ? 'bg-black/10' : 
+                                'bg-white/20'
+                            }`}>
+                                <Activity className="h-8 w-8" />
                             </div>
-                            <div>
-                                <p className={`text-xs font-black uppercase tracking-widest ${ritmoStatus === 'verde' ? 'text-emerald-700' : ritmoStatus === 'amarelo' ? 'text-amber-700' : 'text-red-700'}`}>Ritmo Diário (Pace)</p>
-                                <div className="flex items-baseline gap-2 mt-0.5">
-                                    <p className={`text-2xl font-black ${ritmoStatus === 'verde' ? 'text-emerald-800' : ritmoStatus === 'amarelo' ? 'text-amber-800' : 'text-red-800'}`}>
-                                        {formatCurrency(ritmoAtual)} <span className="text-xs font-bold opacity-70">/ dia</span>
-                                    </p>
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Pulsação Diária de Vendas</p>
+                                <div className="flex items-baseline gap-2">
+                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight">{formatCurrency(ritmoAtual)}</h2>
+                                    <span className="text-xs font-bold opacity-80">/ dia realizado</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs font-medium opacity-90">
+                                    <Target className="h-3 w-3" />
+                                    Necessário: <span className="font-bold">{formatCurrency(ritmoNecessario)}</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-2 w-full sm:w-auto text-sm">
-                            <div className="flex justify-between sm:justify-start gap-4">
-                                <span className="text-muted-foreground font-medium">Ritmo necessário:</span>
-                                <span className="font-bold">{formatCurrency(ritmoNecessario)}/dia</span>
+                        
+                        <div className="w-full sm:w-auto flex flex-col gap-3">
+                            <div className={`px-5 py-4 rounded-xl backdrop-blur-md border border-white/20 font-medium ${
+                                ritmoStatus === 'verde' ? 'bg-white/10' : 
+                                ritmoStatus === 'amarelo' ? 'bg-black/5' : 
+                                'bg-white/10'
+                            }`}>
+                                <div className="flex justify-between gap-8 mb-2">
+                                    <span className="text-xs opacity-80 uppercase font-black tracking-wider">Cronograma</span>
+                                    <span className="text-xs font-bold">{diasUteisPassados} / {diasUteisTotais} dias úteis</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-black/10 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-white transition-all duration-1000" 
+                                        style={{ width: `${(diasUteisPassados/diasUteisTotais)*100}%` }} 
+                                    />
+                                </div>
                             </div>
-                            <div className="flex justify-between sm:justify-start gap-4">
-                                <span className="text-muted-foreground font-medium">Dias úteis restantes:</span>
-                                <span className="font-bold">{diasUteisRestantes} de {diasUteisTotais}</span>
-                            </div>
+
                             {ritmoStatus !== 'verde' && (
-                                <p className={`text-xs font-bold flex items-center justify-end gap-1 ${ritmoStatus === 'amarelo' ? 'text-amber-600' : 'text-red-600'}`}>
-                                    <AlertTriangle className="h-3 w-3" />
-                                    {ritmoStatus === 'amarelo' ? 'Atenção ao ritmo' : 'Ritmo Crítico - Abaixo do Necessário'}
-                                </p>
+                                <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider animate-bounce ${
+                                    ritmoStatus === 'amarelo' ? 'bg-white/20' : 'bg-white/30'
+                                }`}>
+                                    <Zap className="h-3 w-3" />
+                                    {ritmoStatus === 'amarelo' ? 'Aumentar pressão' : 'Ritmo Crítico: Força Total'}
+                                </div>
                             )}
                         </div>
                     </CardContent>
