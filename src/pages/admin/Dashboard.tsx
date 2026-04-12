@@ -422,26 +422,26 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Ranking de Consultores - Standardized Style */}
+      {/* Ranking de Consultores - Standardized Slim Style */}
       {ranking.length > 0 && (
         <AdminHeroCard 
-          title="Ranking Mensal de Consultores" 
+          title="Ranking de Consultores" 
+          subtitle="Performance Mensal da Equipe"
           icon={Trophy} 
           bgIcon={Trophy}
           iconColor="text-amber-500"
+          accentColor="amber"
+          className="mb-6"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {ranking.map((item, i) => (
-              <div key={item.id} className={`relative flex items-center gap-4 p-4 rounded-2xl border transition-all hover:scale-[1.02] ${
-                i === 0 ? "bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]" :
-                i === 1 ? "bg-blue-500/10 border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]" :
-                "bg-violet-500/10 border-violet-500/30 shadow-[0_0_20px_rgba(139,92,246,0.1)]"
+              <div key={item.id} className={`group/rank relative flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.03] transition-all hover:bg-white/10 ${
+                i === 0 ? "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]" : ""
               }`}>
                 <div className="relative">
-                  <div className={`h-16 w-16 sm:h-20 sm:w-20 rounded-full border-4 overflow-hidden flex items-center justify-center text-2xl font-black shrink-0 ${
-                    i === 0 ? "border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]" :
-                    i === 1 ? "border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
-                    "border-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                  <div className={`h-12 w-12 rounded-full border-2 overflow-hidden flex items-center justify-center text-lg font-black shrink-0 ${
+                    i === 0 ? "border-emerald-500" :
+                    i === 1 ? "border-blue-400" : "border-violet-500"
                   }`}>
                     {item.avatar ? (
                       <img src={item.avatar} alt={item.nome} className="h-full w-full object-cover" />
@@ -449,17 +449,17 @@ export default function Dashboard() {
                       item.nome.charAt(0).toUpperCase()
                     )}
                   </div>
-                  <div className={`absolute -top-2 -right-2 h-8 w-8 rounded-full flex items-center justify-center shadow-lg font-black text-sm border-2 ${
-                    i === 0 ? "bg-emerald-500 text-white border-emerald-300 rotate-12" :
+                  <div className={`absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full flex items-center justify-center shadow-lg font-black text-[10px] border ${
+                    i === 0 ? "bg-emerald-500 text-white border-emerald-300" :
                     i === 1 ? "bg-blue-500 text-white border-blue-300" :
                     "bg-violet-500 text-white border-violet-300"
                   }`}>
-                    {i + 1}º
+                    {i + 1}
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-black text-base truncate">{item.nome}</p>
-                  <p className={`text-xs font-bold uppercase tracking-widest ${
+                  <p className="font-bold text-xs truncate text-white/90">{item.nome}</p>
+                  <p className={`text-[10px] font-black uppercase tracking-wider ${
                     i === 0 ? "text-emerald-500" : i === 1 ? "text-blue-400" : "text-violet-500"
                   }`}>
                     {formatLeadValue(item.total)}

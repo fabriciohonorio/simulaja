@@ -154,16 +154,18 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Seção Meu Perfil - Standardized Style */}
+      {/* Seção Meu Perfil - Standardized Slim Style */}
       <AdminHeroCard 
-        title="Configurações de Operação" 
+        title="Operação & Perfil" 
+        subtitle="Configurações e Acesso do Colaborador"
         icon={SettingsIcon} 
         bgIcon={SettingsIcon}
-        iconColor="text-blue-500"
+        accentColor="primary"
+        className="mb-6"
       >
         <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
-          <div className="relative group">
-            <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-white/10 overflow-hidden bg-slate-700 flex items-center justify-center text-4xl font-black shrink-0 shadow-2xl">
+          <div className="relative group/avatar">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-white/10 overflow-hidden bg-slate-800 flex items-center justify-center text-xl font-black shrink-0 transition-transform group-hover/avatar:scale-105">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt={profile.nome_completo || ""} className="h-full w-full object-cover" />
               ) : (
@@ -172,9 +174,9 @@ export default function Settings() {
             </div>
             <label 
               htmlFor="avatar-upload" 
-              className="absolute bottom-0 right-0 p-2 bg-primary rounded-full cursor-pointer shadow-lg hover:scale-110 transition-transform border-4 border-slate-900"
+              className="absolute -bottom-1 -right-1 p-1.5 bg-primary rounded-full cursor-pointer shadow-lg hover:bg-primary/80 transition-colors border-2 border-slate-900"
             >
-              <Upload className="h-4 w-4 text-white" />
+              <Upload className="h-3 w-3 text-white" />
               <input 
                 id="avatar-upload" 
                 type="file" 
@@ -220,18 +222,18 @@ export default function Settings() {
             </label>
           </div>
           <div className="flex-1 text-center sm:text-left space-y-1">
-            <h2 className="text-2xl font-bold text-white">{profile?.nome_completo}</h2>
-            <p className="text-slate-400 font-medium">{profile?.email}</p>
+            <h2 className="text-xl font-bold text-white">{profile?.nome_completo}</h2>
+            <p className="text-[10px] text-white/40 font-medium uppercase tracking-wider">{profile?.email}</p>
             <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
-              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ROLE_COLORS[profile?.tipo_acesso || "vendedor"]}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${ROLE_COLORS[profile?.tipo_acesso || "vendedor"]}`}>
                 {profile?.tipo_acesso}
               </span>
-              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-700 bg-slate-800/50 text-white/70">
+              <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-white/5 bg-white/5 text-white/40">
                 ID: #{profile?.id?.substring(0, 8)}
               </span>
             </div>
             
-            <div className="pt-4">
+            <div className="pt-3">
               <Button 
                 disabled={loading}
                 onClick={async () => {
@@ -251,15 +253,12 @@ export default function Settings() {
                     setLoading(false);
                   }
                 }}
-                className="bg-white text-slate-900 hover:bg-slate-100 font-bold tracking-tight rounded-xl"
+                className="bg-white text-slate-900 hover:bg-slate-100 font-black text-[10px] tracking-tight rounded-lg h-8"
                 size="sm"
               >
-                <CalendarDays className="h-4 w-4 mr-2 text-blue-600" />
-                Conectar Google Calendar
+                <CalendarDays className="h-3 w-3 mr-2 text-blue-600" />
+                CONECTAR CALENDAR
               </Button>
-              <p className="text-[10px] text-slate-400 mt-2 max-w-sm mx-auto sm:mx-0">
-                Integre sua agenda mantendo seu acesso atual via e-mail.
-              </p>
             </div>
           </div>
         </div>

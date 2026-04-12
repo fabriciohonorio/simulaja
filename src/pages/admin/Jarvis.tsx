@@ -486,29 +486,32 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
-            {/* Jarvis Central - Standardized Style */}
+            {/* Jarvis Central - Standardized Slim Style */}
             <AdminHeroCard 
-                title="Jarvis Strategist • IA Central" 
+                title="Jarvis Strategist" 
+                subtitle="Sistema Central de Inteligência Comercial"
                 icon={Zap} 
                 bgIcon={BrainCircuit}
-                iconColor="text-primary"
+                accentColor="primary"
             >
-                <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-                    {/* Visual Premium Gerado */}
-                    <div className="shrink-0">
-                        <JarvisHero />
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                    {/* Visual Premium Gerado - Smaller Container */}
+                    <div className="shrink-0 -my-4 h-32 w-32 md:h-40 md:w-40 flex items-center justify-center">
+                        <div className="scale-[0.6] md:scale-[0.7]">
+                            <JarvisHero />
+                        </div>
                     </div>
 
-                    <div className="text-center md:text-left space-y-4 max-w-2xl">
-                        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
-                            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                            <span className="text-xs font-bold uppercase tracking-widest text-primary-foreground/90">Estrategista Comercial v2.0</span>
+                    <div className="text-center md:text-left space-y-3 flex-1">
+                        <div className="inline-flex items-center gap-2 bg-primary/20 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20">
+                            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-wider text-primary">v2.0 Online</span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
-                            Sistema Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Jarvis</span>
+                        <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight text-white">
+                            Inteligência <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Jarvis</span>
                         </h1>
-                        <p className="text-lg text-primary-foreground/70 font-medium leading-relaxed">
-                            Gerenciando o cérebro das suas vendas com foco em mobilidade (carro/moto) e patrimônio (casas). Sua inteligência artificial dedicada.
+                        <p className="text-xs text-white/50 font-medium leading-relaxed max-w-xl">
+                            Estrategista dedicado à sua operação. Analisando leads, metas e performance em tempo real para maximizar conversões.
                         </p>
                     </div>
                 </div>

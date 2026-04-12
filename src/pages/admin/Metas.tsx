@@ -635,21 +635,18 @@ export default function Metas() {
             </Dialog>
 
             {/* Resumo Executivo IA - Standardized Style */}
+            {/* Resumo Executivo IA - Standardized Slim Style */}
             <div className="mb-6">
                 <AdminHeroCard 
-                    title="Jarvis Strategist • IA Insight" 
+                    title="Jarvis Strategist" 
+                    subtitle="IA Insight & Análise de Performance"
                     icon={Sparkles} 
                     bgIcon={Target}
-                    iconColor="text-white"
+                    accentColor="emerald"
                 >
-                    <div className="flex gap-4 sm:gap-5 items-start">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-1">
-                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
-                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
-                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
-                            </div>
-                            <p className="text-sm sm:text-base leading-relaxed font-semibold text-white/90">
+                    <div className="flex gap-4 items-start">
+                        <div className="space-y-2 flex-1">
+                            <p className="text-sm leading-relaxed font-semibold text-white/90">
                                 {resumoIA}
                             </p>
                         </div>
