@@ -14,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from "recharts";
 import { getLoteriaStatus } from "@/lib/consortium-logic";
 import StreakBadge from "@/components/admin/StreakBadge";
+import MissoesDiarias from "@/components/admin/MissoesDiarias";
 
 interface Lead {
   id: string;
@@ -402,9 +403,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {profile?.id && (
+      {profile?.id && profile?.organizacao_id && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-          <StreakBadge userId={profile.id} variant="full" />
+          <div className="bg-white border border-border rounded-xl px-4 py-3 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center shadow-sm">
+            {/* Streak — coluna esquerda */}
+            <div className="flex justify-center md:justify-start">
+              <StreakBadge userId={profile.id} variant="full" />
+            </div>
+
+            {/* Missões — coluna direita */}
+            <div className="border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
+              <MissoesDiarias
+                userId={profile.id}
+                orgId={profile.organizacao_id}
+                tipoAcesso={profile.tipo_acesso as any}
+              />
+            </div>
+          </div>
         </div>
       )}
 
