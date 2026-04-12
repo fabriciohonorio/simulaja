@@ -704,17 +704,14 @@ export default function Metas() {
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 pt-1">
                                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
-                                            <Sparkles className="h-3 w-3 text-blue-500" />
-                                            <span className="text-[10px] text-blue-700 font-bold">Faltam:</span>
-                                            <span className="text-[10px] font-black text-blue-900">
-                                                {sugestaoVeiculo} cotas de Veículo (50k)
-                                            </span>
+                                            <Target className="h-3 w-3 text-blue-500" />
+                                            <span className="text-[10px] text-blue-700 font-bold">Meta Diária:</span>
+                                            <span className="text-[10px] font-black text-blue-900">{formatCurrency(ritmoNecessario)}</span>
                                         </div>
-                                        <span className="text-[10px] font-bold text-slate-300">OU</span>
                                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 shadow-sm">
-                                            <Target className="h-3 w-3 text-indigo-500" />
+                                            <Sparkles className="h-3 w-3 text-indigo-500" />
                                             <span className="text-[10px] font-black text-indigo-900">
-                                                {sugestaoImovel} de Imóvel (100k)
+                                                {sugestaoVeiculo}v (50k) ou {sugestaoImovel}i (100k)
                                             </span>
                                         </div>
                                     </div>

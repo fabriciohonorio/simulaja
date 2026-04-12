@@ -165,7 +165,7 @@ export function LeadCard({
     }
     return (
       <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter border border-red-100">
-        <Clock className="w-2.5 h-2.5 animate-pulse" /> {diasDesdeEntrada}d na engrenagem
+        <Clock className="w-2.5 h-2.5" /> {diasDesdeEntrada} {diasDesdeEntrada === 1 ? 'dia' : 'dias'}
       </span>
     );
   };
@@ -207,7 +207,7 @@ export function LeadCard({
                     : "bg-slate-50 text-slate-500 border-slate-200"
               }`}>
                 {lead.propensity_score !== null ? `${lead.propensity_score}%` : SCORE_SHORT[lead.lead_score_valor || "baixo"]}
-                {" · "}{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}
+                {" · "} <span className="text-sm leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
               </span>
             </div>
             
