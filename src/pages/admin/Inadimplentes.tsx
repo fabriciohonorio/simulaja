@@ -78,11 +78,19 @@ export default function Inadimplentes() {
   const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
   const fetchData = async () => {
-    if (!profile?.organizacao_id) return;
+    if (!profile?.organizacao_id) {
+      setLoading(false);
+      return;
+    }
     const { data: rows } = await (supabase.from("inadimplentes" as any) as any)
       .select("*")
       .eq("organizacao_id", profile.organizacao_id);
-    setData(rows as Inadimplente[] ?? []);
+    
+    const fetchedRows = (rows as any[] ?? []).map(r => ({
+      ...r,
+      nome: r.nome || "Cliente Inadimplente"
+    }));
+    setData(fetchedRows);
     setLoading(false);
   };
 

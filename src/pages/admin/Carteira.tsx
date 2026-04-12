@@ -104,7 +104,10 @@ export default function Carteira() {
   }, [administradoraFilter]);
 
   const fetchData = async () => {
-    if (!profile?.organizacao_id) return;
+    if (!profile?.organizacao_id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data } = await (supabase as any)
       .from("carteira")
@@ -115,6 +118,7 @@ export default function Carteira() {
     if (data) {
       const mapped = (data as any[]).map((item) => ({
         ...item,
+        nome: item.nome || "Cliente Sem Nome",
         celular: item.leads?.celular ?? null,
         indicador_nome: item.leads?.indicador_nome ?? null,
         administradora: item.administradora ?? null,
@@ -605,7 +609,10 @@ export default function Carteira() {
   };
 
   const fetchCotasDoGrupo = async (grupo: string) => {
-    if (!profile?.organizacao_id) return;
+    if (!profile?.organizacao_id) {
+      setLoading(false);
+      return;
+    }
     try {
       const { data, error } = await (supabase as any)
         .from("cotas_contempladas")
@@ -811,7 +818,7 @@ export default function Carteira() {
         doc.addPage();
         y = 20;
       }
-      doc.text(item.nome.substring(0, 45), 10, y);
+      doc.text((item.nome || "Cliente").substring(0, 45), 10, y);
       doc.text(item.grupo || "—", 100, y);
       doc.text(item.cota || "—", 125, y);
       doc.text(formatCurrency(Number(item.valor_credito || 0)), 150, y);
@@ -1021,7 +1028,7 @@ export default function Carteira() {
                 return (
                   <tr key={item.id} className={rowColor}>
                   <td className="px-3 py-2 font-medium">
-                    <div className="text-sm font-bold text-slate-800">{item.nome}</div>
+                    <div className="text-sm font-bold text-slate-800">{item.nome || "Cliente"}</div>
                     <div className="flex flex-col gap-1.5 mt-2">
                       <div className="flex items-center gap-2 group/grupo">
                         <EditableBadge 
