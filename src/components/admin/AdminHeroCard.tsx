@@ -37,29 +37,29 @@ export function AdminHeroCard({
 
   return (
     <Card className={cn(
-      "group relative border-none shadow-xl bg-white text-slate-900 overflow-hidden rounded-[24px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-slate-100",
+      "group relative border-none shadow-lg bg-white text-slate-900 overflow-hidden rounded-[16px] transition-all duration-300 hover:shadow-xl border border-slate-100",
       className
     )}>
       {/* Background Icon - Subtle transparency */}
-      <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-[0.05] pointer-events-none group-hover:opacity-[0.1] transition-all duration-500 group-hover:scale-110">
-        <BgIcon className={cn("h-24 w-24 md:h-32 md:w-32 rotate-6 text-slate-400")} />
+      <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-[0.03] pointer-events-none group-hover:opacity-[0.05] transition-all duration-500 group-hover:scale-110">
+        <BgIcon className={cn("h-16 w-16 md:h-24 md:w-24 rotate-6 text-slate-400")} />
       </div>
       
       {/* Gamified Header: Vibrant Gradient */}
       <div className={cn(
-        "flex items-center justify-between px-5 py-2.5 bg-gradient-to-r text-white shadow-md",
+        "flex items-center justify-between px-4 py-1.5 bg-gradient-to-r text-white shadow-sm",
         currentGradient
       )}>
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-md border border-white/30">
-            <Icon className="h-4 w-4 text-white" />
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md border border-white/20">
+            <Icon className="h-3.5 w-3.5 text-white" />
           </div>
-          <div className="flex flex-col -space-y-0.5">
-            <h3 className="text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">
+          <div className="flex flex-col">
+            <h3 className="text-[10px] font-black tracking-[0.15em] uppercase leading-none">
               {title}
             </h3>
             {subtitle && (
-              <span className="text-[8px] font-bold text-white/70 uppercase tracking-tighter">
+              <span className="text-[8px] font-bold text-white/60 uppercase tracking-tighter leading-none mt-0.5">
                 {subtitle}
               </span>
             )}
@@ -67,14 +67,14 @@ export function AdminHeroCard({
         </div>
         
         {/* Status indicator */}
-        <div className="flex gap-1 items-center bg-white/20 px-2 py-0.5 rounded-full border border-white/20 backdrop-blur-sm">
-           <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-           <span className="text-[8px] font-black uppercase tracking-widest">Ativo</span>
+        <div className="flex gap-1 items-center bg-white/10 px-1.5 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
+           <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
+           <span className="text-[8px] font-black uppercase tracking-widest leading-none">Ativo</span>
         </div>
       </div>
       
       {/* Content Section - Light and airy */}
-      <div className="px-5 py-4 relative z-10 bg-white/40">
+      <div className="px-4 py-3 relative z-10">
         {children}
       </div>
     </Card>

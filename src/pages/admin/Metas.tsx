@@ -520,8 +520,8 @@ export default function Metas() {
             <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold">Metas e Indicadores</h1>
-                        <p className="text-sm text-muted-foreground">Acompanhe seu desempenho de {currentYear}</p>
+                        <h1 className="text-xl font-bold">Metas e Indicadores</h1>
+                        <p className="text-[11px] text-muted-foreground -mt-1">Acompanhe seu desempenho de {currentYear}</p>
                     </div>
                     {isManager && (
                         <div className="w-full sm:w-64">
@@ -541,7 +541,7 @@ export default function Metas() {
                 </div>
                 {/* Meta Anual Card — stacked on mobile */}
                 <Card className="bg-primary/5 border-primary/20">
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex flex-wrap items-center gap-6 flex-1">
                                 {/* Meta Anual */}
@@ -637,8 +637,8 @@ export default function Metas() {
             </Dialog>
 
             {/* Resumo Executivo IA - Standardized Style */}
-            {/* Resumo Executivo IA - Standardized Slim Style */}
-            <div className="mb-6">
+            {/* Resumo Executivo IA - Standardized Style */}
+            <div className="mb-4">
                 <AdminHeroCard 
                     title="Jarvis Strategist" 
                     subtitle="IA Insight & Análise de Performance"
@@ -657,8 +657,8 @@ export default function Metas() {
             </div>
             
             {/* Ritmo Diário (Pace) - Standardized Light & Vibrant Style */}
-            <div className="mb-6">
-                <Card className="relative overflow-hidden border-none shadow-xl bg-white text-slate-900 rounded-[24px] border border-slate-100 transition-all hover:shadow-2xl">
+            <div className="mb-4">
+                <Card className="relative overflow-hidden border-none shadow-xl bg-white text-slate-900 rounded-[16px] border border-slate-100 transition-all hover:shadow-2xl">
                     {/* Glowing side accent based on status */}
                     <div className={`absolute inset-y-0 left-0 w-1.5 ${
                         ritmoStatus === 'verde' ? 'bg-emerald-500' : 
@@ -672,7 +672,7 @@ export default function Metas() {
 
                     <CardContent className="p-0">
                         {/* Header Area - Vibrant Light Header */}
-                        <div className={`flex items-center justify-between px-6 py-2.5 text-white bg-gradient-to-r shadow-sm ${
+                        <div className={`flex items-center justify-between px-4 py-1.5 text-white bg-gradient-to-r shadow-sm ${
                             ritmoStatus === 'verde' ? 'from-blue-600 to-indigo-700' : 
                             ritmoStatus === 'amarelo' ? 'from-amber-400 to-orange-500' : 
                             'from-red-500 to-pink-600'
@@ -692,15 +692,15 @@ export default function Metas() {
                         </div>
 
                         {/* Main Body - Light Background */}
-                        <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10 bg-white/50">
+                        <div className="p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10 bg-white/50">
                             <div className="flex items-center gap-6">
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Falta para Atingimento da Meta</p>
+                                <div className="space-y-0.5">
+                                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 leading-none">Falta para Atingimento da Meta</p>
                                     <div className="flex items-baseline gap-2">
-                                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-red-500 drop-shadow-sm animate-pulse">
+                                        <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-red-500 drop-shadow-sm">
                                             {formatCurrency(faltaMes)}
                                         </h2>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">restante</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">restante</span>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2 pt-1">
                                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
@@ -718,21 +718,21 @@ export default function Metas() {
                                 </div>
                             </div>
                             
-                            <div className="w-full md:w-auto flex flex-col gap-4">
-                                <div className="px-6 py-5 rounded-2xl bg-slate-50 border border-slate-100 min-w-[280px]">
-                                    <div className="flex justify-between items-end mb-3">
+                            <div className="w-full md:w-auto flex flex-col gap-3">
+                                <div className="px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100 min-w-[280px]">
+                                    <div className="flex justify-between items-end mb-2">
                                         <div className="space-y-0.5">
-                                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.1em]">Cronograma</span>
-                                            <p className="text-xs font-black text-red-500 flex items-center gap-2">
+                                            <span className="text-[9px] text-slate-400 uppercase font-black tracking-[0.1em]">Cronograma</span>
+                                            <p className="text-[11px] font-black text-red-500 flex items-center gap-2">
                                                 {diasUteisRestantes} / {diasUteisTotais} 
-                                                <span className="text-[9px] text-slate-300 font-bold">DIAS RESTANTES</span>
+                                                <span className="text-[8px] text-slate-300 font-bold">DIAS RESTANTES</span>
                                             </p>
                                         </div>
                                         <span className="text-lg font-black text-slate-900">
                                             {((diasUteisPassados / diasUteisTotais) * 100).toFixed(0)}%
                                         </span>
                                     </div>
-                                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                         <div 
                                             className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 shadow-sm" 
                                             style={{ width: `${(diasUteisPassados / diasUteisTotais) * 100}%` }} 
@@ -761,16 +761,16 @@ export default function Metas() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex justify-between items-end mb-2">
+                        <div className="flex justify-between items-end mb-1">
                             <div>
-                                <p className={`text-xl sm:text-2xl font-bold ${
+                                <p className={`text-lg sm:text-xl font-bold ${
                                     ritmoStatus === 'verde' ? 'text-emerald-600' : 
                                     ritmoStatus === 'amarelo' ? 'text-amber-600' : 
                                     'text-red-600'
                                 }`}>{formatCurrency(realizadoMes)}</p>
-                                <p className="text-xs text-muted-foreground">de {formatCurrency(metaMensal)}</p>
+                                <p className="text-[10px] text-muted-foreground -mt-0.5">de {formatCurrency(metaMensal)}</p>
                             </div>
-                            <span className={`text-lg sm:text-xl font-bold ${
+                            <span className={`text-base sm:text-lg font-bold ${
                                 ritmoStatus === 'verde' ? 'text-emerald-700' : 
                                 ritmoStatus === 'amarelo' ? 'text-amber-700' : 
                                 'text-red-700'
@@ -792,12 +792,12 @@ export default function Metas() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex justify-between items-end mb-2">
+                        <div className="flex justify-between items-end mb-1">
                             <div>
-                                <p className="text-xl sm:text-2xl font-bold text-green-600">{formatCurrency(realizadoAno)}</p>
-                                <p className="text-xs text-muted-foreground">de {formatCurrency(metaAnual)}</p>
+                                <p className="text-lg sm:text-xl font-bold text-green-600">{formatCurrency(realizadoAno)}</p>
+                                <p className="text-[10px] text-muted-foreground -mt-0.5">de {formatCurrency(metaAnual)}</p>
                             </div>
-                            <span className="text-lg sm:text-xl font-bold text-green-600">{progressoAno.toFixed(1)}%</span>
+                            <span className="text-base sm:text-lg font-bold text-green-600">{progressoAno.toFixed(1)}%</span>
                         </div>
                         <div className="w-full bg-secondary/20 rounded-full h-2.5">
                             <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressoAno}%` }} />
@@ -809,29 +809,29 @@ export default function Metas() {
             {/* Falta para Meta */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Card className="bg-amber-50 border-amber-200">
-                    <CardContent className="p-4 flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                            <Target className="h-6 w-6 text-amber-600" />
+                    <CardContent className="p-3 flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                            <Target className="h-5 w-5 text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide">Falta para a Meta Anual</p>
-                            <p className="text-xl sm:text-2xl font-bold text-amber-800">{formatCurrency(faltaAno)}</p>
-                            <p className="text-xs text-amber-600 mt-0.5">
+                            <p className="text-[9px] text-amber-700 font-semibold uppercase tracking-wide">Falta para a Meta Anual</p>
+                            <p className="text-lg sm:text-xl font-bold text-amber-800">{formatCurrency(faltaAno)}</p>
+                            <p className="text-[10px] text-amber-600 -mt-0.5">
                                 {faltaAno <= 0 ? "🎉 Meta atingida!" : `${(100 - progressoAno).toFixed(1)}% restante`}
                             </p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card className="bg-indigo-50 border-indigo-200">
-                    <CardContent className="p-4 flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                            <TrendingUp className="h-6 w-6 text-indigo-600" />
+                    <CardContent className="p-3 flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                            <TrendingUp className="h-5 w-5 text-indigo-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-indigo-700 font-semibold uppercase tracking-wide">Necessário por Mês</p>
-                            <p className="text-xl sm:text-2xl font-bold text-indigo-800">{formatCurrency(necessarioPorMes)}</p>
-                            <p className="text-xs text-indigo-600 mt-0.5">
-                                nos {mesesRestantes} {mesesRestantes === 1 ? "mês restante" : "meses restantes"} de {currentYear}
+                            <p className="text-[9px] text-indigo-700 font-semibold uppercase tracking-wide">Necessário por Mês</p>
+                            <p className="text-lg sm:text-xl font-bold text-indigo-800">{formatCurrency(necessarioPorMes)}</p>
+                            <p className="text-[10px] text-indigo-600 -mt-0.5">
+                                nos {mesesRestantes} {mesesRestantes === 1 ? "mês" : "meses"} restantes
                             </p>
                         </div>
                     </CardContent>
