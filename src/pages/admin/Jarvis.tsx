@@ -192,8 +192,8 @@ export default function Jarvis() {
                 const [leadsRes, metaRes, inadRes, cotasRes, histRes] = await Promise.all([
                     supabase.from("leads").select("*"),
                     supabase.from("meta").select("*").eq("ano", new Date().getFullYear()).maybeSingle(),
-                    supabase.from("inadimplentes").select("*"),
-                    supabase.from("cotas_contempladas").select("*"),
+                    (supabase as any).from("inadimplentes").select("*"),
+                    (supabase as any).from("cotas_contempladas").select("*"),
                     supabase.from("historico_contatos").select("*").order("data_contato", { ascending: false })
                 ]);
 
@@ -317,7 +317,7 @@ export default function Jarvis() {
                     acc[cota.grupo] = (acc[cota.grupo] || 0) + 1;
                     return acc;
                 }, {} as Record<string, number>);
-                const total = Object.values(qtdAgrupada).reduce((a, b) => a + b, 0);
+                const total = Object.values(qtdAgrupada).reduce((a: number, b: number) => a + b, 0);
                 const resumo = Object.entries(qtdAgrupada).map(([g, q]) => `Grupo ${g}: ${q} cotas`).join(", ");
                 responseContent = `Atualmente temos ${total} cotas contempladas registradas no histórico do sistema. Resumo: ${resumo || "Ainda não temos registros."}`;
             } else if (queryLower.includes("cliente") || queryLower.includes("sobre o") || queryLower.includes("como ta o lead")) {

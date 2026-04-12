@@ -587,7 +587,7 @@ export default function Carteira() {
 
     // Registrar na nova tabela historico_cotas
     if (!error && cotaContemplada && selectedItem.grupo) {
-      const { error: insertError } = await supabase.from("cotas_contempladas").insert({
+      const { error: insertError } = await (supabase as any).from("cotas_contempladas").insert({
         organizacao_id: profile?.organizacao_id,
         grupo: selectedItem.grupo,
         cota: cotaContemplada,
@@ -607,7 +607,7 @@ export default function Carteira() {
   const fetchCotasDoGrupo = async (grupo: string) => {
     if (!profile?.organizacao_id) return;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("cotas_contempladas")
         .select("*")
         .eq("organizacao_id", profile.organizacao_id)
@@ -640,7 +640,7 @@ export default function Carteira() {
   const handleAddCotaGrupo = async () => {
     if (!novaCotaGrupo || !selectedGrupoCotas || !profile?.organizacao_id) return;
     setSaving(true);
-    const { error } = await supabase.from("cotas_contempladas").insert({
+    const { error } = await (supabase as any).from("cotas_contempladas").insert({
       organizacao_id: profile.organizacao_id,
       grupo: selectedGrupoCotas.grupo,
       segmento: selectedGrupoCotas.segmento,
@@ -658,7 +658,7 @@ export default function Carteira() {
   };
 
   const handleDeleteCotaGrupo = async (id: string) => {
-    const { error } = await supabase.from("cotas_contempladas").delete().eq("id", id);
+    const { error } = await (supabase as any).from("cotas_contempladas").delete().eq("id", id);
     if (!error && selectedGrupoCotas) {
       fetchCotasDoGrupo(selectedGrupoCotas.grupo);
     }
