@@ -8,6 +8,8 @@ import { formatLeadValue } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ADMINISTRADORAS } from "@/hooks/useFunil";
+import StreakBadge from "@/components/admin/StreakBadge";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Funil() {
   const funilState = useFunil();
@@ -142,25 +144,21 @@ export default function Funil() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="flex gap-1 overflow-x-auto no-scrollbar w-full">
-            {displayLeads.slice(0, 15).map((l: any) => (
-              <span key={l.id} className={`text-[8px] font-black ${activeColor.bg} ${activeColor.text} px-1.5 py-0.5 rounded border ${activeColor.border} whitespace-nowrap`}>
-                {l.nome.split(' ')[0]}
-              </span>
-            ))}
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {funilState.profile?.id && (
+            <StreakBadge userId={funilState.profile.id} variant="compact" />
+          )}
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={funilState.handleGenerateReport}
+            className="h-7 px-2 border-blue-200 text-blue-600 hover:bg-blue-50 text-[9px] font-black uppercase tracking-tighter"
+          >
+            <FileText className="h-3 w-3 mr-1" />
+            PDF
+          </Button>
         </div>
-
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={funilState.handleGenerateReport}
-          className="h-7 px-2 border-blue-200 text-blue-600 hover:bg-blue-50 text-[9px] font-black uppercase tracking-tighter"
-        >
-          <FileText className="h-3 w-3 mr-1" />
-          PDF
-        </Button>
       </div>
 
       <FunilBoard state={funilState} />
