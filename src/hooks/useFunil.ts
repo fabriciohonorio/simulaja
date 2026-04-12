@@ -9,6 +9,8 @@ import { DropResult } from "@hello-pangea/dnd";
 import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
 import { Lead, HistoricoContato, Membro } from "@/types/funil";
 import { COLUMNS, normalizeStatus } from "@/components/admin/funil/constants";
+import { googleCalendarService } from "@/services/googleCalendarService";
+import { makeService } from "@/services/makeService";
 
 export const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
@@ -25,6 +27,9 @@ export function useFunil() {
   
   const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [horaAgendamento, setHoraAgendamento] = useState("09:00");
+  const [notaAgendamento, setNotaAgendamento] = useState("");
+  const [criarNoGcal, setCriarNoGcal] = useState(true);
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
   
@@ -345,27 +350,65 @@ export function useFunil() {
     if (!vencimentoLead || !selectedDate) return;
     const dateStr = format(selectedDate, "yyyy-MM-dd");
 
+    const updateData: any = {
+      data_vencimento: dateStr,
+      updated_at: new Date().toISOString(),
+    };
+
+    let gcalEventId: string | null = null;
+    if (criarNoGcal) {
+      const gcalResult = await googleCalendarService.criarEvento({
+        leadNome: vencimentoLead.nome,
+        leadCelular: vencimentoLead.celular || "",
+        valorCredito: Number(vencimentoLead.valor_credito),
+        tipoConsorcio: vencimentoLead.tipo_consorcio,
+        data: dateStr,
+        hora: horaAgendamento,
+        nota: notaAgendamento,
+      });
+
+      if (gcalResult) {
+        gcalEventId = gcalResult.eventId;
+        updateData.gcal_event_id = gcalEventId;
+        toast.success("Evento criado no Google Calendar!", { duration: 4000 });
+      }
+    }
+
     const { error } = await supabase
       .from("leads")
-      .update({ data_vencimento: dateStr, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq("id", vencimentoLead.id);
 
     if (error) {
-      toast.error("Erro ao salvar data de vencimento");
+      toast.error("Erro ao salvar agendamento");
       return;
     }
 
+    const responsavel = membros.find(m => m.id === vencimentoLead.responsavel_id);
+    await makeService.notificarAgendamento({
+      lead: {
+        id: vencimentoLead.id,
+        nome: vencimentoLead.nome,
+        celular: vencimentoLead.celular,
+        tipo_consorcio: vencimentoLead.tipo_consorcio,
+        valor_credito: Number(vencimentoLead.valor_credito),
+        status: vencimentoLead.status,
+      },
+      data: dateStr,
+      hora: horaAgendamento,
+      nota: notaAgendamento,
+      responsavel_nome: responsavel?.nome_completo || profile?.nome_completo || "",
+    });
+
     setLeads((prev) =>
-      prev.map((l) => (l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr } : l)),
+      prev.map((l) => (l.id === vencimentoLead.id ? { ...l, data_vencimento: dateStr, gcal_event_id: gcalEventId } : l)),
     );
 
-    toast.success(
-      vencimentoLead.data_vencimento
-        ? `Agendamento atualizado para ${format(selectedDate, "dd/MM/yyyy")}`
-        : `Ação agendada para ${format(selectedDate, "dd/MM/yyyy")}`,
-    );
+    toast.success(`Agendado para ${format(selectedDate, "dd/MM/yyyy")} às ${horaAgendamento}`);
     setVencimentoLead(null);
     setSelectedDate(undefined);
+    setHoraAgendamento("09:00");
+    setNotaAgendamento("");
   };
 
   const handleSaveCelebration = async () => {
@@ -455,6 +498,12 @@ export function useFunil() {
     setVencimentoLead,
     selectedDate,
     setSelectedDate,
+    horaAgendamento,
+    setHoraAgendamento,
+    notaAgendamento,
+    setNotaAgendamento,
+    criarNoGcal,
+    setCriarNoGcal,
     historicoLead,
     setHistoricoLead,
     ultimasTratativas,

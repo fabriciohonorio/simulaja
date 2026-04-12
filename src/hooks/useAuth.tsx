@@ -34,5 +34,15 @@ export function useAuth() {
     await supabase.auth.signOut();
   };
 
-  return { user, session, loading, signIn, signOut };
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        scopes: "https://www.googleapis.com/auth/calendar.events",
+      },
+    });
+    return { error };
+  };
+
+  return { user, session, loading, signIn, signInWithGoogle, signOut };
 }

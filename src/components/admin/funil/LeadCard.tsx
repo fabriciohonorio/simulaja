@@ -5,7 +5,22 @@ import { formatLeadValue } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Lead, HistoricoContato, Membro } from "@/types/funil";
-import { TEMP_COLORS, TEMP_EMOJIS, TEMP_LABELS, SCORE_LABELS, normalizeStatus } from "./constants";
+import { TEMP_EMOJIS, TEMP_LABELS, normalizeStatus } from "./constants";
+
+const TEMP_STRIPE: Record<string, string> = {
+  quente: "bg-red-500",
+  morno: "bg-yellow-400",
+  frio: "bg-blue-500",
+  perdido: "bg-orange-600",
+  morto: "bg-gray-400",
+};
+
+const SCORE_SHORT: Record<string, string> = {
+  premium: "Premium",
+  alto: "Alto",
+  medio: "Médio",
+  baixo: "Baixo",
+};
 
 export function KanbanEditableBadge({
   leadId, field, value, label, inputType = "text", hideLabel = false, compact = false,
@@ -126,7 +141,6 @@ export function LeadCard({
   };
 
   const statusNormalized = normalizeStatus(lead.status);
-  const isAguardando = statusNormalized === "aguardando_pagamento";
   const isFechado = statusNormalized === "fechado";
   const vencHoje = isToday(lead.data_vencimento);
   const vencAtrasado = isPastDue(lead.data_vencimento);
@@ -136,216 +150,222 @@ export function LeadCard({
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`bg-background border-2 rounded-md transition-all ${
-        compact ? "p-1.5 space-y-1 text-[11px]" : "p-3 space-y-1.5 text-sm"
-      } ${(() => {
-        const indicator = lead.indicador_nome?.toLowerCase() || "";
-        if (indicator.includes("emily") || indicator.includes("emilly")) return "border-blue-500 bg-blue-50 dark:bg-blue-950/30";
-        if (indicator.includes("vanessa")) return "border-yellow-500 bg-yellow-50 dark:bg-yellow-950/30";
-        if (indicator.includes("halidi")) return "border-orange-500 bg-orange-50 dark:bg-orange-950/30";
-        if (normalizeStatus(lead.status) === "fechado") return "border-green-500 bg-green-50 dark:bg-green-950/30";
-        return TEMP_COLORS[lead.lead_temperatura || "quente"] || "border-border";
-      })()} ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+      className={`relative bg-background border border-border/60 rounded-xl overflow-hidden transition-all
+        ${compact ? "text-[11px]" : "text-sm"}
+        ${statusNormalized === "fechado" ? "border-green-300" : ""}
+        ${statusNormalized === "morto" ? "opacity-60" : ""}
+        ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : "shadow-sm"}
+      `}
     >
-      <div className="flex items-center justify-between gap-1">
-        <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-1">
-            <p className={`font-bold truncate text-foreground ${compact ? "text-[11px]" : ""}`}>{lead.nome}</p>
-            {lead.propensity_score !== null && (
-              <Badge
-                variant="outline"
-                className={`${compact ? "h-3 px-0.5 text-[7px]" : "h-4 px-1 text-[8px]"} font-black border-2 ${lead.propensity_score >= 70
-                  ? "text-green-600 border-green-200"
-                  : lead.propensity_score >= 40
-                    ? "text-orange-600 border-orange-200"
-                    : "text-slate-400 border-slate-100"
-                  }`}
-              >
-                {lead.propensity_score}%
-              </Badge>
-            )}
-            {isAguardando && (vencHoje || vencAtrasado) && !isFechado && (
-              <Bell className={`${compact ? "h-3 w-3" : "h-4 w-4"} text-amber-500 animate-pulse`} />
+      {/* Faixa lateral colorida */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+        statusNormalized === "fechado"
+          ? "bg-green-500"
+          : TEMP_STRIPE[lead.lead_temperatura || "quente"] || "bg-red-500"
+      }`} />
+
+      {/* Conteúdo com padding-left maior */}
+      <div className={compact ? "pl-3 pr-2 pt-2 pb-1.5 space-y-1" : "pl-4 pr-3 pt-3 pb-2 space-y-2"}>
+        
+        {/* Header: Nome + Score */}
+        <div className="flex items-start justify-between gap-1">
+          <div className="flex flex-col min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className={`font-bold truncate text-foreground ${compact ? "text-[11px]" : ""}`}>{lead.nome}</p>
+              
+              {/* Pill Única Score + Temperatura */}
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
+                lead.lead_score_valor === "premium" || lead.lead_score_valor === "alto"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : lead.lead_score_valor === "medio"
+                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                    : "bg-slate-50 text-slate-500 border-slate-200"
+              }`}>
+                {lead.propensity_score !== null ? `${lead.propensity_score}%` : SCORE_SHORT[lead.lead_score_valor || "baixo"]}
+                {" · "}{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}
+              </span>
+            </div>
+            
+            {/* Inline link celular / indicador */}
+            {!compact && (
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                {lead.indicador_nome && <span>via {lead.indicador_nome} · </span>}
+                {lead.celular && (
+                  <a
+                    href={`tel:${lead.celular.replace(/\D/g, "")}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-primary/70 hover:text-primary hover:underline flex items-center"
+                  >
+                    <Phone className="h-3 w-3 mr-0.5 inline" />
+                    {lead.celular}
+                  </a>
+                )}
+              </div>
             )}
           </div>
-          {compact ? (
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] text-muted-foreground">· {TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
-            </div>
-          ) : (
-            <span className="text-[10px] text-muted-foreground uppercase font-bold truncate">
-              {SCORE_LABELS[lead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"}
-            </span>
-          )}
         </div>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSetVencimento(lead);
-            }}
-            className={`shrink-0 rounded-full transition-colors ${
-              compact ? "p-0.5 border border-amber-100" : "p-1"
-            } ${
-              lead.data_vencimento
-                ? "text-amber-500 hover:text-amber-600 bg-amber-50"
-                : "text-muted-foreground/30 hover:text-amber-500 hover:bg-amber-50"
-            }`}
-            title={lead.data_vencimento ? \`Agendado: \${lead.data_vencimento}\` : "Agendar"}
-          >
-            <CalendarIcon className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
-          </button>
-          <a
-            href={`https://wa.me/55${(lead.celular || "").replace(/\\D/g, "")}?text=${encodeURIComponent(
-              \`Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?\`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className={`text-green-500 hover:text-green-600 shrink-0 bg-green-50 rounded-full ${compact ? "p-0.5 border border-green-100" : "p-1"}`}
-            title="WhatsApp"
-          >
-            <WhatsAppIcon className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
-          </a>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenHistorico(lead);
-            }}
-            className={`text-primary/70 hover:text-primary shrink-0 transition-colors rounded-full ${compact ? "p-0.5" : "p-1 bg-primary/5 hover:bg-primary/10"}`}
-            title="Ver tratativas"
-          >
-            <NotebookPen className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(lead.id, lead.nome);
-            }}
-            className={`text-destructive/60 hover:text-destructive shrink-0 transition-colors rounded-full ${compact ? "p-0.5" : "p-1 hover:bg-destructive/10"}`}
-            title="Excluir"
-          >
-            <Trash2 className={`${compact ? "h-2.5 w-2.5" : "h-4 w-4"}`} />
-          </button>
-        </div>
-      </div>
 
-      {!compact && (
-        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <Phone className="h-3 w-3" /> {lead.celular || "Sem telefone"}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <p className={`text-primary font-bold ${compact ? "text-xs" : "text-base"}`}>
-            {formatLeadValue(Number(lead.valor_credito))}
+        {/* Linha de Valor + Prazo */}
+        <div className="flex items-baseline gap-1.5">
+          <p className={`text-primary font-bold ${compact ? "text-xs" : "text-lg"} ${
+            Number(lead.valor_credito) === 0 ? "text-muted-foreground/50" : ""
+          }`}>
+            {Number(lead.valor_credito) === 0
+              ? "R$ — (preencher)"
+              : formatLeadValue(Number(lead.valor_credito))
+            }
           </p>
-          {!compact && lead.indicador_nome && (
-            <span className="text-[9px] text-muted-foreground font-medium truncate max-w-[60px]">
-              via {lead.indicador_nome}
+          {!compact && (
+            <span className="text-[10px] text-muted-foreground">
+              · {lead.prazo_meses}m 
             </span>
           )}
         </div>
-      </div>
-      
-      {/* Última tratativa */}
-      {ultimaTratativa ? (
-        <button
-          onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-          className="w-full text-left"
-        >
-          <div className={`flex items-start gap-1 rounded bg-muted/50 hover:bg-muted transition-colors ${compact ? "px-1 py-0.5" : "px-2 py-1.5"}`}>
-            <NotebookPen className={`text-muted-foreground mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
-            <div className="min-w-0 flex-1">
-              <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-semibold text-muted-foreground truncate`}>
-                {ultimaTratativa!.observacao || "Sem observação"}
-              </p>
+
+        {/* Última tratativa */}
+        {ultimaTratativa ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+            className="w-full text-left mt-1"
+          >
+            <div className={`flex items-start gap-1 rounded bg-muted/50 hover:bg-muted transition-colors ${compact ? "px-1 py-0.5" : "px-2 py-1.5"}`}>
+              <NotebookPen className={`text-muted-foreground mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
+              <div className="min-w-0 flex-1">
+                <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-semibold text-muted-foreground truncate`}>
+                  {ultimaTratativa!.observacao || "Sem observação"}
+                </p>
+              </div>
             </div>
-          </div>
-        </button>
-      ) : (!compact && !isFechado) && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
-        >
-          <Plus className="h-3 w-3" /> Adicionar tratativa
-        </button>
-      )}
+          </button>
+        ) : (!compact && !isFechado) && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+            className="w-full flex items-center gap-1.5 px-2 py-1.5 mt-1 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
+          >
+            <Plus className="h-3 w-3" /> Adicionar tratativa
+          </button>
+        )}
 
-      {/* Agendamento */}
-      {lead.data_vencimento && !isFechado && (
-        <div
-          className={`flex items-center gap-1 font-bold rounded ${
-            compact ? "text-[8px] px-1 py-0.5" : "text-[10px] px-2 py-1"
-          } ${vencAtrasado
-            ? "bg-red-100 text-red-700"
-            : vencHoje
-              ? "bg-amber-100 text-amber-700"
-              : "bg-blue-50 text-blue-700"
-            }`}
-        >
-          {(vencHoje || vencAtrasado) && <Bell className={`${compact ? "h-2 w-2" : "h-3 w-3"} animate-bounce`} />}
-          <CalendarIcon className={`${compact ? "h-2 w-2" : "h-3 w-3"}`} />
-          {format(parseISO(lead.data_vencimento!), "dd/MM")} {vencAtrasado && !compact && " — ATRASADO"}
-        </div>
-      )}
-
-      {!compact && (
-        <div className="grid grid-cols-2 gap-y-1 pt-1 border-t border-border/50">
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <MapPin className="h-3 w-3" /> {lead.cidade || "Não inf."}
+        {/* Agendamento (Strip do Calendar) */}
+        {lead.data_vencimento && !isFechado && (
+          <div className={`flex items-center justify-between px-2 py-1 text-[10px] font-medium border-y mt-2 ${
+            vencAtrasado
+              ? "bg-red-50 border-red-100 text-red-700"
+              : vencHoje
+                ? "bg-amber-50 border-amber-100 text-amber-700"
+                : "bg-blue-50 border-blue-100 text-blue-700"
+          }`}>
+            <span className="flex items-center gap-1">
+              {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-pulse" />}
+              <CalendarIcon className="h-3 w-3" />
+              {format(parseISO(lead.data_vencimento), "dd/MM")}
+              {vencAtrasado && !compact && " — ATRASADO"}
+              {vencHoje && !compact && " — Hoje"}
+            </span>
+            {(lead as any).gcal_event_id && (
+              <span className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[9px] text-gray-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+                Google Cal
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <TrendingUp className="h-3 w-3" /> {lead.origem || "Simulador"}
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-bold">
-            {TEMP_EMOJIS[lead.lead_temperatura || "quente"] || "🔥"} {TEMP_LABELS[lead.lead_temperatura || "quente"] || "Quente"}
-          </div>
-        </div>
-      )}
+        )}
 
-      {isFechado && (
-        <div className="mt-1 pt-1.5 border-t border-green-200 flex flex-wrap items-center gap-1">
-          <KanbanEditableBadge leadId={lead.id} field="administradora" value={lead.administradora ?? null} hideLabel compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
-          <KanbanEditableBadge leadId={lead.id} field="grupo" value={lead.grupo ?? null} label="G" compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
-          <KanbanEditableBadge leadId={lead.id} field="cota" value={lead.cota ?? null} label="C" compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
-          <KanbanEditableBadge leadId={lead.id} field="data_adesao" value={lead.data_adesao ?? null} inputType="date" label="📅" compact={compact} isEditingField={isEditingField} setIsEditingField={setIsEditingField} onUpdateField={onUpdateField} />
-        </div>
-      )}
-
-      {(isManager && onAssignLead) || (isFechado && lead.status_updated_at) ? (
-        <div className="mt-2 pt-2 border-t border-border/50 flex justify-between items-end gap-2">
-          {isManager && onAssignLead && (
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] text-muted-foreground uppercase font-black mb-1">Responsável</p>
+        {/* Action strip: Avatar and Buttons */}
+        {((isManager && onAssignLead) || lead.responsavel_id) ? (
+            isEditingField?.field === "responsavel" ? (
+             <div className="flex items-center justify-between pt-1.5 border-t border-border/40 mt-1">
               <select
                 className="w-full text-[10px] p-1 rounded border border-border bg-background"
                 value={lead.responsavel_id || "none"}
-                onChange={(e) => onAssignLead?.(lead.id, e.target.value)}
+                onChange={(e) => {
+                  onAssignLead?.(lead.id, e.target.value);
+                  setIsEditingField(null);
+                }}
+                onBlur={() => setIsEditingField(null)}
+                autoFocus
               >
                 <option value="none">Sem responsável</option>
                 {membros.map((m) => (
                   <option key={m.id} value={m.id}>{m.nome_completo}</option>
                 ))}
               </select>
+             </div>
+            ) : (
+            <div className="flex items-center justify-between pt-1.5 border-t border-border/40 mt-1">
+              <div
+                className="flex items-center gap-1.5 cursor-pointer group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditingField({ field: "responsavel", value: lead.responsavel_id || "" });
+                }}
+              >
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+                  {(membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?")
+                    .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[80px]">
+                  {membros.find(m => m.id === lead.responsavel_id)?.nome_completo?.split(" ")[0] || "Sem resp."}
+                </span>
+              </div>
+              
+              {/* Botões de Ação */}
+              <div className="flex items-center gap-1">
+                <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                  title="Agendar">
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                </button>
+                <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                  onClick={(e) => e.stopPropagation()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
+                  title="WhatsApp">
+                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                </a>
+                <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                  title="Histórico de tratativas">
+                  <NotebookPen className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
+                  title="Excluir">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
-          )}
-          
-          {isFechado && lead.status_updated_at && (
-            <div className={`text-right shrink-0 p-1 rounded bg-green-50 border border-green-100 ${!isManager ? 'w-full flex justify-between items-center' : ''}`}>
-               <p className="text-[8px] text-green-700 uppercase font-bold">Fechamento</p>
-               <p className="text-[10px] text-green-600 font-black">{format(parseISO(lead.status_updated_at), "dd/MM/yy")}</p>
-            </div>
-          )}
-        </div>
-      ) : lead.responsavel_id && !compact && (
-        <div className="mt-2 pt-2 border-t border-border/50">
-           <p className="text-[10px] text-muted-foreground italic">
-             Resp: {membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "S/Resp"}
-           </p>
-        </div>
-      )}
+            )
+        ) : (
+          <div className="flex items-center justify-end gap-1 pt-1.5 border-t border-border/40 mt-1">
+              <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                  title="Agendar">
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                </button>
+                <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                  onClick={(e) => e.stopPropagation()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
+                  title="WhatsApp">
+                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                </a>
+                <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                  title="Histórico de tratativas">
+                  <NotebookPen className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
+                  title="Excluir">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
