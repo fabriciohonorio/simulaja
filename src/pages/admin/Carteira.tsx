@@ -818,7 +818,7 @@ export default function Carteira() {
         doc.addPage();
         y = 20;
       }
-      doc.text((item.nome || "Cliente").substring(0, 45), 10, y);
+      doc.text((item.nome || "Cliente").substring(0, 35), 10, y);
       doc.text(item.grupo || "—", 100, y);
       doc.text(item.cota || "—", 125, y);
       doc.text(formatCurrency(Number(item.valor_credito || 0)), 150, y);
@@ -909,6 +909,24 @@ export default function Carteira() {
               <FileText className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Input 
+            placeholder="Buscar por nome, celular ou cidade..." 
+            className="w-full sm:w-64"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="w-full sm:w-auto">
+            <TabsList className="grid w-full grid-cols-2 sm:flex sm:w-auto h-auto">
+              <TabsTrigger value="todos" className="text-[10px] sm:text-xs py-2 px-4">Todos</TabsTrigger>
+              {Object.keys(CATEGORIAS).map(admin => (
+                <TabsTrigger key={admin} value={admin} className="text-[10px] sm:text-xs py-2 px-4">{admin}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </div>
 
         <div className="hidden md:flex items-center gap-2 shrink-0">
@@ -1010,7 +1028,12 @@ export default function Carteira() {
             </thead>
             <tbody className="divide-y divide-border">
               {(() => {
-                const filtered = items.filter(item => administradoraFilter === "todos" || item.administradora === administradoraFilter);
+                const filtered = items.filter(item => 
+                  (administradoraFilter === "todos" || item.administradora === administradoraFilter) &&
+                  (String(item.nome || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+                   String(item.celular || "").includes(searchTerm) ||
+                   String(item.cidade || "").toLowerCase().includes(searchTerm.toLowerCase()))
+                );
                 const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
                 
                 if (filtered.length === 0) {

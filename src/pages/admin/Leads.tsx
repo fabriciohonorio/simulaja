@@ -295,9 +295,9 @@ export default function Leads() {
       const s = search.toLowerCase();
       result = result.filter(
         (l) =>
-          l.nome.toLowerCase().includes(s) ||
+          (l.nome || "").toLowerCase().includes(s) ||
           (l.email || "").toLowerCase().includes(s) ||
-          l.celular.includes(s)
+          (l.celular || "").includes(s)
       );
     }
     if (statusFilter !== "all") result = result.filter((l) => {

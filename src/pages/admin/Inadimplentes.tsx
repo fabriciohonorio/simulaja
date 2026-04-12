@@ -216,7 +216,7 @@ export default function Inadimplentes() {
         y = 20;
       }
       const valorDevido = item.valor_parcela * item.parcelas_atrasadas;
-      doc.text(item.nome.substring(0, 35), 10, y);
+      doc.text((item.nome || "Cliente").substring(0, 35), 10, y);
       doc.text(`${item.grupo || "-"}/${item.cota || "-"}`, 80, y);
       doc.text(`${item.parcelas_atrasadas} parc.`, 110, y);
       doc.text(formatCurrency(valorDevido), 150, y);
