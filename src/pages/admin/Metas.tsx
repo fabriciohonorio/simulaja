@@ -679,9 +679,9 @@ export default function Metas() {
                                     <h2 className="text-3xl sm:text-4xl font-black tracking-tight">{formatCurrency(ritmoAtual)}</h2>
                                     <span className="text-xs font-bold opacity-80">/ dia realizado</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs font-medium opacity-90">
-                                    <Target className="h-3 w-3" />
-                                    Necessário: <span className="font-bold">{formatCurrency(ritmoNecessario)}</span>
+                                <div className="flex items-center gap-2 text-xs font-medium opacity-100">
+                                    <Target className="h-3 w-3 text-red-500 animate-pulse transition-all drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
+                                    <span className="opacity-90">Necessário:</span> <span className="font-black text-red-500 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{formatCurrency(ritmoNecessario)}</span>
                                 </div>
                             </div>
                         </div>
@@ -694,7 +694,7 @@ export default function Metas() {
                             }`}>
                                 <div className="flex justify-between gap-8 mb-2">
                                     <span className="text-xs opacity-80 uppercase font-black tracking-wider">Cronograma</span>
-                                    <span className="text-xs font-bold">{diasUteisPassados} / {diasUteisTotais} dias úteis</span>
+                                    <span className="text-xs font-bold"><span className="text-red-500 font-black">{diasUteisPassados}</span> / {diasUteisTotais} dias úteis</span>
                                 </div>
                                 <div className="w-full h-1.5 bg-black/10 rounded-full overflow-hidden">
                                     <div 
