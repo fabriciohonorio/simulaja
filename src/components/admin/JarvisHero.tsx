@@ -5,15 +5,15 @@ const JarvisHero = () => {
   return (
     <div className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center shrink-0">
       {/* Background Glows */}
-      <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
-      <div className="absolute inset-10 bg-purple-500/20 rounded-full blur-[40px] animate-bounce duration-[5000ms]" />
+      <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-[60px] animate-pulse" />
+      <div className="absolute inset-10 bg-orange-500/20 rounded-full blur-[40px] animate-bounce duration-[5000ms]" />
       
       {/* Central SVG Composition */}
-      <svg viewBox="0 0 200 200" className="w-full h-full relative z-10 drop-shadow-[0_0_15px_rgba(var(--primary),0.5)]">
+      <svg viewBox="0 0 200 200" className="w-full h-full relative z-10 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
         <defs>
           <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#8b5cf6', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#ec4899', stopOpacity: 1 }} />
+            <stop offset="0%" style={{ stopColor: '#f59e0b', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#ea580c', stopOpacity: 1 }} />
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -41,19 +41,19 @@ const JarvisHero = () => {
         {/* House */}
         <g className="animate-bounce" style={{ animationDuration: '4s' }}>
           <circle cx="50" cy="60" r="22" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" />
-          <Home x="40" y="50" size={20} className="text-purple-300" />
+          <Home x="40" y="50" size={20} className="text-amber-200" />
         </g>
 
         {/* Car */}
         <g className="animate-bounce" style={{ animationDuration: '5.5s', animationDelay: '0.5s' }}>
           <circle cx="150" cy="70" r="22" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" />
-          <Car x="140" y="60" size={20} className="text-indigo-300" />
+          <Car x="140" y="60" size={20} className="text-orange-200" />
         </g>
 
         {/* Motorcycle */}
         <g className="animate-bounce" style={{ animationDuration: '4.5s', animationDelay: '1s' }}>
           <circle cx="100" cy="160" r="22" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" />
-          <Bike x="90" y="150" size={20} className="text-pink-300" />
+          <Bike x="90" y="150" size={20} className="text-yellow-200" />
         </g>
 
         {/* Connecting Lines */}
@@ -64,8 +64,8 @@ const JarvisHero = () => {
 
       {/* Dynamic Particles using absolute divs */}
       <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-white rounded-full animate-ping opacity-20" />
-      <div className="absolute bottom-1/3 right-1/4 w-1 h-1 bg-primary rounded-full animate-ping [animation-delay:1s] opacity-20" />
-      <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse opacity-20" />
+      <div className="absolute bottom-1/3 right-1/4 w-1 h-1 bg-amber-200 rounded-full animate-ping [animation-delay:1s] opacity-20" />
+      <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse opacity-20" />
     </div>
   );
 };

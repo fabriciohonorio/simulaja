@@ -644,7 +644,7 @@ export default function Metas() {
                     subtitle="IA Insight & Análise de Performance"
                     icon={Sparkles} 
                     bgIcon={Target}
-                    accentColor="primary"
+                    accentColor="amber"
                 >
                     <div className="flex gap-4 items-start">
                         <div className="space-y-2 flex-1">
