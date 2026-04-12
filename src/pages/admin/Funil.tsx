@@ -21,7 +21,9 @@ export default function Funil() {
 
   const totalLeads = funilState.leads.length;
   const volumeTotal = funilState.leads.reduce((acc: number, l: any) => acc + Number(l.valor_credito || 0), 0);
-  const leadsQuentes = funilState.leads.filter((l: any) => l.lead_temperatura === 'quente').length;
+  const leadsQuentes = funilState.leads.filter((l: any) => l.lead_temperatura === 'quente');
+  const leadsMornos = funilState.leads.filter((l: any) => l.lead_temperatura === 'morno');
+  const leadsFrios = funilState.leads.filter((l: any) => l.lead_temperatura === 'frio');
   const emAndamento = funilState.leads.filter((l: any) => !['fechado', 'perdido', 'morto'].includes(l.status)).length;
 
   return (
