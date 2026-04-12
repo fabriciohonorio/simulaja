@@ -115,15 +115,22 @@ export default function Leads() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchLeads = useCallback(async () => {
-    if (!profile?.organizacao_id) return;
+    if (!profile?.organizacao_id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data } = await (supabase as any)
       .from("leads")
       .select("*")
       .eq("organizacao_id", profile.organizacao_id)
       .order("created_at", { ascending: false });
-    setLeads((data as Lead[]) ?? []);
-    setLoading(false);
+      const fetchedLeads = ((data as Lead[]) ?? []).map(l => ({
+        ...l,
+        nome: l.nome || "Lead Sem Nome"
+      }));
+      setLeads(fetchedLeads);
+      setLoading(false);
   }, [profile?.organizacao_id]);
 
   useEffect(() => {

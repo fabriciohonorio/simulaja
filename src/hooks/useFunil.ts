@@ -142,7 +142,10 @@ export function useFunil() {
   }, []);
 
   useEffect(() => {
-    if (!profile?.organizacao_id) return;
+    if (!profile?.organizacao_id) {
+      setLoading(false);
+      return;
+    }
 
     (supabase as any)
       .from("leads")
@@ -154,6 +157,7 @@ export function useFunil() {
         
         const fetchedLeads = uniqueRaw.map((lead: any) => ({
           ...lead,
+          nome: lead.nome || "Lead Sem Nome",
           status: normalizeStatus(lead.status),
         }));
         setLeads(fetchedLeads);
