@@ -20,9 +20,9 @@ export default function Funil() {
     );
   }
 
-  const leadsQuentes = funilState.leads.filter((l: any) => l.lead_temperatura === 'quente');
-  const leadsMornos = funilState.leads.filter((l: any) => l.lead_temperatura === 'morno');
-  const leadsFrios = funilState.leads.filter((l: any) => l.lead_temperatura === 'frio');
+  const leadsQuentes = funilState.leads.filter((l: any) => l.lead_temperatura === 'quente' && l.status !== 'fechado');
+  const leadsMornos = funilState.leads.filter((l: any) => l.lead_temperatura === 'morno' && l.status !== 'fechado');
+  const leadsFrios = funilState.leads.filter((l: any) => l.lead_temperatura === 'frio' && l.status !== 'fechado');
   const emAndamento = funilState.leads.filter((l: any) => !['fechado', 'perdido', 'morto'].includes(l.status));
 
   const displayLeads = selectedCategory === 'quente' ? leadsQuentes : 
