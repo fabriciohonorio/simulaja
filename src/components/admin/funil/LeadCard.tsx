@@ -158,14 +158,14 @@ export function LeadCard({
     }
     if (statusNormalized === "fechado") {
       return (
-        <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
-          Venda: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM") : '--/--'} · {diasDesdeEntrada}d
+        <span className="flex items-center gap-1 text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
+          🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : '--/--'} · {diasDesdeEntrada}d
         </span>
       );
     }
     return (
-      <span className="flex items-center gap-1 text-muted-foreground/80 bg-muted/30 px-1.5 py-0.5 rounded font-semibold uppercase tracking-tighter">
-        <Clock className="w-2.5 h-2.5" /> {diasDesdeEntrada}d no funil
+      <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter border border-red-100">
+        <Clock className="w-2.5 h-2.5 animate-pulse" /> {diasDesdeEntrada}d na engrenagem
       </span>
     );
   };
@@ -213,8 +213,8 @@ export function LeadCard({
             
             {/* Inline link celular / indicador */}
             {!compact && (
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                {lead.indicador_nome && <span>via {lead.indicador_nome} · </span>}
+              <div className="flex items-center gap-1 text-[10px] text-slate-700 font-bold mt-0.5">
+                {lead.indicador_nome && <span className="opacity-70">via {lead.indicador_nome} · </span>}
                 {lead.celular && (
                   <a
                     href={`tel:${lead.celular.replace(/\D/g, "")}`}
@@ -241,8 +241,8 @@ export function LeadCard({
             {formatLeadValue(Number(lead.valor_credito) || 0)}
           </p>
           {!compact && (
-            <span className="text-[10px] text-muted-foreground">
-              · {lead.prazo_meses}m 
+            <span className="text-[10px] text-slate-900 font-black">
+              · {lead.prazo_meses} Meses 
             </span>
           )}
         </div>
@@ -256,7 +256,7 @@ export function LeadCard({
             <div className={`flex items-start gap-1 rounded bg-muted/50 hover:bg-muted transition-colors ${compact ? "px-1 py-0.5" : "px-2 py-1.5"}`}>
               <NotebookPen className={`text-muted-foreground mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
               <div className="min-w-0 flex-1">
-                <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-semibold text-muted-foreground truncate`}>
+                <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-black text-slate-800 truncate`}>
                   {ultimaTratativa!.observacao || "Sem observação"}
                 </p>
               </div>

@@ -48,11 +48,11 @@ export default function Funil() {
 
               <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
                 <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Potential Volume</p>
+                  <p className="text-[10px] font-black uppercase text-slate-700 tracking-wider">Potential Volume</p>
                   <p className="text-lg font-black text-blue-600">{formatLeadValue(volumeTotal)}</p>
                 </div>
                 <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Leads</p>
+                  <p className="text-[10px] font-black uppercase text-slate-700 tracking-wider">Active Leads</p>
                   <p className="text-lg font-black text-slate-900">{emAndamento}</p>
                 </div>
               </div>
@@ -62,14 +62,24 @@ export default function Funil() {
 
         <div className="lg:col-span-4 grid grid-cols-1 gap-4">
           {/* Quick Stats Column */}
-          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-default">
-             <div className="flex items-center gap-2 opacity-90 mb-2">
-                <span className="p-1.5 bg-white/20 rounded-lg"><Zap className="h-4 w-4" /></span>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white">Leads Quentes</p>
+          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-500/20 transition-all flex flex-col h-full min-h-[140px]">
+             <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 opacity-90">
+                  <span className="p-1.5 bg-white/20 rounded-lg"><Zap className="h-4 w-4" /></span>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white">Leads Quentes ({leadsQuentes})</p>
+                </div>
+                <span className="text-[8px] font-black bg-red-400 px-1.5 py-0.5 rounded-full animate-pulse">ALERTA</span>
              </div>
-             <p className="text-3xl font-black text-white">{leadsQuentes}</p>
-             <p className="text-[10px] bg-white/20 text-white w-fit px-2 py-0.5 rounded-full font-bold mt-2">Temperatura Máxima</p>
-             <TrendingUp className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+             <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pr-1">
+                {funilState.leads.filter((l: any) => l.lead_temperatura === 'quente').slice(0, 5).map((l: any) => (
+                  <div key={l.id} className="text-[10px] font-bold bg-white/10 hover:bg-white/20 p-1.5 rounded-lg flex items-center justify-between transition-colors border border-white/5">
+                    <span className="truncate max-w-[120px]">{l.nome}</span>
+                    <span className="text-[8px] opacity-70">{formatLeadValue(Number(l.valor_credito) || 0)}</span>
+                  </div>
+                ))}
+                {leadsQuentes > 5 && <p className="text-[8px] opacity-50 text-center pt-1">+ {leadsQuentes - 5} outros leads quentes</p>}
+             </div>
+             <TrendingUp className="absolute -bottom-4 -right-4 h-20 w-20 opacity-10 rotate-12" />
           </div>
         </div>
       </div>
