@@ -654,64 +654,95 @@ export default function Metas() {
                 </AdminHeroCard>
             </div>
             
-            {/* Ritmo Diário (Pace) - Premium Layout */}
+            {/* Ritmo Diário (Pace) - Standardized Dark Style */}
             <div className="mb-6">
-                <Card className={`relative overflow-hidden border-none shadow-xl ${
-                    ritmoStatus === 'verde' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white' : 
-                    ritmoStatus === 'amarelo' ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950' : 
-                    'bg-gradient-to-br from-red-500 to-red-600 text-white'
-                }`}>
-                    <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
-                        <Activity className="h-32 w-32" />
+                <Card className="relative overflow-hidden border-none shadow-2xl bg-[#09090b] text-white rounded-[24px]">
+                    {/* Glowing side accent based on status */}
+                    <div className={`absolute inset-y-0 left-0 w-1.5 ${
+                        ritmoStatus === 'verde' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 
+                        ritmoStatus === 'amarelo' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 
+                        'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                    }`} />
+
+                    <div className="absolute top-1/2 -translate-y-1/2 right-12 opacity-[0.05] pointer-events-none">
+                        <Activity className="h-40 w-40 rotate-12" />
                     </div>
-                    <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-                        <div className="flex items-center gap-6">
-                            <div className={`p-4 rounded-2xl backdrop-blur-md shadow-2xl ${
-                                ritmoStatus === 'verde' ? 'bg-white/20' : 
-                                ritmoStatus === 'amarelo' ? 'bg-black/10' : 
-                                'bg-white/20'
-                            }`}>
-                                <Activity className="h-8 w-8" />
+
+                    <CardContent className="p-0">
+                        {/* Header Area - Consistent with Hero Cards */}
+                        <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-white/[0.02]">
+                            <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                                    <Activity className={`h-4 w-4 ${
+                                        ritmoStatus === 'verde' ? 'text-emerald-500' : 
+                                        ritmoStatus === 'amarelo' ? 'text-amber-500' : 
+                                        'text-red-500'
+                                    }`} />
+                                </div>
+                                <h3 className="text-[10px] font-black tracking-[0.2em] uppercase text-white/90">
+                                    Desempenho & Cronograma
+                                </h3>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Falta para Atingimento da Meta</p>
-                                <div className="flex items-baseline gap-2">
-                                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse">{formatCurrency(faltaMes)}</h2>
-                                    <span className="text-xs font-bold opacity-80">restante</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs font-medium opacity-100">
-                                    <Target className="h-3 w-3 text-white animate-pulse" />
-                                    <span className="opacity-80 font-bold">Meta Diária:</span> <span className="font-black text-white">{formatCurrency(ritmoNecessario)}</span>
-                                </div>
+                            <div className="flex gap-1 items-center">
+                                <span className={`h-1 w-1 rounded-full animate-pulse ${
+                                    ritmoStatus === 'verde' ? 'bg-emerald-500' : 
+                                    ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
+                                    'bg-red-500'
+                                }`} />
+                                <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Analytics</span>
                             </div>
                         </div>
-                        
-                        <div className="w-full sm:w-auto flex flex-col gap-3">
-                            <div className={`px-5 py-4 rounded-xl backdrop-blur-md border border-white/20 font-medium ${
-                                ritmoStatus === 'verde' ? 'bg-white/10' : 
-                                ritmoStatus === 'amarelo' ? 'bg-black/5' : 
-                                'bg-white/10'
-                            }`}>
-                                <div className="flex justify-between gap-8 mb-2">
-                                    <span className="text-xs opacity-80 uppercase font-black tracking-wider">Cronograma</span>
-                                    <span className="text-xs font-bold text-red-500 font-black">{diasUteisRestantes} / {diasUteisTotais} <span className="text-[8px] opacity-70">dias restantes</span></span>
-                                </div>
-                                <div className="w-full h-1.5 bg-black/10 rounded-full overflow-hidden">
-                                    <div 
-                                        className="h-full bg-white transition-all duration-1000 shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
-                                        style={{ width: `${(diasUteisPassados / diasUteisTotais) * 100}%` }} 
-                                    />
+
+                        {/* Main Body */}
+                        <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                            <div className="flex items-center gap-6">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">Falta para Atingimento da Meta</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)] animate-pulse">
+                                            {formatCurrency(faltaMes)}
+                                        </h2>
+                                        <span className="text-xs font-bold text-white/30 uppercase tracking-widest leading-none">restante</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                                            <Target className="h-3 w-3 text-white/60" />
+                                            <span className="text-[10px] text-white/60 font-medium">Meta Diária:</span>
+                                            <span className="text-[10px] font-black text-white">{formatCurrency(ritmoNecessario)}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            {ritmoStatus !== 'verde' && (
-                                <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider animate-bounce ${
-                                    ritmoStatus === 'amarelo' ? 'bg-white/20' : 'bg-white/30'
-                                }`}>
-                                    <Zap className="h-3 w-3" />
-                                    {ritmoStatus === 'amarelo' ? 'Aumentar pressão' : 'Ritmo Crítico: Força Total'}
+                            
+                            <div className="w-full md:w-auto flex flex-col gap-4">
+                                <div className="px-6 py-5 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-xl min-w-[280px]">
+                                    <div className="flex justify-between items-end mb-3">
+                                        <div className="space-y-0.5">
+                                            <span className="text-[10px] text-white/40 uppercase font-black tracking-[0.1em]">Cronograma</span>
+                                            <p className="text-xs font-black text-red-500 flex items-center gap-2">
+                                                {diasUteisRestantes} / {diasUteisTotais} 
+                                                <span className="text-[9px] text-white/30 font-bold">DIAS RESTANTES</span>
+                                            </p>
+                                        </div>
+                                        <span className="text-lg font-black text-white/90">
+                                            {((diasUteisPassados / diasUteisTotais) * 100).toFixed(0)}%
+                                        </span>
+                                    </div>
+                                    <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                                            style={{ width: `${(diasUteisPassados / diasUteisTotais) * 100}%` }} 
+                                        />
+                                    </div>
                                 </div>
-                            )}
+
+                                {ritmoStatus !== 'verde' && (
+                                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-400 animate-bounce">
+                                        <Zap className="h-3 w-3 fill-red-500" />
+                                        {ritmoStatus === 'amarelo' ? 'Aumentar pressão operacional' : 'Alerta: Ritmo Crítico'}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
