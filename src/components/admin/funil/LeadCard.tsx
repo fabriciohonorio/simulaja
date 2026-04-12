@@ -190,16 +190,16 @@ export function LeadCard({
       }`} />
 
       {/* Conteúdo com padding-left maior */}
-      <div className={compact ? "pl-3 pr-2 pt-2 pb-1.5 space-y-1" : "pl-4 pr-3 pt-3 pb-2 space-y-2"}>
+      <div className={compact ? "pl-2.5 pr-2 pt-1.5 pb-1 space-y-0.5" : "pl-3.5 pr-2 pt-2.5 pb-2 space-y-1.5"}>
         
         {/* Header: Nome + Score */}
         <div className="flex items-start justify-between gap-1">
           <div className="flex flex-col min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <p className={`font-bold truncate text-foreground ${compact ? "text-[11px]" : ""}`}>{lead.nome}</p>
+            <div className="flex items-center gap-1">
+              <p className={`font-black truncate text-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>{lead.nome}</p>
               
               {/* Pill Única Score + Temperatura */}
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
+              <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full border ${
                 lead.lead_score_valor === "premium" || lead.lead_score_valor === "alto"
                   ? "bg-green-50 text-green-700 border-green-200"
                   : lead.lead_score_valor === "medio"
@@ -207,7 +207,7 @@ export function LeadCard({
                     : "bg-slate-50 text-slate-500 border-slate-200"
               }`}>
                 {lead.propensity_score !== null ? `${lead.propensity_score}%` : SCORE_SHORT[lead.lead_score_valor || "baixo"]}
-                {" · "} <span className="text-sm leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
+                {" · "} <span className="text-xs leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
               </span>
             </div>
             
@@ -236,13 +236,13 @@ export function LeadCard({
         </div>
 
         {/* Linha de Valor + Prazo */}
-        <div className="flex items-baseline gap-1.5">
-          <p className={`text-primary font-bold ${compact ? "text-xs" : "text-lg"}`}>
+        <div className="flex items-baseline gap-1">
+          <p className={`text-primary font-black ${compact ? "text-[10px]" : "text-sm"}`}>
             {formatLeadValue(Number(lead.valor_credito) || 0)}
           </p>
           {!compact && (
-            <span className="text-[10px] text-slate-900 font-black">
-              · {lead.prazo_meses} Meses 
+            <span className="text-[9px] text-slate-400 font-bold">
+              · {lead.prazo_meses}m
             </span>
           )}
         </div>
@@ -265,9 +265,9 @@ export function LeadCard({
         ) : (!compact && !isFechado) && (
           <button
             onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-            className="w-full flex items-center gap-1.5 px-2 py-1.5 mt-1 rounded border border-dashed border-border/70 text-[10px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
+            className="w-full flex items-center gap-1 px-1.5 py-1 mt-1 rounded border border-dashed border-border/70 text-[9px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
           >
-            <Plus className="h-3 w-3" /> Adicionar tratativa
+            <Plus className="h-3 w-3" /> Tratativa
           </button>
         )}
 
@@ -317,7 +317,7 @@ export function LeadCard({
               </select>
              </div>
             ) : (
-            <div className="flex items-center justify-between pt-1.5 border-t border-border/40 mt-1">
+            <div className="flex items-center justify-between pt-1 border-t border-border/20 mt-1">
               <div
                 className="flex items-center gap-1.5 cursor-pointer group"
                 onClick={(e) => {
@@ -325,67 +325,67 @@ export function LeadCard({
                   setIsEditingField({ field: "responsavel", value: lead.responsavel_id || "" });
                 }}
               >
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+                <div className="w-5 h-5 rounded-full bg-primary/5 flex items-center justify-center text-[8px] font-black text-primary/60 shrink-0 border border-primary/10">
                   {(membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?")
                     .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                 </div>
-                <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[80px]">
-                  {membros.find(m => m.id === lead.responsavel_id)?.nome_completo?.split(" ")[0] || "Sem resp."}
+                <span className="text-[9px] text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[60px] font-bold">
+                  {membros.find(m => m.id === lead.responsavel_id)?.nome_completo?.split(" ")[0] || "Resp."}
                 </span>
               </div>
               
               {/* Botões de Ação */}
               <div className="flex items-center gap-1">
                 <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                  className="w-6 h-6 rounded flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
                   title="Agendar">
-                  <CalendarIcon className="h-3.5 w-3.5" />
+                  <CalendarIcon className="h-3 w-3" />
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
+                  className="w-6 h-6 rounded flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
                   title="WhatsApp">
-                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                  <WhatsAppIcon className="h-3 w-3" />
                 </a>
                 <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                  title="Histórico de tratativas">
-                  <NotebookPen className="h-3.5 w-3.5" />
+                  className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                  title="Histórico">
+                  <NotebookPen className="h-3 w-3" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
+                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
                   title="Excluir">
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3 w-3" />
                 </button>
               </div>
             </div>
             )
         ) : (
-          <div className="flex items-center justify-end gap-1 pt-1.5 border-t border-border/40 mt-1">
-              <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+          <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40 mt-0.5">
+                <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                  className="w-6 h-6 rounded flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
                   title="Agendar">
-                  <CalendarIcon className="h-3.5 w-3.5" />
+                  <CalendarIcon className="h-3 w-3" />
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
+                  className="w-6 h-6 rounded flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
                   title="WhatsApp">
-                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                  <WhatsAppIcon className="h-3 w-3" />
                 </a>
                 <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                  title="Histórico de tratativas">
-                  <NotebookPen className="h-3.5 w-3.5" />
+                  className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                  title="Histórico">
+                  <NotebookPen className="h-3 w-3" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
+                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
                   title="Excluir">
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3 w-3" />
                 </button>
           </div>
         )}
