@@ -25,7 +25,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon } from "lucide-react";
+import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon, BrainCircuit } from "lucide-react";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import JarvisHero from "@/components/admin/JarvisHero";
 import { GRUPOS } from "@/components/ConsortiumSimulator";
 
@@ -485,26 +486,33 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
-            {/* Header com estilo futurista e visual 3D */}
-            <div className="flex flex-col md:flex-row items-center gap-6 bg-slate-950/90 p-8 rounded-[40px] text-white shadow-2xl relative overflow-hidden border border-white/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-purple-900/40 opacity-50" />
-                
-                {/* Visual Premium Gerado */}
-                <JarvisHero />
-
-                <div className="relative z-10 text-center md:text-left space-y-4 max-w-2xl">
-                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
-                        <Zap className="h-4 w-4 text-primary animate-pulse" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-primary-foreground/90">Estrategista Comercial v2.0</span>
+            {/* Jarvis Central - Standardized Style */}
+            <AdminHeroCard 
+                title="Jarvis Strategist • IA Central" 
+                icon={Zap} 
+                bgIcon={BrainCircuit}
+                iconColor="text-primary"
+            >
+                <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+                    {/* Visual Premium Gerado */}
+                    <div className="shrink-0">
+                        <JarvisHero />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight">
-                        Sistema Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Jarvis</span>
-                    </h1>
-                    <p className="text-lg text-primary-foreground/70 font-medium leading-relaxed">
-                        Gerenciando o cérebro das suas vendas com foco em mobilidade (carro/moto) e patrimônio (casas). Sua inteligência artificial dedicada.
-                    </p>
+
+                    <div className="text-center md:text-left space-y-4 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+                            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                            <span className="text-xs font-bold uppercase tracking-widest text-primary-foreground/90">Estrategista Comercial v2.0</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
+                            Sistema Central <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Jarvis</span>
+                        </h1>
+                        <p className="text-lg text-primary-foreground/70 font-medium leading-relaxed">
+                            Gerenciando o cérebro das suas vendas com foco em mobilidade (carro/moto) e patrimônio (casas). Sua inteligência artificial dedicada.
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </AdminHeroCard>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Coluna de Pergunta e Sugestões */}

@@ -619,34 +619,27 @@ export default function Metas() {
                 </DialogContent>
             </Dialog>
 
-            {/* Resumo Executivo IA - Premium Style */}
-            <div className="relative group/ia mb-6">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/60 to-purple-600/60 rounded-2xl blur opacity-20 group-hover/ia:opacity-40 transition duration-1000"></div>
-                <div className="relative border border-white/10 p-5 sm:p-6 rounded-2xl overflow-hidden shadow-2xl bg-slate-950">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/5 rounded-full -ml-16 -mb-16 blur-2xl" />
-                    
-                    <div className="relative z-10 flex gap-4 sm:gap-5 items-start">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg shadow-primary/20 shrink-0">
-                            <Sparkles className="h-6 w-6" />
-                        </div>
+            {/* Resumo Executivo IA - Standardized Style */}
+            <div className="mb-6">
+                <AdminHeroCard 
+                    title="Jarvis Strategist • IA Insight" 
+                    icon={Sparkles} 
+                    bgIcon={Target}
+                    iconColor="text-white"
+                >
+                    <div className="flex gap-4 sm:gap-5 items-start">
                         <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground/60">
-                                   Jarvis Strategist • IA Insight
-                                </h3>
-                                <div className="flex gap-1">
-                                    <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
-                                    <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
-                                    <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
-                                </div>
+                            <div className="flex items-center gap-1">
+                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
+                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
                             </div>
                             <p className="text-sm sm:text-base leading-relaxed font-semibold text-white/90">
                                 {resumoIA}
                             </p>
                         </div>
                     </div>
-                </div>
+                </AdminHeroCard>
             </div>
             
             {/* Ritmo Diário (Pace) - Premium Layout */}
