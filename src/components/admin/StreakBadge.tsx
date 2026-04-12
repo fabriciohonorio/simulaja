@@ -19,11 +19,15 @@ export default function StreakBadge({ userId, variant = "full" }: StreakBadgePro
       .select("streak_atual, streak_record")
       .eq("id", userId)
       .single()
-      .then(({ data }: any) => {
-        if (data) {
+      .then(({ data, error }: any) => {
+        if (!error && data) {
           setStreak(data.streak_atual || 0);
           setRecord(data.streak_record || 0);
         }
+        setLoading(false);
+      })
+      .catch((err: any) => {
+        console.error("Erro ao buscar streak:", err);
         setLoading(false);
       });
   }, [userId]);

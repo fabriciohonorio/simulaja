@@ -133,15 +133,15 @@ export default function AdminLayout() {
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">EMPRESA</div>
                     <div className="font-black text-slate-900 truncate mb-1">{org.nome}</div>
                     <div className="text-xs font-semibold text-slate-600 truncate mb-2">{profile?.nome_completo || "Usuário"}</div>
-                    <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase">
+                    <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary uppercase mb-3">
                         {profile?.tipo_acesso === 'admin' ? 'Administrador' : profile?.tipo_acesso === 'manager' ? 'Manager' : 'Vendedor'}
                     </div>
 
-                    {/* {profile?.id && (
-                        <div className="mt-3 scale-95 origin-left">
+                    {profile?.id && (
+                        <div className="mt-2">
                             <StreakBadge userId={profile.id} variant="compact" />
                         </div>
-                    )} */}
+                    )}
                 </div>
             )}
 
