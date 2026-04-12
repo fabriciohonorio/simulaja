@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock } from "lucide-react";
-import { format, parseISO, differenceInDays } from "date-fns";
+import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { formatLeadValue } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -157,10 +157,13 @@ export function LeadCard({
       );
     }
     if (statusNormalized === "fechado") {
-      const displayDate = lead.status_updated_at || lead.created_at;
+      const displayDateStr = lead.status_updated_at || lead.created_at;
+      const displayDate = displayDateStr ? parseISO(displayDateStr) : null;
+      const dateText = displayDate && isValid(displayDate) ? format(displayDate, "dd/MM/yy") : "--/--";
+      
       return (
         <span className="flex items-center gap-1 text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
-          🏆 Vendido: {displayDate ? format(parseISO(displayDate), "dd/MM/yy") : '--/--'} · {diasDesdeEntrada}d
+          🏆 Vendido: {dateText} · {diasDesdeEntrada}d
         </span>
       );
     }
@@ -197,7 +200,7 @@ export function LeadCard({
         <div className="flex items-start justify-between gap-1">
           <div className="flex flex-col min-w-0 flex-1">
             <div className="flex items-center gap-1">
-              <p className={`font-black truncate text-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>{lead.nome}</p>
+              <p className={`font-black truncate text-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>{lead.nome || "Lead"}</p>
               
               {/* Pill Única Score + Temperatura */}
               <span className={`text-[8px] font-black px-1 py-0.5 rounded-full border ${
@@ -327,11 +330,13 @@ export function LeadCard({
                 }}
               >
                 <div className="w-5 h-5 rounded-full bg-primary/5 flex items-center justify-center text-[8px] font-black text-primary/60 shrink-0 border border-primary/10">
-                  {(membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?")
-                    .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                  {(() => {
+                    const nome = membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?";
+                    return nome.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+                  })()}
                 </div>
                 <span className="text-[9px] text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[60px] font-bold">
-                  {membros.find(m => m.id === lead.responsavel_id)?.nome_completo?.split(" ")[0] || "Resp."}
+                  {(membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "Resp.").split(" ")[0]}
                 </span>
               </div>
               

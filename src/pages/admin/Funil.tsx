@@ -102,11 +102,16 @@ export default function Funil() {
           </div>
           <div className="flex gap-1 overflow-x-auto no-scrollbar py-0.5 w-full">
             {displayLeads.length > 0 ? (
-                displayLeads.slice(0, 10).map((l: any) => (
-                    <span key={l.id} className={`text-[8px] font-black ${activeColor.bg} ${activeColor.text} px-1.5 py-0.5 rounded border ${activeColor.border} whitespace-nowrap`}>
-                        {l.nome.split(' ')[0]} {l.nome.split(' ')[1] ? l.nome.split(' ')[1][0] + '.' : ''}
-                    </span>
-                ))
+                displayLeads.slice(0, 10).map((l: any) => {
+                    const nome = l.nome || "Lead";
+                    const partes = nome.split(' ');
+                    const displayNome = `${partes[0]} ${partes[1] ? partes[1][0] + '.' : ''}`;
+                    return (
+                        <span key={l.id} className={`text-[8px] font-black ${activeColor.bg} ${activeColor.text} px-1.5 py-0.5 rounded border ${activeColor.border} whitespace-nowrap`}>
+                            {displayNome}
+                        </span>
+                    );
+                })
             ) : (
                 <span className="text-[8px] font-bold text-slate-300 uppercase">Vazio</span>
             )}
