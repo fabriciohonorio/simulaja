@@ -674,10 +674,10 @@ export default function Metas() {
                                 <Activity className="h-8 w-8" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Faturamento Médio Diário</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Falta para Atingimento da Meta</p>
                                 <div className="flex items-baseline gap-2">
-                                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse">{formatCurrency(ritmoAtual)}</h2>
-                                    <span className="text-xs font-bold opacity-80">/ dia</span>
+                                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse">{formatCurrency(faltaMes)}</h2>
+                                    <span className="text-xs font-bold opacity-80">restante</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs font-medium opacity-100">
                                     <Target className="h-3 w-3 text-white animate-pulse" />
@@ -694,12 +694,12 @@ export default function Metas() {
                             }`}>
                                 <div className="flex justify-between gap-8 mb-2">
                                     <span className="text-xs opacity-80 uppercase font-black tracking-wider">Cronograma</span>
-                                    <span className="text-xs font-bold"><span className="text-red-500 font-black">{diasUteisPassados}</span> / {diasUteisTotais} dias úteis</span>
+                                    <span className="text-xs font-bold text-red-500 font-black">{diasUteisRestantes} / {diasUteisTotais} <span className="text-[8px] opacity-70">dias restantes</span></span>
                                 </div>
                                 <div className="w-full h-1.5 bg-black/10 rounded-full overflow-hidden">
                                     <div 
-                                        className="h-full bg-white transition-all duration-1000" 
-                                        style={{ width: `${(diasUteisPassados/diasUteisTotais)*100}%` }} 
+                                        className="h-full bg-white transition-all duration-1000 shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
+                                        style={{ width: `${(diasUteisPassados / diasUteisTotais) * 100}%` }} 
                                     />
                                 </div>
                             </div>
