@@ -1,12 +1,13 @@
 import React from "react";
 import { useFunil } from "@/hooks/useFunil";
-import { FunilHeader } from "@/components/admin/funil/FunilHeader";
 import { FunilBoard } from "@/components/admin/funil/FunilBoard";
-import { FunilLegend } from "@/components/admin/funil/FunilLegend";
 import { FunilModals } from "@/components/admin/funil/FunilModals";
-import { TrendingUp, Zap } from "lucide-react";
+import { TrendingUp, Zap, FileText } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { formatLeadValue } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ADMINISTRADORAS } from "@/hooks/useFunil";
 
 export default function Funil() {
   const funilState = useFunil();
@@ -111,9 +112,58 @@ export default function Funil() {
         </div>
       </div>
 
-      <FunilHeader state={funilState} />
+      {/* Unified Control & Status Bar - High Density */}
+      <div className="flex flex-col lg:flex-row items-center gap-1.5 p-1 bg-slate-50/50 rounded-lg border border-slate-100">
+        <Tabs 
+          value={funilState.administradoraFilter} 
+          onValueChange={funilState.setAdministradoraFilter} 
+          className="shrink-0"
+        >
+          <TabsList className="h-7 bg-white border border-slate-200 p-0.5">
+            <TabsTrigger value="todos" className="text-[9px] font-black px-2 h-6 uppercase tracking-tighter">Todos</TabsTrigger>
+            {ADMINISTRADORAS.map(admin => (
+              <TabsTrigger key={admin} value={admin} className="text-[9px] font-black px-2 h-6 uppercase tracking-tighter">{admin}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div className="hidden lg:flex items-center bg-white p-0.5 rounded border border-slate-200 h-7 shrink-0">
+          <button
+            onClick={() => funilState.setIsWideView(false)}
+            className={`px-2 h-5 rounded text-[9px] font-black uppercase tracking-tighter transition-all ${!funilState.isWideView ? "bg-primary text-white shadow-sm" : "text-muted-foreground"}`}
+          >
+            Padrão
+          </button>
+          <button
+            onClick={() => funilState.setIsWideView(true)}
+            className={`px-2 h-5 rounded text-[9px] font-black uppercase tracking-tighter transition-all ${funilState.isWideView ? "bg-primary text-white shadow-sm" : "text-muted-foreground"}`}
+          >
+            Wide
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          <div className="flex gap-1 overflow-x-auto no-scrollbar w-full">
+            {displayLeads.slice(0, 15).map((l: any) => (
+              <span key={l.id} className={`text-[8px] font-black ${activeColor.bg} ${activeColor.text} px-1.5 py-0.5 rounded border ${activeColor.border} whitespace-nowrap`}>
+                {l.nome.split(' ')[0]}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={funilState.handleGenerateReport}
+          className="h-7 px-2 border-blue-200 text-blue-600 hover:bg-blue-50 text-[9px] font-black uppercase tracking-tighter"
+        >
+          <FileText className="h-3 w-3 mr-1" />
+          PDF
+        </Button>
+      </div>
+
       <FunilBoard state={funilState} />
-      <FunilLegend />
       <FunilModals state={funilState} />
 
       <style>{`
