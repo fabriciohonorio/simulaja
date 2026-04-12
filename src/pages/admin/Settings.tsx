@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/hooks/useProfile";
-import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown, Upload } from "lucide-react";
+import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown, Upload, CalendarDays } from "lucide-react";
 
 const ROLES = [
   { value: "admin", label: "Administrador" },
@@ -225,6 +225,38 @@ export default function Settings() {
                 <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-700 bg-slate-800/50">
                   ID: #{profile?.id?.substring(0, 8)}
                 </span>
+              </div>
+              
+              <div className="pt-4">
+                <Button 
+                  disabled={loading}
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      // Link current authenticated user with Google to get provider token
+                      const { error } = await supabase.auth.linkIdentity({
+                        provider: 'google',
+                        options: {
+                          redirectTo: `${window.location.origin}/admin/configuracoes`,
+                          scopes: "https://www.googleapis.com/auth/calendar.events",
+                        }
+                      });
+                      if (error) throw error;
+                    } catch (err: any) {
+                      toast({ title: "Erro na conexão", description: err.message, variant: "destructive" });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="bg-white text-slate-900 hover:bg-slate-100 font-bold tracking-tight rounded-xl"
+                  size="sm"
+                >
+                  <CalendarDays className="h-4 w-4 mr-2 text-blue-600" />
+                  Conectar Google Calendar
+                </Button>
+                <p className="text-[10px] text-slate-400 mt-2 max-w-sm mx-auto sm:mx-0">
+                  Integre sua agenda mantendo seu acesso atual via e-mail.
+                </p>
               </div>
             </div>
           </div>
