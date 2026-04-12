@@ -229,7 +229,7 @@ export default function AdminLayout() {
                 </header>
 
                 {/* Dynamic Page Content */}
-                <main className={`flex-1 overflow-auto bg-slate-50/50 relative ${isFunilPage ? 'p-0 sm:p-0 md:p-0' : 'p-4 sm:p-6 md:p-8'}`}>
+                <main className="flex-1 overflow-auto bg-slate-50/50 relative p-4 sm:p-6 md:p-8">
                     {/* Desktop Sidebar Toggle - Posicionado de forma fixa ou absoluta para fácil acesso */}
                     <button 
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

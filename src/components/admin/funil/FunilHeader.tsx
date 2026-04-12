@@ -14,7 +14,7 @@ export function FunilHeader({ state }: { state: any }) {
   } = state;
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
       <div className="flex items-center justify-between w-full md:w-auto">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Funil de Vendas</h1>
         <div className="flex md:hidden items-center gap-2">
