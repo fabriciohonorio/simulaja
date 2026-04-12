@@ -182,7 +182,7 @@ export function FunilBoard({ state }: { state: any }) {
 
         <div
           ref={kanbanRef}
-          className={`flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2 lg:px-4 scroll-smooth ${isWideView ? '' : 'justify-start'}`}
+          className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar px-1 lg:px-2 scroll-smooth ${isWideView ? '' : 'justify-start'}`}
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none'
@@ -198,13 +198,13 @@ export function FunilBoard({ state }: { state: any }) {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 backdrop-blur-sm p-3 flex flex-col h-[calc(100vh-410px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-                  style={{ width: columnWidths[col.id] || (isWideView ? 200 : 280), minWidth: isWideView ? 150 : 280 }}
+                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 backdrop-blur-sm p-2 flex flex-col h-[calc(100vh-390px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                  style={{ width: columnWidths[col.id] || (isWideView ? 180 : 240), minWidth: isWideView ? 140 : 230 }}
                 >
-                  <div className="mb-3 flex items-center justify-between">
+                  <div className="mb-2 flex items-center justify-between">
                     <div className="min-w-0 flex-1">
-                      <h3 className={`font-semibold text-sm truncate ${isWideView ? "text-[12px]" : ""}`}>{col.label}</h3>
-                      <p className="text-[10px] text-muted-foreground">
+                      <h3 className={`font-black text-[11px] truncate uppercase tracking-tighter ${isWideView ? "text-[10px]" : ""}`}>{col.label}</h3>
+                      <p className="text-[9px] text-muted-foreground -mt-0.5">
                         {colLeads.length} leads · {formatCurrency(totalValor)}
                       </p>
                     </div>
@@ -215,7 +215,7 @@ export function FunilBoard({ state }: { state: any }) {
                     className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-10"
                   />
 
-                  <div className="space-y-2 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px]">
+                  <div className="space-y-1.5 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px]">
                     {colLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
                     {provided.placeholder}
                   </div>

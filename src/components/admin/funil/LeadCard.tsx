@@ -164,8 +164,8 @@ export function LeadCard({
       );
     }
     return (
-      <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter border border-red-100">
-        <Clock className="w-2.5 h-2.5" /> {diasDesdeEntrada} {diasDesdeEntrada === 1 ? 'dia' : 'dias'}
+      <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1 py-0.5 rounded font-black uppercase tracking-tighter border border-red-100 text-[8px]">
+        <Clock className="w-2 h-2" /> {diasDesdeEntrada} {diasDesdeEntrada === 1 ? 'dia' : 'dias'}
       </span>
     );
   };
@@ -196,10 +196,10 @@ export function LeadCard({
         <div className="flex items-start justify-between gap-1">
           <div className="flex flex-col min-w-0 flex-1">
             <div className="flex items-center gap-1">
-              <p className={`font-black truncate text-foreground ${compact ? "text-[10px]" : "text-[11px]"}`}>{lead.nome}</p>
+              <p className={`font-black truncate text-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>{lead.nome}</p>
               
               {/* Pill Única Score + Temperatura */}
-              <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full border ${
+              <span className={`text-[8px] font-black px-1 py-0.5 rounded-full border ${
                 lead.lead_score_valor === "premium" || lead.lead_score_valor === "alto"
                   ? "bg-green-50 text-green-700 border-green-200"
                   : lead.lead_score_valor === "medio"
@@ -207,7 +207,7 @@ export function LeadCard({
                     : "bg-slate-50 text-slate-500 border-slate-200"
               }`}>
                 {lead.propensity_score !== null ? `${lead.propensity_score}%` : SCORE_SHORT[lead.lead_score_valor || "baixo"]}
-                {" · "} <span className="text-xs leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
+                {" · "} <span className="text-[10px] leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
               </span>
             </div>
             
@@ -237,11 +237,11 @@ export function LeadCard({
 
         {/* Linha de Valor + Prazo */}
         <div className="flex items-baseline gap-1">
-          <p className={`text-primary font-black ${compact ? "text-[10px]" : "text-sm"}`}>
+          <p className={`text-primary font-black ${compact ? "text-[9px]" : "text-[11px]"}`}>
             {formatLeadValue(Number(lead.valor_credito) || 0)}
           </p>
           {!compact && (
-            <span className="text-[9px] text-slate-400 font-bold">
+            <span className="text-[8px] text-slate-400 font-bold">
               · {lead.prazo_meses}m
             </span>
           )}
@@ -335,29 +335,29 @@ export function LeadCard({
               </div>
               
               {/* Botões de Ação */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                  className="w-5 h-5 rounded flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
                   title="Agendar">
-                  <CalendarIcon className="h-3 w-3" />
+                  <CalendarIcon className="h-2.5 w-2.5" />
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-6 h-6 rounded flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
+                  className="w-5 h-5 rounded flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
                   title="WhatsApp">
-                  <WhatsAppIcon className="h-3 w-3" />
+                  <WhatsAppIcon className="h-2.5 w-2.5" />
                 </a>
                 <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                  className="w-5 h-5 rounded flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
                   title="Histórico">
-                  <NotebookPen className="h-3 w-3" />
+                  <NotebookPen className="h-2.5 w-2.5" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
+                  className="w-5 h-5 rounded flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
                   title="Excluir">
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-2.5 w-2.5" />
                 </button>
               </div>
             </div>
