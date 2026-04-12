@@ -103,7 +103,7 @@ export default function AdminLayout() {
     }, [sidebarCollapsed]);
 
     const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
-        <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
+        <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
             <div className={`p-4 border-b border-sidebar-border text-center overflow-hidden h-28 flex items-center justify-center bg-white/50 backdrop-blur-sm`}>
                 {!collapsed ? (
                     <div className="flex flex-col items-center gap-1 transition-all duration-300 hover:scale-105">
@@ -236,7 +236,7 @@ export default function AdminLayout() {
                 </header>
 
                 {/* Dynamic Page Content */}
-                <main className="flex-1 overflow-auto bg-slate-50/50 relative p-4 sm:p-6 md:p-8">
+                <main className="flex-1 overflow-auto bg-slate-50/50 relative p-2 sm:p-2 md:p-3">
                     {/* Desktop Sidebar Toggle - Posicionado de forma fixa ou absoluta para fácil acesso */}
                     <button 
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
