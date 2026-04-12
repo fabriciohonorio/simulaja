@@ -674,14 +674,14 @@ export default function Metas() {
                                 <Activity className="h-8 w-8" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Pulsação Diária de Vendas</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Faturamento Médio Diário</p>
                                 <div className="flex items-baseline gap-2">
-                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight">{formatCurrency(ritmoAtual)}</h2>
-                                    <span className="text-xs font-bold opacity-80">/ dia realizado</span>
+                                    <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse">{formatCurrency(ritmoAtual)}</h2>
+                                    <span className="text-xs font-bold opacity-80">/ dia</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs font-medium opacity-100">
-                                    <Target className="h-3 w-3 text-red-500 animate-pulse transition-all drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
-                                    <span className="opacity-90">Necessário:</span> <span className="font-black text-red-500 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{formatCurrency(ritmoNecessario)}</span>
+                                    <Target className="h-3 w-3 text-white animate-pulse" />
+                                    <span className="opacity-80 font-bold">Meta Diária:</span> <span className="font-black text-white">{formatCurrency(ritmoNecessario)}</span>
                                 </div>
                             </div>
                         </div>
