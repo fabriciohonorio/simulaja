@@ -9,6 +9,8 @@ import { ptBR } from "date-fns/locale";
 import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
+import { TrendingUp, Zap, Sparkles } from "lucide-react";
 
 interface Lead {
   id: string;
@@ -62,9 +64,62 @@ export default function Agendamentos() {
     );
   }
 
+  const agendamentosHoje = agendas.filter(a => isToday(parseISO(a.data_vencimento!))).length;
+  const agendamentosAtrasados = agendas.filter(a => {
+    const d = parseISO(a.data_vencimento!);
+    return isPast(d) && !isToday(d);
+  }).length;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 animate-in fade-in duration-700">
+      {/* Gamified Agenda Hero */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
+          <AdminHeroCard 
+            title="Sua Agenda" 
+            subtitle="Compromissos & Follow-ups"
+            icon={CalendarDays} 
+            bgIcon={CalendarDays}
+            accentColor="primary"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-2">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                  Organização <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600">da Rotina</span>
+                </h1>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                   Não perca o tempo do fechamento. Sua agenda centraliza todos os retornos marcados no funil e sincronizados com seu Google Calendar.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Agendado</p>
+                  <p className="text-lg font-black text-purple-600">{agendas.length}</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Hoje</p>
+                  <p className="text-lg font-black text-slate-900">{agendamentosHoje}</p>
+                </div>
+              </div>
+            </div>
+          </AdminHeroCard>
+        </div>
+
+        <div className="lg:col-span-4 grid grid-cols-1 gap-4">
+          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xl shadow-amber-500/20 transition-all hover:scale-[1.02] cursor-default">
+             <div className="flex items-center gap-2 opacity-90 mb-2">
+                <span className="p-1.5 bg-white/20 rounded-lg"><Clock className="h-4 w-4" /></span>
+                <p className="text-[10px] font-black uppercase tracking-widest">Atenção Prioritária</p>
+             </div>
+             <p className="text-3xl font-black">{agendamentosAtrasados}</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold mt-2">Retornos Atrasados</p>
+             <TrendingUp className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Agendamentos de Contato</h1>
           <p className="text-sm text-muted-foreground italic">Listagem de todos os leads com retorno agendado.</p>

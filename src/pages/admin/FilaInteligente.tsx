@@ -17,6 +17,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 
 
 interface Lead {
@@ -112,8 +113,58 @@ export default function FilaInteligente() {
 
     if (loading) return <div className="flex justify-center py-20 animate-pulse text-primary font-bold">Gerando fila inteligente...</div>;
 
+    const totalValorFila = prioritizedLeads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+    const leadsQuentesFila = prioritizedLeads.filter(l => l.lead_temperatura === 'quente').length;
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-700">
+            {/* Gamified Fila Hero */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8">
+                    <AdminHeroCard 
+                        title="Fila de Atendimento" 
+                        subtitle="Inteligência de Priorização Jarvis"
+                        icon={Target} 
+                        bgIcon={Target}
+                        accentColor="primary"
+                    >
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div className="space-y-2">
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                                    Foco <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">no que Importa</span>
+                                </h1>
+                                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                                    O Jarvis prioriza seus leads em tempo real baseando-se em Temperatura, Score de Crédito e Tempo de Espera. Siga a ordem e maximize sua conversão.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Volume em Fila</p>
+                                    <p className="text-lg font-black text-blue-600">{formatLeadValue(totalValorFila)}</p>
+                                </div>
+                                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Leads Ativos</p>
+                                    <p className="text-lg font-black text-slate-900">{prioritizedLeads.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </AdminHeroCard>
+                </div>
+
+                <div className="lg:col-span-4 grid grid-cols-1 gap-4">
+                    <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-default">
+                        <div className="flex items-center gap-2 opacity-90 mb-2">
+                            <span className="p-1.5 bg-white/20 rounded-lg"><Zap className="h-4 w-4" /></span>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-white">Atenção Crítica</p>
+                        </div>
+                        <p className="text-3xl font-black text-white">{leadsQuentesFila}</p>
+                        <p className="text-[10px] bg-white/20 text-white w-fit px-2 py-0.5 rounded-full font-bold mt-2">Leads Quentes na Fila</p>
+                        <Target className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+                    </div>
+                </div>
+            </div>
+
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Fila Inteligente de Atendimento</h1>

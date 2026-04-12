@@ -139,7 +139,7 @@ export function FunilBoard({ state }: { state: any }) {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto no-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-450px)] overflow-y-auto no-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
               >
                 <div className="space-y-2">
                   {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
@@ -198,7 +198,7 @@ export function FunilBoard({ state }: { state: any }) {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 backdrop-blur-sm p-3 flex flex-col h-[calc(100vh-260px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 backdrop-blur-sm p-3 flex flex-col h-[calc(100vh-410px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
                   style={{ width: columnWidths[col.id] || (isWideView ? 200 : 280), minWidth: isWideView ? 150 : 280 }}
                 >
                   <div className="mb-3 flex items-center justify-between">

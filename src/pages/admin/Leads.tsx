@@ -16,6 +16,7 @@ import { LeadForm, LeadFormData, STATUS_OPTIONS, TIPO_OPTIONS, TEMPERATURA_OPTIO
 import { zapiService } from "@/services/zapi";
 import { aiService } from "@/services/aiService";
 import { toast } from "sonner";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 
 interface Lead {
   id: string;
@@ -386,8 +387,59 @@ export default function Leads() {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
 
+  const leadsPremium = leads.filter(l => l.lead_score_valor === 'premium').length;
+  const leadsEsteMes = leads.filter(l => l.created_at?.startsWith(format(new Date(), "yyyy-MM"))).length;
+  const totalCredito = leads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-in fade-in duration-700">
+      {/* Gamified Leads Hero */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
+          <AdminHeroCard 
+            title="Base de Leads" 
+            subtitle="Inteligência de Mercado & Prospecção"
+            icon={Users} 
+            bgIcon={Users}
+            accentColor="primary"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-2">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                  Gestão <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Estratégica</span> de Leads
+                </h1>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                  Sua base de dados organizada para conversão. Utilize os filtros avançados e o Jarvis para automatizar seu primeiro contato.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total em Carteira</p>
+                  <p className="text-lg font-black text-blue-600">{formatLeadValue(totalCredito)}</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Registrados</p>
+                  <p className="text-lg font-black text-slate-900">{leads.length}</p>
+                </div>
+              </div>
+            </div>
+          </AdminHeroCard>
+        </div>
+
+        <div className="lg:col-span-4 grid grid-cols-1 gap-4">
+          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-default">
+             <div className="flex items-center gap-2 opacity-90 mb-2">
+                <span className="p-1.5 bg-white/20 rounded-lg"><Sparkles className="h-4 w-4" /></span>
+                <p className="text-[10px] font-black uppercase tracking-widest">Performance Mensal</p>
+             </div>
+             <p className="text-3xl font-black">+{leadsEsteMes}</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold mt-2">Novos Leads este Mês</p>
+             <TrendingUp className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
         <div className="flex items-center justify-between w-full md:w-auto">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leads</h1>

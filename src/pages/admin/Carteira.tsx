@@ -41,12 +41,14 @@ import {
   UserX,
   List,
   Edit2,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { jsPDF } from "jspdf";
 import { GRUPOS, CATEGORIAS } from "@/components/ConsortiumSimulator";
 import { getLoteriaStatus } from "@/lib/consortium-logic";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 
 interface CarteiraItem {
   id: string;
@@ -665,6 +667,56 @@ export default function Carteira() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-700">
+      {/* Gamified Carteira Hero */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
+          <AdminHeroCard 
+            title="Sua Carteira" 
+            subtitle="Pós-Venda & Gestão de Cota"
+            icon={Trophy} 
+            bgIcon={Trophy}
+            accentColor="primary"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-2">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                  Performance da <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">Sua Base</span>
+                </h1>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                  Gerencie seus clientes com eficiência. Acompanhe contemplações, envie boletos via WhatsApp e mantenha o pós-venda em dia.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Contemplados</p>
+                  <p className="text-lg font-black text-amber-600">{contemplados} / {total}</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Taxa de Sucesso</p>
+                  <p className="text-lg font-black text-slate-900">{pctContemplacao}%</p>
+                </div>
+              </div>
+            </div>
+          </AdminHeroCard>
+        </div>
+
+        <div className="lg:col-span-4 grid grid-cols-1 gap-4">
+          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl shadow-indigo-500/20 transition-all hover:scale-[1.02] cursor-default">
+             <div className="flex items-center gap-2 opacity-90 mb-2">
+                <span className="p-1.5 bg-white/20 rounded-lg"><CheckCircle className="h-4 w-4" /></span>
+                <p className="text-[10px] font-black uppercase tracking-widest">Controle Financeiro</p>
+             </div>
+             <p className="text-3xl font-black">{items.filter(i => i.boleto_url).length}</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold mt-2">Boletos Carregados</p>
+             <Clock className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+          </div>
+        </div>
+      </div>
+
 
   const BoletoActions = ({ item }: { item: CarteiraItem }) => (
     <div className="flex items-center gap-1">

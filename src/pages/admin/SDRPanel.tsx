@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Phone, MessageSquare, ClipboardList, TrendingUp, AlertCircle, Clock, CheckCircle2, Search, Filter, ChevronRight, MessageCircle, DollarSign, Calendar, UserPlus, Bot, Zap, Sparkles, ShieldCheck, Check, Copy } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { toast } from "sonner";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 
 interface Lead {
     id: string;
@@ -71,15 +72,54 @@ export default function SDRPanel() {
 
     if (loading) return <div className="flex justify-center py-20 animate-pulse text-primary font-bold">Iniciando Agente SDR...</div>;
 
+    const totalCreditoFila = leads.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                    <Bot className="h-8 w-8 text-primary" />
+        <div className="space-y-6 animate-in fade-in duration-700">
+            {/* Gamified SDR Hero */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8">
+                    <AdminHeroCard 
+                        title="Inteligência de Atendimento" 
+                        subtitle="Módulo Agente SDR Jarvis"
+                        icon={Bot} 
+                        bgIcon={Bot}
+                        accentColor="primary"
+                    >
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div className="space-y-2">
+                                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                                    Seu Vendedor <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Digital Ativo</span>
+                                </h1>
+                                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                                    O Jarvis analisa o histórico e gera scripts exclusivos para cada oportunidade. Foque nos leads de alta propensão para bater suas metas.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Volume Analisado</p>
+                                    <p className="text-lg font-black text-blue-600">{formatLeadValue(totalCreditoFila)}</p>
+                                </div>
+                                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Leads na Mesa</p>
+                                    <p className="text-lg font-black text-slate-900">{leads.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </AdminHeroCard>
                 </div>
-                <div>
-                    <h1 className="text-2xl font-bold">Painel SDR de IA</h1>
-                    <p className="text-sm text-muted-foreground italic">Inteligência Artificial monitorando e gerando oportunidades</p>
+
+                <div className="lg:col-span-4 grid grid-cols-1 gap-4">
+                    <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-default">
+                        <div className="flex items-center gap-2 opacity-90 mb-2">
+                            <span className="p-1.5 bg-white/20 rounded-lg"><Sparkles className="h-4 w-4" /></span>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-white">Oportunidades de Ouro</p>
+                        </div>
+                        <p className="text-3xl font-black text-white">{urgentLeads.length}</p>
+                        <p className="text-[10px] bg-white/20 text-white w-fit px-2 py-0.5 rounded-full font-bold mt-2">Leads de Alta Propensão</p>
+                        <Bot className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+                    </div>
                 </div>
             </div>
 

@@ -642,11 +642,11 @@ export default function Metas() {
                     subtitle="IA Insight & Análise de Performance"
                     icon={Sparkles} 
                     bgIcon={Target}
-                    accentColor="emerald"
+                    accentColor="primary"
                 >
                     <div className="flex gap-4 items-start">
                         <div className="space-y-2 flex-1">
-                            <p className="text-sm leading-relaxed font-semibold text-white/90">
+                            <p className="text-sm leading-relaxed font-semibold text-slate-800">
                                 {resumoIA}
                             </p>
                         </div>
@@ -671,7 +671,7 @@ export default function Metas() {
                     <CardContent className="p-0">
                         {/* Header Area - Vibrant Light Header */}
                         <div className={`flex items-center justify-between px-6 py-2.5 text-white bg-gradient-to-r shadow-sm ${
-                            ritmoStatus === 'verde' ? 'from-emerald-500 to-teal-600' : 
+                            ritmoStatus === 'verde' ? 'from-blue-600 to-indigo-700' : 
                             ritmoStatus === 'amarelo' ? 'from-amber-400 to-orange-500' : 
                             'from-red-500 to-pink-600'
                         }`}>

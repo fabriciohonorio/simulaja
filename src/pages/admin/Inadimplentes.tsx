@@ -9,10 +9,11 @@ import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
+import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
+import { TrendingUp, Zap, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -232,7 +233,54 @@ export default function Inadimplentes() {
   const currentColItems = getColumnItems(currentCol.id);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-in fade-in duration-700">
+      {/* Gamified Inadimplentes Hero */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
+          <AdminHeroCard 
+            title="Recuperação de Crédito" 
+            subtitle="Gestão de Inadimplência & Renegociação"
+            icon={AlertTriangle} 
+            bgIcon={AlertTriangle}
+            accentColor="primary"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-2">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                  Monitoramento <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-600">em Tempo Real</span>
+                </h1>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                   Recupere créditos e re-ative sua base. Utilize as réguas de cobrança automatizadas via WhatsApp para escalar suas regularizações.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 w-full md:w-auto">
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Volume em Atraso</p>
+                  <p className="text-lg font-black text-red-600">{formatCurrency(totalValorAtrasado)}</p>
+                </div>
+                <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Clientes</p>
+                  <p className="text-lg font-black text-slate-900">{totalAtrasados}</p>
+                </div>
+              </div>
+            </div>
+          </AdminHeroCard>
+        </div>
+
+        <div className="lg:col-span-4 grid grid-cols-1 gap-4">
+          <div className="relative group overflow-hidden p-4 rounded-[24px] bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-xl shadow-purple-500/20 transition-all hover:scale-[1.02] cursor-default">
+             <div className="flex items-center gap-2 opacity-90 mb-2">
+                <span className="p-1.5 bg-white/20 rounded-lg"><Zap className="h-4 w-4" /></span>
+                <p className="text-[10px] font-black uppercase tracking-widest">Régua de Cobrança</p>
+             </div>
+             <p className="text-3xl font-black">{data.filter(d => d.status === 'notificado').length}</p>
+             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold mt-2">Mensagens Enviadas</p>
+             <MessageCircle className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
         <div className="flex items-center justify-between w-full md:w-auto">
