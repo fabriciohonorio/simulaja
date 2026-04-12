@@ -402,11 +402,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {profile?.id && (
+      {/* {profile?.id && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <StreakBadge userId={profile.id} variant="full" />
         </div>
-      )}
+      )} */}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>

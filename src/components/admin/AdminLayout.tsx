@@ -137,11 +137,11 @@ export default function AdminLayout() {
                         {profile?.tipo_acesso === 'admin' ? 'Administrador' : profile?.tipo_acesso === 'manager' ? 'Manager' : 'Vendedor'}
                     </div>
 
-                    {profile?.id && (
+                    {/* {profile?.id && (
                         <div className="mt-3 scale-95 origin-left">
                             <StreakBadge userId={profile.id} variant="compact" />
                         </div>
-                    )}
+                    )} */}
                 </div>
             )}
 
