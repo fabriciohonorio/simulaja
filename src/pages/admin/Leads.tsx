@@ -58,19 +58,29 @@ export default function Leads() {
     setSubmitting(true);
     try {
       const payload = {
-        ...formData,
-        valor_credito: Number(formData.valor_credito),
-        prazo_meses: Number(formData.prazo_meses),
+        nome: formData.nome,
+        email: formData.email || null,
+        celular: formData.celular,
+        cidade: formData.cidade || null,
+        tipo_consorcio: formData.tipo_consorcio,
+        valor_credito: Number(formData.valor_credito) || 0,
+        prazo_meses: Number(formData.prazo_meses) || 0,
+        status: formData.status,
+        lead_temperatura: formData.lead_temperatura || "morno",
+        lead_score_valor: formData.lead_score_valor || "medio",
+        administradora: formData.administradora === "none" ? null : (formData.administradora || null),
+        indicador_nome: formData.indicador_nome || null,
+        indicador_celular: formData.indicador_celular || null,
         organizacao_id: profile?.organizacao_id,
       };
 
       if (editingLead) {
         const { error } = await supabase.from("leads").update(payload).eq("id", editingLead.id);
-        if (error) throw error;
+        if (error) { console.error("Erro update:", error); throw error; }
         toast.success("Lead atualizado");
       } else {
         const { error } = await supabase.from("leads").insert([payload]);
-        if (error) throw error;
+        if (error) { console.error("Erro insert:", error); throw error; }
         toast.success("Lead criado com sucesso!");
       }
       setIsDialogOpen(false);
