@@ -32,8 +32,12 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
   try {
     const updatePayload: any = { 
       status: newStatus,
-      status_updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString()
     };
+    
+    if (tableName !== "inadimplentes") {
+      updatePayload.status_updated_at = new Date().toISOString();
+    }
     
     const { error } = await (supabase.from(tableName as any) as any)
       .update(updatePayload)
