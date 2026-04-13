@@ -2,11 +2,12 @@ import React from "react";
 import { useFunil } from "@/hooks/useFunil";
 import { FunilBoard } from "@/components/admin/funil/FunilBoard";
 import { FunilModals } from "@/components/admin/funil/FunilModals";
-import { TrendingUp, Zap, FileText } from "lucide-react";
+import { TrendingUp, Zap, FileText, Search } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { formatLeadValue } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ADMINISTRADORAS } from "@/hooks/useFunil";
 import StreakBadge from "@/components/admin/StreakBadge";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 export default function Funil() {
   const funilState = useFunil();
   const [selectedCategory, setSelectedCategory] = React.useState<'quente' | 'morno' | 'frio' | 'todos'>('quente');
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   if (funilState.loading) {
     return (
@@ -121,6 +123,17 @@ export default function Funil() {
 
       {/* Unified Control & Status Bar - High Density */}
       <div className="flex flex-col lg:flex-row items-center gap-1.5 p-1 bg-slate-50/50 rounded-lg border border-slate-100">
+        {/* Search */}
+        <div className="relative w-full lg:w-auto lg:flex-1">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+          <Input
+            placeholder="Buscar lead por nome..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-7 h-7 text-[10px] bg-white border-slate-200 rounded font-medium"
+          />
+        </div>
+
         <Tabs 
           value={funilState.administradoraFilter} 
           onValueChange={funilState.setAdministradoraFilter} 
@@ -166,7 +179,7 @@ export default function Funil() {
         </div>
       </div>
 
-      <FunilBoard state={funilState} />
+      <FunilBoard state={funilState} searchTerm={searchTerm} />
       <FunilModals state={funilState} />
 
       <style>{`

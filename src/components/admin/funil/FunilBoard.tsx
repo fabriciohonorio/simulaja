@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { parseISO } from "date-fns";
 import { Lead } from "@/types/funil";
 
-export function FunilBoard({ state }: { state: any }) {
+export function FunilBoard({ state, searchTerm = "" }: { state: any; searchTerm?: string }) {
   const {
     leads,
     setLeads,
@@ -35,7 +35,9 @@ export function FunilBoard({ state }: { state: any }) {
   } = state;
 
   const currentCol = COLUMNS[mobileColIdx];
-  const currentColLeads = getColumnLeads(currentCol.id);
+  const currentColLeads = getColumnLeads(currentCol.id).filter((l: Lead) =>
+    !searchTerm || (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const currentColTotal = currentColLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
   const renderLeadCard = (lead: Lead, idx: number) => (
@@ -189,7 +191,9 @@ export function FunilBoard({ state }: { state: any }) {
           }}
         >
         {COLUMNS.map((col) => {
-          const colLeads = getColumnLeads(col.id);
+          const colLeads = getColumnLeads(col.id).filter((l: Lead) =>
+            !searchTerm || (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase())
+          );
           const totalValor = colLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
           return (

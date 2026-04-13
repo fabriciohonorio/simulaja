@@ -202,16 +202,21 @@ export function LeadCard({
             <div className="flex items-center gap-1">
               <p className={`font-black truncate text-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>{lead.nome || "Lead"}</p>
               
-              {/* Pill Única Score + Temperatura */}
-              <span className={`text-[8px] font-black px-1 py-0.5 rounded-full border ${
-                lead.lead_score_valor === "premium" || lead.lead_score_valor === "alto"
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : lead.lead_score_valor === "medio"
-                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                    : "bg-slate-50 text-slate-500 border-slate-200"
+              {/* Pill Temperatura + Score */}
+              <span className={`flex items-center gap-0.5 text-[8px] font-black px-1.5 py-0.5 rounded-full border ${
+                lead.lead_temperatura === "quente"
+                  ? "bg-red-50 text-red-600 border-red-200"
+                  : lead.lead_temperatura === "morno"
+                    ? "bg-amber-50 text-amber-600 border-amber-200"
+                    : lead.lead_temperatura === "frio"
+                      ? "bg-blue-50 text-blue-600 border-blue-200"
+                      : "bg-slate-50 text-slate-500 border-slate-200"
               }`}>
-                {lead.propensity_score !== null ? `${lead.propensity_score}%` : SCORE_SHORT[lead.lead_score_valor || "baixo"]}
-                {" · "} <span className="text-[10px] leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "quente"]}</span>
+                <span className="text-[10px] leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "frio"]}</span>
+                <span>{TEMP_LABELS[lead.lead_temperatura || "frio"]}</span>
+                {lead.propensity_score !== null && lead.propensity_score !== undefined && (
+                  <span className="opacity-70 ml-0.5">· {lead.propensity_score}%</span>
+                )}
               </span>
             </div>
             
