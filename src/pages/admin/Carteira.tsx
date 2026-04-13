@@ -94,13 +94,15 @@ export default function Carteira() {
       });
 
       if (duplicatesToDelete.length > 0) {
-        await supabase.from("carteira").delete().in("id", duplicatesToDelete);
-        console.log(`Limpou ${duplicatesToDelete.length} duplicatas silenciosamente.`);
+        const { error: delError } = await supabase.from("carteira").delete().in("id", duplicatesToDelete);
+        if (delError) console.error("Não foi possível excluir fisicamente:", delError);
+        console.log(`Encontrou ${duplicatesToDelete.length} duplicatas.`);
       }
 
       setClientes(uniqueClients);
     } catch (e) {
       toast({ title: "Erro ao carregar carteira", variant: "destructive" });
+      console.error(e);
     } finally {
       setLoading(false);
     }
