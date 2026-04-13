@@ -86,7 +86,7 @@ export default function MissoesDiarias({
       </div>
 
       {/* Mission Cards */}
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         {resultado.missoes.map((missao) => {
           const Icon = ICON_MAP[missao.id] || Zap;
           const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
