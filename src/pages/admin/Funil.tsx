@@ -16,6 +16,7 @@ export default function Funil() {
   const funilState = useFunil();
   const [selectedCategory, setSelectedCategory] = React.useState<'quente' | 'morno' | 'frio' | 'todos'>('quente');
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [quickFilter, setQuickFilter] = React.useState<'todos' | 'atrasados' | 'sem_tratativa' | 'hoje'>('todos');
 
   if (funilState.loading) {
     return (
@@ -121,6 +122,29 @@ export default function Funil() {
         </div>
       </div>
 
+      {/* Quick Filters */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0">Filtrar:</span>
+        {[
+          { id: 'todos', label: '🗂 Todos' },
+          { id: 'atrasados', label: '🔴 +14 dias sem fechar' },
+          { id: 'sem_tratativa', label: '💬 Sem tratativa' },
+          { id: 'hoje', label: '📅 Vence hoje' },
+        ].map(f => (
+          <button
+            key={f.id}
+            onClick={() => setQuickFilter(f.id as any)}
+            className={`text-[9px] font-black px-2 py-1 rounded-full border transition-all ${
+              quickFilter === f.id
+                ? 'bg-primary text-white border-primary shadow-sm'
+                : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* Unified Control & Status Bar - High Density */}
       <div className="flex flex-col lg:flex-row items-center gap-1.5 p-1 bg-slate-50/50 rounded-lg border border-slate-100">
         {/* Search */}
@@ -179,7 +203,7 @@ export default function Funil() {
         </div>
       </div>
 
-      <FunilBoard state={funilState} searchTerm={searchTerm} />
+      <FunilBoard state={funilState} searchTerm={searchTerm} quickFilter={quickFilter} />
       <FunilModals state={funilState} />
 
       <style>{`

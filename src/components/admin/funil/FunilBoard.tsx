@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { parseISO } from "date-fns";
 import { Lead } from "@/types/funil";
 
-export function FunilBoard({ state, searchTerm = "" }: { state: any; searchTerm?: string }) {
+export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { state: any; searchTerm?: string; quickFilter?: string }) {
   const {
     leads,
     setLeads,
@@ -35,9 +35,23 @@ export function FunilBoard({ state, searchTerm = "" }: { state: any; searchTerm?
   } = state;
 
   const currentCol = COLUMNS[mobileColIdx];
-  const currentColLeads = getColumnLeads(currentCol.id).filter((l: Lead) =>
-    !searchTerm || (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const applyFilters = (leads: Lead[]) => {
+    return leads.filter((l: Lead) => {
+      const matchSearch = !searchTerm || (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dias = l.created_at ? Math.max(0, Math.floor((Date.now() - new Date(l.created_at).getTime()) / 86400000)) : 0;
+      const matchQuick =
+        quickFilter === 'todos' ? true :
+        quickFilter === 'atrasados' ? dias > 14 :
+        quickFilter === 'sem_tratativa' ? !(l as any).ultima_tratativa :
+        quickFilter === 'hoje' ? (l.data_vencimento ? new Date(l.data_vencimento).toDateString() === today.toDateString() : false) :
+        true;
+      return matchSearch && matchQuick;
+    });
+  };
+
+  const currentColLeads = applyFilters(getColumnLeads(currentCol.id));
   const currentColTotal = currentColLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
   const renderLeadCard = (lead: Lead, idx: number) => (
@@ -191,9 +205,7 @@ export function FunilBoard({ state, searchTerm = "" }: { state: any; searchTerm?
           }}
         >
         {COLUMNS.map((col) => {
-          const colLeads = getColumnLeads(col.id).filter((l: Lead) =>
-            !searchTerm || (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase())
-          );
+          const colLeads = applyFilters(getColumnLeads(col.id));
           const totalValor = colLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
           return (

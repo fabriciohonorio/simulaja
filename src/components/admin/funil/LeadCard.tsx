@@ -179,138 +179,158 @@ export function LeadCard({
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`group relative bg-background border border-border/60 rounded-xl overflow-hidden transition-all duration-300
+      className={`group relative bg-white border rounded-xl overflow-hidden transition-all duration-200
         ${compact ? "text-[11px]" : "text-sm"}
-        ${statusNormalized === "fechado" ? "border-green-300 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : "hover:shadow-md hover:border-primary/20"}
-        ${statusNormalized === "morto" ? "opacity-60" : ""}
-        ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 scale-105 z-[9999] rotate-2 bg-white/95 backdrop-blur-sm" : "shadow-sm"}
+        ${statusNormalized === "fechado" ? "border-emerald-200/80 shadow-[0_0_12px_rgba(34,197,94,0.08)]" : "border-slate-200/70 hover:shadow-lg hover:shadow-slate-200/60 hover:border-slate-300/60 hover:-translate-y-0.5"}
+        ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
+        ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/30 scale-105 z-[9999] rotate-1 bg-white backdrop-blur-sm" : "shadow-sm"}
       `}
     >
       {/* Faixa lateral colorida */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+      <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${
         statusNormalized === "fechado"
-          ? "bg-green-500"
-          : TEMP_STRIPE[lead.lead_temperatura || "quente"] || "bg-red-500"
+          ? "bg-emerald-400"
+          : TEMP_STRIPE[lead.lead_temperatura || "frio"] || "bg-slate-300"
       }`} />
 
-      {/* Conteúdo com padding-left maior */}
-      <div className={compact ? "pl-2.5 pr-2 pt-1.5 pb-1 space-y-0.5" : "pl-3.5 pr-2 pt-2.5 pb-2 space-y-1.5"}>
+      {/* Badge urgência circular — canto superior direito */}
+      {diasDesdeEntrada > 5 && statusNormalized !== "fechado" && statusNormalized !== "morto" && (
+        <div className={`absolute top-1.5 right-1.5 flex items-center justify-center rounded-full text-[7px] font-black leading-none w-6 h-6 z-10 border-2 border-white shadow-sm ${
+          diasDesdeEntrada > 30 ? "bg-red-500 text-white" :
+          diasDesdeEntrada > 14 ? "bg-orange-400 text-white" :
+          "bg-amber-100 text-amber-700 border-amber-200"
+        }`}>
+          {diasDesdeEntrada > 99 ? "99+" : diasDesdeEntrada}d
+        </div>
+      )}
+
+      {/* Conteúdo com padding interno maior */}
+      <div className={compact ? "pl-3 pr-6 pt-2 pb-1.5 space-y-1" : "pl-4 pr-7 pt-2.5 pb-2.5 space-y-2"}>
         
-        {/* Header: Nome + Score */}
-        <div className="flex items-start justify-between gap-1">
-          <div className="flex flex-col min-w-0 flex-1">
-            <div className="flex items-center gap-1">
-              <p className={`font-black truncate text-foreground ${compact ? "text-[9px]" : "text-[10px]"}`}>{lead.nome || "Lead"}</p>
-              
-              {/* Pill Temperatura + Score */}
-              <span className={`flex items-center gap-0.5 text-[8px] font-black px-1.5 py-0.5 rounded-full border ${
-                lead.lead_temperatura === "quente"
-                  ? "bg-red-50 text-red-600 border-red-200"
-                  : lead.lead_temperatura === "morno"
-                    ? "bg-amber-50 text-amber-600 border-amber-200"
-                    : lead.lead_temperatura === "frio"
-                      ? "bg-blue-50 text-blue-600 border-blue-200"
-                      : "bg-slate-50 text-slate-500 border-slate-200"
-              }`}>
-                <span className="text-[10px] leading-none">{TEMP_EMOJIS[lead.lead_temperatura || "frio"]}</span>
-                <span>{TEMP_LABELS[lead.lead_temperatura || "frio"]}</span>
-                {lead.propensity_score !== null && lead.propensity_score !== undefined && (
-                  <span className="opacity-70 ml-0.5">· {lead.propensity_score}%</span>
-                )}
+        {/* Header: Nome + Temperatura */}
+        <div className="flex flex-col min-w-0">
+          <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{lead.nome || "Lead"}</p>
+          
+          {/* Pill Temperatura — saturação reduzida */}
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className={`inline-flex items-center gap-0.5 text-[7px] font-black px-1.5 py-[2px] rounded border ${
+              lead.lead_temperatura === "quente"
+                ? "bg-red-50/80 text-red-500 border-red-100"
+                : lead.lead_temperatura === "morno"
+                  ? "bg-amber-50/80 text-amber-500 border-amber-100"
+                  : lead.lead_temperatura === "frio"
+                    ? "bg-sky-50/80 text-sky-500 border-sky-100"
+                    : "bg-slate-50 text-slate-400 border-slate-100"
+            }`}>
+              {TEMP_EMOJIS[lead.lead_temperatura || "frio"]}
+              {TEMP_LABELS[lead.lead_temperatura || "frio"]}
+            </span>
+            {lead.propensity_score !== null && lead.propensity_score !== undefined && (
+              <span className="text-[7px] font-black text-slate-400 bg-slate-50 border border-slate-100 px-1 py-[2px] rounded">
+                {lead.propensity_score}%
               </span>
-            </div>
-            
-            {/* Inline link celular / indicador */}
-            {!compact && (
-              <div className="flex items-center gap-1 text-[10px] text-slate-700 font-bold mt-0.5">
-                {lead.indicador_nome && <span className="opacity-70">via {lead.indicador_nome} · </span>}
-                {lead.celular && (
-                  <a
-                    href={`tel:${lead.celular.replace(/\D/g, "")}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-primary/70 hover:text-primary hover:underline flex items-center"
-                  >
-                    <Phone className="h-3 w-3 mr-0.5 inline" />
-                    {lead.celular}
-                  </a>
-                )}
-              </div>
             )}
-            
-            {/* Timing info */}
-            <div className="flex items-center gap-1 mt-1 text-[9px]">
-               {timeInfoText()}
-            </div>
           </div>
         </div>
 
-        {/* Linha de Valor + Prazo */}
-        <div className="flex items-baseline gap-1">
-          <p className={`text-primary font-black ${compact ? "text-[9px]" : "text-[11px]"}`}>
+        {/* Celular + Indicador */}
+        {!compact && (
+          <div className="flex flex-col gap-0.5">
+            {lead.celular && (
+              <a
+                href={`tel:${lead.celular.replace(/\D/g, "")}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1 text-[9px] text-slate-500 font-medium hover:text-primary transition-colors"
+              >
+                <Phone className="h-2.5 w-2.5 shrink-0" />
+                {lead.celular}
+              </a>
+            )}
+            {lead.indicador_nome && (
+              <span className="text-[8px] text-slate-400 font-medium">via {lead.indicador_nome}</span>
+            )}
+          </div>
+        )}
+
+        {/* Timing */}
+        <div className="flex items-center gap-1 text-[8px]">
+          {statusNormalized === "novo_lead" ? (
+            <span className="text-sky-500 font-bold">
+              Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"} · {diasDesdeEntrada}d
+            </span>
+          ) : statusNormalized === "fechado" ? (
+            <span className="text-emerald-600 font-black">
+              🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"} · {diasDesdeEntrada}d
+            </span>
+          ) : (
+            <span className={`font-black ${diasDesdeEntrada > 14 ? "text-red-500" : "text-slate-400"}`}>
+              <Clock className="w-2 h-2 inline mr-0.5" />
+              {diasDesdeEntrada} {diasDesdeEntrada === 1 ? "dia" : "dias"} na etapa
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-baseline gap-1.5 pt-0.5">
+          <p className={`text-primary font-black ${compact ? "text-[10px]" : "text-[12px]"}`}>
             {formatLeadValue(Number(lead.valor_credito) || 0)}
           </p>
           {!compact && (
-            <span className="text-[8px] text-slate-400 font-bold">
+            <span className="text-[9px] text-slate-400 font-bold">
               · {lead.prazo_meses}m
             </span>
           )}
         </div>
 
-        {/* Última tratativa */}
         {ultimaTratativa ? (
           <button
             onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-            className="w-full text-left mt-1"
+            className="w-full text-left"
           >
-            <div className={`flex items-start gap-1 rounded bg-muted/50 hover:bg-muted transition-colors ${compact ? "px-1 py-0.5" : "px-2 py-1.5"}`}>
-              <NotebookPen className={`text-muted-foreground mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
-              <div className="min-w-0 flex-1">
-                <p className={`${compact ? "text-[8px]" : "text-[10px]"} font-black text-slate-800 truncate`}>
-                  {ultimaTratativa!.observacao || "Sem observação"}
-                </p>
-              </div>
+            <div className={`flex items-start gap-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors ${compact ? "px-1.5 py-0.5" : "px-2 py-1.5"}`}>
+              <NotebookPen className={`text-slate-400 mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
+              <p className={`${compact ? "text-[8px]" : "text-[9px]"} font-medium text-slate-600 truncate`}>
+                {ultimaTratativa!.observacao || "Sem observação"}
+              </p>
             </div>
           </button>
         ) : (!compact && !isFechado) && (
           <button
             onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-            className="w-full flex items-center gap-1 px-1.5 py-1 mt-1 rounded border border-dashed border-border/70 text-[9px] text-muted-foreground/60 hover:border-primary/30 hover:text-primary/60 transition-colors"
+            className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-slate-200 text-[9px] text-slate-400 hover:border-primary/30 hover:text-primary/60 transition-colors"
           >
-            <Plus className="h-3 w-3" /> Tratativa
+            <Plus className="h-3 w-3" /> Adicionar tratativa
           </button>
         )}
 
-        {/* Agendamento (Strip do Calendar) */}
         {lead.data_vencimento && !isFechado && (
-          <div className={`flex items-center justify-between px-2 py-1 text-[10px] font-medium border-y mt-2 ${
+          <div className={`flex items-center justify-between px-2 py-1 text-[9px] font-medium rounded-lg ${
             vencAtrasado
-              ? "bg-red-50 border-red-100 text-red-700"
+              ? "bg-red-50 text-red-600 border border-red-100"
               : vencHoje
-                ? "bg-amber-50 border-amber-100 text-amber-700"
-                : "bg-blue-50 border-blue-100 text-blue-700"
+                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                : "bg-sky-50 text-sky-600 border border-sky-100"
           }`}>
             <span className="flex items-center gap-1">
-              {(vencHoje || vencAtrasado) && <Bell className="h-3 w-3 animate-pulse" />}
-              <CalendarIcon className="h-3 w-3" />
+              {(vencHoje || vencAtrasado) && <Bell className="h-2.5 w-2.5 animate-pulse" />}
+              <CalendarIcon className="h-2.5 w-2.5" />
               {format(parseISO(lead.data_vencimento), "dd/MM")}
-              {vencAtrasado && !compact && " — ATRASADO"}
-              {vencHoje && !compact && " — Hoje"}
+              {vencAtrasado && !compact && " — Atrasado"}
+              {vencHoje && !compact && " — Hoje!"}
             </span>
             {(lead as any).gcal_event_id && (
-              <span className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[9px] text-gray-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
-                Google Cal
+              <span className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[8px] text-gray-500">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                GCal
               </span>
             )}
           </div>
         )}
 
-        {/* Action strip: Avatar and Buttons */}
         {((isManager && onAssignLead) || lead.responsavel_id) ? (
             isEditingField?.field === "responsavel" ? (
-             <div className="flex items-center justify-between pt-1.5 border-t border-border/40 mt-1">
+             <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 mt-1">
               <select
-                className="w-full text-[10px] p-1 rounded border border-border bg-background"
+                className="w-full text-[10px] p-1 rounded border border-slate-200 bg-white"
                 value={lead.responsavel_id || "none"}
                 onChange={(e) => {
                   onAssignLead?.(lead.id, e.target.value);
@@ -326,29 +346,28 @@ export function LeadCard({
               </select>
              </div>
             ) : (
-            <div className="flex items-center justify-between pt-1 border-t border-border/20 mt-1">
+            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 mt-0.5">
               <div
-                className="flex items-center gap-1.5 cursor-pointer group"
+                className="flex items-center gap-1.5 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEditingField({ field: "responsavel", value: lead.responsavel_id || "" });
                 }}
               >
-                <div className="w-5 h-5 rounded-full bg-primary/5 flex items-center justify-center text-[8px] font-black text-primary/60 shrink-0 border border-primary/10">
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[8px] font-black text-primary/70 shrink-0 border border-primary/10">
                   {(() => {
                     const nome = membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?";
                     return nome.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
                   })()}
                 </div>
-                <span className="text-[9px] text-muted-foreground group-hover:text-foreground transition-colors truncate max-w-[60px] font-bold">
+                <span className="text-[8px] text-slate-400 truncate max-w-[55px] font-medium">
                   {(membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "Resp.").split(" ")[0]}
                 </span>
               </div>
               
-              {/* Botões de Ação */}
               <div className="flex items-center gap-0.5">
                 <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-5 h-5 rounded flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                  className="w-5 h-5 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
                   title="Agendar">
                   <CalendarIcon className="h-2.5 w-2.5" />
                 </button>
@@ -356,17 +375,17 @@ export function LeadCard({
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-5 h-5 rounded flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
+                  className="w-5 h-5 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
                   title="WhatsApp">
                   <WhatsAppIcon className="h-2.5 w-2.5" />
                 </a>
                 <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-5 h-5 rounded flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                  className="w-5 h-5 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
                   title="Histórico">
                   <NotebookPen className="h-2.5 w-2.5" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-5 h-5 rounded flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
+                  className="w-5 h-5 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
                   title="Excluir">
                   <Trash2 className="h-2.5 w-2.5" />
                 </button>
@@ -374,30 +393,30 @@ export function LeadCard({
             </div>
             )
         ) : (
-          <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40 mt-0.5">
-                <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
-                  title="Agendar">
-                  <CalendarIcon className="h-3 w-3" />
-                </button>
-                <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
-                  onClick={(e) => e.stopPropagation()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-6 h-6 rounded flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
-                  title="WhatsApp">
-                  <WhatsAppIcon className="h-3 w-3" />
-                </a>
-                <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                  title="Histórico">
-                  <NotebookPen className="h-3 w-3" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-50 text-destructive/40 hover:text-destructive transition-colors"
-                  title="Excluir">
-                  <Trash2 className="h-3 w-3" />
-                </button>
+          <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
+            <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+              className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
+              title="Agendar">
+              <CalendarIcon className="h-3 w-3" />
+            </button>
+            <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+              onClick={(e) => e.stopPropagation()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+              title="WhatsApp">
+              <WhatsAppIcon className="h-3 w-3" />
+            </a>
+            <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+              className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
+              title="Histórico">
+              <NotebookPen className="h-3 w-3" />
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+              className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
+              title="Excluir">
+              <Trash2 className="h-3 w-3" />
+            </button>
           </div>
         )}
 
