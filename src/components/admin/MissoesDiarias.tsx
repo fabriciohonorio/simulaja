@@ -86,7 +86,7 @@ export default function MissoesDiarias({
       </div>
 
       {/* Mission Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <div className="flex flex-col md:flex-row w-full gap-2 md:gap-4">
         {resultado.missoes.map((missao) => {
           const Icon = ICON_MAP[missao.id] || Zap;
           const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
@@ -94,7 +94,7 @@ export default function MissoesDiarias({
           return (
             <div 
                 key={missao.id} 
-                className={`group flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 ${
+                className={`group flex-1 w-full flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 ${
                     missao.concluida 
                     ? "bg-slate-50/50 border-slate-100 opacity-60" 
                     : "bg-white border-slate-100 hover:border-primary/20 hover:shadow-sm"

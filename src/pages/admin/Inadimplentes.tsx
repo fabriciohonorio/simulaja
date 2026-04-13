@@ -352,12 +352,30 @@ export default function Inadimplentes() {
                                          <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">{item.administradora}</span>
                                       </div>
                                    </div>
-                                   <button 
-                                      onClick={(e) => handleDelete(item.id, e)}
-                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-slate-300 hover:text-rose-500"
-                                   >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                   </button>
+                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                     <button 
+                                        onClick={(e) => { 
+                                          e.stopPropagation(); 
+                                          if (item.celular) {
+                                            const num = item.celular.replace(/\D/g, '');
+                                            window.open(`https://wa.me/55${num}`, '_blank');
+                                          } else {
+                                            toast.error('Número de celular não informado');
+                                          }
+                                        }}
+                                        className="p-2 text-emerald-500 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 rounded-lg transition-colors"
+                                        title="Chamar no WhatsApp"
+                                     >
+                                        <WhatsAppIcon className="h-4 w-4" />
+                                     </button>
+                                     <button 
+                                        onClick={(e) => handleDelete(item.id, e)}
+                                        className="p-2 text-rose-400 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 rounded-lg transition-colors"
+                                        title="Excluir devedor"
+                                     >
+                                        <Trash2 className="h-4 w-4" />
+                                     </button>
+                                   </div>
                                 </div>
 
                                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-50">

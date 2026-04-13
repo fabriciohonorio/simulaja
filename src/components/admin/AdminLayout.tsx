@@ -77,6 +77,9 @@ export default function AdminLayout() {
         return saved === "true";
     });
 
+    const currentHour = new Date().getHours();
+    const isDayTime = currentHour >= 6 && currentHour < 18;
+
     useEffect(() => {
         fetchProfile();
     }, []);
@@ -151,12 +154,15 @@ export default function AdminLayout() {
                                     to={item.path}
                                     end={item.path === "/admin"}
                                     onClick={() => setOpen(false)}
-                                    className={({ isActive }) =>
-                                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
-                                            ? "bg-primary text-white"
-                                            : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                                        } ${collapsed ? 'justify-center px-0' : ''}`
-                                    }
+                                    className={({ isActive }) => {
+                                        let activeClass = "";
+                                        if (isActive) {
+                                            activeClass = isDayTime ? "bg-white text-slate-900 shadow-sm font-black" : "bg-primary text-white font-black";
+                                        } else {
+                                            activeClass = "text-slate-400 hover:bg-slate-800 hover:text-white font-bold";
+                                        }
+                                        return `flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeClass} ${collapsed ? 'justify-center px-0' : ''}`;
+                                    }}
                                 >
                                     <item.icon className="h-4 w-4 shrink-0" />
                                     {!collapsed && <span className="text-xs font-bold">{item.label}</span>}

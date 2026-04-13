@@ -63,6 +63,7 @@ export default function Carteira() {
   const [lotteryWinners, setLotteryWinners] = useState<Cliente[]>([]);
   const [lotteryChecked, setLotteryChecked] = useState(false);
   const [sortOrder, setSortOrder] = useState<"a-z" | "valor-desc" | "espera-desc">("a-z");
+  const [todasCotasContempladas, setTodasCotasContempladas] = useState<any[]>([]);
 
   useEffect(() => {
     fetchClientes();
@@ -73,6 +74,9 @@ export default function Carteira() {
       setLoading(true);
       const { data, error } = await supabase.from("carteira").select("*").order("nome");
       if (error) throw error;
+      
+      const { data: globalHistory } = await supabase.from("cotas_contempladas").select("*").order("created_at", { ascending: false }).limit(20);
+      if (globalHistory) setTodasCotasContempladas(globalHistory);
       
       // Lógica de Deduplicação Silenciosa
       const seenNames = new Set();
@@ -153,12 +157,13 @@ export default function Carteira() {
     const winners: Cliente[] = [];
     clientes.forEach(c => {
       if (!c.grupo) return;
+      
+      // Auto-check against the historical contemplated data we already restored
+      const historicFound = todasCotasContempladas.find(t => t.grupo === c.grupo && Number(t.cota) === Number(c.cota?.replace(/\D/g, '')||"0"));
+      
       const status = getLoteriaStatus(lotteryNumber, c.cota, c.grupo, c.administradora, c.tipo_consorcio);
-      if (status && status.winCota > 0) {
-         const cleanCota = Number(c.cota?.replace(/\D/g, '') || "0");
-         if (status.winCota === cleanCota) {
+      if ((status && status.winCota > 0 && status.winCota === Number(c.cota?.replace(/\D/g, '') || "0")) || historicFound) {
             winners.push(c);
-         }
       }
     });
     setLotteryWinners(winners);
@@ -239,6 +244,26 @@ export default function Carteira() {
         )}
       </div>
 
+      {/* Painel Global de Contempladas */}
+      {todasCotasContempladas.length > 0 && (
+        <div className="bg-amber-50/50 p-6 rounded-3xl border border-amber-100 mb-6">
+          <div className="flex items-center gap-2 mb-4 text-amber-700">
+            <History className="h-5 w-5" />
+            <h2 className="text-sm font-black uppercase tracking-widest">Painel Geral de Contempladas</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {todasCotasContempladas.map((c, i) => (
+              <div key={i} className="bg-white border border-amber-200 px-3 py-1.5 rounded-lg flex gap-1.5 shadow-sm text-xs items-center">
+                 <span className="font-bold text-slate-400">Grp:</span>
+                 <span className="font-black text-slate-800">{c.grupo}</span>
+                 <span className="font-bold text-slate-400 ml-1">Cota:</span>
+                 <span className="font-black text-amber-600">{c.cota}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
