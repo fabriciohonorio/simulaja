@@ -282,9 +282,16 @@ export default function Carteira() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredAndSorted.map((c) => (
           <div key={c.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
-            <div className="flex justify-between mb-3">
-              <h4 className="font-black text-slate-900 truncate">{c.nome}</h4>
-              <Badge variant={c.cota_contemplada ? "default" : "outline"} className="text-[10px] font-black uppercase">
+            <div className="flex items-start justify-between mb-3 gap-2">
+              <div className="flex flex-col min-w-0">
+                <h4 className="font-black text-slate-900 truncate">{c.nome}</h4>
+                {c.administradora && (
+                  <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase w-fit mt-1">
+                    {c.administradora}
+                  </span>
+                )}
+              </div>
+              <Badge variant={c.cota_contemplada ? "default" : "outline"} className="text-[10px] font-black uppercase shrink-0">
                 {c.cota_contemplada ? "CONTEMPLADO" : "ATIVO"}
               </Badge>
             </div>
