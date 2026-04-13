@@ -15,7 +15,8 @@ import {
   History,
   Clock,
   ArrowUpDown,
-  Calculator
+  Calculator,
+  Trash2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
@@ -140,9 +141,15 @@ export default function Carteira() {
 
   const fetchContemplations = async (grupo: string) => {
     setLoadingContemplations(true);
-    const { data } = await supabase.from("cotas_contempladas").select("*").eq("grupo", grupo).order("created_at", { ascending: false });
-    setCotasContempladas(data || []);
+    const { data } = await supabase.from("cotas_contempladas").select("*").eq("grupo", grupo);
+    const sorted = (data || []).sort((a, b) => (a.cota || "").localeCompare(b.cota || "", undefined, { numeric: true }));
+    setCotasContempladas(sorted);
     setLoadingContemplations(false);
+  };
+
+  const handleDeleteContemplation = async (id: string) => {
+    await supabase.from("cotas_contempladas").delete().eq("id", id);
+    if (selectedGrupo) fetchContemplations(selectedGrupo);
   };
 
   const handleAddContemplation = async () => {
@@ -246,25 +253,7 @@ export default function Carteira() {
         )}
       </div>
 
-      {/* Painel Global de Contempladas */}
-      {todasCotasContempladas.length > 0 && (
-        <div className="bg-amber-50/50 p-6 rounded-3xl border border-amber-100 mb-6">
-          <div className="flex items-center gap-2 mb-4 text-amber-700">
-            <History className="h-5 w-5" />
-            <h2 className="text-sm font-black uppercase tracking-widest">Painel Geral de Contempladas</h2>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {todasCotasContempladas.map((c, i) => (
-              <div key={i} className="bg-white border border-amber-200 px-3 py-1.5 rounded-lg flex gap-1.5 shadow-sm text-xs items-center">
-                 <span className="font-bold text-slate-400">Grp:</span>
-                 <span className="font-black text-slate-800">{c.grupo}</span>
-                 <span className="font-bold text-slate-400 ml-1">Cota:</span>
-                 <span className="font-black text-amber-600">{c.cota}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Painel Global Removido a pedido do usuario para manter como antes */}
       
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
@@ -346,10 +335,17 @@ export default function Carteira() {
               <Button onClick={handleAddContemplation} variant="outline">Incluir</Button>
             </div>
 
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-2 mt-4">
+            <div className="grid grid-cols-4 md:grid-cols-8 gap-2 mt-4">
               {cotasContempladas.map(c => (
-                <div key={c.id} className="aspect-square bg-slate-50 rounded-lg flex items-center justify-center font-black text-sm border">
+                <div key={c.id} className="group relative aspect-square bg-slate-50 rounded-lg flex items-center justify-center font-black text-sm border hover:border-red-200 transition-colors">
                   {c.cota}
+                  <button 
+                    onClick={() => handleDeleteContemplation(c.id)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Excluir cota"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
                 </div>
               ))}
             </div>
