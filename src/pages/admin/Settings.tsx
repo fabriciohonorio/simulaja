@@ -222,13 +222,13 @@ export default function Settings() {
             </label>
           </div>
           <div className="flex-1 text-center sm:text-left space-y-1">
-            <h2 className="text-xl font-bold text-white">{profile?.nome_completo}</h2>
-            <p className="text-[10px] text-white/40 font-medium uppercase tracking-wider">{profile?.email}</p>
+            <h2 className="text-xl font-bold text-slate-900">{profile?.nome_completo}</h2>
+            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{profile?.email}</p>
             <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
               <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${ROLE_COLORS[profile?.tipo_acesso || "vendedor"]}`}>
                 {profile?.tipo_acesso}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-white/5 bg-white/5 text-white/40">
+              <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-slate-100 bg-slate-50 text-slate-400">
                 ID: #{profile?.id?.substring(0, 8)}
               </span>
             </div>

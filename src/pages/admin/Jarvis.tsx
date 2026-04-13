@@ -16,16 +16,22 @@ import {
     Clock, 
     ArrowRight,
     Search,
-    AlertCircle,
-    BrainCircuit,
-    Zap
+    Zap,
+    Mic, 
+    MicOff, 
+    Volume2, 
+    User, 
+    Bot, 
+    Trash2, 
+    Bike, 
+    Home, 
+    Car as CarIcon
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mic, MicOff, Volume2, User, Bot, Trash2, Bike, Home, Car as CarIcon, BrainCircuit } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import JarvisHero from "@/components/admin/JarvisHero";
 import { GRUPOS } from "@/components/ConsortiumSimulator";
@@ -491,7 +497,7 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                 title="Jarvis Strategist" 
                 subtitle="Sistema Central de Inteligência Comercial"
                 icon={Zap} 
-                bgIcon={BrainCircuit}
+                bgIcon={Sparkles}
                 accentColor="amber"
             >
                 <div className="flex flex-col md:flex-row items-center gap-6">

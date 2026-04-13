@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { calcularMissoes, type MissoesResult } from "@/lib/missoesService";
 import { Progress } from "@/components/ui/progress";
+import { Zap, Target, Clock, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface MissoesDiariasProps {
   userId: string;
@@ -8,12 +10,16 @@ interface MissoesDiariasProps {
   tipoAcesso: "admin" | "manager" | "vendedor";
 }
 
-const ICONE_MISSAO: Record<string, string> = {
-  concluida: "✅",
-  em_progresso: "🔄",
-  nao_iniciada: "⭕",
-  invertida_ok: "✅",
-  invertida_fail: "❌",
+const ICON_MAP: Record<string, any> = {
+  contatos_hoje: Zap,
+  followup_agendado: Target,
+  leads_sem_toque: Clock,
+};
+
+const COLOR_MAP: Record<string, string> = {
+  contatos_hoje: "text-amber-500 bg-amber-50",
+  followup_agendado: "text-blue-500 bg-blue-50",
+  leads_sem_toque: "text-rose-500 bg-rose-50",
 };
 
 export default function MissoesDiarias({
@@ -26,7 +32,6 @@ export default function MissoesDiarias({
 
   useEffect(() => {
     if (!userId || !orgId) return;
-
     calcularMissoes(userId, orgId, tipoAcesso).then((r) => {
       setResultado(r);
       setLoading(false);
@@ -35,79 +40,99 @@ export default function MissoesDiarias({
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-2">
-        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          ⚡ MISSÕES DE HOJE
+      <div className="space-y-3">
+        <div className="h-4 bg-slate-100 animate-pulse rounded w-32" />
+        <div className="space-y-2">
+            {[1, 2, 3].map(i => <div key={i} className="h-10 bg-slate-50 animate-pulse rounded-xl" />)}
         </div>
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-3 bg-muted animate-pulse rounded"
-            style={{ width: `${60 + i * 10}%` }}
-          />
-        ))}
       </div>
     );
   }
 
   if (!resultado) return null;
 
-  const getIcone = (missao: MissoesResult["missoes"][0]) => {
-    if (missao.invertida) {
-      return missao.concluida
-        ? ICONE_MISSAO.invertida_ok
-        : ICONE_MISSAO.invertida_fail;
-    }
-    if (missao.concluida) return ICONE_MISSAO.concluida;
-    if (missao.atual > 0) return ICONE_MISSAO.em_progresso;
-    return ICONE_MISSAO.nao_iniciada;
-  };
+  const totalMissions = resultado.missoes.length;
+  const completedMissions = resultado.totalConcluidas;
+  const globalProgress = (completedMissions / totalMissions) * 100;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
+      {/* Header Info */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">
-          ⚡ MISSÕES DE HOJE
-        </span>
-        <span className="text-[10px] font-bold text-primary">
-          {resultado.totalConcluidas}/3 COMPLETAS
-        </span>
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 bg-primary/10 rounded-lg">
+              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+           </div>
+           <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Missões Ativas</p>
+              <h4 className="text-xs font-black text-slate-900 leading-none">Desafios Galáticos</h4>
+           </div>
+        </div>
+        <div className="text-right">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">Nível de Foco</p>
+            <Badge variant="outline" className="h-5 px-1.5 bg-primary/5 text-primary border-primary/20 text-[9px] font-black">
+                {completedMissions}/{totalMissions} COMPLETAS
+            </Badge>
+        </div>
       </div>
 
-      <div className="space-y-1.5">
-        {resultado.missoes.map((missao) => (
-          <div key={missao.id} className="flex items-center gap-2">
-            <span className="text-xs w-4 shrink-0">{getIcone(missao)}</span>
-
-            <span className="text-[10px] font-bold text-slate-600 flex-1 truncate">
-              {missao.label}
-            </span>
-
-            {/* Barra de progresso para missões normais */}
-            {!missao.invertida && (
-              <div className="flex items-center gap-2 shrink-0">
-                <Progress
-                  value={(missao.atual / missao.meta) * 100}
-                  className="w-12 h-1.5"
-                />
-                <span className="text-[9px] font-black text-slate-400 w-5 text-right">
-                  {missao.atual}/{missao.meta}
-                </span>
-              </div>
-            )}
-
-            {/* Contador para missão invertida (leads sem toque) */}
-            {missao.invertida && (
-              <span
-                className={`text-[9px] font-black shrink-0 px-1.5 py-0.5 rounded uppercase ${
-                  missao.concluida ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"
-                }`}
-              >
-                {missao.concluida ? "ZERADO ✓" : `${missao.atual} PENDENTES`}
-              </span>
-            )}
+      {/* Mini Progress */}
+      <div className="space-y-1">
+          <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+             <span>Progresso Diário</span>
+             <span>{Math.round(globalProgress)}%</span>
           </div>
-        ))}
+          <Progress value={globalProgress} className="h-1 bg-slate-100" />
+      </div>
+
+      {/* Mission Cards */}
+      <div className="grid grid-cols-1 gap-2">
+        {resultado.missoes.map((missao) => {
+          const Icon = ICON_MAP[missao.id] || Zap;
+          const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
+
+          return (
+            <div 
+                key={missao.id} 
+                className={`group flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 ${
+                    missao.concluida 
+                    ? "bg-slate-50/50 border-slate-100 opacity-60" 
+                    : "bg-white border-slate-100 hover:border-primary/20 hover:shadow-sm"
+                }`}
+            >
+              <div className={`p-2 rounded-lg shrink-0 ${missao.concluida ? "bg-emerald-100 text-emerald-600" : colors}`}>
+                {missao.concluida ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 max-w-full">
+                  <span className={`text-[10px] font-black uppercase tracking-tight truncate ${missao.concluida ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                    {missao.label}
+                  </span>
+                  
+                  {!missao.invertida ? (
+                    <span className="text-[9px] font-black text-slate-400 tabular-nums">
+                        {missao.atual}/{missao.meta}
+                    </span>
+                  ) : (
+                    <Badge variant="outline" className={`h-4 text-[8px] font-black ${missao.concluida ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100"}`}>
+                       {missao.concluida ? "ZERADO" : `${missao.atual} PEND.`}
+                    </Badge>
+                  )}
+                </div>
+
+                {!missao.invertida && !missao.concluida && (
+                  <div className="mt-1.5 h-1 bg-slate-50 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${missao.concluida ? "bg-emerald-500" : "bg-primary"}`}
+                      style={{ width: `${(missao.atual / missao.meta) * 100}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

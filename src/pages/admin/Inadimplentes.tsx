@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2, FileText } from "lucide-react";
+import { MessageCircle, Copy, Plus, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Trash2, FileText, TrendingUp, Zap, Sparkles } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
-import { TrendingUp, Zap, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,

@@ -72,7 +72,6 @@ export default function AdminLayout() {
     const [open, setOpen] = useState(false);
     const [profile, setProfile] = useState<any>(null);
     const [org, setOrg] = useState<any>(null);
-    const isFunilPage = location.pathname === "/admin/funil";
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         const saved = localStorage.getItem("admin_sidebar_collapsed");
         return saved === "true";
@@ -83,18 +82,27 @@ export default function AdminLayout() {
     }, []);
 
     const fetchProfile = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-        const { data: profileData } = await (supabase
-            .from("perfis" as any) as any)
-            .select("*, organizacoes(nome)")
-            .eq("id", user.id)
-            .single();
+            const { data: profileData } = await (supabase.from("perfis" as any) as any)
+                .select("*")
+                .eq("id", user.id)
+                .single();
 
-        if (profileData) {
-            setProfile(profileData);
-            setOrg(profileData.organizacoes);
+            if (profileData) {
+                setProfile(profileData);
+                if (profileData.organizacao_id) {
+                    const { data: orgData } = await (supabase.from("organizacoes" as any) as any)
+                        .select("*")
+                        .eq("id", profileData.organizacao_id)
+                        .single();
+                    setOrg(orgData);
+                }
+            }
+        } catch (e) {
+            console.error("Layout fetch error:", e);
         }
     };
 
@@ -102,61 +110,38 @@ export default function AdminLayout() {
         localStorage.setItem("admin_sidebar_collapsed", String(sidebarCollapsed));
     }, [sidebarCollapsed]);
 
-    const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
-        <div className={`flex flex-col h-full bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
-            <div className={`p-2 border-b border-sidebar-border text-center overflow-hidden h-20 flex items-center justify-center bg-white/50 backdrop-blur-sm`}>
+    const renderSidebar = (collapsed: boolean) => (
+        <div className={`flex flex-col h-full bg-slate-900 text-slate-100 border-r border-slate-800 transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
+            <div className="p-4 border-b border-slate-800 h-20 flex items-center justify-center">
                 {!collapsed ? (
-                    <div className="flex flex-col items-center transition-all duration-300 hover:scale-105">
-                        <img 
-                            src="/icon-512.png" 
-                            alt="Logo Contemplar" 
-                            className="h-10 w-auto object-contain drop-shadow-sm" 
-                        />
-                        <div className="flex flex-col items-center leading-tight">
-                            <span className="text-[12px] font-black tracking-tighter text-slate-900 uppercase leading-none">CONTEMPLAR</span>
-                            <span className="text-[9px] font-bold tracking-[0.25em] text-[#84CC16] -mt-0.5 ml-1">CRM</span>
-                        </div>
+                    <div className="flex flex-col items-center">
+                        <img src="/icon-512.png" alt="Logo" className="h-8 w-auto mb-1" />
+                        <span className="text-[10px] font-black tracking-widest text-[#84CC16]">CONTEMPLAR CRM</span>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center">
-                        <img 
-                            src="/icon-512.png" 
-                            alt="C" 
-                            className="h-10 w-10 object-contain shadow-sm rounded-lg"
-                        />
-                    </div>
+                    <img src="/icon-512.png" alt="Logo" className="h-8 w-auto" />
                 )}
             </div>
 
             {!collapsed && org && (
-                <div className="mx-2 mt-4 p-2 bg-slate-50 border border-slate-100 rounded-xl">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">EMPRESA</div>
-                    <div className="font-black text-[11px] text-slate-900 truncate">{org.nome}</div>
-                    <div className="text-[10px] font-semibold text-slate-600 truncate mb-1">{profile?.nome_completo || "Usuário"}</div>
-                    <div className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-primary/10 text-primary uppercase mb-1.5">
-                        {profile?.tipo_acesso === 'admin' ? 'Administrador' : profile?.tipo_acesso === 'manager' ? 'Manager' : 'Vendedor'}
-                    </div>
-
-                    {profile?.id && (
-                        <div className="mt-1">
-                            <StreakBadge userId={profile.id} variant="compact" />
-                        </div>
-                    )}
+                <div className="mx-2 mt-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Empresa</div>
+                    <div className="font-bold text-xs text-slate-200 truncate">{org.nome}</div>
+                    <div className="text-[10px] text-slate-400 truncate">{profile?.nome_completo}</div>
                 </div>
             )}
 
-            <nav className="flex-1 p-2 space-y-1 overflow-y-auto no-scrollbar">
+            <nav className="flex-1 p-2 space-y-1 overflow-y-auto mt-4">
                 {menuGroups.map((group) => {
                     const groupItems = group.items.filter(item => 
                         !item.adminOnly || profile?.tipo_acesso === 'admin'
                     );
-
                     if (groupItems.length === 0) return null;
 
                     return (
-                        <div key={group.label} className="space-y-0.5">
+                        <div key={group.label} className="pt-2">
                             {!collapsed && (
-                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-1">
+                                <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-1">
                                     {group.label}
                                 </div>
                             )}
@@ -164,18 +149,17 @@ export default function AdminLayout() {
                                 <NavLink
                                     key={item.path}
                                     to={item.path}
-                                    onClick={() => setOpen(false)}
                                     end={item.path === "/admin"}
-                                    title={collapsed ? item.label : ""}
+                                    onClick={() => setOpen(false)}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all duration-300 group ${isActive
-                                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/25 scale-[1.01]"
-                                            : "hover:bg-sidebar-accent/50 text-muted-foreground hover:text-foreground"
+                                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
+                                            ? "bg-primary text-white"
+                                            : "text-slate-400 hover:bg-slate-800 hover:text-white"
                                         } ${collapsed ? 'justify-center px-0' : ''}`
                                     }
                                 >
-                                    <item.icon className={`h-4 w-4 shrink-0 transition-colors duration-300 ${collapsed ? 'h-6 w-6' : ''} ${location.pathname === item.path || (item.path === "/admin" && location.pathname === "/admin") ? "text-primary-foreground" : item.color}`} />
-                                    {!collapsed && <span className="font-bold text-xs tracking-tight">{item.label}</span>}
+                                    <item.icon className="h-4 w-4 shrink-0" />
+                                    {!collapsed && <span className="text-xs font-bold">{item.label}</span>}
                                 </NavLink>
                             ))}
                         </div>
@@ -183,70 +167,42 @@ export default function AdminLayout() {
                 })}
             </nav>
 
-            <div className={`p-4 border-t border-sidebar-border mt-auto bg-sidebar-background/50 backdrop-blur-sm ${collapsed ? 'px-2' : ''}`}>
+            <div className="p-4 border-t border-slate-800">
                 <Button
                     variant="ghost"
                     onClick={() => signOut()}
-                    className={`w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-4 h-auto ${collapsed ? 'justify-center px-0' : ''}`}
-                    title={collapsed ? "Sair" : ""}
+                    className="w-full justify-start gap-3 text-red-400 hover:text-red-300 hover:bg-red-400/10"
                 >
-                    <LogOut className={`h-4 w-4 ${collapsed ? 'h-6 w-6' : ''}`} />
-                    {!collapsed && <span className="font-bold text-xs">Sair</span>}
+                    <LogOut className="h-4 w-4" />
+                    {!collapsed && <span className="text-xs font-bold">Sair</span>}
                 </Button>
             </div>
         </div>
     );
 
     return (
-        <div className="flex h-screen bg-background overflow-hidden">
-            {/* Desktop Sidebar */}
-            <aside className={`hidden lg:block h-full transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20' : 'w-72'}`}>
-                <SidebarContent collapsed={sidebarCollapsed} />
+        <div className="flex h-screen bg-slate-50 overflow-hidden">
+            <aside className="hidden lg:block h-full">
+                {renderSidebar(sidebarCollapsed)}
             </aside>
 
-            {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between px-4 h-20 bg-white border-b border-border shadow-sm sticky top-0 z-30">
-                    <div className="flex items-center gap-3 overflow-hidden flex-1 group">
-                        <img 
-                            src="/icon-512.png" 
-                            alt="Logo" 
-                            className="h-10 w-auto object-contain"
-                        />
-                        <div className="flex flex-col leading-tight">
-                            <span className="text-[12px] font-black tracking-tighter text-slate-900 uppercase">CONTEMPLAR</span>
-                            <span className="text-[10px] font-bold tracking-[0.2em] text-[#84CC16] -mt-0.5">CRM</span>
-                        </div>
-                    </div>
-
+                <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-slate-900 text-white shadow-sm z-30">
+                    <img src="/icon-512.png" alt="Logo" className="h-8 w-auto" />
                     <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 active:scale-90 transition-transform">
+                            <Button variant="ghost" size="icon" className="text-white">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-72">
-                            <SheetHeader className="sr-only">
-                                <SheetTitle>Menu de Navegação</SheetTitle>
-                            </SheetHeader>
-                            <SidebarContent />
+                        <SheetContent side="left" className="p-0 border-none w-64 bg-slate-900">
+                            {renderSidebar(false)}
                         </SheetContent>
                     </Sheet>
                 </header>
 
-                {/* Dynamic Page Content */}
-                <main className="flex-1 overflow-auto bg-slate-50/50 relative p-2 sm:p-2 md:p-3">
-                    {/* Desktop Sidebar Toggle - Posicionado de forma fixa ou absoluta para fácil acesso */}
-                    <button 
-                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -ml-3 z-50 items-center justify-center h-8 w-8 bg-white border border-border shadow-md rounded-full hover:scale-110 active:scale-95 transition-all text-primary"
-                        title={sidebarCollapsed ? "Expandir painel" : "Recolher painel"}
-                    >
-                        {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-                    </button>
-
-                    <div className="w-full animate-in fade-in slide-in-from-bottom-3 duration-500">
+                <main className="flex-1 overflow-auto p-4 md:p-6">
+                    <div className="max-w-[1600px] mx-auto h-full">
                         <Outlet />
                     </div>
                 </main>
