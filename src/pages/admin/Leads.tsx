@@ -5,12 +5,13 @@ import {
   Filter, 
   Search, 
   MoreHorizontal, 
-  MessageCircle, 
+  UserRound,
   UserPlus, 
   Trash2,
   Pencil,
   Plus
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -96,12 +97,14 @@ export default function Leads() {
   const getStatusBadge = (status: string | null) => {
     const s = status || "novo";
     switch(s) {
-      case 'venda_fechada': return <Badge className="bg-emerald-500 hover:bg-emerald-600">Venda Fechada</Badge>;
-      case 'negociacao': case 'em_negociacao': return <Badge className="bg-purple-500">Em Negociação</Badge>;
-      case 'perdido': return <Badge variant="destructive">Perdido</Badge>;
-      case 'proposta_enviada': return <Badge className="bg-blue-400">Proposta</Badge>;
-      case 'contatado': return <Badge className="bg-amber-500">Contatado</Badge>;
-      default: return <Badge variant="outline">{s.replace('_', ' ')}</Badge>;
+      case 'venda_fechada': case 'fechado': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100">✓ Vendido</span>;
+      case 'negociacao': case 'em_negociacao': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-violet-50 text-violet-500 border border-violet-100">Negociando</span>;
+      case 'perdido': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-red-50 text-red-400 border border-red-100">Perdido</span>;
+      case 'simulacao_enviada': case 'proposta_enviada': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-sky-50 text-sky-500 border border-sky-100">Proposta</span>;
+      case 'primeiro_contato': case 'contatado': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-amber-50 text-amber-500 border border-amber-100">Em contato</span>;
+      case 'qualificacao': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-orange-50 text-orange-500 border border-orange-100">Qualif.</span>;
+      case 'aguardando_pagamento': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-lime-50 text-lime-600 border border-lime-100">Ag. Pgto</span>;
+      default: return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-slate-50 text-slate-400 border border-slate-100">{s.replace(/_/g, ' ')}</span>;
     }
   };
 
@@ -111,12 +114,14 @@ export default function Leads() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-black text-slate-900">Operação Leads</h1>
-        <Button 
+        <button
           onClick={() => { setEditingLead(null); setIsDialogOpen(true); }}
-          className="bg-primary hover:bg-primary/90 font-bold"
+          className="flex items-center gap-1 h-8 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+          title="Novo Lead"
         >
-          <Plus className="mr-2 h-4 w-4" /> Novo Lead
-        </Button>
+          <UserRound className="h-3.5 w-3.5" />
+          <Plus className="h-3 w-3" />
+        </button>
       </div>
 
       <AdminHeroCard 
@@ -178,10 +183,17 @@ export default function Leads() {
                     {formatLeadValue(Number(l.valor_credito || 0))}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500">
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
+                    <div className="flex justify-end gap-0.5">
+                      <a
+                        href={`https://wa.me/55${(l.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+                        title="WhatsApp"
+                      >
+                        <WhatsAppIcon className="h-3.5 w-3.5" />
+                      </a>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
