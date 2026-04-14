@@ -197,16 +197,15 @@ export const calcularMissoes = async (
   }
 
   const now = new Date();
-  const inicioMesPassado = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-  const fimMesPassado = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+  const inicioMesAtual = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
   const vendasQuery = supabase
     .from("leads")
-    .select("valor_credito, status_updated_at")
+    .select("valor_credito, status_updated_at, created_at")
     .eq("organizacao_id", orgId)
     .in("status", ["fechado", "venda_fechada"])
-    .gte("status_updated_at", `${inicioMesPassado}T00:00:00`)
-    .lte("status_updated_at", `${fimMesPassado}T23:59:59`);
+    .gte("status_updated_at", `${inicioMesAtual}T00:00:00`)
+    .gte("created_at", `${inicioMesAtual}T00:00:00`);
 
   if (isVendedor) {
     vendasQuery.eq("responsavel_id", userId);
@@ -426,16 +425,15 @@ export const getLeadsForMissao = async (
 
   if (missaoId === "meta_mes") {
     const now = new Date();
-    const inicioMesPassado = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-    const fimMesPassado = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+    const inicioMesAtual = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
     let q = (supabase as any)
       .from("leads")
-      .select("id, nome, status, valor_credito")
+      .select("id, nome, status, valor_credito, status_updated_at, created_at")
       .eq("organizacao_id", orgId)
       .in("status", ["fechado", "venda_fechada"])
-      .gte("status_updated_at", `${inicioMesPassado}T00:00:00`)
-      .lte("status_updated_at", `${fimMesPassado}T23:59:59`);
+      .gte("status_updated_at", `${inicioMesAtual}T00:00:00`)
+      .gte("created_at", `${inicioMesAtual}T00:00:00`);
 
     if (isVendedor) q = q.eq("responsavel_id", userId);
     const { data } = await q;

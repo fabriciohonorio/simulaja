@@ -216,10 +216,13 @@ export default function Dashboard() {
   }, [profile?.organizacao_id]);
 
   const metaMensal = metaAnual / 12;
-  const prevMonth = subMonths(new Date(), 1);
-  const prevMonthStr = format(prevMonth, "yyyy-MM");
+  const currentMonthStr = format(new Date(), "yyyy-MM");
   const realizadoMes = leads
-    .filter(l => (l.status === "fechado" || l.status === "venda_fechada") && (l.status_updated_at || "").startsWith(prevMonthStr))
+    .filter(l => 
+      (l.status === "fechado" || l.status === "venda_fechada") && 
+      (l.status_updated_at || "").startsWith(currentMonthStr) &&
+      (l.created_at || "").startsWith(currentMonthStr)
+    )
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   
   const progressoMes = metaMensal > 0 ? (realizadoMes / metaMensal) * 100 : 0;

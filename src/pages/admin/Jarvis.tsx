@@ -232,10 +232,6 @@ export default function Jarvis() {
                     setMetaAnual(metaRes.data.meta_anual || 0);
                     
                     // Calcular métricas por segmento baseadas no Metas.tsx
-                    const today = new Date();
-                    const subMonths = (d: Date, n: number) => { d.setMonth(d.getMonth() - n); return d; };
-                    const attributionMonth = subMonths(new Date(), 1);
-                    const attributionMonthStr = attributionMonth.toISOString().substring(0, 7);
                     const currentMonthStr = new Date().toISOString().substring(0, 7);
                     const monthlyMetas: Record<string, number> = {
                         imoveis: Number(metaRes.data.meta_imoveis || 500000),
@@ -259,7 +255,10 @@ export default function Jarvis() {
                             return config.keywords.some(kw => type.includes(kw));
                         });
                         const segmentVendas = segmentLeads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()));
-                        const currentMonthVendas = segmentVendas.filter(l => (l.status_updated_at || "").startsWith(attributionMonthStr));
+                        const currentMonthVendas = segmentVendas.filter(l => 
+                            (l.status_updated_at || "").startsWith(currentMonthStr) &&
+                            (l.created_at || "").startsWith(currentMonthStr)
+                        );
                         const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
                         
                         return {
@@ -292,14 +291,14 @@ export default function Jarvis() {
 
         // Simulando processamento inteligente
         setTimeout(() => {
-            const queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const subMonths = (d: Date, n: number) => { d.setMonth(d.getMonth() - n); return d; };
-            const attributionMonth = subMonths(new Date(), 1);
-            const attributionMonthStr = attributionMonth.toISOString().substring(0, 7);
             const currentMonthStr = new Date().toISOString().substring(0, 7);
             const metaMensal = metaAnual / 12;
             
-            const fechadosMes = leads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()) && (l.status_updated_at || "").startsWith(attributionMonthStr));
+            const fechadosMes = leads.filter(l => 
+                ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()) && 
+                (l.status_updated_at || "").startsWith(currentMonthStr) &&
+                (l.created_at || "").startsWith(currentMonthStr)
+            );
             const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             
             const currentYear = new Date().getFullYear().toString();
