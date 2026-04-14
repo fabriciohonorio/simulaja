@@ -147,6 +147,17 @@ export default function Carteira() {
     setLoadingContemplations(false);
   };
 
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    try {
+      const { error } = await supabase.from("carteira").update({ status: newStatus }).eq("id", id);
+      if (error) throw error;
+      setClientes(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+      toast({ title: `Status atualizado para ${newStatus}!` });
+    } catch (e) {
+      toast({ title: "Erro ao atualizar status", variant: "destructive" });
+    }
+  };
+
   const handleDeleteContemplation = async (id: string) => {
     await supabase.from("cotas_contempladas").delete().eq("id", id);
     if (selectedGrupo) fetchContemplations(selectedGrupo);
@@ -312,16 +323,28 @@ export default function Carteira() {
 
             <div className="flex items-center gap-2 mb-4 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">
               <Clock className="h-3 w-3 shrink-0" />
-              <span className="text-[10px] font-black uppercase tracking-widest">
-                Tempo de Espera: {getWaitTime(c.data_adesao)}
-              </span>
+              <div className="flex-1 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  Tempo de Espera: {getWaitTime(c.data_adesao)}
+                </span>
+                {c.status === "EP OK" ? (
+                  <Badge className="bg-emerald-500 text-white border-none text-[8px] font-black">EP OK</Badge>
+                ) : (
+                  <button 
+                    onClick={() => handleUpdateStatus(c.id, "EP OK")}
+                    className="text-[8px] font-black uppercase bg-white/50 px-1.5 py-0.5 rounded border border-amber-200 hover:bg-emerald-500 hover:text-white hover:border-emerald-600 transition-all"
+                  >
+                    Marcar EP OK
+                  </button>
+                )}
+              </div>
             </div>
 
             {c.boleto_url && (
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full text-[10px] font-black uppercase bg-blue-50 text-blue-600"
+                className="w-full text-[10px] font-black uppercase bg-blue-50 text-blue-600 mb-2"
                 onClick={() => window.open(c.boleto_url!, '_blank')}
               >
                 <FileText className="h-4 w-4 mr-2" /> Visualizar Boleto

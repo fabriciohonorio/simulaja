@@ -15,18 +15,24 @@ const ICON_MAP: Record<string, any> = {
   contatos_hoje: Zap,
   followup_agendado: Target,
   leads_sem_toque: Clock,
+  pagamentos_ep: CheckCircle2,
+  meta_mes: Target,
 };
 
 const COLOR_MAP: Record<string, string> = {
   contatos_hoje: "text-amber-500 bg-amber-50",
   followup_agendado: "text-blue-500 bg-blue-50",
   leads_sem_toque: "text-rose-500 bg-rose-50",
+  pagamentos_ep: "text-emerald-500 bg-emerald-50",
+  meta_mes: "text-indigo-500 bg-indigo-50",
 };
 
 const LABEL_MAP: Record<string, string> = {
   contatos_hoje: "Contatos de hoje",
   followup_agendado: "Follow-ups agendados",
   leads_sem_toque: "Leads sem toque (+5d)",
+  pagamentos_ep: "Pagamentos EP (Mês Ant.)",
+  meta_mes: "Meta do Mês",
 };
 
 export default function MissoesDiarias({
@@ -146,7 +152,7 @@ export default function MissoesDiarias({
                     <div className="flex items-center gap-1">
                       {!missao.invertida ? (
                         <span className="text-[9px] font-black text-slate-400 tabular-nums">
-                            {missao.atual}/{missao.meta}
+                            {missao.isCurrency ? `${(missao.atual/1000).toFixed(0)}k/${(missao.meta/1000).toFixed(0)}k` : `${missao.atual}/${missao.meta}`}
                         </span>
                       ) : (
                         <Badge variant="outline" className={`h-4 text-[8px] font-black ${missao.concluida ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100"}`}>

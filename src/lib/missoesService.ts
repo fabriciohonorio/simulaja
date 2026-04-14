@@ -15,6 +15,8 @@ export interface Missao {
   meta: number;
   concluida: boolean;
   invertida: boolean; // true = meta é chegar em 0
+  hasDetails?: boolean; // false se não tiver lista de leads vinculada
+  isCurrency?: boolean;
 }
 
 export interface MissoesResult {
@@ -27,8 +29,22 @@ export const calcularMissoes = async (
   orgId: string,
   tipoAcesso: "admin" | "manager" | "vendedor"
 ): Promise<MissoesResult> => {
-  const hoje = format(new Date(), "yyyy-MM-dd");
+  const agora = new Date();
+  const hoje = format(agora, "yyyy-MM-dd");
   const isVendedor = tipoAcesso === "vendedor";
+
+  // Calcular datas para Missão EP (2ª e 3ª parcelas)
+  // 2ª parcela: quem comprou no mês anterior (M-1)
+  // 3ª parcela: quem comprou há 2 meses (M-2)
+  const primeiroDiaMesAnterior = new Date(agora.getFullYear(), agora.getMonth() - 1, 1);
+  const primeiroDiaDoisMesesAtras = new Date(agora.getFullYear(), agora.getMonth() - 2, 1);
+  const ultimoDiaMesAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0);
+
+  const inicioEP = format(primeiroDiaDoisMesesAtras, "yyyy-MM-dd");
+  const fimEP = format(ultimoDiaMesAnterior, "yyyy-MM-dd");
+
+  // Datas para Meta do Mês (Mês Atual)
+  const inicioMesAtual = format(primeiroDiaMesAtual, "yyyy-MM-dd");
 
   // ── Missão 1: Contatos hoje ──────────────────────────────────────────
   // Conta tratativas criadas hoje
@@ -98,6 +114,78 @@ export const calcularMissoes = async (
   const { count: semContato } = await semContatoQuery;
   const totalSemContato = semContato || 0;
 
+  // ── Missão 4: EP (Efetividade de Pagamento) ──────────────────────────
+  // Pagamento das parcelas dos clientes com venda no mês anterior
+  let epRealizado = 0;
+  let epMeta = 0;
+
+  const epQuery = supabase
+    .from("carteira")
+    .select("*", { count: "exact" })
+    .eq("organizacao_id", orgId)
+    .gte("data_adesao", inicioEP)
+    .lte("data_adesao", fimEP);
+
+  if (isVendedor) {
+    // Nota: A carteira não tem responsavel_id diretamente em todos os casos, 
+    // mas se o lead_id estiver presente, podemos filtrar pelos leads do vendedor.
+    // Para simplificar agora, buscamos todos do mês anterior da org se for admin/manager,
+    // ou tentamos filtrar se tivermos o lead_id.
+    const { data: meusLeads } = await supabase.from("leads").select("id").eq("responsavel_id", userId);
+    const meusIds = (meusLeads || []).map(l => l.id);
+    if (meusIds.length > 0) {
+      epQuery.in("lead_id", meusIds);
+    } else {
+      // Se não tem leads, o resultado será zero
+      epQuery.eq("lead_id", "00000000-0000-0000-0000-000000000000");
+    }
+  }
+
+  const { data: epData, count: epCount } = await epQuery;
+  epMeta = epCount || 0;
+
+  if (epData) {
+    epRealizado = epData.filter((c: any) => c.status === "EP OK").length;
+  }
+
+  // ── Missão 5: Meta do Mês ──────────────────────────────────────────
+  let realizadoMes = 0;
+  let metaMes = 0;
+
+  // 1. Buscar Meta (Anual / 12)
+  if (isVendedor) {
+    const { data: mSet } = await supabase
+      .from("metas_vendedor")
+      .select("meta_anual")
+      .eq("vendedor_id", userId)
+      .eq("ano", agora.getFullYear())
+      .maybeSingle();
+    metaMes = (mSet?.meta_anual || 0) / 12;
+  } else {
+    const { data: mSet } = await supabase
+      .from("meta")
+      .select("meta_anual")
+      .eq("organizacao_id", orgId)
+      .eq("ano", agora.getFullYear())
+      .maybeSingle();
+    metaMes = (mSet?.meta_anual || 0) / 12;
+  }
+
+  // 2. Buscar Realizado (Leads fechados no mês)
+  const vendasQuery = supabase
+    .from("leads")
+    .select("valor_credito")
+    .eq("organizacao_id", orgId)
+    .eq("status", "fechado")
+    .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
+
+  if (isVendedor) {
+    vendasQuery.eq("responsavel_id", userId);
+  }
+
+  const { data: vendas } = await vendasQuery;
+  realizadoMes = (vendas || []).reduce((acc: number, l: any) => acc + (Number(l.valor_credito) || 0), 0);
+
   // ── Montar resultado ─────────────────────────────────────────────────
   const missoes: Missao[] = [
     {
@@ -123,6 +211,23 @@ export const calcularMissoes = async (
       meta: 0,
       concluida: totalSemContato === 0,
       invertida: true,
+    },
+    {
+      id: "pagamentos_ep",
+      label: "EP OK",
+      atual: epRealizado,
+      meta: epMeta,
+      concluida: epMeta > 0 ? epRealizado >= epMeta : false,
+      invertida: false,
+    },
+    {
+      id: "meta_mes",
+      label: "Meta do Mês",
+      atual: realizadoMes,
+      meta: metaMes,
+      concluida: metaMes > 0 ? realizadoMes >= metaMes : false,
+      invertida: false,
+      isCurrency: true,
     },
   ];
 
@@ -182,6 +287,62 @@ export const getLeadsForMissao = async (
     if (isVendedor) q = q.eq("responsavel_id", userId);
     const { data } = await q;
     return (data as MissaoLead[]) || [];
+  }
+
+  if (missaoId === "pagamentos_ep") {
+    const primeiroDiaDoisMesesAtras = new Date(agora.getFullYear(), agora.getMonth() - 2, 1);
+    const ultimoDiaMesAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0);
+    const inicioEP = format(primeiroDiaDoisMesesAtras, "yyyy-MM-dd");
+    const fimEP = format(ultimoDiaMesAnterior, "yyyy-MM-dd");
+
+    let q = (supabase as any)
+      .from("carteira")
+      .select("id, nome, status")
+      .eq("organizacao_id", orgId)
+      .gte("data_adesao", inicioEP)
+      .lte("data_adesao", fimEP);
+
+    if (isVendedor) {
+      const { data: meusLeads } = await supabase.from("leads").select("id").eq("responsavel_id", userId);
+      const meusIds = (meusLeads || []).map(l => l.id);
+      if (meusIds.length > 0) {
+        q = q.in("lead_id", meusIds);
+      } else {
+        return [];
+      }
+    }
+
+    const { data } = await q;
+    // Map status for consistency with MissaoLead if needed
+    return (data || []).map((d: any) => ({
+      id: d.id,
+      nome: d.nome,
+      celular: null, // carteira doesn't have phone, could join with leads but for now keep it simple
+      status: d.status === "EP OK" ? "✅ Pago" : "⏳ Pendente"
+    })) as MissaoLead[];
+  }
+
+  if (missaoId === "meta_mes") {
+    const agora = new Date();
+    const primeiroDiaMesAtual = new Date(agora.getFullYear(), agora.getMonth(), 1);
+    const inicioMesAtual = format(primeiroDiaMesAtual, "yyyy-MM-dd");
+
+    let q = (supabase as any)
+      .from("leads")
+      .select("id, nome, status, valor_credito")
+      .eq("organizacao_id", orgId)
+      .eq("status", "fechado")
+      .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
+
+    if (isVendedor) q = q.eq("responsavel_id", userId);
+    const { data } = await q;
+
+    return (data || []).map((d: any) => ({
+      id: d.id,
+      nome: d.nome,
+      celular: null,
+      status: `R$ ${(Number(d.valor_credito) || 0).toLocaleString('pt-BR')}`
+    })) as MissaoLead[];
   }
 
   return [];

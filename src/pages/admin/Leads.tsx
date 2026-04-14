@@ -69,14 +69,21 @@ export default function Leads() {
       .eq("organizacao_id", profile.organizacao_id)
       .order("created_at", { ascending: false });
     if (data) {
-      setLeads(data);
+      // Atualiza estado otimisticamente sem normalização extra
+      setLeads((prev) =>
+        (data as any[]).map((d: any) => {
+          const existing = prev.find((l) => l.id === d.id);
+          return existing ? { ...existing, ...d } : d;
+        })
+      );
     }
   }, [profile?.organizacao_id, setLeads]);
 
   const handleSaveLead = async (formData: LeadFormData) => {
     setSubmitting(true);
     try {
-      const payload: any = {
+      // Payload para a tabela leads (sem organizacao_id para evitar conflito de RLS em updates)
+      const updatePayload: any = {
         nome: formData.nome,
         email: formData.email || null,
         celular: formData.celular,
@@ -90,48 +97,70 @@ export default function Leads() {
         administradora: formData.administradora === "none" ? null : (formData.administradora || null),
         indicador_nome: formData.indicador_nome || null,
         indicador_celular: formData.indicador_celular || null,
-        organizacao_id: profile?.organizacao_id,
         grupo: formData.grupo || null,
         cota: formData.cota || null,
       };
 
       if (editingLead) {
-        // Atualiza na tabela leads
-        const { error } = await supabase.from("leads").update(payload).eq("id", editingLead.id);
-        if (error) { console.error("Erro update:", error); throw error; }
-
-        // Sincroniza com a tabela carteira, se este lead tiver entrada lá
-        const { data: carteiraItem } = await (supabase as any)
-          .from("carteira")
-          .select("id")
-          .eq("lead_id", editingLead.id)
-          .maybeSingle();
-
-        if (carteiraItem) {
-          await (supabase as any).from("carteira").update({
-            nome: payload.nome,
-            celular: payload.celular,
-            cidade: payload.cidade,
-            tipo_consorcio: payload.tipo_consorcio,
-            valor_credito: payload.valor_credito,
-            administradora: payload.administradora,
-            grupo: payload.grupo,
-            cota: payload.cota,
-          }).eq("lead_id", editingLead.id);
+        // ── Atualiza na tabela leads ──────────────────────────────────────
+        const { error } = await supabase
+          .from("leads")
+          .update(updatePayload)
+          .eq("id", editingLead.id);
+        if (error) {
+          console.error("Erro update lead:", error);
+          throw new Error(error.message || "Erro ao atualizar lead");
         }
+
+        // Atualiza estado local imediatamente (sem aguardar refetch)
+        setLeads((prev) =>
+          prev.map((l) => (l.id === editingLead.id ? { ...l, ...updatePayload } : l))
+        );
+
+        // ── Sincroniza com carteira em background (não bloqueia o save) ──
+        (async () => {
+          try {
+            const { data: rows } = await (supabase as any)
+              .from("carteira")
+              .select("id")
+              .eq("lead_id", editingLead.id)
+              .limit(1);
+            if (rows && rows.length > 0) {
+              await (supabase as any).from("carteira").update({
+                nome: updatePayload.nome,
+                celular: updatePayload.celular,
+                tipo_consorcio: updatePayload.tipo_consorcio,
+                valor_credito: updatePayload.valor_credito,
+                administradora: updatePayload.administradora,
+                grupo: updatePayload.grupo,
+                cota: updatePayload.cota,
+              }).eq("lead_id", editingLead.id);
+            }
+          } catch (carteiraErr) {
+            console.warn("[carteira sync] Aviso:", carteiraErr);
+          }
+        })();
 
         toast.success("Lead atualizado com sucesso!");
       } else {
-        const { error } = await supabase.from("leads").insert([payload]);
-        if (error) { console.error("Erro insert:", error); throw error; }
+        // ── Novo lead ────────────────────────────────────────────────────
+        const insertPayload = { ...updatePayload, organizacao_id: profile?.organizacao_id };
+        const { error } = await supabase.from("leads").insert([insertPayload]);
+        if (error) {
+          console.error("Erro insert lead:", error);
+          throw new Error(error.message || "Erro ao criar lead");
+        }
         toast.success("Lead criado com sucesso!");
+        // Refresh completo só para novos leads
+        await refetchLeads();
       }
 
       setIsDialogOpen(false);
       setEditingLead(null);
-      await refetchLeads();
     } catch (err: any) {
-      toast.error(err.message || "Erro ao salvar lead");
+      const msg = typeof err?.message === "string" ? err.message : "Erro ao salvar lead";
+      toast.error(msg);
+      console.error("handleSaveLead error:", err);
     } finally {
       setSubmitting(false);
     }
