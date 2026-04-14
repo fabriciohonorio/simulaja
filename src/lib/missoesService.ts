@@ -195,10 +195,7 @@ export const calcularMissoes = async (
       ? mSet.meta_outros 
       : (mSet?.meta_anual || 0) / 12;
   }
-
-  const now = new Date();
-  const inicioMesAtual = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-
+  
   const vendasQuery = supabase
     .from("leads")
     .select("valor_credito, status_updated_at, created_at")

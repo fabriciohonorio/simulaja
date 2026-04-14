@@ -653,7 +653,10 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                                             className="flex gap-4 items-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
                                             onClick={() => {
                                                 if (s.text.toLowerCase().includes("redes")) {
-                                                    toast.info("Acesse a aba 'Dashboard' para completar missões de redes sociais!");
+                                                    toast({
+                                                        title: "Sugestão Jarvis",
+                                                        description: "Acesse a aba 'Dashboard' para completar missões de redes sociais!"
+                                                    });
                                                 }
                                             }}
                                         >
