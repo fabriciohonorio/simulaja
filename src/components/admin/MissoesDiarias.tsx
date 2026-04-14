@@ -195,7 +195,7 @@ export default function MissoesDiarias({
       </div>
 
       {/* Mission Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2 w-full">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-2 w-full">
         {resultado.missoes.map((missao) => {
           const Icon = ICON_MAP[missao.id] || Zap;
           const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
@@ -279,49 +279,74 @@ export default function MissoesDiarias({
                 <div key={i} className="h-7 bg-slate-100 animate-pulse rounded-lg" />
               ))}
             </div>
-          ) : expandedLeads !== null && expandedLeads.length === 0 ? (
-            <p className="text-xs text-slate-400 italic py-1 text-center">
-              {expandedMission === "leads_sem_toque"
-                ? "✅ Nenhum lead esquecido. Missão concluída!"
-                : "Nenhum lead encontrado para esta missão."}
-            </p>
-          ) : (
-            <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
-              {(expandedLeads || []).map((l) => (
-                <div
-                  key={l.id}
-                  className="flex items-center justify-between gap-2 px-2 py-1.5 bg-white rounded-lg border border-slate-100"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black text-slate-800 truncate">{l.nome}</p>
-                    {l.status && (
-                      <p className="text-[9px] text-slate-400 uppercase font-bold">{l.status.replace(/_/g, " ")}</p>
-                    )}
-                  </div>
-                  {l.celular && (
-                    <a
-                      href={`https://wa.me/55${l.celular.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="shrink-0 p-1.5 rounded-lg bg-emerald-50 text-emerald-500 hover:bg-emerald-100 transition-colors"
-                      title="WhatsApp"
+          ) : (expandedLeads || []).length === 0 ? (
+                <p className="text-[10px] text-slate-400 italic py-3 text-center bg-white rounded-lg border border-dashed border-slate-200">
+                  {expandedMission === "leads_sem_toque"
+                    ? "✅ Nenhum lead esquecido. Missão concluída!"
+                    : "Nenhum item encontrado para esta missão."}
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+                  {(expandedLeads || []).map((l) => (
+                    <div
+                      key={l.id}
+                      className="flex items-center justify-between gap-3 px-3 py-2 bg-white rounded-xl border border-slate-100 shadow-sm transition-all hover:border-primary/20"
                     >
-                      <WhatsAppIcon className="h-3 w-3" />
-                    </a>
-                  )}
-                  {expandedMission === "pagamentos_ep" && l.status === "⏳ Pendente" && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id, l.lead_id); }}
-                      className="shrink-0 p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-100"
-                      title="Confirmar Pagamento"
-                    >
-                      <CheckCircle2 className="h-3 w-3" />
-                    </button>
-                  )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-black text-slate-800 truncate leading-tight">{l.nome}</p>
+                        {l.status && (
+                          <p className={`text-[9px] font-bold uppercase tracking-tighter mt-0.5 ${
+                            l.status.includes('⏳') || l.status.includes('Pendente') ? 'text-amber-500' : 
+                            l.status.includes('✅') ? 'text-emerald-500' : 'text-slate-400'
+                          }`}>
+                            {l.status.replace(/_/g, " ")}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Ações Específicas */}
+                          {expandedMission === "pagamentos_ep" && (l.status?.includes("Pendente") || l.status?.includes("Funil")) && (
+                            <Button 
+                                size="sm" 
+                                className="h-7 px-2.5 text-[9px] font-black uppercase bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/10 gap-1"
+                                onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id, l.lead_id); }}
+                            >
+                                <CheckCircle2 className="h-3 w-3" />
+                                Confirmar EP
+                            </Button>
+                          )}
+
+                          {expandedMission === "postagem_redes" && !l.status?.includes("✅") && (
+                            <Button 
+                                size="sm" 
+                                className="h-7 px-2.5 text-[9px] font-black uppercase bg-sky-500 hover:bg-sky-600 shadow-md shadow-sky-500/10 gap-1"
+                                onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id); }}
+                            >
+                                <Zap className="h-3 w-3" />
+                                Marcar Postado
+                            </Button>
+                          )}
+
+                          {l.celular && (
+                            <button
+                              onClick={(e) => { 
+                                e.stopPropagation();
+                                const phone = l.celular?.replace(/\D/g, "");
+                                window.open(`https://wa.me/55${phone}`, "_blank");
+                              }}
+                              className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                              title="WhatsApp"
+                            >
+                              <WhatsAppIcon className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+/div>
           )}
         </div>
       )}
