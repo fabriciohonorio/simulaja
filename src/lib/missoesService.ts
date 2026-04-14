@@ -126,8 +126,8 @@ export const calcularMissoes = async (
     .from("leads")
     .select("id, nome, status, status_updated_at, created_at")
     .eq("organizacao_id", orgId)
-    .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
-    .gte("created_at", `${inicioEP}T00:00:00`);
+    .in("status", ["fechado", "venda_fechada"])
+    .gte("status_updated_at", `${inicioEP}T00:00:00`);
 
   if (isVendedor) leadsQueryEP.eq("responsavel_id", userId);
 
@@ -228,6 +228,16 @@ export const calcularMissoes = async (
     .eq("data", format(agora, "yyyy-MM-dd"));
 
   const nConcluidas = (concluidas || []).length;
+  // ── Missão 5: Redes Sociais (Postagem Diária) ──────────────────────
+  const { count: socialCount } = await supabase
+    .from("historico_contatos")
+    .select("*", { count: 'exact', head: true })
+    .eq("organizacao_id", orgId)
+    .eq("tipo", "sistema_social")
+    .eq("resultado", hoje);
+
+  const socialAtingido = (socialCount || 0) > 0 ? 1 : 0;
+
   const missoes: Missao[] = [
     {
       id: "contatos_hoje",
@@ -282,9 +292,9 @@ export const calcularMissoes = async (
     {
       id: "postagem_redes",
       label: "Redes Sociais",
-      atual: nConcluidas,
-      meta: 2,
-      concluida: nConcluidas >= 2,
+      atual: socialAtingido,
+      meta: 1,
+      concluida: socialAtingido >= 1,
       invertida: false,
     },
   ];
@@ -356,10 +366,10 @@ export const getLeadsForMissao = async (
       .select("id, nome, celular, status, grupo, cota, created_at, status_updated_at")
       .eq("organizacao_id", orgId)
       .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
-      .gte("created_at", `${inicioEP}T00:00:00`);
+      .or(`status_updated_at.gte.${inicioEP}T00:00:00,created_at.gte.${inicioEP}T00:00:00`);
 
     const leads = (allLeads || []).filter(l => {
-        const dateToUse = l.status_updated_at || l.created_at;
+        const dateToUse = l.status_updated_at || l.created_at || "";
         return dateToUse >= `${inicioEP}T00:00:00` && dateToUse <= `${fimEP}T23:59:59`;
     });
 
@@ -462,4 +472,19 @@ export const getLeadsForMissao = async (
   }
 
   return [];
+};
+
+export const marcarMissaoRedesSociais = async (orgId: string) => {
+  const agora = new Date();
+  const hoje = format(agora, "yyyy-MM-dd");
+  
+  const { error } = await supabase.from("historico_contatos").insert({
+    tipo: "sistema_social",
+    resultado: hoje,
+    observacao: "Postagem em Redes Sociais Confirmada",
+    organizacao_id: orgId,
+    resultado_contato: "positivo"
+  });
+  
+  return !error;
 };

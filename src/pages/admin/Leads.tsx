@@ -44,7 +44,20 @@ export default function Leads() {
 
   const filtered = leads.filter(l => {
     const nomeSearch = (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase());
-    const statusMatch = statusFilter === "todos" || l.status === statusFilter;
+    
+    let statusMatch = statusFilter === "todos";
+    if (!statusMatch) {
+      if (statusFilter === "novo") {
+        statusMatch = ["novo", "novo_lead"].includes(l.status || "");
+      } else if (statusFilter === "venda_fechada") {
+        statusMatch = ["venda_fechada", "fechado"].includes(l.status || "");
+      } else if (statusFilter === "contatado") {
+        statusMatch = ["contatado", "primeiro_contato"].includes(l.status || "");
+      } else {
+        statusMatch = l.status === statusFilter;
+      }
+    }
+    
     return nomeSearch && statusMatch;
   });
 
