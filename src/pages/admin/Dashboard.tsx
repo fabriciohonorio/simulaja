@@ -220,8 +220,7 @@ export default function Dashboard() {
   const realizadoMes = leads
     .filter(l => 
       (l.status === "fechado" || l.status === "venda_fechada") && 
-      (l.status_updated_at || "").startsWith(currentMonthStr) &&
-      (l.created_at || "").startsWith(currentMonthStr)
+      (l.status_updated_at || "").startsWith(currentMonthStr)
     )
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   

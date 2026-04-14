@@ -256,8 +256,7 @@ export default function Jarvis() {
                         });
                         const segmentVendas = segmentLeads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()));
                         const currentMonthVendas = segmentVendas.filter(l => 
-                            (l.status_updated_at || "").startsWith(currentMonthStr) &&
-                            (l.created_at || "").startsWith(currentMonthStr)
+                            (l.status_updated_at || "").startsWith(currentMonthStr)
                         );
                         const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
                         
@@ -296,8 +295,7 @@ export default function Jarvis() {
             
             const fechadosMes = leads.filter(l => 
                 ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()) && 
-                (l.status_updated_at || "").startsWith(currentMonthStr) &&
-                (l.created_at || "").startsWith(currentMonthStr)
+                (l.status_updated_at || "").startsWith(currentMonthStr)
             );
             const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             

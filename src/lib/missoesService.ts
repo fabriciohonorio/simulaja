@@ -201,8 +201,7 @@ export const calcularMissoes = async (
     .select("valor_credito, status_updated_at, created_at")
     .eq("organizacao_id", orgId)
     .in("status", ["fechado", "venda_fechada"])
-    .gte("status_updated_at", `${inicioMesAtual}T00:00:00`)
-    .gte("created_at", `${inicioMesAtual}T00:00:00`);
+    .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
 
   if (isVendedor) {
     vendasQuery.eq("responsavel_id", userId);
@@ -429,8 +428,7 @@ export const getLeadsForMissao = async (
       .select("id, nome, status, valor_credito, status_updated_at, created_at")
       .eq("organizacao_id", orgId)
       .in("status", ["fechado", "venda_fechada"])
-      .gte("status_updated_at", `${inicioMesAtual}T00:00:00`)
-      .gte("created_at", `${inicioMesAtual}T00:00:00`);
+      .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
 
     if (isVendedor) q = q.eq("responsavel_id", userId);
     const { data } = await q;
