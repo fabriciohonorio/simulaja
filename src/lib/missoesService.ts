@@ -7,7 +7,7 @@ export interface MissaoLead {
   status: string | null;
   lead_id?: string | null;
 }
-import { format } from "date-fns";
+import { format, subMonths, subDays, lastDayOfMonth } from "date-fns";
 
 export interface Missao {
   id: string;
@@ -117,32 +117,29 @@ export const calcularMissoes = async (
   const { count: semContato } = await semContatoQuery;
   const totalSemContato = semContato || 0;
 
-    // Base: Leads fechados ou avançados em M-1 e M-2
-    let epRealizado = 0;
-    let epMeta = 0;
-    const now = new Date();
+  // ── Missão 4: EP (Funil: 2ª e 3ª parcelas) ──────────────────────────
+  // Base: Leads fechados ou avançados em M-1 e M-2
+  let epRealizado = 0;
+  let epMeta = 0;
 
-    const inicioEP = format(subMonths(now, 2), "yyyy-MM-01");
-    const fimEP = format(lastDayOfMonth(subMonths(now, 1)), "yyyy-MM-dd");
+  const leadsQueryEP = supabase
+    .from("leads")
+    .select("id, nome, status, status_updated_at, created_at")
+    .eq("organizacao_id", orgId)
+    .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
+    .gte("created_at", `${inicioEP}T00:00:00`);
 
-    const leadsQueryEP = supabase
-      .from("leads")
-      .select("id, nome, status, status_updated_at, created_at")
-      .eq("organizacao_id", orgId)
-      .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
-      .gte("created_at", `${inicioEP}T00:00:00`);
+  if (isVendedor) leadsQueryEP.eq("responsavel_id", userId);
 
-    if (isVendedor) leadsQueryEP.eq("responsavel_id", userId);
-
-    const { data: leadsEP } = await leadsQueryEP;
-    
-    // Filtragem secundária por data de fechamento ou criação
-    const filteredEP = (leadsEP || []).filter(l => {
-        const dateToUse = l.status_updated_at || l.created_at;
-        return dateToUse >= `${inicioEP}T00:00:00` && dateToUse <= `${fimEP}T23:59:59`;
-    });
-    
-    epMeta = filteredEP.length;
+  const { data: leadsEP } = await leadsQueryEP;
+  
+  // Filtragem secundária por data de fechamento ou criação
+  const filteredEP = (leadsEP || []).filter(l => {
+      const dateToUse = l.status_updated_at || l.created_at;
+      return dateToUse >= `${inicioEP}T00:00:00` && dateToUse <= `${fimEP}T23:59:59`;
+  });
+  
+  epMeta = filteredEP.length;
 
     if (filteredEP && filteredEP.length > 0) {
       const leadIds = filteredEP.map(l => l.id);
