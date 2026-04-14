@@ -139,8 +139,7 @@ export const calcularMissoes = async (
     if (meusIds.length > 0) {
       epQuery.in("lead_id", meusIds);
     } else {
-      // Se não tem leads, o resultado será zero
-      epQuery.eq("lead_id", "00000000-0000-0000-0000-000000000000");
+      epQuery.eq("id", "00000000-0000-0000-0000-000000000000"); // Forçar vazio se não tiver leads
     }
   }
 
@@ -225,13 +224,14 @@ export const calcularMissoes = async (
     },
     {
       id: "meta_mes",
-      label: "Meta do Mês",
+      label: "Alcançar Meta",
       atual: realizadoMes,
       meta: metaMes,
       concluida: metaMes > 0 ? realizadoMes >= metaMes : false,
       invertida: false,
       isCurrency: true,
       faltando: Math.max(0, metaMes - realizadoMes),
+      realizado: realizadoMes,
     },
   ];
 
@@ -301,7 +301,7 @@ export const getLeadsForMissao = async (
 
     let q = (supabase as any)
       .from("carteira")
-      .select("id, nome, status, lead_id")
+      .select("id, nome, status, lead_id, leads(nome)")
       .eq("organizacao_id", orgId)
       .gte("data_adesao", inicioEP)
       .lte("data_adesao", fimEP);
@@ -317,14 +317,17 @@ export const getLeadsForMissao = async (
     }
 
     const { data } = await q;
-    // Map status for consistency with MissaoLead if needed
-    return (data || []).map((d: any) => ({
-      id: d.id,
-      nome: d.nome,
-      celular: null, 
-      status: d.status === "EP OK" ? "✅ Pago" : "⏳ Pendente",
-      lead_id: d.lead_id
-    })) as MissaoLead[];
+    return (data || []).map((d: any) => {
+      // Tenta pegar o nome de várias fontes
+      const nomeFinal = d.nome || (d.leads ? (Array.isArray(d.leads) ? d.leads[0]?.nome : d.leads.nome) : "") || "Cliente s/ identificação";
+      return {
+        id: d.id,
+        nome: nomeFinal,
+        celular: null, 
+        status: d.status === "EP OK" ? "✅ Pago" : "⏳ Pendente",
+        lead_id: d.lead_id
+      };
+    }) as MissaoLead[];
   }
 
   if (missaoId === "meta_mes") {

@@ -189,10 +189,15 @@ export default function MissoesDiarias({
                       <span className={`text-[10px] font-black uppercase tracking-tight truncate ${missao.concluida ? "text-slate-400 line-through" : "text-slate-700"}`}>
                         {missao.label}
                       </span>
-                      {missao.isCurrency && missao.faltando && missao.faltando > 0 && !missao.concluida && (
-                        <span className="text-[8px] font-bold text-indigo-500 uppercase tracking-tighter">
-                          Faltam R$ {(missao.faltando/1000).toFixed(0)}k
-                        </span>
+                      {missao.isCurrency && missao.faltando !== undefined && !missao.concluida && (
+                        <div className="flex flex-col">
+                           <span className="text-[7px] font-bold text-slate-400 uppercase">
+                            Realizado: R$ {(missao.atual/1000).toFixed(0)}k
+                          </span>
+                          <span className="text-[8px] font-black text-indigo-500 uppercase tracking-tighter">
+                            Faltam R$ {(missao.faltando/1000).toFixed(0)}k
+                          </span>
+                        </div>
                       )}
                     </div>
 
