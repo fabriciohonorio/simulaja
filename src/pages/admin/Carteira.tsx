@@ -21,6 +21,7 @@ import {
   ClipboardList,
   RefreshCw
 } from "lucide-react";
+import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -301,10 +302,11 @@ export default function Carteira() {
                   const correctLead = matchingLeads[cIndex];
                   await supabase.from("carteira").update({
                     lead_id: correctLead.id,
-                    grupo: correctLead.grupo,
-                    cota: correctLead.cota,
+                    nome: formatToUpper(correctLead.nome),
+                    grupo: formatToFourDigits(correctLead.grupo),
+                    cota: formatToFourDigits(correctLead.cota),
                     valor_credito: correctLead.valor_credito,
-                    administradora: correctLead.administradora
+                    administradora: formatToUpper(correctLead.administradora)
                   }).eq("id", c.id);
                   syncCount++;
                 }
@@ -332,10 +334,10 @@ export default function Carteira() {
             // Se o lead vendido não está na carteira, restaurar
             await supabase.from("carteira").insert({
               lead_id: v.id,
-              nome: v.nome,
-              grupo: v.grupo,
-              cota: v.cota,
-              administradora: v.administradora,
+              nome: formatToUpper(v.nome),
+              grupo: formatToFourDigits(v.grupo),
+              cota: formatToFourDigits(v.cota),
+              administradora: formatToUpper(v.administradora),
               valor_credito: v.valor_credito,
               tipo_consorcio: v.tipo_consorcio,
               organizacao_id: v.organizacao_id,

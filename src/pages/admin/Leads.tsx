@@ -14,7 +14,9 @@ import {
   Package,
   CalendarCheck,
   NotebookPen,
+  RefreshCw
 } from "lucide-react";
+import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -117,11 +119,14 @@ export default function Leads() {
         lead_temperatura: formData.lead_temperatura || "morno",
         lead_score_valor: formData.lead_score_valor || "medio",
         administradora: formData.administradora === "none" ? null : (formData.administradora || null),
-        indicador_nome: formData.indicador_nome || null,
+        indicador_nome: formatToUpper(formData.indicador_nome),
         indicador_celular: formData.indicador_celular || null,
-        grupo: formData.grupo || null,
-        cota: formData.cota || null,
+        grupo: formatToFourDigits(formData.grupo),
+        cota: formatToFourDigits(formData.cota),
       };
+      
+      // Aplicar o padrão UPPERCASE no nome principal
+      updatePayload.nome = formatToUpper(updatePayload.nome);
 
       if (editingLead) {
         // Se mudou para fechado agora, atualiza a data de fechamento
@@ -157,9 +162,9 @@ export default function Leads() {
                 celular: updatePayload.celular,
                 tipo_consorcio: updatePayload.tipo_consorcio,
                 valor_credito: updatePayload.valor_credito,
-                administradora: updatePayload.administradora,
-                grupo: updatePayload.grupo,
-                cota: updatePayload.cota,
+                administradora: formatToUpper(updatePayload.administradora),
+                grupo: formatToFourDigits(updatePayload.grupo),
+                cota: formatToFourDigits(updatePayload.cota),
               }).eq("lead_id", editingLead.id);
             }
           } catch (carteiraErr) {

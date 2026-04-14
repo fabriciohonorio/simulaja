@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 
 export const STATUS_OPTIONS = [
   { value: "novo_lead", label: "Novo Lead" },
@@ -84,7 +85,18 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(form);
+    
+    // Aplicar padrões de formatação solicitados pelo usuário
+    const formattedData: LeadFormData = {
+      ...form,
+      nome: formatToUpper(form.nome),
+      grupo: formatToFourDigits(form.grupo),
+      cota: formatToFourDigits(form.cota),
+      indicador_nome: formatToUpper(form.indicador_nome),
+      cidade: formatToUpper(form.cidade),
+    };
+    
+    onSubmit(formattedData);
   };
 
   const isVendaFechada = STATUS_FECHADOS.includes(form.status);
