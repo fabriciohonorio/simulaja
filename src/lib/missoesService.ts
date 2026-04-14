@@ -191,7 +191,7 @@ export const calcularMissoes = async (
     .from("leads")
     .select("valor_credito")
     .eq("organizacao_id", orgId)
-    .eq("status", "fechado")
+    .in("status", ["fechado", "venda_fechada"])
     .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
 
   if (isVendedor) {
@@ -200,6 +200,16 @@ export const calcularMissoes = async (
 
   const { data: vendas } = await vendasQuery;
   realizadoMes = (vendas || []).reduce((acc: number, l: any) => acc + (Number(l.valor_credito) || 0), 0);
+
+  // ── Missão 6: Inadimplência ──────────────────────────────────────────
+  // Target: 0 clientes em atraso
+  const { count: inadCount } = await (supabase as any)
+    .from("inadimplentes")
+    .select("id", { count: "exact" })
+    .eq("organizacao_id", orgId)
+    .neq("status", "regularizado");
+
+  const totalInad = inadCount || 0;
 
   // ── Montar resultado ─────────────────────────────────────────────────
   const missoes: Missao[] = [
@@ -245,6 +255,14 @@ export const calcularMissoes = async (
       isCurrency: true,
       faltando: Math.max(0, metaMes - realizadoMes),
       realizado: realizadoMes,
+    },
+    {
+      id: "inadimplencia",
+      label: "Inadimplência",
+      atual: totalInad,
+      meta: 0,
+      concluida: totalInad === 0,
+      invertida: true,
     },
   ];
 
@@ -385,6 +403,21 @@ export const getLeadsForMissao = async (
       nome: d.nome,
       celular: null,
       status: `R$ ${(Number(d.valor_credito) || 0).toLocaleString('pt-BR')}`
+    })) as MissaoLead[];
+  }
+
+  if (missaoId === "inadimplencia") {
+    const { data } = await (supabase as any)
+      .from("inadimplentes")
+      .select("id, nome, status, grupo, cota, celular")
+      .eq("organizacao_id", orgId)
+      .neq("status", "regularizado");
+
+    return (data || []).map((d: any) => ({
+      id: d.id,
+      nome: d.nome,
+      celular: d.celular,
+      status: `G:${d.grupo} C:${d.cota} - ${d.status.replace(/_/g, ' ')}`
     })) as MissaoLead[];
   }
 

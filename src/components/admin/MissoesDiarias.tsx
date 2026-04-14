@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { calcularMissoes, getLeadsForMissao, type MissoesResult, type MissaoLead } from "@/lib/missoesService";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Target, Clock, CheckCircle2, Sparkles, ChevronDown, ChevronUp, Phone } from "lucide-react";
+import { Zap, Target, Clock, CheckCircle2, Sparkles, ChevronDown, ChevronUp, Phone, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ const ICON_MAP: Record<string, any> = {
   leads_sem_toque: Clock,
   pagamentos_ep: CheckCircle2,
   meta_mes: Target,
+  inadimplencia: AlertTriangle,
 };
 
 const COLOR_MAP: Record<string, string> = {
@@ -27,6 +28,7 @@ const COLOR_MAP: Record<string, string> = {
   leads_sem_toque: "text-rose-500 bg-rose-50",
   pagamentos_ep: "text-emerald-500 bg-emerald-50",
   meta_mes: "text-indigo-500 bg-indigo-50",
+  inadimplencia: "text-rose-500 bg-rose-50",
 };
 
 const LABEL_MAP: Record<string, string> = {
@@ -35,6 +37,7 @@ const LABEL_MAP: Record<string, string> = {
   leads_sem_toque: "Leads sem toque (+5d)",
   pagamentos_ep: "Pagamentos EP (Mês Ant.)",
   meta_mes: "Alcançar Meta",
+  inadimplencia: "Inadimplência",
 };
 
 export default function MissoesDiarias({
@@ -179,7 +182,7 @@ export default function MissoesDiarias({
       </div>
 
       {/* Mission Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 w-full">
         {resultado.missoes.map((missao) => {
           const Icon = ICON_MAP[missao.id] || Zap;
           const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
