@@ -176,7 +176,6 @@ export const calcularMissoes = async (
       .eq("ano", agora.getFullYear())
       .maybeSingle();
     
-    // Prioriza meta_outros (usado como mensal) se existir e for > 0
     metaMes = (mSet?.meta_outros && mSet.meta_outros > 0) 
       ? mSet.meta_outros 
       : (mSet?.meta_anual || 0) / 12;
@@ -193,7 +192,6 @@ export const calcularMissoes = async (
       : (mSet?.meta_anual || 0) / 12;
   }
 
-  // 2. Buscar Realizado (Leads fechados no mês)
   const vendasQuery = supabase
     .from("leads")
     .select("valor_credito, status_updated_at, created_at")
@@ -209,7 +207,6 @@ export const calcularMissoes = async (
   realizadoMes = (vendas || []).reduce((acc: number, l: any) => acc + (Number(l.valor_credito) || 0), 0);
 
   // ── Missão 6: Inadimplência ──────────────────────────────────────────
-  // Target: 0 clientes em atraso
   const { count: inadCount } = await (supabase as any)
     .from("inadimplentes")
     .select("id", { count: "exact" })
@@ -262,14 +259,13 @@ export const calcularMissoes = async (
     },
     {
       id: "meta_mes",
-      label: "Alcançar Meta",
+      label: "Meta",
       atual: realizadoMes,
       meta: metaMes,
       concluida: metaMes > 0 ? realizadoMes >= metaMes : false,
       invertida: false,
       isCurrency: true,
       faltando: Math.max(0, metaMes - realizadoMes),
-      realizado: realizadoMes,
     },
     {
       id: "inadimplencia",
@@ -295,7 +291,6 @@ export const calcularMissoes = async (
   };
 };
 
-// ── Busca os leads que compõem cada missão ───────────────────────────────────
 export const getLeadsForMissao = async (
   missaoId: string,
   orgId: string,
@@ -348,12 +343,10 @@ export const getLeadsForMissao = async (
   }
 
   if (missaoId === "pagamentos_ep") {
-    const primeiroDiaDoisMesesAtras = new Date(agora.getFullYear(), agora.getMonth() - 2, 1);
-    const ultimoDiaMesAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0);
-    const inicioEP = format(primeiroDiaDoisMesesAtras, "yyyy-MM-dd");
-    const fimEP = format(ultimoDiaMesAnterior, "yyyy-MM-dd");
+    const now = new Date();
+    const inicioEP = format(subMonths(now, 2), "yyyy-MM-01");
+    const fimEP = format(lastDayOfMonth(subMonths(now, 1)), "yyyy-MM-dd");
 
-    // 1. Pegar Leads fechados no período (Funil)
     const lQuery = supabase
       .from("leads")
       .select("id, nome, celular, status, grupo, cota")

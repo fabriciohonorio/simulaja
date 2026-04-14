@@ -205,62 +205,59 @@ export default function MissoesDiarias({
             <div key={missao.id} className="w-full">
               <button
                 onClick={() => handleMissionClick(missao.id)}
-                className={`group w-full flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 text-left ${
+                className={`group w-full flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-300 text-center relative overflow-hidden ${
                   missao.concluida
-                  ? "bg-slate-50/50 border-slate-100 opacity-60"
+                  ? "bg-slate-50 border-slate-100 ring-4 ring-emerald-500/10"
                   : isExpanded
-                  ? "bg-primary/5 border-primary/30 shadow-sm"
-                  : "bg-white border-slate-100 hover:border-primary/20 hover:shadow-sm"
+                  ? "bg-white border-primary shadow-lg ring-4 ring-primary/10 -translate-y-1"
+                  : "bg-white border-slate-100 hover:border-primary/20 hover:shadow-md hover:-translate-y-0.5"
                 }`}
-                title={`Clique para ver ${LABEL_MAP[missao.id]}`}
               >
-                <div className={`p-2 rounded-lg shrink-0 ${missao.concluida ? "bg-emerald-100 text-emerald-600" : colors}`}>
-                  {missao.concluida ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                {/* Background Decor */}
+                <div className={`absolute -right-2 -top-2 opacity-5 scale-150 rotate-12 transition-transform group-hover:rotate-0 ${colors.split(' ')[0]}`}>
+                    <Icon className="h-12 w-12" />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 max-w-full">
-                    <div className="flex flex-col">
-                      <span className={`text-[10px] font-black uppercase tracking-tight truncate ${missao.concluida ? "text-slate-400 line-through" : "text-slate-700"}`}>
-                        {missao.label}
-                      </span>
-                      {missao.isCurrency && missao.faltando !== undefined && !missao.concluida && (
-                        <div className="flex flex-col">
-                           <span className="text-[7px] font-bold text-slate-400 uppercase">
-                            Realizado: R$ {(missao.atual/1000).toFixed(0)}k
-                          </span>
-                          <span className="text-[8px] font-black text-indigo-500 uppercase tracking-tighter">
-                            Faltam R$ {(missao.faltando/1000).toFixed(0)}k
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                <div className={`p-3 rounded-xl shadow-sm ${missao.concluida ? "bg-emerald-500 text-white" : colors}`}>
+                  {missao.concluida ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                </div>
 
-                    <div className="flex items-center gap-1">
-                      {!missao.invertida ? (
-                        <span className="text-[9px] font-black text-slate-400 tabular-nums">
-                            {missao.isCurrency ? `${(missao.atual/1000).toFixed(0)}k/${(missao.meta/1000).toFixed(0)}k` : `${missao.atual}/${missao.meta}`}
-                        </span>
-                      ) : (
-                        <Badge variant="outline" className={`h-4 text-[8px] font-black ${missao.concluida ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100"}`}>
-                           {missao.concluida ? "ZERADO" : `${missao.atual} PEND.`}
-                        </Badge>
-                      )}
-                      {isExpanded
-                        ? <ChevronUp className="h-3 w-3 text-primary shrink-0" />
-                        : <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
-                      }
-                    </div>
+                <div className="flex-1 w-full flex flex-col items-center gap-1">
+                  <span className={`text-[9px] font-black uppercase tracking-widest leading-none ${missao.concluida ? "text-emerald-600" : "text-slate-800"}`}>
+                    {missao.label}
+                  </span>
+                  
+                  <div className="flex items-center justify-center gap-1.5 h-4">
+                    {!missao.invertida ? (
+                      <span className="text-[11px] font-black text-slate-800 tabular-nums">
+                          {missao.isCurrency ? `${(missao.atual/1000).toFixed(0)}k/${(missao.meta/1000).toFixed(0)}k` : `${missao.atual}/${missao.meta}`}
+                      </span>
+                    ) : (
+                      <Badge variant="outline" className={`h-4 text-[7px] font-black border-none ${missao.concluida ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                         {missao.concluida ? "CONCLUÍDO" : `${missao.atual} PEND.`}
+                      </Badge>
+                    )}
                   </div>
 
                   {!missao.invertida && !missao.concluida && (
-                    <div className="mt-1.5 h-1 bg-slate-50 rounded-full overflow-hidden">
+                    <div className="w-full mt-1.5 h-1 bg-slate-100 rounded-full overflow-hidden">
                       <div
-                        className={`h-full transition-all duration-500 ${missao.concluida ? "bg-emerald-500" : "bg-primary"}`}
-                        style={{ width: `${(missao.atual / missao.meta) * 100}%` }}
+                        className={`h-full transition-all duration-700 ease-out ${missao.concluida ? "bg-emerald-500" : "bg-primary shadow-[0_0_8px] shadow-primary/50"}`}
+                        style={{ width: `${Math.min(100, (missao.atual / (missao.meta || 1)) * 100)}%` }}
                       />
                     </div>
                   )}
+
+                  {missao.isCurrency && missao.faltando !== undefined && !missao.concluida && (
+                    <span className="text-[7px] font-black text-rose-500 uppercase tracking-tighter mt-1 bg-rose-50 px-1 rounded">
+                      Faltam R$ {(missao.faltando/1000).toFixed(0)}k
+                    </span>
+                  )}
+                </div>
+                
+                <div className={`mt-1 flex items-center gap-0.5 text-[8px] font-bold ${isExpanded ? "text-primary" : "text-slate-300"}`}>
+                    {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    DETALHES
                 </div>
               </button>
             </div>
