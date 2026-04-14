@@ -275,7 +275,45 @@ export default function Carteira() {
         }
       }
 
-      toast({ title: `Sincronização de existentes: ${syncCount} atualizados.` });
+      // NOVO: Sincronização por Nome para itens sem lead_id ou com dados suspeitos
+      const { data: allCarteira } = await supabase.from("carteira").select("*");
+      const { data: allLeadsVendidos } = await supabase.from("leads").select("*").in("status", ["fechado", "venda_fechada"]);
+
+      if (allCarteira && allLeadsVendidos) {
+        for (const c of allCarteira) {
+          // Se as cotas não batem com o que deveria ser (ex: caso do João Batista)
+          const matchingLeads = allLeadsVendidos.filter(l => 
+            l.nome?.trim().toUpperCase() === c.nome?.trim().toUpperCase()
+          );
+
+          if (matchingLeads.length > 0) {
+             // Tentar encontrar o melhor match ou atualizar o lead_id se estiver faltando
+             // No caso do João, se ele tem 2 e na carteira tem 2, tentamos parear
+             const leadMatch = matchingLeads.find(l => l.grupo === c.grupo && l.cota === c.cota);
+             
+             if (!leadMatch) {
+                // Se não há match exato de grupo/cota, mas o nome bate, 
+                // Priorizamos os dados do LEAD (como solicitado pelo usuário)
+                // Se o cliente tem 2 e o lead tem 2, vamos atualizar as cotas da carteira
+                // para baterem com os leads por ordem de ID ou similar
+                const cIndex = allCarteira.filter(x => x.nome === c.nome).indexOf(c);
+                if (matchingLeads[cIndex]) {
+                  const correctLead = matchingLeads[cIndex];
+                  await supabase.from("carteira").update({
+                    lead_id: correctLead.id,
+                    grupo: correctLead.grupo,
+                    cota: correctLead.cota,
+                    valor_credito: correctLead.valor_credito,
+                    administradora: correctLead.administradora
+                  }).eq("id", c.id);
+                  syncCount++;
+                }
+             }
+          }
+        }
+      }
+
+      toast({ title: `Sincronização concluída: ${syncCount} registros ajustados.` });
 
       // PARTE 2: Recuperar leads vendidos que não estão na carteira
       const { data: vendidos } = await supabase
