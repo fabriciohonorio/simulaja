@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock } from "lucide-react";
 import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { formatLeadValue } from "@/lib/utils";
+import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Lead, HistoricoContato, Membro } from "@/types/funil";
@@ -50,6 +51,7 @@ export function KanbanEditableBadge({
 
   const getDisplayValue = () => {
     if (!value) return "—";
+    if (field === "grupo" || field === "cota") return formatToFourDigits(value);
     if (inputType === "date" && value.includes("-")) {
       const [y, m, d] = value.split("-");
       return `${d}/${m}/${y.slice(2)}`;
@@ -209,7 +211,7 @@ export function LeadCard({
         
         {/* Header: Nome + Temperatura */}
         <div className="flex flex-col min-w-0">
-          <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{lead.nome || "Lead"}</p>
+          <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{formatToUpper(lead.nome) || "LEAD"}</p>
           
           {/* Pill Temperatura — saturação reduzida */}
           <div className="flex items-center gap-1 mt-0.5">
