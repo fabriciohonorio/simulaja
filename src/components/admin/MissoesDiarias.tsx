@@ -120,14 +120,14 @@ export default function MissoesDiarias({
       </div>
 
       {/* Mission Cards */}
-      <div className="flex flex-col md:flex-row w-full gap-2 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 w-full">
         {resultado.missoes.map((missao) => {
           const Icon = ICON_MAP[missao.id] || Zap;
           const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
           const isExpanded = expandedMission === missao.id;
 
           return (
-            <div key={missao.id} className="flex-1 w-full">
+            <div key={missao.id} className="w-full">
               <button
                 onClick={() => handleMissionClick(missao.id)}
                 className={`group w-full flex items-center gap-3 p-2 rounded-xl border transition-all duration-300 text-left ${

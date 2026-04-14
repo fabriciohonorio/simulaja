@@ -40,6 +40,7 @@ export const calcularMissoes = async (
   const primeiroDiaDoisMesesAtras = new Date(agora.getFullYear(), agora.getMonth() - 2, 1);
   const ultimoDiaMesAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0);
 
+  const primeiroDiaMesAtual = new Date(agora.getFullYear(), agora.getMonth(), 1);
   const inicioEP = format(primeiroDiaDoisMesesAtras, "yyyy-MM-dd");
   const fimEP = format(ultimoDiaMesAnterior, "yyyy-MM-dd");
 
