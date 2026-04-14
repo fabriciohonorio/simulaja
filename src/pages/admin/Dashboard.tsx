@@ -218,10 +218,13 @@ export default function Dashboard() {
   const metaMensal = metaAnual / 12;
   const currentMonthStr = format(new Date(), "yyyy-MM");
   const realizadoMes = leads
-    .filter(l => 
-      (l.status === "fechado" || l.status === "venda_fechada") && 
-      (l.status_updated_at || "").startsWith(currentMonthStr)
-    )
+    .filter(l => {
+      const s = (l.status || "").toLowerCase().replace("_", " ");
+      const isClosed = s === "fechado" || s === "venda fechada";
+      const dateToCheck = l.status_updated_at || l.updated_at || "";
+      const isInMonth = dateToCheck.startsWith(currentMonthStr);
+      return isClosed && isInMonth;
+    })
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   
   const progressoMes = metaMensal > 0 ? (realizadoMes / metaMensal) * 100 : 0;

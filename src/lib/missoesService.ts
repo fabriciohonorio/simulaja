@@ -196,18 +196,22 @@ export const calcularMissoes = async (
       : (mSet?.meta_anual || 0) / 12;
   }
   
-  const vendasQuery = supabase
+  const { data: allLeads } = await supabase
     .from("leads")
-    .select("valor_credito, status_updated_at, created_at")
-    .eq("organizacao_id", orgId)
-    .in("status", ["fechado", "venda_fechada"])
-    .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
+    .select("valor_credito, status_updated_at, created_at, updated_at, status")
+    .eq("organizacao_id", orgId);
+
+  let vendas = (allLeads || []).filter(l => {
+    const s = (l.status || "").toLowerCase().replace("_", " ");
+    const isClosed = s === "fechado" || s === "venda fechada";
+    const dateToCheck = l.status_updated_at || l.updated_at || "";
+    const isInMonth = dateToCheck.startsWith(inicioMesAtual.substring(0, 7));
+    return isClosed && isInMonth;
+  });
 
   if (isVendedor) {
-    vendasQuery.eq("responsavel_id", userId);
+    vendas = vendas.filter((l: any) => l.responsavel_id === userId);
   }
-
-  const { data: vendas } = await vendasQuery;
   realizadoMes = (vendas || []).reduce((acc: number, l: any) => acc + (Number(l.valor_credito) || 0), 0);
 
   // ── Missão 6: Inadimplência ──────────────────────────────────────────
@@ -421,19 +425,23 @@ export const getLeadsForMissao = async (
 
   if (missaoId === "meta_mes") {
     const now = new Date();
-    const inicioMesAtual = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const currentMonthStr = format(now, "yyyy-MM");
 
-    let q = (supabase as any)
+    const { data: allLeads } = await (supabase as any)
       .from("leads")
-      .select("id, nome, status, valor_credito, status_updated_at, created_at")
-      .eq("organizacao_id", orgId)
-      .in("status", ["fechado", "venda_fechada"])
-      .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
+      .select("id, nome, status, valor_credito, status_updated_at, created_at, updated_at, responsavel_id")
+      .eq("organizacao_id", orgId);
 
-    if (isVendedor) q = q.eq("responsavel_id", userId);
-    const { data } = await q;
+    const filtered = (allLeads || []).filter((l: any) => {
+      const s = (l.status || "").toLowerCase().replace("_", " ");
+      const isClosed = s === "fechado" || s === "venda fechada";
+      const dateToCheck = l.status_updated_at || l.updated_at || "";
+      const isInMonth = dateToCheck.startsWith(currentMonthStr);
+      const isMine = !isVendedor || l.responsavel_id === userId;
+      return isClosed && isInMonth && isMine;
+    });
 
-    return (data || []).map((d: any) => ({
+    return filtered.map((d: any) => ({
       id: d.id,
       nome: d.nome,
       celular: null,

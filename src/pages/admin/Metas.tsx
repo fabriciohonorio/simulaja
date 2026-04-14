@@ -428,11 +428,18 @@ export default function Metas() {
         }
     };
 
-    const fechados = leads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()));
-    const realizadoMes = fechados.filter(l => 
-        (l.status_updated_at || "").startsWith(mesStr)
-    ).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
-    const realizadoAno = fechados.filter(l => (l.status_updated_at || "").startsWith(String(currentYear))).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+    const fechados = leads.filter(l => {
+        const s = (l.status || "").toLowerCase().replace("_", " ");
+        return s === "fechado" || s === "venda fechada";
+    });
+    const realizadoMes = fechados.filter(l => {
+        const dateToCheck = l.status_updated_at || (l as any).updated_at || "";
+        return dateToCheck.startsWith(mesStr);
+    }).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+    const realizadoAno = fechados.filter(l => {
+        const dateToCheck = l.status_updated_at || (l as any).updated_at || "";
+        return dateToCheck.startsWith(String(currentYear));
+    }).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
     const faltaAno = Math.max(0, metaAnual - realizadoAno);
     const mesesRestantes = Math.max(1, 12 - currentMonth + 1);
     const necessarioPorMes = faltaAno / mesesRestantes;
