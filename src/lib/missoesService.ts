@@ -127,7 +127,7 @@ export const calcularMissoes = async (
     .select("id, nome, status, status_updated_at, created_at")
     .eq("organizacao_id", orgId)
     .in("status", ["fechado", "venda_fechada"])
-    .gte("status_updated_at", `${inicioEP}T00:00:00`);
+    .or(`status_updated_at.gte.${inicioEP}T00:00:00,created_at.gte.${inicioEP}T00:00:00`);
 
   if (isVendedor) leadsQueryEP.eq("responsavel_id", userId);
 
@@ -228,15 +228,17 @@ export const calcularMissoes = async (
     .eq("data", format(agora, "yyyy-MM-dd"));
 
   const nConcluidas = (concluidas || []).length;
-  // ── Missão 5: Redes Sociais (Postagem Diária) ──────────────────────
-  const { count: socialCount } = await supabase
+  // ── Missão 5: Redes Sociais (Postagem Diária: Veículos e Imóveis) ──────
+  const { data: socialHits } = await supabase
     .from("historico_contatos")
-    .select("*", { count: 'exact', head: true })
+    .select("observacao")
     .eq("organizacao_id", orgId)
     .eq("tipo", "sistema_social")
     .eq("resultado", hoje);
 
-  const socialAtingido = (socialCount || 0) > 0 ? 1 : 0;
+  const socialVeiculos = (socialHits || []).some(h => h.observacao?.includes("Veículos"));
+  const socialImoveis = (socialHits || []).some(h => h.observacao?.includes("Imóveis"));
+  const socialAtingido = (socialVeiculos ? 1 : 0) + (socialImoveis ? 1 : 0);
 
   const missoes: Missao[] = [
     {
@@ -293,8 +295,8 @@ export const calcularMissoes = async (
       id: "postagem_redes",
       label: "Redes Sociais",
       atual: socialAtingido,
-      meta: 1,
-      concluida: socialAtingido >= 1,
+      meta: 2,
+      concluida: socialAtingido >= 2,
       invertida: false,
     },
   ];
@@ -365,7 +367,7 @@ export const getLeadsForMissao = async (
       .from("leads")
       .select("id, nome, celular, status, grupo, cota, created_at, status_updated_at")
       .eq("organizacao_id", orgId)
-      .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
+      .in("status", ["fechado", "venda_fechada"])
       .or(`status_updated_at.gte.${inicioEP}T00:00:00,created_at.gte.${inicioEP}T00:00:00`);
 
     const leads = (allLeads || []).filter(l => {
@@ -474,14 +476,14 @@ export const getLeadsForMissao = async (
   return [];
 };
 
-export const marcarMissaoRedesSociais = async (orgId: string) => {
+export const marcarMissaoRedesSociais = async (orgId: string, categoria: "Veículos" | "Imóveis") => {
   const agora = new Date();
   const hoje = format(agora, "yyyy-MM-dd");
   
   const { error } = await supabase.from("historico_contatos").insert({
     tipo: "sistema_social",
     resultado: hoje,
-    observacao: "Postagem em Redes Sociais Confirmada",
+    observacao: `Postagem em Redes Sociais Confirmada (${categoria})`,
     organizacao_id: orgId,
     resultado_contato: "positivo"
   });

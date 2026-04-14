@@ -91,13 +91,13 @@ export default function MissoesDiarias({
     }
   };
 
-  const handleCompleteSocialMission = async () => {
+  const handleCompleteSocialMission = async (categoria: "Veículos" | "Imóveis") => {
     if (!orgId) return;
     setLoadingMission("postagem_redes");
     try {
-      const ok = await marcarMissaoRedesSociais(orgId);
+      const ok = await marcarMissaoRedesSociais(orgId, categoria);
       if (ok) {
-        toast.success("Postagem confirmada!");
+        toast.success(`Postagem em ${categoria} confirmada!`);
         await refreshMissions();
       }
     } catch (e: any) {
@@ -288,21 +288,32 @@ export default function MissoesDiarias({
               ))}
             </div>
           ) : expandedMission === "postagem_redes" ? (
-            <div className="py-6 px-4 text-center bg-white rounded-xl border border-dashed border-sky-100 flex flex-col items-center gap-4">
-               <div className="p-3 bg-sky-50 rounded-full">
-                  <Zap className="h-6 w-6 text-sky-500" />
+            <div className="py-5 px-4 text-center bg-white rounded-xl border border-dashed border-sky-100 flex flex-col items-center gap-3">
+               <div className="p-2.5 bg-sky-50 rounded-full">
+                  <Zap className="h-5 w-5 text-sky-500" />
                </div>
                <div>
-                  <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Missão Diária: Redes Sociais</h4>
-                  <p className="text-[10px] text-slate-500 mt-1">Postou seu conteúdo de hoje nas redes sociais? Ative o bônus!</p>
+                  <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Postagens diárias</h4>
+                  <p className="text-[9px] text-slate-500 mt-0.5 leading-tight">Poste nas redes sociais para completar as metas!</p>
                </div>
-               <Button 
-                  onClick={handleCompleteSocialMission}
-                  disabled={loadingMission === "postagem_redes" || resultado.missoes.find(m => m.id === "postagem_redes")?.concluida}
-                  className="bg-sky-500 hover:bg-sky-600 text-[10px] font-black uppercase h-9 px-6 shadow-lg shadow-sky-500/20"
-               >
-                  {resultado.missoes.find(m => m.id === "postagem_redes")?.concluida ? "Missão Concluída ✅" : "Marcar como Postado 🚀"}
-               </Button>
+               <div className="flex gap-2 w-full mt-1">
+                 <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCompleteSocialMission("Veículos")}
+                    className="flex-1 h-8 text-[9px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500"
+                 >
+                    Veículos 🚗
+                 </Button>
+                 <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCompleteSocialMission("Imóveis")}
+                    className="flex-1 h-8 text-[9px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500"
+                 >
+                    Imóveis 🏠
+                 </Button>
+               </div>
             </div>
           ) : (expandedLeads || []).length === 0 ? (
             <div className="py-4 text-center bg-white rounded-xl border border-dashed border-slate-200">
