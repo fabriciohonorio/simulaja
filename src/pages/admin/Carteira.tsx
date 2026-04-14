@@ -113,7 +113,15 @@ export default function Carteira() {
         console.log(`Encontrou ${duplicatesToDelete.length} duplicatas.`);
       }
 
-      setClientes(uniqueClients);
+      const formattedUniqueClients = uniqueClients.map(c => ({
+        ...c,
+        nome: formatToUpper(c.nome),
+        grupo: formatToFourDigits(c.grupo),
+        cota: formatToFourDigits(c.cota),
+        administradora: formatToUpper(c.administradora)
+      }));
+
+      setClientes(formattedUniqueClients);
 
       // Fetch leads that have 'lance' interactions
       if (uniqueClients.length > 0) {
