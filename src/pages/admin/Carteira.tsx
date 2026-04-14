@@ -18,7 +18,8 @@ import {
   Calculator,
   Trash2,
   NotebookPen,
-  ClipboardList
+  ClipboardList,
+  RefreshCw
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
@@ -88,17 +89,19 @@ export default function Carteira() {
       const { data: globalHistory } = await supabase.from("cotas_contempladas").select("*").order("created_at", { ascending: false }).limit(20);
       if (globalHistory) setTodasCotasContempladas(globalHistory);
       
-      // Lógica de Deduplicação Silenciosa
-      const seenNames = new Set();
+      // Lógica de Deduplicação Silenciosa - Baseada em Nome + Grupo + Cota
+      const seenContracts = new Set();
       const uniqueClients: Cliente[] = [];
       const duplicatesToDelete: string[] = [];
 
       (data || []).forEach(c => {
         const normName = (c.nome || "").trim().toUpperCase();
-        if (seenNames.has(normName)) {
+        const contractKey = `${normName}-${c.grupo}-${c.cota}`;
+        
+        if (seenContracts.has(contractKey)) {
            duplicatesToDelete.push(c.id);
         } else {
-           seenNames.add(normName);
+           seenContracts.add(contractKey);
            uniqueClients.push(c);
         }
       });
@@ -236,6 +239,87 @@ export default function Carteira() {
     }
   };
 
+  const handleSyncData = async () => {
+    setLoading(true);
+    try {
+      const { data: carteiraItems, error: cErr } = await supabase
+        .from("carteira")
+        .select("id, lead_id")
+        .not("lead_id", "is", null);
+
+      if (cErr) throw cErr;
+
+      if (!carteiraItems || carteiraItems.length === 0) {
+        toast({ title: "Nenhum vínculo encontrado para sincronizar" });
+        return;
+      }
+
+      let syncCount = 0;
+      for (const item of carteiraItems) {
+        const { data: lead } = await supabase
+          .from("leads")
+          .select("nome, grupo, cota, tipo_consorcio, valor_credito, administradora")
+          .eq("id", item.lead_id)
+          .single();
+
+        if (lead) {
+          await supabase.from("carteira").update({
+            nome: lead.nome,
+            grupo: lead.grupo,
+            cota: lead.cota,
+            tipo_consorcio: lead.tipo_consorcio,
+            valor_credito: lead.valor_credito,
+            administradora: lead.administradora,
+          }).eq("id", item.id);
+          syncCount++;
+        }
+      }
+
+      toast({ title: `Sincronização de existentes: ${syncCount} atualizados.` });
+
+      // PARTE 2: Recuperar leads vendidos que não estão na carteira
+      const { data: vendidos } = await supabase
+        .from("leads")
+        .select("*")
+        .in("status", ["fechado", "venda_fechada"]);
+
+      if (vendidos && vendidos.length > 0) {
+        // Pegar todos os lead_ids que JÁ estão na carteira após a primeira parte
+        const { data: currentCarteira } = await supabase.from("carteira").select("lead_id");
+        const existingIds = new Set((currentCarteira || []).map(i => i.lead_id));
+        
+        let restoredCount = 0;
+        for (const v of vendidos) {
+          if (!existingIds.has(v.id)) {
+            // Se o lead vendido não está na carteira, restaurar
+            await supabase.from("carteira").insert({
+              lead_id: v.id,
+              nome: v.nome,
+              grupo: v.grupo,
+              cota: v.cota,
+              administradora: v.administradora,
+              valor_credito: v.valor_credito,
+              tipo_consorcio: v.tipo_consorcio,
+              organizacao_id: v.organizacao_id,
+              status: "ativo",
+              created_at: new Date().toISOString()
+            });
+            restoredCount++;
+          }
+        }
+        if (restoredCount > 0) {
+          toast({ title: `${restoredCount} contratos restaurados dos Leads!` });
+        }
+      }
+
+      fetchClientes();
+    } catch (e) {
+      toast({ title: "Erro na sincronização", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddContemplation = async () => {
     if (!selectedGrupo || !newCota || !profile?.organizacao_id) return;
     await supabase.from("cotas_contempladas").insert({
@@ -361,6 +445,16 @@ export default function Carteira() {
               <option value="valor-desc">Maior Crédito</option>
            </select>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSyncData}
+          className="h-12 gap-2 text-slate-600 bg-white border-slate-100 rounded-xl px-4 font-black uppercase text-xs"
+          disabled={loading}
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Sincronizar Dados
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
