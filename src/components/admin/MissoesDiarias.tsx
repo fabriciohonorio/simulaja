@@ -280,72 +280,72 @@ export default function MissoesDiarias({
               ))}
             </div>
           ) : (expandedLeads || []).length === 0 ? (
-                <p className="text-[10px] text-slate-400 italic py-3 text-center bg-white rounded-lg border border-dashed border-slate-200">
+            <div className="py-4 text-center bg-white rounded-xl border border-dashed border-slate-200">
+               <p className="text-[10px] text-slate-400 italic font-medium">
                   {expandedMission === "leads_sem_toque"
                     ? "✅ Nenhum lead esquecido. Missão concluída!"
-                    : "Nenhum item encontrado para esta missão."}
-                </p>
-              ) : (
-                <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
-                  {(expandedLeads || []).map((l) => (
-                    <div
-                      key={l.id}
-                      className="flex items-center justify-between gap-3 px-3 py-2 bg-white rounded-xl border border-slate-100 shadow-sm transition-all hover:border-primary/20"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-black text-slate-800 truncate leading-tight">{l.nome}</p>
-                        {l.status && (
-                          <p className={`text-[9px] font-bold uppercase tracking-tighter mt-0.5 ${
-                            l.status.includes('⏳') || l.status.includes('Pendente') ? 'text-amber-500' : 
-                            l.status.includes('✅') ? 'text-emerald-500' : 'text-slate-400'
-                          }`}>
-                            {l.status.replace(/_/g, " ")}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-1.5 shrink-0">
-                          {/* Ações Específicas */}
-                          {expandedMission === "pagamentos_ep" && (l.status?.includes("Pendente") || l.status?.includes("Funil")) && (
-                            <Button 
-                                size="sm" 
-                                className="h-7 px-2.5 text-[9px] font-black uppercase bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/10 gap-1"
-                                onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id, l.lead_id); }}
-                            >
-                                <CheckCircle2 className="h-3 w-3" />
-                                Confirmar EP
-                            </Button>
-                          )}
+                    : "Nenhum item encontrado nesta categoria."}
+               </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+              {(expandedLeads || []).map((l) => (
+                <div
+                  key={l.id}
+                  className="flex items-center justify-between gap-3 px-3 py-2 bg-white rounded-xl border border-slate-100 shadow-sm transition-all hover:border-primary/20"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black text-slate-800 truncate leading-tight">{l.nome}</p>
+                    {l.status && (
+                      <p className={`text-[9px] font-bold uppercase tracking-tighter mt-0.5 ${
+                        l.status.includes('⏳') || l.status.includes('Pendente') ? 'text-amber-500' : 
+                        l.status.includes('✅') ? 'text-emerald-500' : 'text-slate-400'
+                      }`}>
+                        {l.status.replace(/_/g, " ")}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5 shrink-0">
+                      {/* Ações Específicas */}
+                      {expandedMission === "pagamentos_ep" && (l.status?.includes("Pendente") || l.status?.includes("Funil")) && (
+                        <Button 
+                            size="sm" 
+                            className="h-7 px-2.5 text-[9px] font-black uppercase bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/10 gap-1"
+                            onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id, l.lead_id); }}
+                        >
+                            <CheckCircle2 className="h-3 w-3" />
+                            Confirmar EP
+                        </Button>
+                      )}
 
-                          {expandedMission === "postagem_redes" && !l.status?.includes("✅") && (
-                            <Button 
-                                size="sm" 
-                                className="h-7 px-2.5 text-[9px] font-black uppercase bg-sky-500 hover:bg-sky-600 shadow-md shadow-sky-500/10 gap-1"
-                                onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id); }}
-                            >
-                                <Zap className="h-3 w-3" />
-                                Marcar Postado
-                            </Button>
-                          )}
+                      {expandedMission === "postagem_redes" && !l.status?.includes("✅") && (
+                        <Button 
+                            size="sm" 
+                            className="h-7 px-2.5 text-[9px] font-black uppercase bg-sky-500 hover:bg-sky-600 shadow-md shadow-sky-500/10 gap-1"
+                            onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id); }}
+                        >
+                            <Zap className="h-3 w-3" />
+                            Marcar Postado
+                        </Button>
+                      )}
 
-                          {l.celular && (
-                            <button
-                              onClick={(e) => { 
-                                e.stopPropagation();
-                                const phone = l.celular?.replace(/\D/g, "");
-                                window.open(`https://wa.me/55${phone}`, "_blank");
-                              }}
-                              className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                              title="WhatsApp"
-                            >
-                              <WhatsAppIcon className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                      </div>
-                    </div>
-                  ))}
+                      {l.celular && (
+                        <button
+                          onClick={(e) => { 
+                            e.stopPropagation();
+                            const phone = l.celular?.replace(/\D/g, "");
+                            window.open(`https://wa.me/55${phone}`, "_blank");
+                          }}
+                          className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                          title="WhatsApp"
+                        >
+                          <WhatsAppIcon className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           )}
         </div>
