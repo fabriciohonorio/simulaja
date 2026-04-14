@@ -117,37 +117,50 @@ export const calcularMissoes = async (
   const { count: semContato } = await semContatoQuery;
   const totalSemContato = semContato || 0;
 
-  // ── Missão 4: EP (Efetividade de Pagamento) ──────────────────────────
-  // Pagamento das parcelas dos clientes com venda no mês anterior
+  // ── Missão 4: EP (Funil: 2ª e 3ª parcelas) ──────────────────────────
+  // Base: Leads fechados em M-1 e M-2
   let epRealizado = 0;
   let epMeta = 0;
 
-  const epQuery = supabase
-    .from("carteira")
-    .select("*", { count: "exact" })
+  const leadsQuery = supabase
+    .from("leads")
+    .select("id, status_updated_at, nome", { count: "exact" })
     .eq("organizacao_id", orgId)
-    .gte("data_adesao", inicioEP)
-    .lte("data_adesao", fimEP);
+    .in("status", ["fechado", "venda_fechada"])
+    .gte("status_updated_at", `${inicioEP}T00:00:00`)
+    .lte("status_updated_at", `${fimEP}T23:59:59`);
 
   if (isVendedor) {
-    // Nota: A carteira não tem responsavel_id diretamente em todos os casos, 
-    // mas se o lead_id estiver presente, podemos filtrar pelos leads do vendedor.
-    // Para simplificar agora, buscamos todos do mês anterior da org se for admin/manager,
-    // ou tentamos filtrar se tivermos o lead_id.
-    const { data: meusLeads } = await supabase.from("leads").select("id").eq("responsavel_id", userId);
-    const meusIds = (meusLeads || []).map(l => l.id);
-    if (meusIds.length > 0) {
-      epQuery.in("lead_id", meusIds);
-    } else {
-      epQuery.eq("id", "00000000-0000-0000-0000-000000000000"); // Forçar vazio se não tiver leads
-    }
+    leadsQuery.eq("responsavel_id", userId);
   }
 
-  const { data: epData, count: epCount } = await epQuery;
-  epMeta = epCount || 0;
+  const { data: leadsEP, count: countLeadsEP } = await leadsQuery;
+  epMeta = countLeadsEP || 0;
 
-  if (epData) {
-    epRealizado = epData.filter((c: any) => c.status === "EP OK").length;
+  if (leadsEP && leadsEP.length > 0) {
+    const leadIds = leadsEP.map(l => l.id);
+    const leadNames = leadsEP.map(l => l.nome);
+
+    // 1. Verificar quem já está com EP OK na carteira
+    const { data: carteiraEP } = await supabase
+      .from("carteira")
+      .select("lead_id, status")
+      .in("lead_id", leadIds)
+      .eq("status", "EP OK");
+
+    const idsPagos = new Set((carteiraEP || []).map(c => c.lead_id));
+
+    // 2. Verificar quem está inadimplente (bloqueia EP OK automático)
+    const { data: inadEP } = await (supabase as any)
+      .from("inadimplentes")
+      .select("nome")
+      .eq("organizacao_id", orgId)
+      .neq("status", "regularizado")
+      .in("nome", leadNames);
+
+    const namesInad = new Set((inadEP || []).map((i: any) => i.nome));
+
+    epRealizado = leadsEP.filter(l => idsPagos.has(l.id) && !namesInad.has(l.nome)).length;
   }
 
   // ── Missão 5: Meta do Mês ──────────────────────────────────────────
@@ -299,33 +312,55 @@ export const getLeadsForMissao = async (
     const inicioEP = format(primeiroDiaDoisMesesAtras, "yyyy-MM-dd");
     const fimEP = format(ultimoDiaMesAnterior, "yyyy-MM-dd");
 
-    let q = (supabase as any)
-      .from("carteira")
-      .select("id, nome, status, lead_id, leads(nome)")
+    // 1. Pegar Leads fechados no período (Funil)
+    const lQuery = supabase
+      .from("leads")
+      .select("id, nome, celular, status")
       .eq("organizacao_id", orgId)
-      .gte("data_adesao", inicioEP)
-      .lte("data_adesao", fimEP);
+      .in("status", ["fechado", "venda_fechada"])
+      .gte("status_updated_at", `${inicioEP}T00:00:00`)
+      .lte("status_updated_at", `${fimEP}T23:59:59`);
 
-    if (isVendedor) {
-      const { data: meusLeads } = await supabase.from("leads").select("id").eq("responsavel_id", userId);
-      const meusIds = (meusLeads || []).map(l => l.id);
-      if (meusIds.length > 0) {
-        q = q.in("lead_id", meusIds);
-      } else {
-        return [];
-      }
-    }
+    if (isVendedor) lQuery.eq("responsavel_id", userId);
 
-    const { data } = await q;
-    return (data || []).map((d: any) => {
-      // Tenta pegar o nome de várias fontes
-      const nomeFinal = d.nome || (d.leads ? (Array.isArray(d.leads) ? d.leads[0]?.nome : d.leads.nome) : "") || "Cliente s/ identificação";
+    const { data: leads } = await lQuery;
+    if (!leads || leads.length === 0) return [];
+
+    const leadIds = leads.map(l => l.id);
+    const leadNames = leads.map(l => l.nome);
+
+    // 2. Pegar status na Carteira
+    const { data: carteira } = await supabase
+      .from("carteira")
+      .select("id, lead_id, status")
+      .in("lead_id", leadIds);
+
+    // 3. Pegar Inadimplentes (por nome, integração total)
+    const { data: inad } = await (supabase as any)
+      .from("inadimplentes")
+      .select("nome, status")
+      .eq("organizacao_id", orgId)
+      .neq("status", "regularizado")
+      .in("nome", leadNames);
+
+    const carteiraMap = new Map((carteira || []).map(c => [c.lead_id, c]));
+    const inadSet = new Set((inad || []).map((i: any) => i.nome));
+
+    return leads.map(l => {
+      const c = carteiraMap.get(l.id);
+      const isPaid = c?.status === "EP OK";
+      const isInad = inadSet.has(l.nome);
+
+      let statusLabel = "⏳ Pendente";
+      if (isPaid) statusLabel = "✅ Pago";
+      if (isInad) statusLabel = "⚠️ Inadimplente";
+
       return {
-        id: d.id,
-        nome: nomeFinal,
-        celular: null, 
-        status: d.status === "EP OK" ? "✅ Pago" : "⏳ Pendente",
-        lead_id: d.lead_id
+        id: c?.id || `new-${l.id}`, // ID fictício se não tiver na carteira
+        nome: l.nome,
+        celular: l.celular,
+        status: statusLabel,
+        lead_id: l.id
       };
     }) as MissaoLead[];
   }

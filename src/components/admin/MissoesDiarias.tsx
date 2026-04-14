@@ -34,7 +34,7 @@ const LABEL_MAP: Record<string, string> = {
   followup_agendado: "Follow-ups agendados",
   leads_sem_toque: "Leads sem toque (+5d)",
   pagamentos_ep: "Pagamentos EP (Mês Ant.)",
-  meta_mes: "Meta do Mês",
+  meta_mes: "Alcançar Meta",
 };
 
 export default function MissoesDiarias({
@@ -72,16 +72,35 @@ export default function MissoesDiarias({
     }
   };
 
-  const handleMarkPaid = async (carteiraId: string, leadId?: string | null) => {
+  const handleMarkPaid = async (targetId: string, leadId?: string | null) => {
     try {
-      const { error } = await supabase
-        .from("carteira")
-        .update({ status: "EP OK" })
-        .eq("id", carteiraId);
+      if (targetId.startsWith("new-") && leadId) {
+        // Buscar dados do lead para criar na carteira
+        const { data: lead } = await supabase.from("leads").select("*").eq("id", leadId).single();
+        if (lead) {
+          const { error: insErr } = await supabase.from("carteira").insert({
+            lead_id: leadId,
+            nome: lead.nome,
+            celular: lead.celular,
+            tipo_consorcio: lead.tipo_consorcio,
+            valor_credito: lead.valor_credito,
+            administradora: lead.administradora,
+            grupo: lead.grupo,
+            cota: lead.cota,
+            status: "EP OK",
+            organizacao_id: orgId
+          });
+          if (insErr) throw insErr;
+        }
+      } else {
+        const { error } = await supabase
+          .from("carteira")
+          .update({ status: "EP OK" })
+          .eq("id", targetId);
+        if (error) throw error;
+      }
 
-      if (error) throw error;
-
-      // Se tiver lead_id, adiciona tratativa
+      // Adiciona tratativa
       if (leadId) {
         await supabase.from("historico_contatos").insert({
           lead_id: leadId,
@@ -98,7 +117,7 @@ export default function MissoesDiarias({
       setMissionLeadsMap(prev => ({
         ...prev,
         pagamentos_ep: (prev.pagamentos_ep || []).map(l => 
-          l.id === carteiraId ? { ...l, status: "✅ Pago" } : l
+          l.id === targetId ? { ...l, status: "✅ Pago" } : l
         )
       }));
 
