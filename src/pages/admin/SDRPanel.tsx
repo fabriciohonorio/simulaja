@@ -8,6 +8,7 @@ import { WhatsAppIcon } from "@/components/SocialIcons";
 import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { toast } from "sonner";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
+import { formatToUpper } from "@/lib/formatters";
 
 interface Lead {
     id: string;
@@ -137,7 +138,7 @@ export default function SDRPanel() {
                             <CardContent className="p-4">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="font-bold text-sm">{lead.nome}</p>
+                                        <p className="font-bold text-sm">{formatToUpper(lead.nome)}</p>
                                         <p className="text-[10px] text-muted-foreground">{lead.propensity_reason}</p>
                                     </div>
                                     <Badge variant="destructive" className="text-[9px] animate-pulse">URGENTE</Badge>
@@ -177,7 +178,7 @@ export default function SDRPanel() {
                                         {selectedLead.nome.charAt(0)}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-lg">{selectedLead.nome}</h3>
+                                        <h3 className="font-bold text-lg">{formatToUpper(selectedLead.nome)}</h3>
                                         <p className="text-sm text-muted-foreground font-bold">{SCORE_LABELS[selectedLead.lead_score_valor || "baixo"] || "🧊 Lead Baixo"} • <span className="font-medium">{selectedLead.cidade}</span></p>
                                     </div>
                                 </div>

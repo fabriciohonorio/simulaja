@@ -18,6 +18,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
+import { formatToUpper } from "@/lib/formatters";
 
 
 interface Lead {
@@ -190,7 +191,7 @@ export default function FilaInteligente() {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-lg">{lead.nome}</h3>
+                                            <h3 className="font-bold text-lg">{formatToUpper(lead.nome)}</h3>
                                             <Badge variant={lead.lead_temperatura === "quente" ? "destructive" : "secondary"} className="text-[10px] font-bold">
                                                 {TEMP_EMOJIS[lead.lead_temperatura || 'quente']} {lead.lead_temperatura === 'quente' ? 'Quente' : lead.lead_temperatura === 'morno' ? 'Morno' : lead.lead_temperatura === 'frio' ? 'Frio' : 'Morto'}
                                             </Badge>

@@ -7,6 +7,7 @@ import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatToUpper } from "@/lib/formatters";
 
 interface MissoesDiariasProps {
   userId: string;
@@ -331,7 +332,7 @@ export default function MissoesDiarias({
                   className="flex items-center justify-between gap-3 px-3 py-2 bg-white rounded-xl border border-slate-100 shadow-sm transition-all hover:border-primary/20"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-black text-slate-800 truncate leading-tight">{l.nome}</p>
+                    <p className="text-[11px] font-black text-slate-800 truncate leading-tight">{formatToUpper(l.nome)}</p>
                     {l.status && (
                       <p className={`text-[9px] font-bold uppercase tracking-tighter mt-0.5 ${
                         l.status.includes('⏳') || l.status.includes('Pendente') ? 'text-amber-500' : 

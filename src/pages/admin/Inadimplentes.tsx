@@ -48,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 
 interface Inadimplente {
   id: string;
@@ -141,15 +142,15 @@ export default function Inadimplentes() {
     if (!profile?.organizacao_id) return;
     setSaving(true);
     const payload: any = {
-      nome: form.nome,
+      nome: formatToUpper(form.nome),
       celular: form.celular,
       tipo_consorcio: form.tipo_consorcio,
       valor_parcela: Number(form.valor_parcela) || 0,
       parcelas_pagas: Number(form.parcelas_pagas) || 0,
       parcelas_atrasadas: Number(form.parcelas_atrasadas) || 0,
-      grupo: form.grupo,
-      cota: form.cota,
-      administradora: form.administradora || null,
+      grupo: formatToFourDigits(form.grupo),
+      cota: formatToFourDigits(form.cota),
+      administradora: formatToUpper(form.administradora) || null,
       status: editingItem ? editingItem.status : "em_atraso",
       organizacao_id: profile.organizacao_id
     };
@@ -346,10 +347,10 @@ export default function Inadimplentes() {
                               >
                                 <div className="flex items-start justify-between mb-3">
                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-black text-slate-900 text-sm truncate uppercase tracking-tighter">{item.nome}</h4>
+                                      <h4 className="font-black text-slate-900 text-sm truncate uppercase tracking-tighter">{formatToUpper(item.nome)}</h4>
                                       <div className="flex items-center gap-1.5 mt-1">
-                                         <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">Grupo {item.grupo}</span>
-                                         <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">{item.administradora}</span>
+                                         <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">Grupo {formatToFourDigits(item.grupo)}</span>
+                                         <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">{formatToUpper(item.administradora)}</span>
                                       </div>
                                    </div>
                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

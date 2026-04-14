@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { TrendingUp, Zap, Sparkles } from "lucide-react";
+import { formatToUpper } from "@/lib/formatters";
 
 interface Lead {
   id: string;
@@ -162,7 +163,7 @@ export default function Agendamentos() {
                 </div>
 
                 <div className="space-y-2 mb-4">
-                  <h3 className="font-bold text-lg truncate leading-tight">{lead.nome}</h3>
+                  <h3 className="font-bold text-lg truncate leading-tight">{formatToUpper(lead.nome)}</h3>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground font-medium">
                     <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {lead.cidade || "N/Inf"}</span>
                     <span className="flex items-center gap-1 text-primary font-bold"><DollarSign className="h-3 w-3" /> {formatLeadValue(Number(lead.valor_credito))}</span>

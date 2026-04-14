@@ -502,10 +502,10 @@ export default function Carteira() {
           <div key={c.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-start justify-between mb-3 gap-2">
               <div className="flex flex-col min-w-0">
-                <h4 className="font-black text-slate-900 truncate">{c.nome}</h4>
+                <h4 className="font-black text-slate-900 truncate">{formatToUpper(c.nome)}</h4>
                 {c.administradora && (
                   <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase w-fit mt-1">
-                    {c.administradora}
+                    {formatToUpper(c.administradora)}
                   </span>
                 )}
               </div>
@@ -520,7 +520,7 @@ export default function Carteira() {
                 onClick={() => c.grupo && (setSelectedGrupo(c.grupo), setShowContemplations(true), fetchContemplations(c.grupo))}
               >
                 <p className="text-slate-400 font-bold uppercase text-[9px]">Grupo / Cota</p>
-                <p className="font-black flex items-center gap-1">{c.grupo || "-"} / {c.cota || "-"} <ExternalLink className="h-3 w-3" /></p>
+                <p className="font-black flex items-center gap-1">{formatToFourDigits(c.grupo) || "-"} / {formatToFourDigits(c.cota) || "-"} <ExternalLink className="h-3 w-3" /></p>
               </div>
               <div className="p-2 border-l border-slate-50">
                 <p className="text-slate-400 font-bold uppercase text-[9px]">Crédito</p>
