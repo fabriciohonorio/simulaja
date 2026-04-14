@@ -171,19 +171,26 @@ export const calcularMissoes = async (
   if (isVendedor) {
     const { data: mSet } = await supabase
       .from("metas_vendedor")
-      .select("meta_anual")
+      .select("meta_anual, meta_outros")
       .eq("vendedor_id", userId)
       .eq("ano", agora.getFullYear())
       .maybeSingle();
-    metaMes = (mSet?.meta_anual || 0) / 12;
+    
+    // Prioriza meta_outros (usado como mensal) se existir e for > 0
+    metaMes = (mSet?.meta_outros && mSet.meta_outros > 0) 
+      ? mSet.meta_outros 
+      : (mSet?.meta_anual || 0) / 12;
   } else {
     const { data: mSet } = await supabase
       .from("meta")
-      .select("meta_anual")
+      .select("meta_anual, meta_outros")
       .eq("organizacao_id", orgId)
       .eq("ano", agora.getFullYear())
       .maybeSingle();
-    metaMes = (mSet?.meta_anual || 0) / 12;
+    
+    metaMes = (mSet?.meta_outros && mSet.meta_outros > 0) 
+      ? mSet.meta_outros 
+      : (mSet?.meta_anual || 0) / 12;
   }
 
   // 2. Buscar Realizado (Leads fechados no mês)
@@ -349,7 +356,7 @@ export const getLeadsForMissao = async (
     // 1. Pegar Leads fechados no período (Funil)
     const lQuery = supabase
       .from("leads")
-      .select("id, nome, celular, status")
+      .select("id, nome, celular, status, grupo, cota")
       .eq("organizacao_id", orgId)
       .in("status", ["fechado", "venda_fechada"])
       .or(`status_updated_at.gte.${inicioEP}T00:00:00,and(status_updated_at.is.null,created_at.gte.${inicioEP}T00:00:00)`)
@@ -391,7 +398,7 @@ export const getLeadsForMissao = async (
 
       return {
         id: c?.id || `new-${l.id}`, // ID fictício se não tiver na carteira
-        nome: l.nome,
+        nome: `${l.nome} - ${l.grupo || '??'}/${l.cota || '??'}`,
         celular: l.celular,
         status: statusLabel,
         lead_id: l.id

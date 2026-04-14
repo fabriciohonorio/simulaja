@@ -38,7 +38,7 @@ const LABEL_MAP: Record<string, string> = {
   followup_agendado: "Follow-ups agendados",
   leads_sem_toque: "Leads sem toque (+5d)",
   pagamentos_ep: "Pagamentos EP (Mês Ant.)",
-  meta_mes: "Alcançar Meta",
+  meta_mes: "Meta",
   inadimplencia: "Inadimplência",
   postagem_redes: "Postar Redes Sociais",
 };
