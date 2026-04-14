@@ -16,7 +16,9 @@ import {
   Clock,
   ArrowUpDown,
   Calculator,
-  Trash2
+  Trash2,
+  NotebookPen,
+  ClipboardList
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
@@ -33,6 +35,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { format, differenceInMonths, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { HistoricoModal } from "@/components/admin/funil/HistoricoModal";
+import { Lead } from "@/types/funil";
 
 interface Cliente {
   id: string;
@@ -46,6 +50,9 @@ interface Cliente {
   boleto_url: string | null;
   data_adesao?: string | null;
   tipo_consorcio?: string | null;
+  lead_id?: string | null;
+  protocolo_lance_fixo?: string | null;
+  celular?: string | null;
 }
 
 export default function Carteira() {
@@ -65,6 +72,7 @@ export default function Carteira() {
   const [lotteryChecked, setLotteryChecked] = useState(false);
   const [sortOrder, setSortOrder] = useState<"a-z" | "valor-desc" | "espera-desc">("a-z");
   const [todasCotasContempladas, setTodasCotasContempladas] = useState<any[]>([]);
+  const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<Lead | null>(null);
 
   useEffect(() => {
     fetchClientes();
@@ -161,6 +169,55 @@ export default function Carteira() {
   const handleDeleteContemplation = async (id: string) => {
     await supabase.from("cotas_contempladas").delete().eq("id", id);
     if (selectedGrupo) fetchContemplations(selectedGrupo);
+  };
+
+  const handleOpenTratativas = async (cliente: Cliente) => {
+    if (cliente.lead_id) {
+       // Buscar lead completo
+       const { data: lead } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).single();
+       if (lead) {
+         setSelectedLeadForHistory(lead as Lead);
+         return;
+       }
+    }
+
+    // Se não tem lead_id ou lead não encontrado, tentar buscar por nome ou criar
+    setLoading(true);
+    try {
+      const { data: existingLeads } = await supabase.from("leads")
+        .select("*")
+        .eq("nome", cliente.nome)
+        .eq("organizacao_id", profile?.organizacao_id)
+        .limit(1);
+
+      if (existingLeads && existingLeads.length > 0) {
+        const lead = existingLeads[0];
+        setSelectedLeadForHistory(lead as Lead);
+        // Vincular ao cliente para a próxima vez
+        await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
+      } else {
+        // Criar lead shadow
+        const { data: newLead, error: insErr } = await supabase.from("leads").insert({
+          nome: cliente.nome,
+          celular: cliente.celular,
+          tipo_consorcio: cliente.tipo_consorcio || "imovel",
+          valor_credito: cliente.valor_credito || 0,
+          status: "fechado",
+          organizacao_id: profile?.organizacao_id,
+          grupo: cliente.grupo,
+          cota: cliente.cota,
+        }).select().single();
+
+        if (newLead) {
+          setSelectedLeadForHistory(newLead as Lead);
+          await supabase.from("carteira").update({ lead_id: newLead.id }).eq("id", cliente.id);
+        }
+      }
+    } catch (e) {
+      toast({ title: "Erro ao abrir tratativas", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddContemplation = async () => {
@@ -321,28 +378,55 @@ export default function Carteira() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-4 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">
-              <Clock className="h-3 w-3 shrink-0" />
-              <div className="flex-1 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest text-center w-full">
-                  Tempo de Espera: {getWaitTime(c.data_adesao)}
-                </span>
+            <div className="flex flex-col gap-2 mb-4">
+              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">
+                <Clock className="h-3 w-3 shrink-0" />
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-center w-full">
+                    Tempo de Espera: {getWaitTime(c.data_adesao)}
+                  </span>
+                </div>
               </div>
+
+              {c.protocolo_lance_fixo && (
+                <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">
+                  <ClipboardList className="h-3 w-3 shrink-0" />
+                  <span className="text-[10px] font-black uppercase truncate">
+                    Protocolo Lance: {c.protocolo_lance_fixo}
+                  </span>
+                </div>
+              )}
             </div>
 
-            {c.boleto_url && (
+            <div className="flex gap-2">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
-                className="w-full text-[10px] font-black uppercase bg-blue-50 text-blue-600 mb-2"
-                onClick={() => window.open(c.boleto_url!, '_blank')}
+                className="flex-1 h-8 text-[9px] font-black uppercase border-slate-200 hover:bg-slate-50 gap-1.5"
+                onClick={() => handleOpenTratativas(c)}
               >
-                <FileText className="h-4 w-4 mr-2" /> Visualizar Boleto
+                <NotebookPen className="h-3 w-3" /> Tratativas
               </Button>
-            )}
+
+              {c.boleto_url && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex-1 h-8 text-[9px] font-black uppercase bg-blue-50 text-blue-600"
+                  onClick={() => window.open(c.boleto_url!, '_blank')}
+                >
+                  <FileText className="h-3.5 w-3.5 mr-1" /> Boleto
+                </Button>
+              )}
+            </div>
           </div>
         ))}
       </div>
+
+      <HistoricoModal 
+        lead={selectedLeadForHistory}
+        onClose={() => setSelectedLeadForHistory(null)}
+      />
 
       <Dialog open={showContemplations} onOpenChange={setShowContemplations}>
         <DialogContent className="max-w-xl">

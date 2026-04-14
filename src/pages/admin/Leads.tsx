@@ -13,6 +13,7 @@ import {
   MapPin,
   Package,
   CalendarCheck,
+  NotebookPen,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { LeadForm, LeadFormData } from "@/components/admin/LeadForm";
 import { useProfile } from "@/hooks/useProfile";
 import { format, parseISO } from "date-fns";
+import { HistoricoModal } from "@/components/admin/funil/HistoricoModal";
+import { Lead } from "@/types/funil";
 
 const STATUS_FECHADOS = ["venda_fechada", "fechado"];
 
@@ -41,6 +44,7 @@ export default function Leads() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [historyLead, setHistoryLead] = useState<Lead | null>(null);
 
   const filtered = leads.filter(l => {
     const nomeSearch = (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -338,6 +342,13 @@ export default function Leads() {
                         >
                           <WhatsAppIcon className="h-3.5 w-3.5" />
                         </a>
+                        <button
+                          onClick={() => setHistoryLead(l as Lead)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                          title="Tratativas / Histórico"
+                        >
+                          <NotebookPen className="h-3.5 w-3.5" />
+                        </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -372,6 +383,12 @@ export default function Leads() {
           </table>
         </div>
       </AdminHeroCard>
+
+      <HistoricoModal 
+        lead={historyLead}
+        onClose={() => setHistoryLead(null)}
+        allLeads={leads as Lead[]}
+      />
 
       <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingLead(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
