@@ -387,15 +387,6 @@ export default function Carteira() {
                   </span>
                 </div>
               </div>
-
-              {c.protocolo_lance_fixo && (
-                <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">
-                  <ClipboardList className="h-3 w-3 shrink-0" />
-                  <span className="text-[10px] font-black uppercase truncate">
-                    Protocolo Lance: {c.protocolo_lance_fixo}
-                  </span>
-                </div>
-              )}
             </div>
 
             <div className="flex gap-2">

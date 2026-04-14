@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare } from "lucide-react";
+import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
@@ -25,6 +25,7 @@ export const TIPO_CONTATO_OPTIONS = [
   { value: "ligacao", label: "Ligação", icon: PhoneCall },
   { value: "email", label: "E-mail", icon: Mail },
   { value: "presencial", label: "Presencial", icon: MessageSquare },
+  { value: "lance", label: "Lance", icon: Gavel },
 ];
 
 export const RESULTADO_OPTIONS = [
