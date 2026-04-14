@@ -232,6 +232,10 @@ export default function Jarvis() {
                     setMetaAnual(metaRes.data.meta_anual || 0);
                     
                     // Calcular métricas por segmento baseadas no Metas.tsx
+                    const today = new Date();
+                    const subMonths = (d: Date, n: number) => { d.setMonth(d.getMonth() - n); return d; };
+                    const attributionMonth = subMonths(new Date(), 1);
+                    const attributionMonthStr = attributionMonth.toISOString().substring(0, 7);
                     const currentMonthStr = new Date().toISOString().substring(0, 7);
                     const monthlyMetas: Record<string, number> = {
                         imoveis: Number(metaRes.data.meta_imoveis || 500000),
@@ -254,13 +258,14 @@ export default function Jarvis() {
                             const type = (l.tipo_consorcio || "").toLowerCase();
                             return config.keywords.some(kw => type.includes(kw));
                         });
-                        const segmentVendas = segmentLeads.filter(l => (l.status || "").toLowerCase() === "fechado" && l.created_at?.startsWith(currentMonthStr));
-                        const valorTotal = segmentVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+                        const segmentVendas = segmentLeads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()));
+                        const currentMonthVendas = segmentVendas.filter(l => (l.status_updated_at || "").startsWith(attributionMonthStr));
+                        const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
                         
                         return {
                             segmento: config.id,
                             total_leads: segmentLeads.length,
-                            total_vendas: segmentVendas.length,
+                            total_vendas: currentMonthVendas.length,
                             valor_total: valorTotal,
                             meta_vendas: monthlyMetas[config.id]
                         };
@@ -288,17 +293,20 @@ export default function Jarvis() {
         // Simulando processamento inteligente
         setTimeout(() => {
             const queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const subMonths = (d: Date, n: number) => { d.setMonth(d.getMonth() - n); return d; };
+            const attributionMonth = subMonths(new Date(), 1);
+            const attributionMonthStr = attributionMonth.toISOString().substring(0, 7);
             const currentMonthStr = new Date().toISOString().substring(0, 7);
             const metaMensal = metaAnual / 12;
             
-            const fechadosMes = leads.filter(l => (l.status || "").toLowerCase() === "fechado" && l.created_at?.startsWith(currentMonthStr));
+            const fechadosMes = leads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()) && (l.status_updated_at || "").startsWith(attributionMonthStr));
             const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             
             const currentYear = new Date().getFullYear().toString();
-            const realizadoAno = leads.filter(l => (l.status || "").toLowerCase() === "fechado" && l.created_at?.startsWith(currentYear)).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+            const realizadoAno = leads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()) && (l.status_updated_at || "").startsWith(currentYear)).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             const progressoAno = metaAnual > 0 ? (realizadoAno / metaAnual) * 100 : 0;
             
-            const emNegociacao = leads.filter(l => !["fechado", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));
+            const emNegociacao = leads.filter(l => !["fechado", "venda_fechada", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));
             const pipelineValue = emNegociacao.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             const diasNoMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
             const diaHoje = new Date().getDate();
@@ -641,7 +649,15 @@ Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. 
                                         { icon: MessageSquare, text: "Redes: Explique hoje a taxa Selic no consórcio" },
                                         { icon: Target, text: "Prospecção: Foco em médicos e profissionais liberais" }
                                     ].map((s, i) => (
-                                        <div key={i} className="flex gap-4 items-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                                        <div 
+                                            key={i} 
+                                            className="flex gap-4 items-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
+                                            onClick={() => {
+                                                if (s.text.toLowerCase().includes("redes")) {
+                                                    toast.info("Acesse a aba 'Dashboard' para completar missões de redes sociais!");
+                                                }
+                                            }}
+                                        >
                                             <div className="h-8 w-8 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
                                                 <s.icon className="h-4 w-4 text-primary-foreground" />
                                             </div>

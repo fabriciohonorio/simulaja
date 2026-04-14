@@ -222,7 +222,7 @@ export default function MissoesDiarias({
             <div
               key={missao.id}
               onClick={() => handleMissionClick(missao.id)}
-              className={`group flex flex-col items-center gap-2 p-2.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
+              className={`group flex flex-col items-center gap-2 p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 touch-manipulation relative overflow-hidden ${
                 missao.concluida
                   ? "bg-emerald-50/30 border-emerald-100 shadow-sm shadow-emerald-500/5"
                   : expandedMission === missao.id
@@ -297,24 +297,24 @@ export default function MissoesDiarias({
                   <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Postagens diárias</h4>
                   <p className="text-[9px] text-slate-500 mt-0.5 leading-tight">Poste nas redes sociais para completar as metas!</p>
                </div>
-               <div className="flex gap-2 w-full mt-1">
+                <div className="flex gap-2 w-full mt-1">
                  <Button 
                     variant="outline"
                     size="sm"
-                    onClick={() => handleCompleteSocialMission("Veículos")}
-                    className="flex-1 h-8 text-[9px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500"
+                    onClick={(e) => { e.stopPropagation(); handleCompleteSocialMission("Veículos"); }}
+                    className="flex-1 h-10 text-[10px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500 active:scale-95"
                  >
                     Veículos 🚗
                  </Button>
                  <Button 
                     variant="outline"
                     size="sm"
-                    onClick={() => handleCompleteSocialMission("Imóveis")}
-                    className="flex-1 h-8 text-[9px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500"
+                    onClick={(e) => { e.stopPropagation(); handleCompleteSocialMission("Imóveis"); }}
+                    className="flex-1 h-10 text-[10px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500 active:scale-95"
                  >
                     Imóveis 🏠
                  </Button>
-               </div>
+                </div>
             </div>
           ) : (expandedLeads || []).length === 0 ? (
             <div className="py-4 text-center bg-white rounded-xl border border-dashed border-slate-200">

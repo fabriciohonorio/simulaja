@@ -216,9 +216,10 @@ export default function Dashboard() {
   }, [profile?.organizacao_id]);
 
   const metaMensal = metaAnual / 12;
-  const currentMonthStr = format(new Date(), "yyyy-MM");
+  const prevMonth = subMonths(new Date(), 1);
+  const prevMonthStr = format(prevMonth, "yyyy-MM");
   const realizadoMes = leads
-    .filter(l => l.status === "fechado" && l.created_at?.startsWith(currentMonthStr))
+    .filter(l => (l.status === "fechado" || l.status === "venda_fechada") && (l.status_updated_at || "").startsWith(prevMonthStr))
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   
   const progressoMes = metaMensal > 0 ? (realizadoMes / metaMensal) * 100 : 0;
