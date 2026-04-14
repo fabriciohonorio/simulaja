@@ -73,6 +73,7 @@ export default function Carteira() {
   const [sortOrder, setSortOrder] = useState<"a-z" | "valor-desc" | "espera-desc">("a-z");
   const [todasCotasContempladas, setTodasCotasContempladas] = useState<any[]>([]);
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<Lead | null>(null);
+  const [leadsComLance, setLeadsComLance] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchClientes();
@@ -109,6 +110,21 @@ export default function Carteira() {
       }
 
       setClientes(uniqueClients);
+
+      // Fetch leads that have 'lance' interactions
+      if (uniqueClients.length > 0) {
+        const leadIds = uniqueClients.map(c => c.lead_id).filter(Boolean) as string[];
+        if (leadIds.length > 0) {
+          const { data: lanceInteractions } = await supabase
+            .from("historico_contatos")
+            .select("lead_id")
+            .eq("tipo", "lance")
+            .in("lead_id", leadIds);
+          
+          const leadsSet = new Set((lanceInteractions || []).map(i => i.lead_id));
+          setLeadsComLance(leadsSet);
+        }
+      }
     } catch (e) {
       toast({ title: "Erro ao carregar carteira", variant: "destructive" });
       console.error(e);
@@ -393,10 +409,15 @@ export default function Carteira() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex-1 h-8 text-[9px] font-black uppercase border-slate-200 hover:bg-slate-50 gap-1.5"
+                className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 transition-all ${
+                  c.lead_id && leadsComLance.has(c.lead_id)
+                    ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20" 
+                    : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                }`}
                 onClick={() => handleOpenTratativas(c)}
               >
-                <NotebookPen className="h-3 w-3" /> Tratativas
+                <NotebookPen className="h-3 w-3" /> 
+                {c.lead_id && leadsComLance.has(c.lead_id) ? "Lance Registrado" : "Tratativas"}
               </Button>
 
               {c.boleto_url && (
@@ -416,7 +437,11 @@ export default function Carteira() {
 
       <HistoricoModal 
         lead={selectedLeadForHistory}
-        onClose={() => setSelectedLeadForHistory(null)}
+        onClose={() => {
+          setSelectedLeadForHistory(null);
+          // Atualiza para garantir que se um lance foi incluído, o botão fique verde
+          fetchClientes();
+        }}
       />
 
       <Dialog open={showContemplations} onOpenChange={setShowContemplations}>
