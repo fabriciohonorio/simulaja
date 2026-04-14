@@ -4,6 +4,8 @@ import { Progress } from "@/components/ui/progress";
 import { Zap, Target, Clock, CheckCircle2, Sparkles, ChevronDown, ChevronUp, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MissoesDiariasProps {
   userId: string;
@@ -67,6 +69,44 @@ export default function MissoesDiarias({
       const leads = await getLeadsForMissao(missaoId, orgId, tipoAcesso, userId);
       setMissionLeadsMap((prev) => ({ ...prev, [missaoId]: leads }));
       setLoadingMission(null);
+    }
+  };
+
+  const handleMarkPaid = async (carteiraId: string, leadId?: string | null) => {
+    try {
+      const { error } = await supabase
+        .from("carteira")
+        .update({ status: "EP OK" })
+        .eq("id", carteiraId);
+
+      if (error) throw error;
+
+      // Se tiver lead_id, adiciona tratativa
+      if (leadId) {
+        await supabase.from("historico_contatos").insert({
+          lead_id: leadId,
+          tipo: "sistema",
+          observacao: "Pagamento Confirmado (Missão EP)",
+          resultado: "positivo",
+          organizacao_id: orgId
+        });
+      }
+
+      toast.success("Pagamento confirmado!");
+      
+      // Atualiza estado local
+      setMissionLeadsMap(prev => ({
+        ...prev,
+        pagamentos_ep: (prev.pagamentos_ep || []).map(l => 
+          l.id === carteiraId ? { ...l, status: "✅ Pago" } : l
+        )
+      }));
+
+      // Recalcula missões
+      const r = await calcularMissoes(userId, orgId, tipoAcesso);
+      setResultado(r);
+    } catch (e: any) {
+      toast.error("Erro ao confirmar pagamento: " + e.message);
     }
   };
 
@@ -145,9 +185,16 @@ export default function MissoesDiarias({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 max-w-full">
-                    <span className={`text-[10px] font-black uppercase tracking-tight truncate ${missao.concluida ? "text-slate-400 line-through" : "text-slate-700"}`}>
-                      {missao.label}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className={`text-[10px] font-black uppercase tracking-tight truncate ${missao.concluida ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                        {missao.label}
+                      </span>
+                      {missao.isCurrency && missao.faltando && missao.faltando > 0 && !missao.concluida && (
+                        <span className="text-[8px] font-bold text-indigo-500 uppercase tracking-tighter">
+                          Faltam R$ {(missao.faltando/1000).toFixed(0)}k
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-1">
                       {!missao.invertida ? (
@@ -225,6 +272,15 @@ export default function MissoesDiarias({
                     >
                       <WhatsAppIcon className="h-3 w-3" />
                     </a>
+                  )}
+                  {expandedMission === "pagamentos_ep" && l.status === "⏳ Pendente" && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleMarkPaid(l.id, l.lead_id); }}
+                      className="shrink-0 p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-100"
+                      title="Confirmar Pagamento"
+                    >
+                      <CheckCircle2 className="h-3 w-3" />
+                    </button>
                   )}
                 </div>
               ))}

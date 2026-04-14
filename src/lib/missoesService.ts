@@ -5,6 +5,7 @@ export interface MissaoLead {
   nome: string;
   celular: string | null;
   status: string | null;
+  lead_id?: string | null;
 }
 import { format } from "date-fns";
 
@@ -17,6 +18,7 @@ export interface Missao {
   invertida: boolean; // true = meta é chegar em 0
   hasDetails?: boolean; // false se não tiver lista de leads vinculada
   isCurrency?: boolean;
+  faltando?: number;
 }
 
 export interface MissoesResult {
@@ -229,6 +231,7 @@ export const calcularMissoes = async (
       concluida: metaMes > 0 ? realizadoMes >= metaMes : false,
       invertida: false,
       isCurrency: true,
+      faltando: Math.max(0, metaMes - realizadoMes),
     },
   ];
 
@@ -298,7 +301,7 @@ export const getLeadsForMissao = async (
 
     let q = (supabase as any)
       .from("carteira")
-      .select("id, nome, status")
+      .select("id, nome, status, lead_id")
       .eq("organizacao_id", orgId)
       .gte("data_adesao", inicioEP)
       .lte("data_adesao", fimEP);
@@ -318,8 +321,9 @@ export const getLeadsForMissao = async (
     return (data || []).map((d: any) => ({
       id: d.id,
       nome: d.nome,
-      celular: null, // carteira doesn't have phone, could join with leads but for now keep it simple
-      status: d.status === "EP OK" ? "✅ Pago" : "⏳ Pendente"
+      celular: null, 
+      status: d.status === "EP OK" ? "✅ Pago" : "⏳ Pendente",
+      lead_id: d.lead_id
     })) as MissaoLead[];
   }
 
