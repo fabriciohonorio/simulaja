@@ -1,42 +1,47 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useFunil } from "@/hooks/useFunil";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
-import { 
-  Filter, 
-  Search, 
-  MoreHorizontal, 
+import {
+  Filter,
+  Search,
+  MoreHorizontal,
   UserRound,
-  UserPlus, 
+  UserPlus,
   Trash2,
   Pencil,
-  Plus
+  Plus,
+  MapPin,
+  Package,
+  CalendarCheck,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LeadForm, LeadFormData } from "@/components/admin/LeadForm";
 import { useProfile } from "@/hooks/useProfile";
+import { format, parseISO } from "date-fns";
+
+const STATUS_FECHADOS = ["venda_fechada", "fechado"];
 
 export default function Leads() {
-  const { leads, loading, refetch } = useFunil();
+  const { leads, loading, setLeads } = useFunil();
   const { profile } = useProfile();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
-  
+
   const filtered = leads.filter(l => {
     const nomeSearch = (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase());
     const statusMatch = statusFilter === "todos" || l.status === statusFilter;
@@ -49,16 +54,29 @@ export default function Leads() {
       const { error } = await supabase.from("leads").delete().eq("id", id);
       if (error) throw error;
       toast.success("Lead excluído");
-      refetch();
+      setLeads(prev => prev.filter(l => l.id !== id));
     } catch (e) {
       toast.error("Erro ao excluir");
     }
   };
 
+  // Recarrega leads do Supabase e sincroniza estado local
+  const refetchLeads = useCallback(async () => {
+    if (!profile?.organizacao_id) return;
+    const { data } = await (supabase as any)
+      .from("leads")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("created_at", { ascending: false });
+    if (data) {
+      setLeads(data);
+    }
+  }, [profile?.organizacao_id, setLeads]);
+
   const handleSaveLead = async (formData: LeadFormData) => {
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: any = {
         nome: formData.nome,
         email: formData.email || null,
         celular: formData.celular,
@@ -73,22 +91,47 @@ export default function Leads() {
         indicador_nome: formData.indicador_nome || null,
         indicador_celular: formData.indicador_celular || null,
         organizacao_id: profile?.organizacao_id,
+        grupo: formData.grupo || null,
+        cota: formData.cota || null,
       };
 
       if (editingLead) {
+        // Atualiza na tabela leads
         const { error } = await supabase.from("leads").update(payload).eq("id", editingLead.id);
         if (error) { console.error("Erro update:", error); throw error; }
-        toast.success("Lead atualizado");
+
+        // Sincroniza com a tabela carteira, se este lead tiver entrada lá
+        const { data: carteiraItem } = await (supabase as any)
+          .from("carteira")
+          .select("id")
+          .eq("lead_id", editingLead.id)
+          .maybeSingle();
+
+        if (carteiraItem) {
+          await (supabase as any).from("carteira").update({
+            nome: payload.nome,
+            celular: payload.celular,
+            cidade: payload.cidade,
+            tipo_consorcio: payload.tipo_consorcio,
+            valor_credito: payload.valor_credito,
+            administradora: payload.administradora,
+            grupo: payload.grupo,
+            cota: payload.cota,
+          }).eq("lead_id", editingLead.id);
+        }
+
+        toast.success("Lead atualizado com sucesso!");
       } else {
         const { error } = await supabase.from("leads").insert([payload]);
         if (error) { console.error("Erro insert:", error); throw error; }
         toast.success("Lead criado com sucesso!");
       }
+
       setIsDialogOpen(false);
       setEditingLead(null);
-      refetch();
+      await refetchLeads();
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message || "Erro ao salvar lead");
     } finally {
       setSubmitting(false);
     }
@@ -96,7 +139,7 @@ export default function Leads() {
 
   const getStatusBadge = (status: string | null) => {
     const s = status || "novo";
-    switch(s) {
+    switch (s) {
       case 'venda_fechada': case 'fechado': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100">✓ Vendido</span>;
       case 'negociacao': case 'em_negociacao': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-violet-50 text-violet-500 border border-violet-100">Negociando</span>;
       case 'perdido': return <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black bg-red-50 text-red-400 border border-red-100">Perdido</span>;
@@ -124,24 +167,24 @@ export default function Leads() {
         </button>
       </div>
 
-      <AdminHeroCard 
-        title="Gerenciamento" 
+      <AdminHeroCard
+        title="Gerenciamento"
         subtitle="Oportunidades e Filtros"
-        icon={Filter} 
+        icon={Filter}
         bgIcon={Filter}
         accentColor="primary"
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Buscar por nome..." 
-              className="pl-10" 
+            <Input
+              placeholder="Buscar por nome..."
+              className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select 
+          <select
             className="flex h-10 w-full md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -151,6 +194,7 @@ export default function Leads() {
             <option value="contatado">Em Contato</option>
             <option value="em_negociacao">Negociação</option>
             <option value="venda_fechada">Vendidos</option>
+            <option value="fechado">Fechados</option>
             <option value="perdido">Perdidos</option>
           </select>
         </div>
@@ -162,73 +206,132 @@ export default function Leads() {
                 <th className="px-4 py-3">Lead</th>
                 <th className="px-4 py-3">Segmento</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Grupo / Cota</th>
                 <th className="px-4 py-3">Valor</th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map((l) => (
-                <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col">
-                      <span className="font-black text-slate-900">{l.nome || "Lead Sem Nome"}</span>
-                      <span className="text-[10px] text-slate-400">{l.celular || "Sem telefone"}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 uppercase text-[10px] font-bold text-slate-500">
-                    {l.tipo_consorcio || "Indefinido"}
-                  </td>
-                  <td className="px-4 py-3">{getStatusBadge(l.status)}</td>
-                  <td className="px-4 py-3 font-black text-slate-700">
-                    {formatLeadValue(Number(l.valor_credito || 0))}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-0.5">
-                      <a
-                        href={`https://wa.me/55${(l.celular || "").replace(/\D/g, "")}?text=Olá!`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
-                        title="WhatsApp"
-                      >
-                        <WhatsAppIcon className="h-3.5 w-3.5" />
-                      </a>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem 
-                            className="gap-2"
-                            onClick={() => { setEditingLead(l); setIsDialogOpen(true); }}
-                          >
-                             <Pencil className="h-4 w-4" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 text-red-500" onClick={() => handleDeleteLead(l.id)}>
-                             <Trash2 className="h-4 w-4" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+              {filtered.map((l) => {
+                const isFechado = STATUS_FECHADOS.includes(l.status || "");
+                const dataFechamento = isFechado && l.status_updated_at
+                  ? format(parseISO(l.status_updated_at), "dd/MM/yyyy")
+                  : null;
+
+                return (
+                  <tr
+                    key={l.id}
+                    className={`hover:bg-slate-50/50 transition-colors ${isFechado ? "bg-emerald-50/20" : ""}`}
+                  >
+                    {/* Lead: nome + celular + cidade */}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-black text-slate-900">{l.nome || "Lead Sem Nome"}</span>
+                        <span className="text-[10px] text-slate-400">{l.celular || "Sem telefone"}</span>
+                        {l.cidade && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-slate-400">
+                            <MapPin className="h-2.5 w-2.5" />
+                            {l.cidade}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Segmento */}
+                    <td className="px-4 py-3 uppercase text-[10px] font-bold text-slate-500">
+                      {l.tipo_consorcio || "Indefinido"}
+                    </td>
+
+                    {/* Status + data fechamento */}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        {getStatusBadge(l.status)}
+                        {dataFechamento && (
+                          <span className="flex items-center gap-0.5 text-[9px] text-emerald-600 font-bold">
+                            <CalendarCheck className="h-2.5 w-2.5" />
+                            {dataFechamento}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Grupo / Cota — destaque para fechados */}
+                    <td className="px-4 py-3">
+                      {(l.grupo || l.cota) ? (
+                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black ${
+                          isFechado ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-slate-50 text-slate-500 border border-slate-100"
+                        }`}>
+                          <Package className="h-2.5 w-2.5" />
+                          G:{l.grupo || "—"} / C:{l.cota || "—"}
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-300">—</span>
+                      )}
+                    </td>
+
+                    {/* Valor */}
+                    <td className="px-4 py-3 font-black text-slate-700">
+                      {formatLeadValue(Number(l.valor_credito || 0))}
+                    </td>
+
+                    {/* Ações */}
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-0.5">
+                        <a
+                          href={`https://wa.me/55${(l.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+                          title="WhatsApp"
+                        >
+                          <WhatsAppIcon className="h-3.5 w-3.5" />
+                        </a>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="gap-2"
+                              onClick={() => { setEditingLead(l); setIsDialogOpen(true); }}
+                            >
+                               <Pencil className="h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2 text-red-500" onClick={() => handleDeleteLead(l.id)}>
+                               <Trash2 className="h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400 text-sm">
+                    Nenhum lead encontrado.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </AdminHeroCard>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingLead(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-black text-xl">
               {editingLead ? "Editar Lead" : "Novo Lead"}
             </DialogTitle>
           </DialogHeader>
-          <LeadForm 
+          {/* key força re-montagem do formulário ao trocar de lead */}
+          <LeadForm
+            key={editingLead?.id || "new-lead"}
             isSubmitting={submitting}
             initialData={editingLead ? {
               nome: editingLead.nome || "",
@@ -244,11 +347,13 @@ export default function Leads() {
               administradora: editingLead.administradora || "none",
               indicador_nome: editingLead.indicador_nome || "",
               indicador_celular: editingLead.indicador_celular || "",
+              grupo: editingLead.grupo || "",
+              cota: editingLead.cota || "",
             } : {
               nome: "", email: "", celular: "", cidade: "",
               tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "",
               status: "novo_lead", lead_temperatura: "morno", lead_score_valor: "medio",
-              administradora: "none"
+              administradora: "none", grupo: "", cota: "",
             }}
             onSubmit={handleSaveLead}
             onCancel={() => setIsDialogOpen(false)}

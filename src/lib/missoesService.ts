@@ -1,4 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+
+export interface MissaoLead {
+  id: string;
+  nome: string;
+  celular: string | null;
+  status: string | null;
+}
 import { format } from "date-fns";
 
 export interface Missao {
@@ -123,4 +130,59 @@ export const calcularMissoes = async (
     missoes,
     totalConcluidas: missoes.filter((m) => m.concluida).length,
   };
+};
+
+// ── Busca os leads que compõem cada missão ───────────────────────────────────
+export const getLeadsForMissao = async (
+  missaoId: string,
+  orgId: string,
+  tipoAcesso: "admin" | "manager" | "vendedor",
+  userId: string
+): Promise<MissaoLead[]> => {
+  const hoje = format(new Date(), "yyyy-MM-dd");
+  const isVendedor = tipoAcesso === "vendedor";
+  const cincoAntras = new Date();
+  cincoAntras.setDate(cincoAntras.getDate() - 5);
+
+  if (missaoId === "contatos_hoje") {
+    const { data: contatos } = await (supabase as any)
+      .from("historico_contatos")
+      .select("lead_id")
+      .eq("organizacao_id", orgId)
+      .gte("created_at", `${hoje}T00:00:00`);
+
+    const leadIds = [...new Set(((contatos as any[]) || []).map((c) => c.lead_id).filter(Boolean))];
+    if (leadIds.length === 0) return [];
+
+    let q = (supabase as any).from("leads").select("id, nome, celular, status").in("id", leadIds);
+    if (isVendedor) q = q.eq("responsavel_id", userId);
+    const { data } = await q;
+    return (data as MissaoLead[]) || [];
+  }
+
+  if (missaoId === "followup_agendado") {
+    let q = (supabase as any)
+      .from("leads")
+      .select("id, nome, celular, status")
+      .eq("organizacao_id", orgId)
+      .not("data_vencimento", "is", null)
+      .gte("updated_at", `${hoje}T00:00:00`);
+    if (isVendedor) q = q.eq("responsavel_id", userId);
+    const { data } = await q;
+    return (data as MissaoLead[]) || [];
+  }
+
+  if (missaoId === "leads_sem_toque") {
+    let q = (supabase as any)
+      .from("leads")
+      .select("id, nome, celular, status")
+      .eq("organizacao_id", orgId)
+      .lt("last_interaction_at", cincoAntras.toISOString())
+      .not("status", "in", '("fechado","perdido","morto")');
+    if (isVendedor) q = q.eq("responsavel_id", userId);
+    const { data } = await q;
+    return (data as MissaoLead[]) || [];
+  }
+
+  return [];
 };

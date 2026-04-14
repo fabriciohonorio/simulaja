@@ -10,7 +10,10 @@ export const STATUS_OPTIONS = [
   { value: "contatado", label: "Contatado" },
   { value: "proposta_enviada", label: "Proposta Enviada" },
   { value: "em_negociacao", label: "Em Negociação" },
+  { value: "aguardando_pagamento", label: "Aguard. Pagamento" },
+  { value: "venda_fechada", label: "✅ Venda Fechada" },
   { value: "fechado", label: "Fechado" },
+  { value: "perdido", label: "❌ Perdido" },
 ];
 
 export const TIPO_OPTIONS = [
@@ -38,6 +41,8 @@ export const SCORE_OPTIONS = [
 
 const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
+const STATUS_FECHADOS = ["venda_fechada", "fechado"];
+
 export interface LeadFormData {
   nome: string;
   email: string;
@@ -52,6 +57,9 @@ export interface LeadFormData {
   administradora: string;
   indicador_nome?: string;
   indicador_celular?: string;
+  // Campos de venda fechada
+  grupo?: string;
+  cota?: string;
 }
 
 interface LeadFormProps {
@@ -77,6 +85,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
     e.preventDefault();
     onSubmit(form);
   };
+
+  const isVendaFechada = STATUS_FECHADOS.includes(form.status);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -173,6 +183,37 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
           </SelectContent>
         </Select>
       </div>
+
+      {/* Campos extras para venda fechada */}
+      {isVendaFechada && (
+        <div className="space-y-3 bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
+          <h4 className="text-sm font-black text-emerald-700 flex items-center gap-2">
+            ✅ Dados do Consórcio Adquirido
+          </h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="grupo">Grupo</Label>
+              <Input
+                id="grupo"
+                value={form.grupo || ""}
+                onChange={handleChange}
+                placeholder="Ex: 1703"
+                className="bg-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cota">Cota</Label>
+              <Input
+                id="cota"
+                value={form.cota || ""}
+                onChange={handleChange}
+                placeholder="Ex: 045"
+                className="bg-white"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <hr className="my-4 border-muted" />
       

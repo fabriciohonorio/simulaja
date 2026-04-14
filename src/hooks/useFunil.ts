@@ -141,85 +141,132 @@ export function useFunil() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  useEffect(() => {
+  // ── Função reutilizável de fetch de leads ───────────────────────────────
+  const fetchLeads = useCallback(async () => {
     if (!profile?.organizacao_id) {
       setLoading(false);
       return;
     }
 
-    (supabase as any)
+    const { data } = await (supabase as any)
       .from("leads")
       .select("*")
       .eq("organizacao_id", profile.organizacao_id)
-      .order("created_at", { ascending: false })
-      .then(({ data }: any) => {
-        const uniqueRaw = ((data as unknown as Lead[]) || []).filter((v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i);
-        
-        const fetchedLeads = uniqueRaw.map((lead: any) => ({
-          ...lead,
-          nome: lead.nome || "Lead Sem Nome",
-          status: normalizeStatus(lead.status),
-        }));
-        setLeads(fetchedLeads);
-        setLoading(false);
+      .order("created_at", { ascending: false });
 
-        const now = new Date();
-        fetchedLeads.forEach(async (lead: Lead) => {
-          const finalStatuses = ["fechado", "perdido", "morto"];
-          if (finalStatuses.includes(lead.status || "")) return;
+    const uniqueRaw = ((data as unknown as Lead[]) || []).filter(
+      (v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i
+    );
 
-          const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now.toISOString());
-          const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
-          let newTemp = lead.lead_temperatura || "quente";
-          let newStatus = lead.status;
+    const fetchedLeads = uniqueRaw.map((lead: any) => ({
+      ...lead,
+      nome: lead.nome || "Lead Sem Nome",
+      status: normalizeStatus(lead.status),
+    }));
+    setLeads(fetchedLeads);
+    setLoading(false);
 
-          if (hoursDiff > 24 * 7) {
-            newTemp = "morto";
-          } else if (hoursDiff > 24 * 3) {
-            newTemp = "frio";
-          } else if (hoursDiff > 24) {
-            newTemp = "morno";
+    const now = new Date();
+    fetchedLeads.forEach(async (lead: Lead) => {
+      const finalStatuses = ["fechado", "perdido", "morto"];
+      if (finalStatuses.includes(lead.status || "")) return;
+
+      const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now.toISOString());
+      const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
+      let newTemp = lead.lead_temperatura || "quente";
+      let newStatus = lead.status;
+
+      if (hoursDiff > 24 * 7) newTemp = "morto";
+      else if (hoursDiff > 24 * 3) newTemp = "frio";
+      else if (hoursDiff > 24) newTemp = "morno";
+
+      let score = 0;
+      let reasons: string[] = [];
+
+      if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
+      else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
+      else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
+      else { score += 10; reasons.push("Baixo Potencial"); }
+
+      if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
+      else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
+      else if (newTemp === "frio") { score += 5; }
+
+      if (["simulacao_enviada", "proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
+      else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
+      else if (newStatus === "primeiro_contato" || newStatus === "contato") { score += 10; }
+      else { score += 5; }
+
+      const newScore = score;
+      const newReason = reasons.join(" + ");
+
+      if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
+        await (supabase as any).from("leads").update({
+          lead_temperatura: newTemp,
+          status: newStatus,
+          status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
+          propensity_score: newScore,
+          propensity_reason: newReason,
+        }).eq("id", lead.id).eq("organizacao_id", profile.organizacao_id);
+
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === lead.id
+              ? { ...l, lead_temperatura: newTemp, status: newStatus, propensity_score: newScore, propensity_reason: newReason }
+              : l
+          )
+        );
+      }
+    });
+  }, [profile?.organizacao_id]);
+
+  // refetch público para uso em outras páginas (ex: Leads.tsx)
+  const refetch = useCallback(async () => {
+    await fetchLeads();
+  }, [fetchLeads]);
+
+  // Carga inicial
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
+  // Subscription realtime — qualquer alteração em leads reflete no Funil/Carteira/Dashboard
+  useEffect(() => {
+    if (!profile?.organizacao_id) return;
+
+    const channel = supabase
+      .channel(`funil-leads-realtime-${profile.organizacao_id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leads', filter: `organizacao_id=eq.${profile.organizacao_id}` },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            // Remove lead excluído da lista sem precisar re-fetch
+            setLeads((prev) => prev.filter((l) => l.id !== (payload.old as any).id));
+          } else if (payload.eventType === 'INSERT') {
+            const newLead = payload.new as Lead;
+            setLeads((prev) => {
+              const exists = prev.find((l) => l.id === newLead.id);
+              if (exists) return prev;
+              return [{ ...newLead, nome: newLead.nome || 'Lead Sem Nome', status: normalizeStatus(newLead.status) }, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as Lead;
+            setLeads((prev) =>
+              prev.map((l) =>
+                l.id === updated.id
+                  ? { ...l, ...updated, nome: updated.nome || 'Lead Sem Nome', status: normalizeStatus(updated.status) }
+                  : l
+              )
+            );
           }
+        }
+      )
+      .subscribe();
 
-          let score = 0;
-          let reasons = [];
-
-          if (lead.lead_score_valor === "premium") { score += 40; reasons.push("Crédito Premium"); }
-          else if (lead.lead_score_valor === "alto") { score += 30; reasons.push("Alto Potencial"); }
-          else if (lead.lead_score_valor === "medio") { score += 20; reasons.push("Médio Potencial"); }
-          else { score += 10; reasons.push("Baixo Potencial"); }
-
-          if (newTemp === "quente") { score += 40; reasons.push("Lead Ativo"); }
-          else if (newTemp === "morno") { score += 20; reasons.push("Aguardando"); }
-          else if (newTemp === "frio") { score += 5; }
-
-          if (["simulacao_enviada", "proposta", "negociacao"].includes(newStatus || "")) { score += 20; reasons.push("Fase Avançada"); }
-          else if (newStatus === "qualificacao") { score += 15; reasons.push("Em Qualificação"); }
-          else if (newStatus === "primeiro_contato" || newStatus === "contato") { score += 10; }
-          else { score += 5; }
-
-          const newScore = score;
-          const newReason = reasons.join(" + ");
-
-          if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
-            await (supabase as any).from("leads").update({
-              lead_temperatura: newTemp,
-              status: newStatus,
-              status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
-              propensity_score: newScore,
-              propensity_reason: newReason
-            }).eq("id", lead.id).eq("organizacao_id", profile.organizacao_id);
-
-            setLeads(prev => prev.map(l => l.id === lead.id ? {
-              ...l,
-              lead_temperatura: newTemp,
-              status: newStatus,
-              propensity_score: newScore,
-              propensity_reason: newReason
-            } : l));
-          }
-        });
-      });
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profile?.organizacao_id]);
 
   useEffect(() => {
@@ -487,6 +534,7 @@ export function useFunil() {
     leads,
     setLeads,
     loading,
+    refetch,
     celebrationLead,
     setCelebrationLead,
     grupo,
@@ -530,5 +578,6 @@ export function useFunil() {
     handleSaveCelebration,
     handleDeleteLead,
     handleCloseHistorico,
+    profile,
   };
 }
