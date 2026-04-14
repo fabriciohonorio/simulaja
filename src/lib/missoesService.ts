@@ -211,7 +211,15 @@ export const calcularMissoes = async (
 
   const totalInad = inadCount || 0;
 
-  // ── Montar resultado ─────────────────────────────────────────────────
+  // ── Missão 7: Postagem Redes Sociais ────────────────────────────────
+  const { data: concluidas } = await (supabase as any)
+    .from("missoes_concluidas")
+    .select("subref_id")
+    .eq("user_id", userId)
+    .eq("missao_id", "postagem_redes")
+    .eq("data", format(agora, "yyyy-MM-dd"));
+
+  const nConcluidas = (concluidas || []).length;
   const missoes: Missao[] = [
     {
       id: "contatos_hoje",
@@ -263,6 +271,14 @@ export const calcularMissoes = async (
       meta: 0,
       concluida: totalInad === 0,
       invertida: true,
+    },
+    {
+      id: "postagem_redes",
+      label: "Postar Redes Sociais",
+      atual: nConcluidas,
+      meta: 2,
+      concluida: nConcluidas >= 2,
+      invertida: false,
     },
   ];
 
@@ -419,6 +435,22 @@ export const getLeadsForMissao = async (
       celular: d.celular,
       status: `G:${d.grupo} C:${d.cota} - ${d.status.replace(/_/g, ' ')}`
     })) as MissaoLead[];
+  }
+
+  if (missaoId === "postagem_redes") {
+    const { data: done } = await (supabase as any)
+      .from("missoes_concluidas")
+      .select("subref_id")
+      .eq("user_id", userId)
+      .eq("missao_id", "postagem_redes")
+      .eq("data", format(new Date(), "yyyy-MM-dd"));
+
+    const doneIds = new Set((done || []).map((d: any) => d.subref_id));
+
+    return [
+      { id: "veiculos", nome: "Veículos", status: doneIds.has("veiculos") ? "✅ Postado" : "⏳ Pendente" },
+      { id: "imoveis", nome: "Imóveis", status: doneIds.has("imoveis") ? "✅ Postado" : "⏳ Pendente" },
+    ] as MissaoLead[];
   }
 
   return [];

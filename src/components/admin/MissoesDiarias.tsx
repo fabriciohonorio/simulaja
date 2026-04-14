@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { calcularMissoes, getLeadsForMissao, type MissoesResult, type MissaoLead } from "@/lib/missoesService";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Target, Clock, CheckCircle2, Sparkles, ChevronDown, ChevronUp, Phone, AlertTriangle } from "lucide-react";
+import { Zap, Target, Clock, CheckCircle2, Sparkles, ChevronDown, ChevronUp, Phone, AlertTriangle, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ const ICON_MAP: Record<string, any> = {
   pagamentos_ep: CheckCircle2,
   meta_mes: Target,
   inadimplencia: AlertTriangle,
+  postagem_redes: Share2,
 };
 
 const COLOR_MAP: Record<string, string> = {
@@ -29,6 +30,7 @@ const COLOR_MAP: Record<string, string> = {
   pagamentos_ep: "text-emerald-500 bg-emerald-50",
   meta_mes: "text-red-500 bg-red-50",
   inadimplencia: "text-amber-500 bg-amber-50",
+  postagem_redes: "text-sky-500 bg-sky-50",
 };
 
 const LABEL_MAP: Record<string, string> = {
@@ -38,6 +40,7 @@ const LABEL_MAP: Record<string, string> = {
   pagamentos_ep: "Pagamentos EP (Mês Ant.)",
   meta_mes: "Alcançar Meta",
   inadimplencia: "Inadimplência",
+  postagem_redes: "Postar Redes Sociais",
 };
 
 export default function MissoesDiarias({
@@ -77,7 +80,17 @@ export default function MissoesDiarias({
 
   const handleMarkPaid = async (targetId: string, leadId?: string | null) => {
     try {
-      if (targetId.startsWith("new-") && leadId) {
+      if (expandedMission === "postagem_redes") {
+        const { error: insErr } = await (supabase as any)
+          .from("missoes_concluidas")
+          .insert({
+            user_id: userId,
+            missao_id: "postagem_redes",
+            subref_id: targetId,
+            organizacao_id: orgId
+          });
+        if (insErr) throw insErr;
+      } else if (targetId.startsWith("new-") && leadId) {
         // Buscar dados do lead para criar na carteira
         const { data: lead } = await supabase.from("leads").select("*").eq("id", leadId).single();
         if (lead) {
@@ -182,7 +195,7 @@ export default function MissoesDiarias({
       </div>
 
       {/* Mission Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2 w-full">
         {resultado.missoes.map((missao) => {
           const Icon = ICON_MAP[missao.id] || Zap;
           const colors = COLOR_MAP[missao.id] || "text-slate-500 bg-slate-50";
