@@ -124,11 +124,11 @@ export const calcularMissoes = async (
 
   const leadsQuery = supabase
     .from("leads")
-    .select("id, status_updated_at, nome", { count: "exact" })
+    .select("id, status_updated_at, created_at, nome", { count: "exact" })
     .eq("organizacao_id", orgId)
     .in("status", ["fechado", "venda_fechada"])
-    .gte("status_updated_at", `${inicioEP}T00:00:00`)
-    .lte("status_updated_at", `${fimEP}T23:59:59`);
+    .or(`status_updated_at.gte.${inicioEP}T00:00:00,and(status_updated_at.is.null,created_at.gte.${inicioEP}T00:00:00)`)
+    .or(`status_updated_at.lte.${fimEP}T23:59:59,and(status_updated_at.is.null,created_at.lte.${fimEP}T23:59:59)`);
 
   if (isVendedor) {
     leadsQuery.eq("responsavel_id", userId);
@@ -189,10 +189,10 @@ export const calcularMissoes = async (
   // 2. Buscar Realizado (Leads fechados no mês)
   const vendasQuery = supabase
     .from("leads")
-    .select("valor_credito")
+    .select("valor_credito, status_updated_at, created_at")
     .eq("organizacao_id", orgId)
     .in("status", ["fechado", "venda_fechada"])
-    .gte("status_updated_at", `${inicioMesAtual}T00:00:00`);
+    .or(`status_updated_at.gte.${inicioMesAtual}T00:00:00,and(status_updated_at.is.null,created_at.gte.${inicioMesAtual}T00:00:00)`);
 
   if (isVendedor) {
     vendasQuery.eq("responsavel_id", userId);
@@ -336,8 +336,8 @@ export const getLeadsForMissao = async (
       .select("id, nome, celular, status")
       .eq("organizacao_id", orgId)
       .in("status", ["fechado", "venda_fechada"])
-      .gte("status_updated_at", `${inicioEP}T00:00:00`)
-      .lte("status_updated_at", `${fimEP}T23:59:59`);
+      .or(`status_updated_at.gte.${inicioEP}T00:00:00,and(status_updated_at.is.null,created_at.gte.${inicioEP}T00:00:00)`)
+      .or(`status_updated_at.lte.${fimEP}T23:59:59,and(status_updated_at.is.null,created_at.lte.${fimEP}T23:59:59)`);
 
     if (isVendedor) lQuery.eq("responsavel_id", userId);
 

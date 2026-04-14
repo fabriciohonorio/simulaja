@@ -82,6 +82,8 @@ export default function Leads() {
   const handleSaveLead = async (formData: LeadFormData) => {
     setSubmitting(true);
     try {
+      const isClosedStatus = ["venda_fechada", "fechado"].includes(formData.status);
+      
       // Payload para a tabela leads (sem organizacao_id para evitar conflito de RLS em updates)
       const updatePayload: any = {
         nome: formData.nome,
@@ -92,6 +94,7 @@ export default function Leads() {
         valor_credito: Number(formData.valor_credito) || 0,
         prazo_meses: Number(formData.prazo_meses) || 0,
         status: formData.status,
+        status_updated_at: isClosedStatus ? (editingLead?.status_updated_at || new Date().toISOString()) : (editingLead?.status_updated_at || null),
         lead_temperatura: formData.lead_temperatura || "morno",
         lead_score_valor: formData.lead_score_valor || "medio",
         administradora: formData.administradora === "none" ? null : (formData.administradora || null),
@@ -102,6 +105,10 @@ export default function Leads() {
       };
 
       if (editingLead) {
+        // Se mudou para fechado agora, atualiza a data de fechamento
+        if (isClosedStatus && !["venda_fechada", "fechado"].includes(editingLead.status)) {
+          updatePayload.status_updated_at = new Date().toISOString();
+        }
         // ── Atualiza na tabela leads ──────────────────────────────────────
         const { error } = await supabase
           .from("leads")

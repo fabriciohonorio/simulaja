@@ -27,8 +27,8 @@ const COLOR_MAP: Record<string, string> = {
   followup_agendado: "text-blue-500 bg-blue-50",
   leads_sem_toque: "text-rose-500 bg-rose-50",
   pagamentos_ep: "text-emerald-500 bg-emerald-50",
-  meta_mes: "text-indigo-500 bg-indigo-50",
-  inadimplencia: "text-rose-500 bg-rose-50",
+  meta_mes: "text-red-500 bg-red-50",
+  inadimplencia: "text-amber-500 bg-amber-50",
 };
 
 const LABEL_MAP: Record<string, string> = {
