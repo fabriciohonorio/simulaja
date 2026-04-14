@@ -72,9 +72,14 @@ export default function MissoesDiarias({
     setExpandedMission(missaoId);
     if (!missionLeadsMap[missaoId]) {
       setLoadingMission(missaoId);
-      const leads = await getLeadsForMissao(missaoId, orgId, tipoAcesso, userId);
-      setMissionLeadsMap((prev) => ({ ...prev, [missaoId]: leads }));
-      setLoadingMission(null);
+      try {
+        const leads = await getLeadsForMissao(missaoId, orgId, tipoAcesso, userId);
+        setMissionLeadsMap((prev) => ({ ...prev, [missaoId]: leads }));
+      } catch (err) {
+        console.error("Erro ao carregar missão:", err);
+      } finally {
+        setLoadingMission(null);
+      }
     }
   };
 

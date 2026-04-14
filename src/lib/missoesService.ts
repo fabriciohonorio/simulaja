@@ -117,29 +117,36 @@ export const calcularMissoes = async (
   const { count: semContato } = await semContatoQuery;
   const totalSemContato = semContato || 0;
 
-  // ── Missão 4: EP (Funil: 2ª e 3ª parcelas) ──────────────────────────
-  // Base: Leads fechados em M-1 e M-2
-  let epRealizado = 0;
-  let epMeta = 0;
+    // Base: Leads fechados ou avançados em M-1 e M-2
+    let epRealizado = 0;
+    let epMeta = 0;
+    const now = new Date();
 
-  const leadsQuery = supabase
-    .from("leads")
-    .select("id, status_updated_at, created_at, nome", { count: "exact" })
-    .eq("organizacao_id", orgId)
-    .in("status", ["fechado", "venda_fechada"])
-    .or(`status_updated_at.gte.${inicioEP}T00:00:00,and(status_updated_at.is.null,created_at.gte.${inicioEP}T00:00:00)`)
-    .or(`status_updated_at.lte.${fimEP}T23:59:59,and(status_updated_at.is.null,created_at.lte.${fimEP}T23:59:59)`);
+    const inicioEP = format(subMonths(now, 2), "yyyy-MM-01");
+    const fimEP = format(lastDayOfMonth(subMonths(now, 1)), "yyyy-MM-dd");
 
-  if (isVendedor) {
-    leadsQuery.eq("responsavel_id", userId);
-  }
+    const leadsQueryEP = supabase
+      .from("leads")
+      .select("id, nome, status, status_updated_at, created_at")
+      .eq("organizacao_id", orgId)
+      .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
+      .gte("created_at", `${inicioEP}T00:00:00`);
 
-  const { data: leadsEP, count: countLeadsEP } = await leadsQuery;
-  epMeta = countLeadsEP || 0;
+    if (isVendedor) leadsQueryEP.eq("responsavel_id", userId);
 
-  if (leadsEP && leadsEP.length > 0) {
-    const leadIds = leadsEP.map(l => l.id);
-    const leadNames = leadsEP.map(l => l.nome);
+    const { data: leadsEP } = await leadsQueryEP;
+    
+    // Filtragem secundária por data de fechamento ou criação
+    const filteredEP = (leadsEP || []).filter(l => {
+        const dateToUse = l.status_updated_at || l.created_at;
+        return dateToUse >= `${inicioEP}T00:00:00` && dateToUse <= `${fimEP}T23:59:59`;
+    });
+    
+    epMeta = filteredEP.length;
+
+    if (filteredEP && filteredEP.length > 0) {
+      const leadIds = filteredEP.map(l => l.id);
+      const leadNames = filteredEP.map(l => l.nome);
 
     // 1. Verificar quem já está com EP OK na carteira
     const { data: carteiraEP } = await supabase
@@ -347,17 +354,18 @@ export const getLeadsForMissao = async (
     const inicioEP = format(subMonths(now, 2), "yyyy-MM-01");
     const fimEP = format(lastDayOfMonth(subMonths(now, 1)), "yyyy-MM-dd");
 
-    const lQuery = supabase
+    const { data: allLeads } = await supabase
       .from("leads")
-      .select("id, nome, celular, status, grupo, cota")
+      .select("id, nome, celular, status, grupo, cota, created_at, status_updated_at")
       .eq("organizacao_id", orgId)
-      .in("status", ["fechado", "venda_fechada"])
-      .or(`status_updated_at.gte.${inicioEP}T00:00:00,and(status_updated_at.is.null,created_at.gte.${inicioEP}T00:00:00)`)
-      .or(`status_updated_at.lte.${fimEP}T23:59:59,and(status_updated_at.is.null,created_at.lte.${fimEP}T23:59:59)`);
+      .in("status", ["fechado", "venda_fechada", "negociacao", "proposta", "simulacao_enviada"])
+      .gte("created_at", `${inicioEP}T00:00:00`);
 
-    if (isVendedor) lQuery.eq("responsavel_id", userId);
+    const leads = (allLeads || []).filter(l => {
+        const dateToUse = l.status_updated_at || l.created_at;
+        return dateToUse >= `${inicioEP}T00:00:00` && dateToUse <= `${fimEP}T23:59:59`;
+    });
 
-    const { data: leads } = await lQuery;
     if (!leads || leads.length === 0) return [];
 
     const leadIds = leads.map(l => l.id);
@@ -385,12 +393,15 @@ export const getLeadsForMissao = async (
       const isPaid = c?.status === "EP OK";
       const isInad = inadSet.has(l.nome);
 
-      let statusLabel = "⏳ Pendente";
+      let statusLabel = l.status === "negociacao" ? "📈 Negociação" : 
+                       l.status === "proposta" ? "📝 Proposta" : 
+                       l.status === "simulacao_enviada" ? "📊 Simulação" : "⏳ Pendente";
+                       
       if (isPaid) statusLabel = "✅ Pago";
       if (isInad) statusLabel = "⚠️ Inadimplente";
 
       return {
-        id: c?.id || `new-${l.id}`, // ID fictício se não tiver na carteira
+        id: c?.id || `new-${l.id}`,
         nome: `${l.nome} - ${l.grupo || '??'}/${l.cota || '??'}`,
         celular: l.celular,
         status: statusLabel,
