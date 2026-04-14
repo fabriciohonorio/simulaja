@@ -16,10 +16,10 @@ import {
   Clock,
   ArrowUpDown,
   Calculator,
-  Trash2,
   NotebookPen,
   ClipboardList,
-  RefreshCw
+  RefreshCw,
+  ShieldAlert
 } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Input } from "@/components/ui/input";
@@ -368,6 +368,36 @@ export default function Carteira() {
     }
   };
 
+  const handleMarkAsInadimplente = async (c: Cliente) => {
+    if (!profile?.organizacao_id) return;
+    
+    const confirmMove = confirm(`Deseja marcar ${c.nome} como inadimplente?`);
+    if (!confirmMove) return;
+
+    try {
+      setLoading(true);
+      const { error } = await supabase.from("inadimplentes").insert({
+        nome: formatToUpper(c.nome),
+        celular: c.celular,
+        grupo: formatToFourDigits(c.grupo),
+        cota: formatToFourDigits(c.cota),
+        tipo_consorcio: c.tipo_consorcio,
+        administradora: formatToUpper(c.administradora),
+        valor_parcela: 0, // Necessita preenchimento manual no outro lado
+        parcelas_atrasadas: 1,
+        status: "em_atraso",
+        organizacao_id: profile.organizacao_id
+      });
+
+      if (error) throw error;
+      toast({ title: "Cliente enviado para Inadimplentes!" });
+    } catch (e) {
+      toast({ title: "Erro ao marcar inadimplência", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddContemplation = async () => {
     if (!selectedGrupo || !newCota || !profile?.organizacao_id) return;
     await supabase.from("cotas_contempladas").insert({
@@ -572,6 +602,16 @@ export default function Carteira() {
                   <FileText className="h-3.5 w-3.5 mr-1" /> Boleto
                 </Button>
               )}
+
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-50 rounded-lg shrink-0"
+                onClick={() => handleMarkAsInadimplente(c)}
+                title="Marcar como Inadimplente"
+              >
+                <ShieldAlert className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         ))}
