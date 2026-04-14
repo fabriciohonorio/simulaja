@@ -60,6 +60,7 @@ export interface LeadFormData {
   // Campos de venda fechada
   grupo?: string;
   cota?: string;
+  status_updated_at?: string;
 }
 
 interface LeadFormProps {
@@ -186,7 +187,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
 
       {/* Campos extras para venda fechada */}
       {isVendaFechada && (
-        <div className="space-y-3 bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
+        <div className="space-y-4 bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
           <h4 className="text-sm font-black text-emerald-700 flex items-center gap-2">
             ✅ Dados do Consórcio Adquirido
           </h4>
@@ -211,6 +212,16 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                 className="bg-white"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="status_updated_at">Data da Venda / Fechamento</Label>
+            <Input
+              id="status_updated_at"
+              type="date"
+              value={form.status_updated_at ? form.status_updated_at.split('T')[0] : ""}
+              onChange={handleChange}
+              className="bg-white"
+            />
           </div>
         </div>
       )}

@@ -94,7 +94,9 @@ export default function Leads() {
         valor_credito: Number(formData.valor_credito) || 0,
         prazo_meses: Number(formData.prazo_meses) || 0,
         status: formData.status,
-        status_updated_at: isClosedStatus ? (editingLead?.status_updated_at || new Date().toISOString()) : (editingLead?.status_updated_at || null),
+        status_updated_at: formData.status_updated_at 
+          ? (formData.status_updated_at.includes('T') ? formData.status_updated_at : `${formData.status_updated_at}T12:00:00Z`) 
+          : (isClosedStatus ? (editingLead?.status_updated_at || new Date().toISOString()) : null),
         lead_temperatura: formData.lead_temperatura || "morno",
         lead_score_valor: formData.lead_score_valor || "medio",
         administradora: formData.administradora === "none" ? null : (formData.administradora || null),
@@ -385,11 +387,13 @@ export default function Leads() {
               indicador_celular: editingLead.indicador_celular || "",
               grupo: editingLead.grupo || "",
               cota: editingLead.cota || "",
+              status_updated_at: editingLead.status_updated_at || "",
             } : {
               nome: "", email: "", celular: "", cidade: "",
               tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "",
               status: "novo_lead", lead_temperatura: "morno", lead_score_valor: "medio",
               administradora: "none", grupo: "", cota: "",
+              status_updated_at: "",
             }}
             onSubmit={handleSaveLead}
             onCancel={() => setIsDialogOpen(false)}

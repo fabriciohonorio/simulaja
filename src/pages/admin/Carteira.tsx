@@ -324,19 +324,9 @@ export default function Carteira() {
             <div className="flex items-center gap-2 mb-4 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">
               <Clock className="h-3 w-3 shrink-0" />
               <div className="flex-1 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <span className="text-[10px] font-black uppercase tracking-widest text-center w-full">
                   Tempo de Espera: {getWaitTime(c.data_adesao)}
                 </span>
-                {c.status === "EP OK" ? (
-                  <Badge className="bg-emerald-500 text-white border-none text-[8px] font-black">EP OK</Badge>
-                ) : (
-                  <button 
-                    onClick={() => handleUpdateStatus(c.id, "EP OK")}
-                    className="text-[8px] font-black uppercase bg-white/50 px-1.5 py-0.5 rounded border border-amber-200 hover:bg-emerald-500 hover:text-white hover:border-emerald-600 transition-all"
-                  >
-                    Marcar EP OK
-                  </button>
-                )}
               </div>
             </div>
 

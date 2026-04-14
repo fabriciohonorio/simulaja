@@ -40,7 +40,7 @@ const LABEL_MAP: Record<string, string> = {
   pagamentos_ep: "Pagamentos EP (Mês Ant.)",
   meta_mes: "Meta",
   inadimplencia: "Inadimplência",
-  postagem_redes: "Postar Redes Sociais",
+  postagem_redes: "Redes Sociais",
 };
 
 export default function MissoesDiarias({

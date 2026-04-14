@@ -284,7 +284,7 @@ export const calcularMissoes = async (
     },
     {
       id: "postagem_redes",
-      label: "Postar Redes Sociais",
+      label: "Redes Sociais",
       atual: nConcluidas,
       meta: 2,
       concluida: nConcluidas >= 2,
@@ -459,8 +459,8 @@ export const getLeadsForMissao = async (
     const doneIds = new Set((done || []).map((d: any) => d.subref_id));
 
     return [
-      { id: "veiculos", nome: "Veículos", status: doneIds.has("veiculos") ? "✅ Postado" : "⏳ Pendente" },
-      { id: "imoveis", nome: "Imóveis", status: doneIds.has("imoveis") ? "✅ Postado" : "⏳ Pendente" },
+      { id: "veiculos", nome: "Postar Veículos", status: doneIds.has("veiculos") ? "✅ Postado" : "⏳ Pendente", lead_id: "redes_v" },
+      { id: "imoveis", nome: "Postar Imóveis", status: doneIds.has("imoveis") ? "✅ Postado" : "⏳ Pendente", lead_id: "redes_i" },
     ] as MissaoLead[];
   }
 
