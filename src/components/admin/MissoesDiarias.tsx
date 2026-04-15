@@ -92,13 +92,13 @@ export default function MissoesDiarias({
     }
   };
 
-  const handleCompleteSocialMission = async (categoria: "Veículos" | "Imóveis") => {
-    if (!orgId) return;
+  const handleCompleteSocialMission = async (categoria: "veiculos" | "imoveis") => {
+    if (!orgId || !userId) return;
     setLoadingMission("postagem_redes");
     try {
-      const ok = await marcarMissaoRedesSociais(orgId, categoria);
+      const ok = await marcarMissaoRedesSociais(orgId, userId, categoria);
       if (ok) {
-        toast.success(`Postagem em ${categoria} confirmada!`);
+        toast.success(`Postagem em ${categoria === "veiculos" ? "Veículos" : "Imóveis"} confirmada!`);
         await refreshMissions();
       }
     } catch (e: any) {
@@ -301,7 +301,7 @@ export default function MissoesDiarias({
                  <Button 
                     variant="outline"
                     size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleCompleteSocialMission("Veículos"); }}
+                    onClick={(e) => { e.stopPropagation(); handleCompleteSocialMission("veiculos"); }}
                     className="flex-1 h-10 text-[10px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500 active:scale-95"
                  >
                     Veículos 🚗
@@ -309,7 +309,7 @@ export default function MissoesDiarias({
                  <Button 
                     variant="outline"
                     size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleCompleteSocialMission("Imóveis"); }}
+                    onClick={(e) => { e.stopPropagation(); handleCompleteSocialMission("imoveis"); }}
                     className="flex-1 h-10 text-[10px] font-black uppercase border-sky-100 hover:bg-sky-50 hover:text-sky-600 transition-all text-sky-500 active:scale-95"
                  >
                     Imóveis 🏠

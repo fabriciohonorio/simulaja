@@ -233,15 +233,15 @@ export const calcularMissoes = async (
 
   const nConcluidas = (concluidas || []).length;
   // ── Missão 5: Redes Sociais (Postagem Diária: Veículos e Imóveis) ──────
-  const { data: socialHits } = await supabase
-    .from("historico_contatos")
-    .select("observacao")
-    .eq("organizacao_id", orgId)
-    .eq("tipo", "sistema_social")
-    .eq("resultado", hoje);
+  const { data: socialConcluidas } = await supabase
+    .from("missoes_concluidas")
+    .select("subref_id")
+    .eq("user_id", userId)
+    .eq("missao_id", "postagem_redes")
+    .eq("data", hoje);
 
-  const socialVeiculos = (socialHits || []).some(h => h.observacao?.includes("Veículos"));
-  const socialImoveis = (socialHits || []).some(h => h.observacao?.includes("Imóveis"));
+  const socialVeiculos = (socialConcluidas || []).some(d => d.subref_id === "veiculos");
+  const socialImoveis = (socialConcluidas || []).some(d => d.subref_id === "imoveis");
   const socialAtingido = (socialVeiculos ? 1 : 0) + (socialImoveis ? 1 : 0);
 
   const missoes: Missao[] = [
@@ -483,17 +483,17 @@ export const getLeadsForMissao = async (
   return [];
 };
 
-export const marcarMissaoRedesSociais = async (orgId: string, categoria: "Veículos" | "Imóveis") => {
+export const marcarMissaoRedesSociais = async (orgId: string, userId: string, subrefId: "veiculos" | "imoveis") => {
   const agora = new Date();
   const hoje = format(agora, "yyyy-MM-dd");
   
-  const { error } = await supabase.from("historico_contatos").insert({
-    tipo: "sistema_social",
-    resultado: hoje,
-    observacao: `Postagem em Redes Sociais Confirmada (${categoria})`,
-    organizacao_id: orgId,
-    resultado_contato: "positivo"
-  });
+  const { error } = await supabase.from("missoes_concluidas").upsert({
+    user_id: userId,
+    missao_id: "postagem_redes",
+    subref_id: subrefId,
+    data: hoje,
+    organizacao_id: orgId
+  }, { onConflict: 'user_id,missao_id,subref_id,data' });
   
   return !error;
 };
