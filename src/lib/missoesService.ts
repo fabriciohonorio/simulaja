@@ -82,23 +82,24 @@ export const calcularMissoes = async (
     contatosHoje = count || 0;
   }
 
-  // ── Missão 2: Follow-up agendado hoje ───────────────────────────────
-  // Leads que tiveram data_vencimento definida ou atualizada hoje
-  let agendadosHoje = 0;
+  // ── Missão 2: Follow-ups Pendentes (Atrasados ou de Hoje) ─────────────
+  // Leads com data_vencimento <= hoje (prazo estourou ou é hoje)
+  let followsPendentes = 0;
 
   const agendaQuery = supabase
     .from("leads")
     .select("*", { count: "exact", head: true })
     .eq("organizacao_id", orgId)
+    .not("status", "in", '("fechado","perdido","morto","aguardando_pagamento")')
     .not("data_vencimento", "is", null)
-    .gte("updated_at", `${hoje}T00:00:00`);
+    .lte("data_vencimento", `${hoje}T23:59:59`);
 
   if (isVendedor) {
     agendaQuery.eq("responsavel_id", userId);
   }
 
-  const { count: agendados } = await agendaQuery;
-  agendadosHoje = agendados || 0;
+  const { count: followsCnt } = await agendaQuery;
+  followsPendentes = followsCnt || 0;
 
   // ── Missão 3: Leads sem contato há mais de 5 dias ───────────────────
   const cincoAntras = new Date();
@@ -256,11 +257,11 @@ export const calcularMissoes = async (
     },
     {
       id: "followup_agendado",
-      label: "1 follow-up agendado",
-      atual: Math.min(agendadosHoje, 1),
-      meta: 1,
-      concluida: agendadosHoje >= 1,
-      invertida: false,
+      label: "0 follows pendentes",
+      atual: followsPendentes,
+      meta: 0,
+      concluida: followsPendentes === 0,
+      invertida: true,
     },
     {
       id: "leads_sem_toque",
@@ -342,13 +343,21 @@ export const getLeadsForMissao = async (
   if (missaoId === "followup_agendado") {
     let q = (supabase as any)
       .from("leads")
-      .select("id, nome, celular, status")
+      .select("id, nome, celular, status, data_vencimento")
       .eq("organizacao_id", orgId)
+      .not("status", "in", '("fechado","perdido","morto","aguardando_pagamento")')
       .not("data_vencimento", "is", null)
-      .gte("updated_at", `${hoje}T00:00:00`);
+      .lte("data_vencimento", `${hoje}T23:59:59`);
     if (isVendedor) q = q.eq("responsavel_id", userId);
+    
     const { data } = await q;
-    return (data as MissaoLead[]) || [];
+    return (data || []).map((l: any) => ({
+      id: l.id,
+      nome: l.nome,
+      celular: l.celular,
+      status: `📆 ${new Date(l.data_vencimento).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - ${l.status?.replace(/_/g, ' ')}`,
+      lead_id: l.id
+    })) as MissaoLead[];
   }
 
   if (missaoId === "leads_sem_toque") {
