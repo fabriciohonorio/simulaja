@@ -73,6 +73,7 @@ export default function Carteira() {
   const [loadingContemplations, setLoadingContemplations] = useState(false);
   const [newCota, setNewCota] = useState("");
   const [lotteryNumber, setLotteryNumber] = useState("");
+  const [lotteryAdmin, setLotteryAdmin] = useState<string>("TODAS"); // NOVO STATE
   const [lotteryWinners, setLotteryWinners] = useState<Cliente[]>([]);
   const [lotteryChecked, setLotteryChecked] = useState(false);
   const [sortOrder, setSortOrder] = useState<"a-z" | "valor-desc" | "espera-desc">("a-z");
@@ -466,6 +467,9 @@ export default function Carteira() {
     clientes.forEach(c => {
       if (!c.grupo) return;
       
+      const adminName = formatToUpper(c.administradora) || "NÃO INFORMADA";
+      if (lotteryAdmin !== "TODAS" && adminName !== lotteryAdmin) return;
+      
       // Auto-check against the historical contemplated data we already restored
       const historicFound = todasCotasContempladas.find(t => t.grupo === c.grupo && Number(t.cota) === Number(c.cota?.replace(/\D/g, '')||"0"));
       
@@ -550,14 +554,24 @@ export default function Carteira() {
              <h2 className="text-xl font-black flex items-center gap-2"><Calculator className="h-5 w-5" /> Sorteio Loteria Federal</h2>
              <p className="text-blue-100 text-sm font-medium mt-1">Insira o resultado da extração para auditar toda a carteira de clientes de uma só vez.</p>
            </div>
-           <div className="flex gap-2 w-full md:w-auto">
+           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+             <select 
+               className="h-12 bg-white/10 border border-white/20 text-white rounded-md px-3 font-bold text-sm outline-none cursor-pointer appearance-none"
+               value={lotteryAdmin}
+               onChange={e => setLotteryAdmin(e.target.value)}
+             >
+               <option value="TODAS" className="text-slate-800">Todas as Administradoras</option>
+               {Array.from(new Set(clientes.map(c => formatToUpper(c.administradora)).filter(Boolean))).sort().map(admin => (
+                 <option key={admin} value={admin!} className="text-slate-800">{admin}</option>
+               ))}
+             </select>
              <Input 
                placeholder="Loteria Federal..." 
                value={lotteryNumber} 
                onChange={e => setLotteryNumber(e.target.value)} 
-               className="h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-200"
+               className="h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-200 min-w-[150px]"
              />
-             <Button onClick={checkLotteryGlobal} className="h-12 bg-white text-blue-700 hover:bg-blue-50 font-black uppercase text-xs">
+             <Button onClick={checkLotteryGlobal} className="h-12 bg-white text-blue-700 hover:bg-blue-50 font-black uppercase text-xs shrink-0">
                Processar Sorteio
              </Button>
            </div>
@@ -567,18 +581,19 @@ export default function Carteira() {
           <div className="mt-4 p-4 bg-white/10 rounded-xl border border-white/20 animate-in fade-in slide-in-from-top-4">
              {lotteryWinners.length > 0 ? (
                <div>
-                  <p className="font-black text-emerald-300 text-sm uppercase tracking-widest mb-2">🎉 {lotteryWinners.length} Ganhador(es) Encontrado(s)!</p>
+                  <p className="font-black text-emerald-300 text-sm uppercase tracking-widest mb-2">🎉 {lotteryWinners.length} Ganhador(es) Encontrado(s){lotteryAdmin !== "TODAS" ? ` NA ${lotteryAdmin}` : ""}!</p>
                   <div className="flex flex-col gap-2">
                     {lotteryWinners.map(w => (
-                      <div key={w.id} className="bg-emerald-500/20 px-3 py-2 rounded-lg flex items-center justify-between">
-                         <span className="font-bold">{w.nome}</span>
-                         <span className="text-xs font-black bg-emerald-500 px-2 py-0.5 rounded">G: {w.grupo} | C: {w.cota}</span>
+                      <div key={w.id} className="bg-emerald-500/20 px-3 py-2 rounded-lg flex items-center justify-between gap-4">
+                         <span className="font-bold flex-1 truncate">{w.nome}</span>
+                         <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200 shrink-0">{w.administradora}</span>
+                         <span className="text-xs font-black bg-emerald-500 px-2 py-0.5 rounded shrink-0">G: {w.grupo} | C: {w.cota}</span>
                       </div>
                     ))}
                   </div>
                </div>
              ) : (
-               <p className="font-bold text-center text-blue-100 text-sm">Nenhum cliente da sua carteira coincide com a cota sorteada. ℹ️</p>
+               <p className="font-bold text-center text-blue-100 text-sm">Nenhum cliente da {lotteryAdmin !== "TODAS" ? lotteryAdmin : "sua carteira"} coincide com a cota sorteada. ℹ️</p>
              )}
           </div>
         )}
