@@ -20,6 +20,8 @@ interface Lead {
   id: string;
   nome: string;
   status: string | null;
+  status_updated_at: string | null;
+  origem: string | null;
   valor_credito: number;
   created_at: string | null;
   lead_score_valor: string | null;
