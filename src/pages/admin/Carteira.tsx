@@ -19,7 +19,8 @@ import {
   NotebookPen,
   ClipboardList,
   RefreshCw,
-  ShieldAlert
+  ShieldAlert,
+  Trash2
 } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Input } from "@/components/ui/input";
