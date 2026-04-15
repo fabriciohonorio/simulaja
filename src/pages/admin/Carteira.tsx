@@ -114,30 +114,45 @@ export default function Carteira() {
         console.log(`Encontrou ${duplicatesToDelete.length} duplicatas.`);
       }
 
+      // Enriquecer data_adesao a partir da data de fechamento do lead (status_updated_at)
+      const leadIds = uniqueClients.map(c => c.lead_id).filter(Boolean) as string[];
+      let leadDateMap = new Map<string, string>();
+      let leadsSet = new Set<string>();
+
+      if (leadIds.length > 0) {
+        const [{ data: leadDates }, { data: lanceInteractions }] = await Promise.all([
+          supabase
+            .from("leads")
+            .select("id, status_updated_at, data_fechamento")
+            .in("id", leadIds),
+          supabase
+            .from("historico_contatos")
+            .select("lead_id")
+            .eq("tipo", "lance")
+            .in("lead_id", leadIds),
+        ]);
+
+        leadDateMap = new Map(
+          (leadDates || []).map(l => [
+            l.id,
+            l.data_fechamento || l.status_updated_at
+          ])
+        );
+        leadsSet = new Set((lanceInteractions || []).map(i => i.lead_id));
+        setLeadsComLance(leadsSet);
+      }
+
       const formattedUniqueClients = uniqueClients.map(c => ({
         ...c,
         nome: formatToUpper(c.nome),
         grupo: formatToFourDigits(c.grupo),
         cota: formatToFourDigits(c.cota),
-        administradora: formatToUpper(c.administradora)
+        administradora: formatToUpper(c.administradora),
+        // Usa data do lead se data_adesao estiver vazia
+        data_adesao: c.data_adesao || (c.lead_id ? (leadDateMap.get(c.lead_id) ?? null) : null),
       }));
 
       setClientes(formattedUniqueClients);
-
-      // Fetch leads that have 'lance' interactions
-      if (uniqueClients.length > 0) {
-        const leadIds = uniqueClients.map(c => c.lead_id).filter(Boolean) as string[];
-        if (leadIds.length > 0) {
-          const { data: lanceInteractions } = await supabase
-            .from("historico_contatos")
-            .select("lead_id")
-            .eq("tipo", "lance")
-            .in("lead_id", leadIds);
-          
-          const leadsSet = new Set((lanceInteractions || []).map(i => i.lead_id));
-          setLeadsComLance(leadsSet);
-        }
-      }
     } catch (e) {
       toast({ title: "Erro ao carregar carteira", variant: "destructive" });
       console.error(e);
@@ -285,6 +300,8 @@ export default function Carteira() {
             tipo_consorcio: lead.tipo_consorcio,
             valor_credito: lead.valor_credito,
             administradora: lead.administradora,
+            // Persiste a data de fechamento do lead como data de adesão
+            ...(lead.status_updated_at ? { data_adesao: lead.status_updated_at } : {}),
           }).eq("id", item.id);
           syncCount++;
         }
@@ -444,12 +461,22 @@ export default function Carteira() {
       return 0;
     });
 
-  const getWaitTime = (dateStr?: string | null) => {
-    if (!dateStr) return "N/D";
+  const getWaitTime = (dateStr?: string | null): { label: string; urgent: boolean } => {
+    if (!dateStr) return { label: "Data não informada", urgent: false };
     const date = new Date(dateStr);
-    const months = differenceInMonths(new Date(), date);
-    if (months > 0) return `${months} mês(es)`;
-    return `${differenceInDays(new Date(), date)} dia(s)`;
+    const now = new Date();
+    const months = differenceInMonths(now, date);
+    const days = differenceInDays(now, date);
+    if (months >= 12) {
+      const years = Math.floor(months / 12);
+      const remMonths = months % 12;
+      return {
+        label: remMonths > 0 ? `${years} ano(s) e ${remMonths} mês(es)` : `${years} ano(s)`,
+        urgent: true,
+      };
+    }
+    if (months > 0) return { label: `${months} mês(es)`, urgent: months >= 6 };
+    return { label: `${days} dia(s)`, urgent: false };
   };
 
   if (loading) return <div className="p-20 text-center animate-pulse">Carregando carteira...</div>;
@@ -573,14 +600,26 @@ export default function Carteira() {
             </div>
 
             <div className="flex flex-col gap-2 mb-4">
-              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">
-                <Clock className="h-3 w-3 shrink-0" />
-                <div className="flex-1 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-center w-full">
-                    Tempo de Espera: {getWaitTime(c.data_adesao)}
-                  </span>
-                </div>
-              </div>
+              {(() => {
+                const wait = getWaitTime(c.data_adesao);
+                return (
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+                    wait.urgent
+                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : "bg-amber-50 text-amber-700 border-amber-100"
+                  }`}>
+                    <Clock className="h-3 w-3 shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-[9px] font-bold uppercase text-center opacity-60 tracking-widest">Aguardando contemplação</p>
+                      <p className={`text-[11px] font-black uppercase tracking-wider text-center ${
+                        wait.urgent ? "text-rose-700" : "text-amber-700"
+                      }`}>
+                        {wait.label}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="flex gap-2">
