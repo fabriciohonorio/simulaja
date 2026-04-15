@@ -21,10 +21,16 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
   const newStatus = destination.droppableId;
   const originalData = [...data];
 
+  const nowIso = new Date().toISOString();
+
   // 1. Optimistic Update
   setData(prev => 
     prev.map(item => 
-      item.id === draggableId ? { ...item, status: newStatus } : item
+      item.id === draggableId ? { 
+        ...item, 
+        status: newStatus,
+        status_updated_at: tableName !== "inadimplentes" ? nowIso : item.status_updated_at 
+      } : item
     )
   );
 
@@ -36,15 +42,21 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
     };
     
     if (tableName !== "inadimplentes") {
-      updatePayload.status_updated_at = new Date().toISOString();
+      updatePayload.status_updated_at = nowIso;
     }
     
-    const { error } = await (supabase.from(tableName as any) as any)
+    // Explicitly add .select() to verify the row was actually updated (RLS could silently filter it)
+    const { data: updatedRows, error } = await (supabase.from(tableName as any) as any)
       .update(updatePayload)
-      .eq("id", draggableId);
+      .eq("id", draggableId)
+      .select();
 
     if (error) {
       throw error;
+    }
+
+    if (!updatedRows || updatedRows.length === 0) {
+      throw new Error("Permissão negada ou lead não encontrado. A atualização foi bloqueada.");
     }
 
     if (successMsg && newStatus === "fechado") {
@@ -52,9 +64,9 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
     } else if (successMsg && tableName === "inadimplentes" && newStatus === "regularizado") {
       toast.success("🎉 Cliente regularizado!");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error updating ${tableName}:`, error);
-    toast.error("Erro ao sincronizar alteração. Revertendo...");
+    toast.error(`Falha: ${error?.message || "Erro ao atualizar status."} Revertendo...`);
     // 3. Rollback on failure
     setData(originalData);
   }
