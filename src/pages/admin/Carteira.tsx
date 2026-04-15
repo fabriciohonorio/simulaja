@@ -156,7 +156,7 @@ export default function Carteira() {
           const enrichedDate = leadDateMap.get(c.lead_id);
           if (enrichedDate) {
             persistPromises.push(
-              supabase.from("carteira").update({ data_adesao: enrichedDate }).eq("id", c.id).then()
+              supabase.from("carteira").update({ data_adesao: enrichedDate }).eq("id", c.id) as any
             );
           }
         }
