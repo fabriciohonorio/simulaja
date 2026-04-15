@@ -7,6 +7,8 @@ export const groupQuotaMap: Record<string, number> = {
   "6037": 2500,
   "5294": 2500,
   "1703": 2000,
+  "6035": 2500,
+  "6039": 3100,
 };
 
 export interface LoteriaResult {
