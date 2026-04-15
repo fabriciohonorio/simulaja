@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'br.com.simulaja.crm',
-  appName: 'SimulaJá CRM',
+  appName: 'CONTEMPLAR CRM',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

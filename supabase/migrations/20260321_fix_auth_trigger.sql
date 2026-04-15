@@ -6,7 +6,7 @@ BEGIN
   VALUES (
     new.id, 
     COALESCE(new.raw_user_meta_data->>'nome_completo', new.email),
-    '8b1a2dcc-83cd-4985-a828-f3870dcbc2a4', -- Default org (Simulajá Padrão)
+    '8b1a2dcc-83cd-4985-a828-f3870dcbc2a4', -- Default org (CONTEMPLAR Padrão)
     'vendedor'
   );
   RETURN new;

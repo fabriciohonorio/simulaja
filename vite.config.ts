@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'SimulaJá CRM',
-        short_name: 'SimulaJá',
+        name: 'CONTEMPLAR CRM',
+        short_name: 'CONTEMPLAR',
         description: 'CRM Potencializado com A.I. para Consórcios',
         theme_color: '#0f172a',
         background_color: '#0f172a',

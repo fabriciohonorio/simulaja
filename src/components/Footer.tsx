@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Info */}
           <div className="space-y-4 col-span-1 lg:col-span-1">
-            <h3 className="text-2xl font-black tracking-tight text-primary">SimulaJá</h3>
+            <h3 className="text-2xl font-black tracking-tight text-primary">CONTEMPLAR</h3>
             <p className="text-sm text-background/60 leading-relaxed max-w-xs">
               Sua consultoria inteligente para conquistar imóveis, veículos e investimentos sem juros abusivos. Planejamento estratégico para o seu patrimônio.
             </p>

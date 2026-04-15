@@ -30,7 +30,7 @@ ALTER TABLE public.organizacoes ENABLE ROW LEVEL SECURITY;
 
 -- 2. Migrar a organização padrão existente
 INSERT INTO public.organizacoes (id, nome, slug)
-VALUES ('8b1a2dcc-83cd-4985-a828-f3870dcbc2a4', 'Simulajá Padrão', 'padrao')
+VALUES ('8b1a2dcc-83cd-4985-a828-f3870dcbc2a4', 'CONTEMPLAR Padrão', 'padrao')
 ON CONFLICT (id) DO UPDATE SET nome = EXCLUDED.nome;
 
 -- 3. Atualizar Perfis para referenciar a tabela real

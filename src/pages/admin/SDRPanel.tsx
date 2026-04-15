@@ -53,10 +53,10 @@ export default function SDRPanel() {
         const cidade = lead.cidade ? ` em ${lead.cidade}` : "";
 
         if (lead.lead_score_valor === "premium") {
-            return `Olá ${firstName}! 👋 Vi que você solicitou uma simulação premium de ${valor}${cidade}. Sou o consultor IA da SimulaJá e gostaria de agendar uma consultoria exclusiva de 5 minutos para te apresentar as melhores taxas do mercado hoje. Podemos falar em 15 minutos?`;
+            return `Olá ${firstName}! 👋 Vi que você solicitou uma simulação premium de ${valor}${cidade}. Sou o consultor IA da CONTEMPLAR e gostaria de agendar uma consultoria exclusiva de 5 minutos para te apresentar as melhores taxas do mercado hoje. Podemos falar em 15 minutos?`;
         }
 
-        return `Oi ${firstName}! 😊 Aqui é da SimulaJá. Acabei de analisar sua simulação de ${valor}${cidade}. Tenho uma excelente notícia sobre o prazo que você escolheu. Consegue falar agora rapidinho por aqui ou por ligação?`;
+        return `Oi ${firstName}! 😊 Aqui é da CONTEMPLAR. Acabei de analisar sua simulação de ${valor}${cidade}. Tenho uma excelente notícia sobre o prazo que você escolheu. Consegue falar agora rapidinho por aqui ou por ligação?`;
     };
 
     const copyToClipboard = (text: string) => {
