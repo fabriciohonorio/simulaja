@@ -224,7 +224,8 @@ export default function Dashboard() {
       const isClosed = s === "fechado" || s === "venda fechada";
       const dateToCheck = l.status_updated_at || l.created_at || "";
       const isInMonth = dateToCheck.startsWith(currentMonthStr);
-      return isClosed && isInMonth;
+      const isShadow = (l as any).origem === "carteira_shadow";
+      return isClosed && isInMonth && !isShadow;
     })
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   
@@ -253,7 +254,8 @@ export default function Dashboard() {
       const isClosed = s === "fechado" || s === "venda fechada";
       const dateToCheck = l.status_updated_at || l.created_at || "";
       const isInMonth = dateToCheck.startsWith(currentMonthStr);
-      return isClosed && isInMonth && l.responsavel_id;
+      const isShadow = (l as any).origem === "carteira_shadow";
+      return isClosed && isInMonth && l.responsavel_id && !isShadow;
     })
     .reduce((acc: Record<string, number>, lead) => {
       const rid = lead.responsavel_id!;

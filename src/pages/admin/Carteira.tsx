@@ -224,16 +224,21 @@ export default function Carteira() {
         // Vincular ao cliente para a próxima vez
         await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
       } else {
-        // Criar lead shadow
+        // Criar lead shadow — usar data_adesao como data da venda para NÃO contaminar métricas do mês atual
+        const shadowStatusDate = cliente.data_adesao
+          ? (cliente.data_adesao.includes('T') ? cliente.data_adesao : `${cliente.data_adesao}T12:00:00Z`)
+          : "2020-01-01T12:00:00Z"; // data bem no passado se não houver data de adesão
         const { data: newLead, error: insErr } = await supabase.from("leads").insert({
           nome: cliente.nome,
           celular: cliente.celular,
           tipo_consorcio: cliente.tipo_consorcio || "imovel",
           valor_credito: cliente.valor_credito || 0,
           status: "fechado",
+          status_updated_at: shadowStatusDate,
           organizacao_id: profile?.organizacao_id,
           grupo: cliente.grupo,
           cota: cliente.cota,
+          origem: "carteira_shadow",
         }).select().single();
 
         if (newLead) {
