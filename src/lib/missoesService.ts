@@ -32,7 +32,8 @@ export const calcularMissoes = async (
   tipoAcesso: "admin" | "manager" | "vendedor"
 ): Promise<MissoesResult> => {
   const agora = new Date();
-  const hoje = format(agora, "yyyy-MM-dd");
+  // Usar data UTC para consistência com o banco (Postgres current_date é UTC)
+  const hoje = agora.toISOString().split('T')[0];
   const isVendedor = tipoAcesso === "vendedor";
 
   // Calcular datas para Missão EP (2ª e 3ª parcelas)
@@ -470,7 +471,7 @@ export const getLeadsForMissao = async (
       .select("subref_id")
       .eq("user_id", userId)
       .eq("missao_id", "postagem_redes")
-      .eq("data", format(new Date(), "yyyy-MM-dd"));
+      .eq("data", new Date().toISOString().split('T')[0]);
 
     const doneIds = new Set((done || []).map((d: any) => d.subref_id));
 
@@ -484,8 +485,7 @@ export const getLeadsForMissao = async (
 };
 
 export const marcarMissaoRedesSociais = async (orgId: string, userId: string, subrefId: "veiculos" | "imoveis") => {
-  const agora = new Date();
-  const hoje = format(agora, "yyyy-MM-dd");
+  const hoje = new Date().toISOString().split('T')[0];
   
   const { error } = await supabase.from("missoes_concluidas").upsert({
     user_id: userId,
