@@ -633,30 +633,66 @@ export default function Carteira() {
       />
 
       <Dialog open={showContemplations} onOpenChange={setShowContemplations}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Trophy className="h-5 w-5 text-amber-500" /> Histórico Grupo {selectedGrupo}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              Cotas Contempladas — Grupo {selectedGrupo}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              {cotasContempladas.length} cota(s) registrada(s). Digite o número e pressione Enter ou clique em Incluir.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex gap-2 border-t pt-4">
-              <Input placeholder="Nova cota..." value={newCota} onChange={e => setNewCota(e.target.value)} />
-              <Button onClick={handleAddContemplation} variant="outline">Incluir</Button>
-            </div>
 
-            <div className="grid grid-cols-4 md:grid-cols-8 gap-2 mt-4">
-              {cotasContempladas.map(c => (
-                <div key={c.id} className="group relative aspect-square bg-slate-50 rounded-lg flex items-center justify-center font-black text-sm border hover:border-red-200 transition-colors">
-                  {c.cota}
-                  <button 
-                    onClick={() => handleDeleteContemplation(c.id)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Excluir cota"
+          {/* Input fixo — sempre visível */}
+          <div className="flex gap-2 pt-2 pb-3 border-b border-slate-100 shrink-0">
+            <Input
+              placeholder="Nº da cota contemplada..."
+              value={newCota}
+              onChange={e => setNewCota(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAddContemplation()}
+              className="h-11 text-base font-bold"
+              autoFocus
+            />
+            <Button
+              onClick={handleAddContemplation}
+              disabled={!newCota.trim()}
+              className="h-11 px-6 font-black bg-amber-500 hover:bg-amber-600 text-white shrink-0"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Incluir
+            </Button>
+          </div>
+
+          {/* Grade de cotas com scroll independente */}
+          <div className="flex-1 overflow-y-auto pr-1">
+            {loadingContemplations ? (
+              <div className="flex items-center justify-center py-10 text-slate-400 text-sm animate-pulse">
+                Carregando cotas...
+              </div>
+            ) : cotasContempladas.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
+                <Trophy className="h-8 w-8 opacity-20" />
+                <p className="text-sm font-medium">Nenhuma cota contemplada registrada.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 py-3">
+                {cotasContempladas.map(c => (
+                  <div
+                    key={c.id}
+                    className="group relative aspect-square bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center font-black text-sm text-amber-800 hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-all cursor-default"
                   >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    {c.cota}
+                    <button
+                      onClick={() => handleDeleteContemplation(c.id)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                      title="Excluir cota"
+                    >
+                      <Trash2 className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
