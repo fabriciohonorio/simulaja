@@ -221,7 +221,7 @@ export default function Dashboard() {
     .filter(l => {
       const s = (l.status || "").toLowerCase().replace("_", " ");
       const isClosed = s === "fechado" || s === "venda fechada";
-      const dateToCheck = l.status_updated_at || "";
+      const dateToCheck = l.status_updated_at || l.created_at || "";
       const isInMonth = dateToCheck.startsWith(currentMonthStr);
       return isClosed && isInMonth;
     })
@@ -250,7 +250,7 @@ export default function Dashboard() {
     .filter(l => {
       const s = (l.status || "").toLowerCase().replace("_", " ");
       const isClosed = s === "fechado" || s === "venda fechada";
-      const dateToCheck = l.status_updated_at || "";
+      const dateToCheck = l.status_updated_at || l.created_at || "";
       const isInMonth = dateToCheck.startsWith(currentMonthStr);
       return isClosed && isInMonth && l.responsavel_id;
     })
