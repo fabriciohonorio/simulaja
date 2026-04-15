@@ -142,13 +142,30 @@ export default function Carteira() {
         setLeadsComLance(leadsSet);
       }
 
+      // Persistir data_adesao enriquecida de volta ao banco para clientes que tinham o campo vazio
+      const persistPromises: Promise<any>[] = [];
+      for (const c of uniqueClients) {
+        if (!c.data_adesao && c.lead_id) {
+          const enrichedDate = leadDateMap.get(c.lead_id);
+          if (enrichedDate) {
+            persistPromises.push(
+              supabase.from("carteira").update({ data_adesao: enrichedDate }).eq("id", c.id)
+            );
+          }
+        }
+      }
+      if (persistPromises.length > 0) {
+        await Promise.all(persistPromises);
+        console.log(`[Carteira] Persistida data_adesao para ${persistPromises.length} cliente(s) sem data.`);
+      }
+
       const formattedUniqueClients = uniqueClients.map(c => ({
         ...c,
         nome: formatToUpper(c.nome),
         grupo: formatToFourDigits(c.grupo),
         cota: formatToFourDigits(c.cota),
         administradora: formatToUpper(c.administradora),
-        // Usa data do lead se data_adesao estiver vazia
+        // Usa data do lead se data_adesao estiver vazia (fallback em memória)
         data_adesao: c.data_adesao || (c.lead_id ? (leadDateMap.get(c.lead_id) ?? null) : null),
       }));
 
@@ -288,11 +305,13 @@ export default function Carteira() {
       for (const item of carteiraItems) {
         const { data: lead } = await supabase
           .from("leads")
-          .select("nome, grupo, cota, tipo_consorcio, valor_credito, administradora")
+          // CRÍTICO: incluir status_updated_at e data_fechamento para salvar data_adesao
+          .select("nome, grupo, cota, tipo_consorcio, valor_credito, administradora, status_updated_at, data_fechamento, celular")
           .eq("id", item.lead_id)
           .single();
 
         if (lead) {
+          const bestDate = lead.data_fechamento || lead.status_updated_at || null;
           await supabase.from("carteira").update({
             nome: lead.nome,
             grupo: lead.grupo,
@@ -300,8 +319,9 @@ export default function Carteira() {
             tipo_consorcio: lead.tipo_consorcio,
             valor_credito: lead.valor_credito,
             administradora: lead.administradora,
-            // Persiste a data de fechamento do lead como data de adesão
-            ...(lead.status_updated_at ? { data_adesao: lead.status_updated_at } : {}),
+            celular: lead.celular,
+            // Persiste a melhor data disponível como data_adesao
+            ...(bestDate ? { data_adesao: bestDate } : {}),
           }).eq("id", item.id);
           syncCount++;
         }
@@ -363,6 +383,8 @@ export default function Carteira() {
         for (const v of vendidos) {
           if (!existingIds.has(v.id)) {
             // Se o lead vendido não está na carteira, restaurar
+            // CRÍTICO: salvar data_adesao a partir do fechamento do lead
+            const leadDate = v.data_fechamento || v.status_updated_at || null;
             await supabase.from("carteira").insert({
               lead_id: v.id,
               nome: formatToUpper(v.nome),
@@ -371,8 +393,10 @@ export default function Carteira() {
               administradora: formatToUpper(v.administradora),
               valor_credito: v.valor_credito,
               tipo_consorcio: v.tipo_consorcio,
+              celular: v.celular,
               organizacao_id: v.organizacao_id,
               status: "ativo",
+              data_adesao: leadDate,
               created_at: new Date().toISOString()
             });
             restoredCount++;
