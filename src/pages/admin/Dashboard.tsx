@@ -216,7 +216,7 @@ export default function Dashboard() {
   }, [profile?.organizacao_id]);
 
   const metaMensal = metaAnual / 12;
-  const currentMonthStr = format(new Date(), "yyyy-MM");
+  const currentMonthStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }).substring(0, 7);
   const realizadoMes = leads
     .filter(l => {
       const s = (l.status || "").toLowerCase().replace("_", " ");

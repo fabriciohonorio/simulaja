@@ -294,7 +294,7 @@ export default function Jarvis() {
 
         // Simulando processamento inteligente
         setTimeout(() => {
-            const currentMonthStr = new Date().toISOString().substring(0, 7);
+            const currentMonthStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }).substring(0, 7);
             const metaMensal = metaAnual / 12;
             
             const fechadosMes = leads.filter(l => {

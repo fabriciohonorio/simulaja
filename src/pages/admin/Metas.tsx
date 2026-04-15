@@ -149,12 +149,14 @@ export default function Metas() {
     const [isEditingSegmentMetas, setIsEditingSegmentMetas] = useState(false);
     const [tempSegmentMetas, setTempSegmentMetas] = useState<Record<string, string>>({});
     const { currentYear, currentMonth, mesStr } = React.useMemo(() => {
-        const year = new Date().getFullYear();
-        const month = new Date().getMonth() + 1;
+        const spDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+        const parts = spDateStr.split('-');
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
         return {
             currentYear: year,
             currentMonth: month,
-            mesStr: `${year}-${month.toString().padStart(2, "0")}`
+            mesStr: spDateStr.substring(0, 7)
         };
     }, []);
 
