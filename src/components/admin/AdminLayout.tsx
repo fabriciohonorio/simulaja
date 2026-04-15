@@ -116,8 +116,14 @@ export default function AdminLayout() {
     }, [sidebarCollapsed]);
 
     const renderSidebar = (collapsed: boolean) => (
-        <div className={`flex flex-col h-full bg-slate-900 text-slate-100 border-r border-slate-800 transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
-            <div className="p-4 border-b border-slate-800 h-20 flex items-center justify-center">
+        <div className={`flex flex-col h-full transition-all duration-300 border-r ${
+            isDayTime 
+                ? 'bg-white text-slate-900 border-slate-100 shadow-xl' 
+                : 'bg-[#001E3C] text-slate-100 border-slate-800'
+            } ${collapsed ? 'w-20' : 'w-64'}`}>
+            <div className={`p-4 border-b h-20 flex items-center justify-center ${
+                isDayTime ? 'border-slate-50' : 'border-slate-800'
+            }`}>
                 {!collapsed ? (
                     <div className="flex flex-col items-center">
                         <img src="/icon-512.png" alt="Logo" className="h-8 w-auto mb-1" />
@@ -129,10 +135,14 @@ export default function AdminLayout() {
             </div>
 
             {!collapsed && org && (
-                <div className="mx-2 mt-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700">
-                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Empresa</div>
-                    <div className="font-bold text-xs text-slate-200 truncate">{org.nome}</div>
-                    <div className="text-[10px] text-slate-400 truncate">{profile?.nome_completo}</div>
+                <div className={`mx-2 mt-4 p-3 rounded-xl border transition-colors ${
+                    isDayTime ? 'bg-slate-50 border-slate-100' : 'bg-white/5 border-white/10'
+                }`}>
+                    <div className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${
+                        isDayTime ? 'text-slate-400' : 'text-slate-500'
+                    }`}>Empresa</div>
+                    <div className={`font-bold text-xs truncate ${isDayTime ? 'text-slate-900' : 'text-slate-200'}`}>{org.nome}</div>
+                    <div className={`text-[10px] truncate ${isDayTime ? 'text-slate-500' : 'text-slate-400'}`}>{profile?.nome_completo}</div>
                 </div>
             )}
 
@@ -146,7 +156,9 @@ export default function AdminLayout() {
                     return (
                         <div key={group.label} className="pt-2">
                             {!collapsed && (
-                                <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-1">
+                                <div className={`text-[9px] font-bold uppercase tracking-widest px-4 mb-1 ${
+                                    isDayTime ? 'text-slate-400' : 'text-slate-500'
+                                }`}>
                                     {group.label}
                                 </div>
                             )}
@@ -159,14 +171,18 @@ export default function AdminLayout() {
                                     className={({ isActive }) => {
                                         let activeClass = "";
                                         if (isActive) {
-                                            activeClass = isDayTime ? "bg-white text-slate-900 shadow-sm font-black" : "bg-primary text-white font-black";
+                                            activeClass = isDayTime 
+                                                ? "bg-blue-50 text-blue-700 shadow-sm font-black border border-blue-100" 
+                                                : "bg-blue-600 text-white font-black shadow-lg shadow-blue-900/40";
                                         } else {
-                                            activeClass = "text-slate-400 hover:bg-slate-800 hover:text-white font-bold";
+                                            activeClass = isDayTime
+                                                ? "text-slate-600 hover:bg-slate-50 hover:text-blue-600 font-bold"
+                                                : "text-slate-400 hover:bg-white/5 hover:text-white font-bold";
                                         }
                                         return `flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeClass} ${collapsed ? 'justify-center px-0' : ''}`;
                                     }}
                                 >
-                                    <item.icon className="h-4 w-4 shrink-0" />
+                                    <item.icon className={`h-4 w-4 shrink-0 transition-colors ${item.color} ${collapsed ? 'mx-auto' : ''}`} />
                                     {!collapsed && <span className="text-xs font-bold">{item.label}</span>}
                                 </NavLink>
                             ))}
@@ -179,7 +195,11 @@ export default function AdminLayout() {
                 <Button
                     variant="ghost"
                     onClick={() => signOut()}
-                    className="w-full justify-start gap-3 text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                    className={`w-full justify-start gap-3 transition-colors ${
+                        isDayTime 
+                            ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
+                            : "text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                    }`}
                 >
                     <LogOut className="h-4 w-4" />
                     {!collapsed && <span className="text-xs font-bold">Sair</span>}
@@ -195,15 +215,17 @@ export default function AdminLayout() {
             </aside>
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <header className="lg:hidden flex items-center justify-between px-4 h-16 bg-slate-900 text-white shadow-sm z-30">
+                <header className={`lg:hidden flex items-center justify-between px-4 h-16 shadow-sm z-30 transition-colors ${
+                    isDayTime ? 'bg-white text-slate-900 border-b border-slate-100' : 'bg-[#001E3C] text-white border-b border-white/5'
+                }`}>
                     <img src="/icon-512.png" alt="Logo" className="h-8 w-auto" />
                     <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white">
+                            <Button variant="ghost" size="icon" className={isDayTime ? "text-slate-900" : "text-white"}>
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-64 bg-slate-900">
+                        <SheetContent side="left" className="p-0 border-none w-64">
                             {renderSidebar(false)}
                         </SheetContent>
                     </Sheet>
