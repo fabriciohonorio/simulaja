@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock } from "lucide-react";
+import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock, GripVertical } from "lucide-react";
 import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { formatLeadValue } from "@/lib/utils";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
@@ -188,8 +188,16 @@ export function LeadCard({
         ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/30 scale-105 z-[9999] rotate-1 bg-white backdrop-blur-sm" : "shadow-sm"}
       `}
     >
+      {/* Grip Handle & Draggable Zone - Aumentado para melhor pegada */}
+      <div 
+        {...provided.dragHandleProps}
+        className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-slate-100/50 transition-colors z-20 group-hover:bg-slate-50/30"
+      >
+        <GripVertical className="h-3.5 w-3.5 text-slate-300 group-hover:text-primary/40" />
+      </div>
+
       {/* Faixa lateral colorida */}
-      <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${
+      <div className={`absolute left-0 top-0 bottom-0 w-[4px] ${
         statusNormalized === "fechado"
           ? "bg-emerald-400"
           : TEMP_STRIPE[lead.lead_temperatura || "frio"] || "bg-slate-300"
@@ -206,8 +214,8 @@ export function LeadCard({
         </div>
       )}
 
-      {/* Conteúdo com padding interno maior */}
-      <div className={compact ? "pl-3 pr-6 pt-2 pb-1.5 space-y-1" : "pl-4 pr-7 pt-2.5 pb-2.5 space-y-2"}>
+      {/* Conteúdo com padding interno maior, agora compensando o grip */}
+      <div className={compact ? "pl-8 pr-6 pt-2 pb-1.5 space-y-1" : "pl-9 pr-7 pt-2.5 pb-2.5 space-y-2"}>
         
         {/* Header: Nome + Temperatura */}
         <div className="flex flex-col min-w-0">

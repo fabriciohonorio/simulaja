@@ -71,7 +71,6 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
         const cardElement = (
           <div
             {...provided.draggableProps}
-            {...provided.dragHandleProps}
             ref={provided.innerRef}
             style={style}
             className={snapshot.isDragging ? "pointer-events-none" : ""}
@@ -79,7 +78,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
             <LeadCard
               lead={lead}
               snapshot={snapshot}
-              provided={{ ...provided, draggableProps: { style: {} }, dragHandleProps: {} }}
+              provided={provided}
               onDelete={handleDeleteLead}
               onSetVencimento={(l) => {
                 setVencimentoLead(l);
