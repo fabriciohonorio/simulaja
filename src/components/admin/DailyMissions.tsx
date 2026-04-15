@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, CheckCircle2, Circle, Zap, Awards, TrendingUp } from 'lucide-react';
+import { Target, CheckCircle2, Circle, Zap, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -61,7 +61,7 @@ const DailyMissions = () => {
             <CardHeader className="pb-2 bg-slate-50/50 border-b">
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                        <Awards className="h-5 w-5 text-amber-500" />
+                        <Award className="h-5 w-5 text-amber-500" />
                         <CardTitle className="text-lg font-black tracking-tight">Missões Diárias</CardTitle>
                     </div>
                     <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] font-black uppercase">
