@@ -183,11 +183,12 @@ export default function Dashboard() {
     { label: "Avg Contact", value: `${avgContactTime.toFixed(1)}h`, icon: Clock, color: "text-emerald-500", bg: "bg-emerald-50" },
   ];
 
-  // Calcular Performance Semanal Real
+  // Calcular Performance Semanal Real — usando fuso de Brasília (UTC-3)
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().split('T')[0];
+    // Usar horário de São Paulo para evitar virada de dia errada
+    return d.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
   });
 
   const chartData = last7Days.map(date => {
