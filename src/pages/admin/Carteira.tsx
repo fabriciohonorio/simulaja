@@ -20,7 +20,9 @@ import {
   ClipboardList,
   RefreshCw,
   ShieldAlert,
-  Trash2
+  Trash2,
+  CalendarDays,
+  Pencil
 } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Input } from "@/components/ui/input";
@@ -77,6 +79,10 @@ export default function Carteira() {
   const [todasCotasContempladas, setTodasCotasContempladas] = useState<any[]>([]);
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<Lead | null>(null);
   const [leadsComLance, setLeadsComLance] = useState<Set<string>>(new Set());
+  
+  // States para editar data
+  const [editingDateId, setEditingDateId] = useState<string | null>(null);
+  const [editDateValue, setEditDateValue] = useState("");
 
   useEffect(() => {
     fetchClientes();
@@ -291,7 +297,7 @@ export default function Carteira() {
     try {
       const { data: carteiraItems, error: cErr } = await supabase
         .from("carteira")
-        .select("id, lead_id")
+        .select("id, lead_id, data_adesao")
         .not("lead_id", "is", null);
 
       if (cErr) throw cErr;
@@ -320,8 +326,8 @@ export default function Carteira() {
             valor_credito: lead.valor_credito,
             administradora: lead.administradora,
             celular: lead.celular,
-            // Persiste a melhor data disponível como data_adesao
-            ...(bestDate ? { data_adesao: bestDate } : {}),
+            // Persiste a melhor data apenas se a carteira não tiver data, para não sobrescrever
+            ...((bestDate && !item.data_adesao) ? { data_adesao: bestDate } : {}),
           }).eq("id", item.id);
           syncCount++;
         }
@@ -503,6 +509,28 @@ export default function Carteira() {
     return { label: `${days} dia(s)`, urgent: false };
   };
 
+  const handleSaveDate = async (id: string, leadId?: string | null) => {
+    if (!editDateValue) return;
+    try {
+      const isoDate = new Date(editDateValue).toISOString();
+      await supabase.from("carteira").update({ data_adesao: isoDate }).eq("id", id);
+      
+      // Se houver lead associado, atualizar nele também para manter sincronizado total
+      if (leadId) {
+         await supabase.from("leads").update({ 
+            data_fechamento: isoDate,
+            status_updated_at: isoDate 
+         }).eq("id", leadId);
+      }
+
+      setClientes(prev => prev.map(c => c.id === id ? { ...c, data_adesao: isoDate } : c));
+      setEditingDateId(null);
+      toast({ title: "Data atualizada com sucesso!" });
+    } catch (e) {
+      toast({ title: "Erro ao atualizar data", variant: "destructive" });
+    }
+  };
+
   if (loading) return <div className="p-20 text-center animate-pulse">Carregando carteira...</div>;
 
   return (
@@ -624,26 +652,49 @@ export default function Carteira() {
             </div>
 
             <div className="flex flex-col gap-2 mb-4">
-              {(() => {
-                const wait = getWaitTime(c.data_adesao);
-                return (
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-                    wait.urgent
-                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : "bg-amber-50 text-amber-700 border-amber-100"
-                  }`}>
-                    <Clock className="h-3 w-3 shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-[9px] font-bold uppercase text-center opacity-60 tracking-widest">Aguardando contemplação</p>
-                      <p className={`text-[11px] font-black uppercase tracking-wider text-center ${
-                        wait.urgent ? "text-rose-700" : "text-amber-700"
-                      }`}>
-                        {wait.label}
-                      </p>
+              {editingDateId === c.id ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-slate-50 border-slate-200">
+                  <Input 
+                    type="date" 
+                    className="h-8 text-xs font-bold" 
+                    value={editDateValue}
+                    onChange={e => setEditDateValue(e.target.value)}
+                  />
+                  <Button size="sm" className="h-8 text-xs font-black" onClick={() => handleSaveDate(c.id, c.lead_id)}>Salvar</Button>
+                  <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setEditingDateId(null)}>Cancelar</Button>
+                </div>
+              ) : (
+                (() => {
+                  const wait = getWaitTime(c.data_adesao);
+                  return (
+                    <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg border relative ${
+                      wait.urgent
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-amber-50 text-amber-700 border-amber-100"
+                    }`}>
+                      <Clock className="h-3 w-3 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-[9px] font-bold uppercase text-center opacity-60 tracking-widest">Aguardando contemplação</p>
+                        <p className={`text-[11px] font-black uppercase tracking-wider text-center ${
+                          wait.urgent ? "text-rose-700" : "text-amber-700"
+                        }`}>
+                          {wait.label}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setEditingDateId(c.id);
+                          setEditDateValue(c.data_adesao ? new Date(c.data_adesao).toISOString().split('T')[0] : '');
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white/50 hover:bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 shadow-sm"
+                        title="Corrigir Data de Adesão"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()
+              )}
             </div>
 
             <div className="flex gap-2">
