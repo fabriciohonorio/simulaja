@@ -23,12 +23,14 @@ import Settings from "./pages/admin/Settings";
 import Register from "./pages/admin/Register";
 import ResetPassword from "./pages/admin/ResetPassword";
 import Chat from "./pages/admin/Chat";
+import { PwaInstallPrompt } from "./components/PwaInstallPrompt";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <PwaInstallPrompt />
       <Toaster />
       <Sonner />
       <BrowserRouter>
