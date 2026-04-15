@@ -256,8 +256,14 @@ export default function Metas() {
                 });
                 
                 const currentMonthLeads = segmentLeads.filter(l => l.created_at?.startsWith(mesStr));
-                const segmentVendas = segmentLeads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()));
-                const currentMonthVendas = segmentVendas.filter(l => (l.status_updated_at || "").startsWith(mesStr));
+                const segmentVendas = segmentLeads.filter(l => {
+                    const s = (l.status || "").toLowerCase().replace("_", " ");
+                    return s === "fechado" || s === "venda fechada";
+                });
+                const currentMonthVendas = segmentVendas.filter(l => {
+                    const dateToCheck = l.status_updated_at || (l as any).updated_at || "";
+                    return dateToCheck.startsWith(mesStr);
+                });
                 
                 const valorTotal = currentMonthVendas.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
                 const metaValue = currentSegmentMetas[config.segmento as keyof typeof currentSegmentMetas] || 0;
@@ -500,7 +506,10 @@ export default function Metas() {
     const monthsData = Array.from({ length: 4 }, (_, i) => {
         const d = new Date(currentYear, currentMonth - 1 - (3 - i), 1);
         const mStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
-        const r = fechados.filter(l => l.created_at?.startsWith(mStr)).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
+        const r = fechados.filter(l => {
+            const dateToCheck = l.status_updated_at || (l as any).updated_at || "";
+            return dateToCheck.startsWith(mStr);
+        }).reduce((a, l) => a + Number(l.valor_credito || 0), 0);
         return { name: d.toLocaleString("pt-BR", { month: "short" }).toUpperCase(), realizado: r, meta: metaMensal };
     });
 

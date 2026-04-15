@@ -248,9 +248,11 @@ export default function Dashboard() {
   // Cálculo de Ranking de Consultores - AGORA MENSAL
   const rankingRaw = leads
     .filter(l => {
-      const isSale = l.status === "fechado" || l.status === "venda_fechada";
-      const isThisMonth = l.created_at ? new Date(l.created_at) >= startOfMonth : false;
-      return isSale && isThisMonth && l.responsavel_id;
+      const s = (l.status || "").toLowerCase().replace("_", " ");
+      const isClosed = s === "fechado" || s === "venda fechada";
+      const dateToCheck = l.status_updated_at || l.updated_at || "";
+      const isInMonth = dateToCheck.startsWith(currentMonthStr);
+      return isClosed && isInMonth && l.responsavel_id;
     })
     .reduce((acc: Record<string, number>, lead) => {
       const rid = lead.responsavel_id!;
