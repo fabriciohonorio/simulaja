@@ -142,6 +142,47 @@ export type Database = {
           },
         ]
       }
+      contemplacoes_grupo: {
+        Row: {
+          cota: string
+          created_at: string
+          grupo: string
+          id: string
+          mes_referencia: string
+          organizacao_id: string | null
+          tipo: string
+          valor_percentage: number | null
+        }
+        Insert: {
+          cota: string
+          created_at?: string
+          grupo: string
+          id?: string
+          mes_referencia: string
+          organizacao_id?: string | null
+          tipo: string
+          valor_percentage?: number | null
+        }
+        Update: {
+          cota?: string
+          created_at?: string
+          grupo?: string
+          id?: string
+          mes_referencia?: string
+          organizacao_id?: string | null
+          tipo?: string
+          valor_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contemplacoes_grupo_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       convites: {
         Row: {
           convidado_por: string | null
@@ -182,6 +223,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "convites_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotas_contempladas: {
+        Row: {
+          administradora: string | null
+          cota: string
+          created_at: string
+          grupo: string
+          id: string
+          organizacao_id: string
+          segmento: string | null
+        }
+        Insert: {
+          administradora?: string | null
+          cota: string
+          created_at?: string
+          grupo: string
+          id?: string
+          organizacao_id: string
+          segmento?: string | null
+        }
+        Update: {
+          administradora?: string | null
+          cota?: string
+          created_at?: string
+          grupo?: string
+          id?: string
+          organizacao_id?: string
+          segmento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotas_contempladas_organizacao_id_fkey"
             columns: ["organizacao_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
@@ -274,6 +353,38 @@ export type Database = {
           },
           {
             foreignKeyName: "historico_contatos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_loteria: {
+        Row: {
+          created_at: string
+          id: string
+          mes_referencia: string
+          organizacao_id: string | null
+          resultado_federal: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mes_referencia: string
+          organizacao_id?: string | null
+          resultado_federal: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mes_referencia?: string
+          organizacao_id?: string | null
+          resultado_federal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_loteria_organizacao_id_fkey"
             columns: ["organizacao_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
@@ -664,6 +775,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "metricas_segmentos_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      missoes_concluidas: {
+        Row: {
+          created_at: string
+          data: string | null
+          id: string
+          missao_id: string
+          organizacao_id: string | null
+          subref_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: string | null
+          id?: string
+          missao_id: string
+          organizacao_id?: string | null
+          subref_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: string | null
+          id?: string
+          missao_id?: string
+          organizacao_id?: string | null
+          subref_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missoes_concluidas_organizacao_id_fkey"
             columns: ["organizacao_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
