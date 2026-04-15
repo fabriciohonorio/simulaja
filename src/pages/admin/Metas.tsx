@@ -104,6 +104,7 @@ interface Lead {
     valor_credito: number;
     created_at: string | null;
     updated_at: string | null;
+    status_updated_at: string | null;
     tipo_consorcio: string | null;
     propensity_score?: number | null;
 }

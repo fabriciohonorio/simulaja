@@ -51,6 +51,7 @@ interface Lead {
     valor_credito: number;
     created_at: string | null;
     updated_at: string | null;
+    status_updated_at: string | null;
     tipo_consorcio: string | null;
 }
 
@@ -321,6 +322,7 @@ export default function Jarvis() {
 
             let responseContent = "";
             let newAnalysis: JarvisAnalysis | null = null;
+            const queryLower = query.toLowerCase();
 
             // Lógica de FAQ Dinâmica / Simulação
             if ((queryLower.includes("parcela") || queryLower.includes("quanto custa") || queryLower.includes("simula")) && (queryLower.includes("mil") || queryLower.includes("m") || /\d/.test(query))) {

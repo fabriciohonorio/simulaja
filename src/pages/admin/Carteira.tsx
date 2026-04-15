@@ -130,7 +130,7 @@ export default function Carteira() {
         const [{ data: leadDates }, { data: lanceInteractions }] = await Promise.all([
           supabase
             .from("leads")
-            .select("id, status_updated_at, data_fechamento")
+            .select("id, status_updated_at")
             .in("id", leadIds),
           supabase
             .from("historico_contatos")
@@ -142,7 +142,7 @@ export default function Carteira() {
         leadDateMap = new Map(
           (leadDates || []).map(l => [
             l.id,
-            l.data_fechamento || l.status_updated_at
+            l.status_updated_at
           ])
         );
         leadsSet = new Set((lanceInteractions || []).map(i => i.lead_id));
@@ -156,7 +156,7 @@ export default function Carteira() {
           const enrichedDate = leadDateMap.get(c.lead_id);
           if (enrichedDate) {
             persistPromises.push(
-              supabase.from("carteira").update({ data_adesao: enrichedDate }).eq("id", c.id)
+              supabase.from("carteira").update({ data_adesao: enrichedDate }).eq("id", c.id).then()
             );
           }
         }

@@ -177,14 +177,12 @@ export const calcularMissoes = async (
   if (isVendedor) {
     const { data: mSet } = await supabase
       .from("metas_vendedor")
-      .select("meta_anual, meta_outros")
+      .select("meta_anual")
       .eq("vendedor_id", userId)
       .eq("ano", agora.getFullYear())
       .maybeSingle();
     
-    metaMes = (mSet?.meta_outros && mSet.meta_outros > 0) 
-      ? mSet.meta_outros 
-      : (mSet?.meta_anual || 0) / 12;
+    metaMes = (mSet?.meta_anual || 0) / 12;
   } else {
     const { data: mSet } = await supabase
       .from("meta")

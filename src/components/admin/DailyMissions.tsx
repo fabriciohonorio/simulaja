@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, CheckCircle2, Circle, Zap, Awards, TrendingUp } from 'lucide-react';
+import { Target, CheckCircle2, Circle, Zap, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
