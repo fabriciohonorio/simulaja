@@ -244,7 +244,7 @@ export default function Carteira() {
        // Buscar lead completo
        const { data: lead } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).single();
        if (lead) {
-         setSelectedLeadForHistory(lead as Lead);
+         setSelectedLeadForHistory(lead as unknown as Lead);
          return;
        }
     }
@@ -260,7 +260,7 @@ export default function Carteira() {
 
       if (existingLeads && existingLeads.length > 0) {
         const lead = existingLeads[0];
-        setSelectedLeadForHistory(lead as Lead);
+        setSelectedLeadForHistory(lead as unknown as Lead);
         // Vincular ao cliente para a próxima vez
         await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
       } else {
@@ -282,7 +282,7 @@ export default function Carteira() {
         }).select().single();
 
         if (newLead) {
-          setSelectedLeadForHistory(newLead as Lead);
+          setSelectedLeadForHistory(newLead as unknown as Lead);
           await supabase.from("carteira").update({ lead_id: newLead.id }).eq("id", cliente.id);
         }
       }
@@ -312,13 +312,13 @@ export default function Carteira() {
       for (const item of carteiraItems) {
         const { data: lead } = await supabase
           .from("leads")
-          // CRÍTICO: incluir status_updated_at e data_fechamento para salvar data_adesao
-          .select("nome, grupo, cota, tipo_consorcio, valor_credito, administradora, status_updated_at, data_fechamento, celular")
+          // CRÍTICO: incluir status_updated_at para salvar data_adesao
+          .select("nome, grupo, cota, tipo_consorcio, valor_credito, administradora, status_updated_at, celular")
           .eq("id", item.lead_id)
           .single();
 
         if (lead) {
-          const bestDate = lead.data_fechamento || lead.status_updated_at || null;
+          const bestDate = lead.status_updated_at || null;
           await supabase.from("carteira").update({
             nome: lead.nome,
             grupo: lead.grupo,
@@ -391,7 +391,7 @@ export default function Carteira() {
           if (!existingIds.has(v.id)) {
             // Se o lead vendido não está na carteira, restaurar
             // CRÍTICO: salvar data_adesao a partir do fechamento do lead
-            const leadDate = v.data_fechamento || v.status_updated_at || null;
+            const leadDate = v.status_updated_at || null;
             await supabase.from("carteira").insert({
               lead_id: v.id,
               nome: formatToUpper(v.nome),

@@ -29,7 +29,7 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
       item.id === draggableId ? { 
         ...item, 
         status: newStatus,
-        status_updated_at: tableName !== "inadimplentes" ? nowIso : item.status_updated_at 
+        status_updated_at: tableName !== "inadimplentes" ? nowIso : (item as any).status_updated_at 
       } : item
     )
   );
