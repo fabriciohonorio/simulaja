@@ -470,19 +470,16 @@ export default function Metas() {
         return u < seteDias;
     }).length;
 
-    // Ritmo Diário (Pace) Calculations
-    const hojeObj = new Date();
-    let diasUteisPassados = 0;
-    let diasUteisTotais = 0;
-    for (let d = 1; d <= diasMes; d++) {
-        const date = new Date(currentYear, currentMonth - 1, d);
-        const isBusinessDay = date.getDay() !== 0 && date.getDay() !== 6;
-        if (isBusinessDay) {
-            diasUteisTotais++;
-            if (d <= diaHoje) diasUteisPassados++;
-        }
-    }
-    const diasUteisRestantes = Math.max(1, diasUteisTotais - diasUteisPassados);
+    // Ritmo Diário (Pace) Calculations - Agora usando dias CORRIDOS (mês cheio)
+    const diasPassados = diaHoje;
+    const diasTotais = diasMes;
+    const diasRestantes = Math.max(1, diasTotais - diasPassados);
+    
+    // Alias para manter compatibilidade com o JSX sem renomear tudo
+    const diasUteisTotais = diasTotais;
+    const diasUteisPassados = diasPassados;
+    const diasUteisRestantes = diasRestantes;
+
     const ritmoNecessario = faltaMes / diasUteisRestantes;
     const ritmoAtual = realizadoMes / Math.max(1, diasUteisPassados);
     const sugestaoImovel = Math.ceil(faltaMes / 100000);
