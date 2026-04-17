@@ -42,6 +42,7 @@ import { format, differenceInMonths, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { HistoricoModal } from "@/components/admin/funil/HistoricoModal";
 import { Lead } from "@/types/funil";
+import confetti from "canvas-confetti";
 
 interface Cliente {
   id: string;
@@ -84,6 +85,9 @@ export default function Carteira() {
   // States para editar data
   const [editingDateId, setEditingDateId] = useState<string | null>(null);
   const [editDateValue, setEditDateValue] = useState("");
+  
+  // State para contemplação manual
+  const [manualContemplationClient, setManualContemplationClient] = useState<Cliente | null>(null);
 
   useEffect(() => {
     fetchClientes();
@@ -535,6 +539,58 @@ export default function Carteira() {
     }
   };
 
+  const handleManualContemplationAction = async (client: Cliente) => {
+    setManualContemplationClient(client);
+    
+    // Confetti effect
+    const end = Date.now() + 2 * 1000;
+    const colors = ['#f59e0b', '#fbbf24', '#34d399', '#10b981'];
+
+    (function frame() {
+      confetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors,
+        zIndex: 9999
+      });
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors,
+        zIndex: 9999
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+
+    try {
+      // Update DB to mark as contemplated if not already
+      if (!client.cota_contemplada) {
+         const newDate = new Date().toISOString();
+         await supabase.from("carteira").update({ cota_contemplada: newDate }).eq("id", client.id);
+         setClientes(prev => prev.map(c => c.id === client.id ? { ...c, cota_contemplada: newDate } : c));
+         
+         // Add to cotas_contempladas history
+         if (client.grupo && client.cota && profile?.organizacao_id) {
+            await supabase.from("cotas_contempladas").insert({
+               grupo: client.grupo,
+               cota: client.cota,
+               organizacao_id: profile.organizacao_id,
+               created_at: newDate
+            });
+         }
+      }
+    } catch (e) {
+      console.error("Error setting contemplation", e);
+    }
+  };
+
   if (loading) return <div className="p-20 text-center animate-pulse">Carregando carteira...</div>;
 
   return (
@@ -747,10 +803,46 @@ export default function Carteira() {
               >
                 <ShieldAlert className="h-4 w-4" />
               </Button>
+              
+              {!c.cota_contemplada && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 text-amber-500 hover:bg-amber-50 rounded-lg shrink-0"
+                  onClick={() => handleManualContemplationAction(c)}
+                  title="Contemplar Manualmente"
+                >
+                  <Trophy className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      <Dialog open={!!manualContemplationClient} onOpenChange={(open) => { if (!open) setManualContemplationClient(null); }}>
+        <DialogContent className="max-w-sm text-center p-8 bg-gradient-to-br from-amber-400 to-amber-600 border-none rounded-3xl shadow-2xl">
+           <DialogHeader>
+             <DialogTitle className="sr-only">Cliente Contemplado</DialogTitle>
+           </DialogHeader>
+           <Trophy className="h-20 w-20 mx-auto text-white drop-shadow-md mb-4 animate-bounce" />
+           <h2 className="text-3xl font-black text-white uppercase tracking-wider mb-2 drop-shadow-md">
+             Contemplado!
+           </h2>
+           <p className="text-amber-100 font-bold mb-4">
+             {manualContemplationClient?.nome}
+           </p>
+           <p className="text-sm text-amber-100 bg-black/10 rounded-lg px-4 py-2 inline-block font-black mt-2">
+             G: {manualContemplationClient?.grupo} / C: {manualContemplationClient?.cota}
+           </p>
+           <Button 
+             className="w-full mt-6 bg-white text-amber-600 hover:bg-amber-50 font-black uppercase tracking-widest h-12 rounded-xl"
+             onClick={() => setManualContemplationClient(null)}
+           >
+             Incrível!
+           </Button>
+        </DialogContent>
+      </Dialog>
 
       <HistoricoModal 
         lead={selectedLeadForHistory}
