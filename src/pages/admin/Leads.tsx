@@ -166,6 +166,20 @@ export default function Leads() {
                 grupo: formatToFourDigits(updatePayload.grupo),
                 cota: formatToFourDigits(updatePayload.cota),
               }).eq("lead_id", editingLead.id);
+            } else if (isClosedStatus) {
+              await (supabase as any).from("carteira").insert([{
+                lead_id: editingLead.id,
+                nome: updatePayload.nome,
+                celular: updatePayload.celular,
+                tipo_consorcio: updatePayload.tipo_consorcio,
+                valor_credito: updatePayload.valor_credito,
+                administradora: formatToUpper(updatePayload.administradora),
+                grupo: formatToFourDigits(updatePayload.grupo),
+                cota: formatToFourDigits(updatePayload.cota),
+                status: "aguardando",
+                data_adesao: updatePayload.status_updated_at ? updatePayload.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
+                organizacao_id: editingLead.organizacao_id || profile?.organizacao_id,
+              }]);
             }
           } catch (carteiraErr) {
             console.warn("[carteira sync] Aviso:", carteiraErr);
@@ -176,11 +190,29 @@ export default function Leads() {
       } else {
         // ── Novo lead ────────────────────────────────────────────────────
         const insertPayload = { ...updatePayload, organizacao_id: profile?.organizacao_id };
-        const { error } = await supabase.from("leads").insert([insertPayload]);
+        const { data: newLeads, error } = await supabase.from("leads").insert([insertPayload]).select();
         if (error) {
           console.error("Erro insert lead:", error);
           throw new Error(error.message || "Erro ao criar lead");
         }
+
+        if (isClosedStatus && newLeads && newLeads.length > 0) {
+          const nl = newLeads[0];
+          await (supabase as any).from("carteira").insert([{
+            lead_id: nl.id,
+            nome: nl.nome,
+            celular: nl.celular,
+            tipo_consorcio: nl.tipo_consorcio,
+            valor_credito: nl.valor_credito,
+            administradora: formatToUpper(nl.administradora),
+            grupo: formatToFourDigits(nl.grupo),
+            cota: formatToFourDigits(nl.cota),
+            status: "aguardando",
+            data_adesao: nl.status_updated_at ? nl.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            organizacao_id: nl.organizacao_id || profile?.organizacao_id,
+          }]);
+        }
+
         toast.success("Lead criado com sucesso!");
         // Refresh completo só para novos leads
         await refetchLeads();

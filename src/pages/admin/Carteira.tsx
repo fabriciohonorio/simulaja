@@ -561,8 +561,8 @@ export default function Carteira() {
                onChange={e => setLotteryAdmin(e.target.value)}
              >
                <option value="TODAS" className="text-slate-800">Todas as Administradoras</option>
-               {Array.from(new Set(clientes.map(c => formatToUpper(c.administradora)).filter(Boolean))).sort().map(admin => (
-                 <option key={admin} value={admin!} className="text-slate-800">{admin}</option>
+               {Array.from(new Set(["MAGALU", "ADEMICON", "SERVOPA", ...clientes.map(c => formatToUpper(c.administradora)).filter(Boolean)])).sort().map(admin => (
+                 <option key={admin as string} value={admin as string} className="text-slate-800">{admin as string}</option>
                ))}
              </select>
              <Input 
