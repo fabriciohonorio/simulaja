@@ -31,10 +31,10 @@ const Hero = () => {
 
           <div>
             <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
-              CONSÓRCIO
+              OESPECIALISTA
             </h1>
             <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-[#C9A96A]">
-              INTELIGENTE
+              CONSÓRCIO
             </h1>
           </div>
 
