@@ -1,6 +1,5 @@
-import { CheckCircle2, ArrowRight } from "lucide-react";
-import fabricioImg from "@/assets/fabricio-real.jpg";
-import heroBg from "@/assets/hero-bg-ref.png";
+import { CheckCircle2, ArrowRight, ClipboardCheck } from "lucide-react";
+import heroBg from "@/assets/hero-premium-desk.jpg";
 
 const Hero = () => {
   const services = [
@@ -16,66 +15,63 @@ const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})` }}
       />
-      {/* Dark navy overlay */}
-      <div className="absolute inset-0 bg-[hsl(213,70%,14%)]/85" />
+      {/* Premium gradient overlay - darker on the left, lighter on the right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[hsl(213,70%,8%)]/95 via-[hsl(213,70%,10%)]/85 to-[hsl(213,70%,12%)]/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
 
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left - Content */}
-          <div className="space-y-7">
-            <p className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-white/50">
-              FABRICIO | Especialista em Consórcio
-            </p>
+        <div className="max-w-2xl space-y-7">
+          <p className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-[#C9A96A]">
+            FABRICIO | Especialista em Consórcio
+          </p>
 
-            <div>
-              <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
-                CONSÓRCIO
-              </h1>
-              <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-secondary">
-                INTELIGENTE
-              </h1>
-            </div>
-
-            <p className="text-base md:text-lg text-white/60 max-w-md leading-relaxed">
-              Imóveis, veículos e investimentos com planejamento financeiro e{" "}
-              <strong className="text-white font-bold">sem juros</strong>.
-            </p>
-
-            {/* Services checklist */}
-            <ul className="space-y-2.5">
-              {services.map((service, i) => (
-                <li key={i} className="flex items-center gap-3 text-white/75">
-                  <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
-                  <span className="text-sm md:text-base">{service}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA Button */}
-            <div className="pt-2">
-              <a
-                href="#simulator"
-                className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-secondary/25 active:scale-95"
-              >
-                Simular Consórcio Agora
-                <ArrowRight className="w-5 h-5" />
-              </a>
-            </div>
+          <div>
+            <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
+              CONSÓRCIO
+            </h1>
+            <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-[#C9A96A]">
+              INTELIGENTE
+            </h1>
           </div>
 
-          {/* Right - Fabrício Photo */}
-          <div className="hidden lg:flex justify-end items-center">
-            <div className="w-[400px] h-[450px] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-              <img
-                src={fabricioImg}
-                alt="Fabrício — Especialista em Consórcio"
-                className="w-full h-full object-cover"
-              />
+          <p className="text-base md:text-lg text-white/75 max-w-md leading-relaxed">
+            Imóveis, veículos e investimentos com planejamento financeiro e{" "}
+            <strong className="text-white font-bold">sem juros</strong>.
+          </p>
+
+          {/* Services checklist */}
+          <ul className="space-y-2.5">
+            {services.map((service, i) => (
+              <li key={i} className="flex items-center gap-3 text-white/80">
+                <CheckCircle2 className="w-4 h-4 text-[#C9A96A] flex-shrink-0" />
+                <span className="text-sm md:text-base">{service}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Premium info block */}
+          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4 max-w-md">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-[#C9A96A]/15 border border-[#C9A96A]/30 flex items-center justify-center">
+              <ClipboardCheck className="w-5 h-5 text-[#C9A96A]" />
             </div>
+            <p className="text-sm md:text-[15px] text-white/85 leading-snug font-medium">
+              Você está a um passo de finalizar seu planejamento
+            </p>
+          </div>
+
+          {/* CTA Button */}
+          <div className="pt-2">
+            <a
+              href="#simulator"
+              className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-secondary/25 active:scale-95"
+            >
+              Simular Consórcio Agora
+              <ArrowRight className="w-5 h-5" />
+            </a>
           </div>
         </div>
       </div>
