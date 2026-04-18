@@ -16,12 +16,12 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBg})` }}
+        className="absolute inset-0 bg-cover bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBg})`, backgroundPosition: "center right" }}
       />
-      {/* Premium gradient overlay - darker on the left, lighter on the right */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[hsl(213,70%,8%)]/95 via-[hsl(213,70%,10%)]/85 to-[hsl(213,70%,12%)]/60" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+      {/* Premium gradient overlay - strong on the left, soft on the right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[hsl(213,70%,8%)]/95 via-[hsl(213,70%,10%)]/70 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
 
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div className="max-w-2xl space-y-7">
