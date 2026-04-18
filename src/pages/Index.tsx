@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import AboutSection from "@/components/AboutSection";
 import SegmentCards from "@/components/SegmentCards";
 import Diferencial from "@/components/Diferencial";
+import MeetSpecialist from "@/components/MeetSpecialist";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,6 +116,8 @@ const Index = () => {
           </div>
         </section>
       </div>
+
+      <MeetSpecialist />
 
       <Diferencial />
 
