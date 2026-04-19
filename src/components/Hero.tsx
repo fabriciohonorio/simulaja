@@ -25,10 +25,6 @@ const Hero = () => {
 
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div className="max-w-2xl space-y-7">
-          <p className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-[#C9A96A]">
-            FABRICIO | Especialista em Consórcio
-          </p>
-
           <div>
             <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
               OESPECIALISTA
@@ -59,7 +55,7 @@ const Hero = () => {
               <ClipboardCheck className="w-5 h-5 text-[#C9A96A]" />
             </div>
             <p className="text-sm md:text-[15px] text-white/85 leading-snug font-medium">
-              Você está a um passo de finalizar seu planejamento
+              Você está a um passo de iniciar seu planejamento
             </p>
           </div>
 
@@ -67,9 +63,9 @@ const Hero = () => {
           <div className="pt-2">
             <a
               href="#simulator"
-              className="inline-flex items-center gap-3 bg-secondary hover:bg-secondary/90 text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-secondary/25 active:scale-95"
+              className="inline-flex items-center gap-3 bg-[#FF6B1A] hover:bg-[#FF7A2E] text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-[#FF6B1A]/30 active:scale-95"
             >
-              Simular Consórcio Agora
+              Quero Simular Agora
               <ArrowRight className="w-5 h-5" />
             </a>
           </div>
