@@ -170,6 +170,38 @@ export default function Carteira() {
         console.log(`[Carteira] Persistida data_adesao para ${persistPromises.length} cliente(s) sem data.`);
       }
 
+      // PARTE 2 AUTOSYNC: Garantir que leads vendidos (feat. retroativos) sejam espelhados
+      const { data: allVendidos } = await supabase.from("leads").select("*").in("status", ["fechado", "venda_fechada"]).eq("organizacao_id", profile?.organizacao_id);
+      if (allVendidos) {
+        const carteiraLeadIds = new Set(uniqueClients.map(c => c.lead_id).filter(Boolean));
+        const missingLeads = allVendidos.filter(v => !carteiraLeadIds.has(v.id));
+        
+        if (missingLeads.length > 0) {
+          const toInsert = missingLeads.map(v => ({
+            lead_id: v.id,
+            nome: formatToUpper(v.nome),
+            grupo: formatToFourDigits(v.grupo),
+            cota: formatToFourDigits(v.cota),
+            administradora: formatToUpper(v.administradora),
+            valor_credito: v.valor_credito,
+            tipo_consorcio: v.tipo_consorcio,
+            celular: v.celular,
+            organizacao_id: v.organizacao_id,
+            status: "ativo",
+            data_adesao: v.status_updated_at || null,
+            created_at: new Date().toISOString()
+          }));
+          
+          await supabase.from("carteira").insert(toInsert);
+          console.log(`[Carteira Autosync] Inseridos ${missingLeads.length} leads vendidos que não estavam espelhados (ex: leads retroativos).`);
+          
+          // Adiciona os recém inseridos à lista uniqueClients local para visualização imediata
+          toInsert.forEach(t => {
+            uniqueClients.push(t as any);
+          });
+        }
+      }
+
       const formattedUniqueClients = uniqueClients.map(c => ({
         ...c,
         nome: formatToUpper(c.nome),
@@ -617,8 +649,9 @@ export default function Carteira() {
                onChange={e => setLotteryAdmin(e.target.value)}
              >
                <option value="TODAS" className="text-slate-800">Todas as Administradoras</option>
-               {Array.from(new Set(["MAGALU", "ADEMICON", "SERVOPA", ...clientes.map(c => formatToUpper(c.administradora)).filter(Boolean)])).sort().map(admin => (
-                 <option key={admin as string} value={admin as string} className="text-slate-800">{admin as string}</option>
+               <option value="SERVOPA" className="text-slate-800 font-bold bg-amber-50">SERVOPA</option>
+               {Array.from(new Set(["MAGALU", "ADEMICON", ...clientes.map(c => formatToUpper(c.administradora)).filter(Boolean)])).sort().map(admin => (
+                 admin !== "SERVOPA" && <option key={admin as string} value={admin as string} className="text-slate-800">{admin as string}</option>
                ))}
              </select>
              <Input 
