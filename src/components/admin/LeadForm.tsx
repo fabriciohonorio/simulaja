@@ -62,6 +62,7 @@ export interface LeadFormData {
   grupo?: string;
   cota?: string;
   status_updated_at?: string;
+  dados_cadastro?: any;
 }
 
 interface LeadFormProps {
@@ -81,6 +82,16 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
 
   const handleSelectChange = (id: keyof LeadFormData, value: string) => {
     setForm(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleNestedChange = (field: string, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      dados_cadastro: {
+        ...(prev.dados_cadastro || {}),
+        [field]: value
+      }
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -252,6 +263,75 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
           <div className="space-y-2">
             <Label htmlFor="indicador_celular">Celular do Indicador</Label>
             <Input id="indicador_celular" value={form.indicador_celular || ""} onChange={handleChange} placeholder="Celular do indicador" />
+          </div>
+        </div>
+      </div>
+
+      {/* ━━━ DADOS COMPLETO (MAGALU) ━━━ */}
+      <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <h4 className="text-sm font-black text-slate-700 flex items-center gap-2">
+          📋 Ficha de Cadastro Completa (Magalu)
+        </h4>
+        
+        <div className="space-y-4">
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">DADOS MÃE / PAI</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">Nome Mãe/Pai</Label>
+              <Input value={form.dados_cadastro?.MAE_PAI_NOME || form.dados_cadastro?.CPFCONJUGE || ""} onChange={(e) => handleNestedChange("MAE_PAI_NOME", e.target.value)} placeholder="Nome" className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">CPF</Label>
+              <Input value={form.dados_cadastro?.MAE_PAI_CPF || form.dados_cadastro?.CPFCONJUGE || ""} onChange={(e) => handleNestedChange("MAE_PAI_CPF", e.target.value)} placeholder="000.000.000-00" className="bg-white text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-2">
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">DADOS PESSOAIS</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">Nascimento</Label>
+              <Input value={form.dados_cadastro?.NASCIMENTO || form.dados_cadastro?.DATANASCIMENTO || ""} onChange={(e) => handleNestedChange("NASCIMENTO", e.target.value)} placeholder="00/00/0000" className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">Sexo</Label>
+              <Input value={form.dados_cadastro?.SEXO || ""} onChange={(e) => handleNestedChange("SEXO", e.target.value)} placeholder="M/F" className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">Estado Civil</Label>
+              <Input value={form.dados_cadastro?.ESTADO_CIVIL || form.dados_cadastro?.ESTADOCIVIL || ""} onChange={(e) => handleNestedChange("ESTADOCIVIL", e.target.value)} placeholder="Casado..." className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1 col-span-2">
+              <Label className="text-[10px] uppercase">Nome da Mãe</Label>
+              <Input value={form.dados_cadastro?.NOMEMAE || form.dados_cadastro?.MAE_NOME || ""} onChange={(e) => handleNestedChange("NOMEMAE", e.target.value)} placeholder="Nome completo" className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">Renda</Label>
+              <Input value={form.dados_cadastro?.RENDA || ""} onChange={(e) => handleNestedChange("RENDA", e.target.value)} placeholder="R$ 0.000" className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1 col-span-2">
+              <Label className="text-[10px] uppercase">Profissão</Label>
+              <Input value={form.dados_cadastro?.PROFISSAO || ""} onChange={(e) => handleNestedChange("PROFISSAO", e.target.value)} placeholder="Ex: Empresário" className="bg-white text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-2">
+          <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">ENDEREÇO</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1 col-span-2">
+              <Label className="text-[10px] uppercase">Rua / Logradouro</Label>
+              <Input value={form.dados_cadastro?.LOGRADOURO || form.dados_cadastro?.RUA || ""} onChange={(e) => handleNestedChange("LOGRADOURO", e.target.value)} placeholder="Rua..." className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">CEP</Label>
+              <Input value={form.dados_cadastro?.CEP || ""} onChange={(e) => handleNestedChange("CEP", e.target.value)} placeholder="00000-000" className="bg-white text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase">Bairro</Label>
+              <Input value={form.dados_cadastro?.BAIRRO || ""} onChange={(e) => handleNestedChange("BAIRRO", e.target.value)} placeholder="Bairro" className="bg-white text-xs" />
+            </div>
           </div>
         </div>
       </div>
