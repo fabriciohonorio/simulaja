@@ -250,7 +250,7 @@ export default function Leads() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-black text-slate-900">Operação Leads</h1>
+        <h1 className="text-2xl font-black text-slate-900">Operação Leads - ATUALIZADO</h1>
         <button
           onClick={() => { setEditingLead(null); setIsDialogOpen(true); }}
           className="flex items-center gap-1 h-8 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
