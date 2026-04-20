@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 import StreakBadge from "@/components/admin/StreakBadge";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 
 interface MenuGroup {
     label: string;
@@ -245,6 +246,7 @@ export default function AdminLayout() {
                     </div>
                 </main>
             </div>
+            <PwaInstallPrompt />
         </div>
     );
 }
