@@ -228,35 +228,6 @@ export function LeadCard({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2">
             <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{formatToUpper(lead.nome) || "LEAD"}</p>
-            {lead.dados_cadastro && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-[7px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 hover:bg-blue-100 transition-all uppercase tracking-tighter"
-                  >
-                    <ClipboardList className="h-2.5 w-2.5" />
-                    Ficha
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <ClipboardList className="h-5 w-5 text-primary" />
-                      Ficha de Pré-Cadastro: {lead.nome}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
-                      <div key={key} className="border-b border-slate-100 pb-2">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/_/g, ' ')}</p>
-                        <p className="text-sm font-bold text-slate-900">{String(value)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
           </div>
           
           {/* Pill Temperatura — saturação reduzida */}
@@ -414,6 +385,35 @@ export function LeadCard({
               </div>
               
               <div className="flex items-center gap-0.5">
+                {lead.dados_cadastro && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-5 h-5 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                        title="Ver Ficha Completa"
+                      >
+                        <ClipboardList className="h-2.5 w-2.5" />
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <ClipboardList className="h-5 w-5 text-primary" />
+                          Ficha de Pré-Cadastro: {lead.nome}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
+                          <div key={key} className="border-b border-slate-100 pb-2">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/_/g, ' ')}</p>
+                            <p className="text-sm font-bold text-slate-900">{String(value)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
                 <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
                   className="w-5 h-5 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
                   title="Agendar">
@@ -442,6 +442,35 @@ export function LeadCard({
             )
         ) : (
           <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
+            {lead.dados_cadastro && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button 
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                    title="Ver Ficha Completa"
+                  >
+                    <ClipboardList className="h-3 w-3" />
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                       <ClipboardList className="h-5 w-5 text-primary" />
+                       Ficha de Pré-Cadastro: {lead.nome}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
+                      <div key={key} className="border-b border-slate-100 pb-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/_/g, ' ')}</p>
+                        <p className="text-sm font-bold text-slate-900">{String(value)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
             <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
               title="Agendar">
