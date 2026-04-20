@@ -110,7 +110,20 @@
   #lovable-badge-container,
   .lovable-badge,
   a[href^="https://lovable.dev/"],
-  [data-lovable-badge] {
+  a[href^="https://lovable.app/"],
+  [data-lovable-badge],
+  #gpt-designer-badge,
+  .gpt-designer-badge,
+  iframe[src*="lovable"],
+  div[style*="z-index: 2147483647"],
+  div[style*="z-index: 9999999"] {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
   }
 }
