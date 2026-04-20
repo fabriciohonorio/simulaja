@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+// Trigger deploy: 2026-04-20 14:40
 import ConsortiumSimulator from "@/components/ConsortiumSimulator";
 import AIChatbot from "@/components/AIChatbot";
 import Header from "@/components/Header";
