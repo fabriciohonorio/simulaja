@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock, GripVertical } from "lucide-react";
+import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock, GripVertical, ClipboardList } from "lucide-react";
 import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { formatLeadValue } from "@/lib/utils";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
@@ -7,6 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Lead, HistoricoContato, Membro } from "@/types/funil";
 import { TEMP_EMOJIS, TEMP_LABELS, normalizeStatus } from "./constants";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const TEMP_STRIPE: Record<string, string> = {
   quente: "bg-red-500",
@@ -219,7 +226,38 @@ export function LeadCard({
         
         {/* Header: Nome + Temperatura */}
         <div className="flex flex-col min-w-0">
-          <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{formatToUpper(lead.nome) || "LEAD"}</p>
+          <div className="flex items-center gap-2">
+            <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{formatToUpper(lead.nome) || "LEAD"}</p>
+            {lead.dados_cadastro && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button 
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-[7px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 hover:bg-blue-100 transition-all uppercase tracking-tighter"
+                  >
+                    <ClipboardList className="h-2.5 w-2.5" />
+                    Ficha
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-primary" />
+                      Ficha de Pré-Cadastro: {lead.nome}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
+                      <div key={key} className="border-b border-slate-100 pb-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/_/g, ' ')}</p>
+                        <p className="text-sm font-bold text-slate-900">{String(value)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
           
           {/* Pill Temperatura — saturação reduzida */}
           <div className="flex items-center gap-1 mt-0.5">

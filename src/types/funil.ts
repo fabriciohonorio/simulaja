@@ -29,6 +29,7 @@ export interface Lead {
   cota?: string | null;
   data_adesao?: string | null;
   gcal_event_id?: string | null;
+  dados_cadastro?: any;
 }
 
 export interface HistoricoContato {
