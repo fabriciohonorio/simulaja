@@ -418,12 +418,12 @@ export function LeadCard({
                              </div>
                              <div>
                                <p className="text-[9px] font-bold text-slate-400 uppercase">Crédito</p>
-                               <p className="text-xs font-black text-primary">{formatLeadValue(Number((lead.dados_cadastro as any).VALOR_CREDITO || lead.valor_credito) || 0)}</p>
+                               <p className="text-xs font-black text-primary">{formatLeadValue(Number((lead.dados_cadastro as any).VALOR_CREDITO || (lead.dados_cadastro as any).VALOR || lead.valor_credito) || 0)}</p>
                              </div>
                           </div>
                         </div>
 
-                        {/* ━━━ DADOS MÃE /PAI ━━━ */}
+                        {/* ━━━ DADOS MÃE / PAI (Ou Cônjuge/Parentes) ━━━ */}
                         <div className="space-y-3">
                           <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS MÃE / PAI ━━</h4>
                           <div className="grid grid-cols-1 gap-2 pl-2">
@@ -432,6 +432,7 @@ export function LeadCard({
                                { label: "📄 CPF", keys: ["MAE_PAI_CPF", "CPFCONJUGE"] },
                                { label: "🪪 Documento", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
                                { label: "📅 Emissão", keys: ["MAE_PAI_EMISSAO", "DATAEMISSAO"] },
+                               { label: "🏛️ Órgão Emissor", keys: ["MAE_PAI_ORGAO_EMISSOR", "ORGAO_EMISSOR"] },
                              ].map((f) => (
                                <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                  <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
@@ -450,13 +451,17 @@ export function LeadCard({
                              {[
                                { label: "🎂 Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO"] },
                                { label: "⚧️ Sexo", keys: ["SEXO"] },
+                               { label: "🌍 Nacionalidade", keys: ["NACIONALIDADE"] },
+                               { label: "📍 Naturalidade", keys: ["NATURALIDADE"] },
                                { label: "💍 Estado Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL"] },
                                { label: "👨 Nome do Pai", keys: ["NOMEPAI", "PAI_NOME"] },
                                { label: "👩 Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME"] },
                                { label: "💼 Profissão", keys: ["PROFISSAO"] },
                                { label: "💵 Renda", keys: ["RENDA"] },
                                { label: "🏢 Empresa", keys: ["EMPRESA"] },
+                               { label: "📅 Admissão", keys: ["ADMISSAO"] },
                                { label: "🏠 Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA"] },
+                               { label: "⏱️ Tempo Residência", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"] },
                              ].map((f) => (
                                <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                  <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
@@ -497,7 +502,6 @@ export function LeadCard({
                                { label: "Complemento", keys: ["COMPLEMENTO"] },
                                { label: "🏘️ Bairro", keys: ["BAIRRO"] },
                                { label: "🏙️ Cidade", keys: ["CIDADE"] },
-                               { label: "🏳️ UF", keys: ["UF"] },
                              ].map((f) => (
                                <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                  <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
