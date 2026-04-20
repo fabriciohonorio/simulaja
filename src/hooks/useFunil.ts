@@ -31,6 +31,8 @@ export function useFunil() {
   const [notaAgendamento, setNotaAgendamento] = useState("");
   const [criarNoGcal, setCriarNoGcal] = useState(true);
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [savingLead, setSavingLead] = useState(false);
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
   
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -578,6 +580,45 @@ export function useFunil() {
     handleSaveCelebration,
     handleDeleteLead,
     handleCloseHistorico,
+    editingLead,
+    setEditingLead,
+    savingLead,
+    handleSaveLead: async (formData: any) => {
+      if (!editingLead) return;
+      setSavingLead(true);
+      try {
+        const { error } = await supabase
+          .from("leads")
+          .update({
+            nome: formData.nome,
+            email: formData.email,
+            celular: formData.celular,
+            cidade: formData.cidade,
+            tipo_consorcio: formData.tipo_consorcio,
+            valor_credito: Number(formData.valor_credito),
+            prazo_meses: Number(formData.prazo_meses),
+            status: formData.status,
+            lead_temperatura: formData.lead_temperatura,
+            lead_score_valor: formData.lead_score_valor,
+            administradora: formData.administradora === "none" ? null : formData.administradora,
+            indicador_nome: formData.indicador_nome,
+            indicador_celular: formData.indicador_celular,
+            grupo: formData.grupo,
+            cota: formData.cota,
+            dados_cadastro: formData.dados_cadastro,
+          })
+          .eq("id", editingLead.id);
+
+        if (error) throw error;
+        setLeads(prev => prev.map(l => l.id === editingLead.id ? { ...l, ...formData } : l));
+        setEditingLead(null);
+        toast.success("Lead atualizado!");
+      } catch (e: any) {
+        toast.error("Erro ao salvar: " + e.message);
+      } finally {
+        setSavingLead(false);
+      }
+    },
     profile,
   };
 }

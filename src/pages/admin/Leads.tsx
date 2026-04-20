@@ -123,6 +123,7 @@ export default function Leads() {
         indicador_celular: formData.indicador_celular || null,
         grupo: formatToFourDigits(formData.grupo),
         cota: formatToFourDigits(formData.cota),
+        dados_cadastro: formData.dados_cadastro || null,
       };
       
       // Aplicar o padrão UPPERCASE no nome principal
@@ -455,6 +456,7 @@ export default function Leads() {
               grupo: editingLead.grupo || "",
               cota: editingLead.cota || "",
               status_updated_at: editingLead.status_updated_at || "",
+              dados_cadastro: editingLead.dados_cadastro || null,
             } : {
               nome: "", email: "", celular: "", cidade: "",
               tipo_consorcio: "imovel", valor_credito: "", prazo_meses: "",

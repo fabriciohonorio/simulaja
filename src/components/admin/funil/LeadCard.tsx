@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock, GripVertical, ClipboardList } from "lucide-react";
+import { Phone, MapPin, Calendar as CalendarIcon, TrendingUp, Trash2, Bell, NotebookPen, Plus, Clock, GripVertical, ClipboardList, Pencil } from "lucide-react";
 import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { formatLeadValue } from "@/lib/utils";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
@@ -127,6 +127,7 @@ export function LeadCard({
   ultimaTratativa?: HistoricoContato | null;
   compact?: boolean;
   onUpdateField?: (leadId: string, field: string, value: string) => void;
+  onEdit?: (lead: Lead) => void;
 }) {
   const [isEditingField, setIsEditingField] = useState<{field: string, value: string} | null>(null);
 
@@ -403,6 +404,11 @@ export function LeadCard({
                   title="Histórico">
                   <NotebookPen className="h-2.5 w-2.5" />
                 </button>
+                <button onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
+                  className="w-5 h-5 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
+                  title="Editar Lead">
+                  <Pencil className="h-2.5 w-2.5" />
+                </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
                   className="w-5 h-5 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
                   title="Excluir">
@@ -430,6 +436,11 @@ export function LeadCard({
               className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
               title="Histórico">
               <NotebookPen className="h-3 w-3" />
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
+              className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
+              title="Editar Lead">
+              <Pencil className="h-3 w-3" />
             </button>
             <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
               className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"

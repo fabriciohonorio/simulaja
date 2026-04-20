@@ -21,6 +21,8 @@ import { formatCurrency } from "@/lib/utils";
 import { HistoricoModal } from "./HistoricoModal";
 import { ADMINISTRADORAS } from "@/hooks/useFunil";
 
+import { LeadForm } from "@/components/admin/LeadForm";
+
 export function FunilModals({ state }: { state: any }) {
   const {
     historicoLead,
@@ -47,11 +49,49 @@ export function FunilModals({ state }: { state: any }) {
     setAdministradora,
     saving,
     handleSaveCelebration,
+    editingLead,
+    setEditingLead,
+    savingLead,
+    handleSaveLead,
   } = state;
 
   return (
     <>
       <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} allLeads={leads} />
+
+      <Dialog open={!!editingLead} onOpenChange={(open: boolean) => !open && setEditingLead(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-black text-xl">Editar Lead</DialogTitle>
+          </DialogHeader>
+          {editingLead && (
+            <LeadForm 
+              initialData={{
+                nome: editingLead.nome || "",
+                email: editingLead.email || "",
+                celular: editingLead.celular || "",
+                cidade: editingLead.cidade || "",
+                tipo_consorcio: editingLead.tipo_consorcio || "imovel",
+                valor_credito: String(editingLead.valor_credito || ""),
+                prazo_meses: String(editingLead.prazo_meses || ""),
+                status: editingLead.status || "novo_lead",
+                lead_temperatura: editingLead.lead_temperatura || "morno",
+                lead_score_valor: editingLead.lead_score_valor || "medio",
+                administradora: editingLead.administradora || "none",
+                indicador_nome: editingLead.indicador_nome || "",
+                indicador_celular: editingLead.indicador_celular || "",
+                grupo: editingLead.grupo || "",
+                cota: editingLead.cota || "",
+                status_updated_at: editingLead.status_updated_at || "",
+                dados_cadastro: editingLead.dados_cadastro || null,
+              }}
+              onSubmit={handleSaveLead}
+              onCancel={() => setEditingLead(null)}
+              isSubmitting={savingLead}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!vencimentoLead} onOpenChange={(open: boolean) => !open && setVencimentoLead(null)}>
         <DialogContent className="sm:max-w-md">

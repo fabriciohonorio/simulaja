@@ -91,6 +91,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
               ultimaTratativa={ultimasTratativas[lead.id] ?? null}
               compact={isWideView}
               onUpdateField={handleUpdateLeadField}
+              onEdit={state.setEditingLead}
             />
           </div>
         );
