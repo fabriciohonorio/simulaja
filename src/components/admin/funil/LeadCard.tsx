@@ -403,17 +403,107 @@ export function LeadCard({
                       </DialogTitle>
                     </DialogHeader>
                     {!lead.dados_cadastro ? (
-                      <div className="py-8 text-center">
-                        <p className="text-sm text-muted-foreground font-medium">Nenhum dado de pré-cadastro recebido para este lead ainda.</p>
+                      <div className="py-8 text-center text-slate-500">
+                        <p className="text-sm">Nenhum dado recebido ainda.</p>
                       </div>
                     ) : (
-                      <div className="space-y-4 py-4">
-                        {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
-                          <div key={key} className="border-b border-slate-100 pb-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/_/g, ' ')}</p>
-                            <p className="text-sm font-bold text-slate-900">{String(value)}</p>
+                      <div className="space-y-6 py-4">
+                        {/* ━━━ DADOS DO CONSÓRCIO ━━━ */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS DO CONSÓRCIO ━━</h4>
+                          <div className="grid grid-cols-2 gap-3 pl-2">
+                             <div>
+                               <p className="text-[9px] font-bold text-slate-400 uppercase">Segmento</p>
+                               <p className="text-xs font-bold">{lead.tipo_consorcio || "—"}</p>
+                             </div>
+                             <div>
+                               <p className="text-[9px] font-bold text-slate-400 uppercase">Crédito</p>
+                               <p className="text-xs font-black text-primary">{formatLeadValue(Number(lead.valor_credito) || 0)}</p>
+                             </div>
                           </div>
-                        ))}
+                        </div>
+
+                        {/* ━━━ DADOS MÃE /PAI ━━━ */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS MÃE / PAI ━━</h4>
+                          <div className="grid grid-cols-1 gap-2 pl-2">
+                             {[
+                               { label: "👤 Nome", key: "mae_pai_nome" },
+                               { label: "📄 CPF", key: "mae_pai_cpf" },
+                               { label: "🪪 Documento", key: "mae_pai_documento" },
+                               { label: "📅 Emissão", key: "mae_pai_emissao" },
+                               { label: "🏛️ Órgão Emissor", key: "mae_pai_orgao_emissor" },
+                             ].map((f) => (
+                               <div key={f.key} className="flex justify-between border-b border-slate-50 pb-1">
+                                 <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                 <span className="text-[10px] font-bold text-slate-900">{(lead.dados_cadastro as any)[f.key] || "—"}</span>
+                               </div>
+                             ))}
+                          </div>
+                        </div>
+
+                        {/* ━━━ DADOS PESSOAIS ━━━ */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS PESSOAIS ━━</h4>
+                          <div className="grid grid-cols-1 gap-2 pl-2">
+                             {[
+                               { label: "🎂 Nascimento", key: "nascimento" },
+                               { label: "⚧️ Sexo", key: "sexo" },
+                               { label: "🌍 Nacionalidade", key: "nacionalidade" },
+                               { label: "📍 Naturalidade", key: "naturalidade" },
+                               { label: "💍 Estado Civil", key: "estado_civil" },
+                               { label: "👨 Nome do Pai", key: "pai_nome" },
+                               { label: "👩 Nome da Mãe", key: "mae_nome" },
+                               { label: "💼 Profissão", key: "profissao" },
+                               { label: "💵 Renda", key: "renda" },
+                               { label: "🏢 Empresa", key: "empresa" },
+                               { label: "📅 Admissão", key: "admissao" },
+                               { label: "🏠 Tipo Residência", key: "tipo_residencia" },
+                               { label: "⏱️ Tempo Residência", key: "tempo_residencia" },
+                             ].map((f) => (
+                               <div key={f.key} className="flex justify-between border-b border-slate-50 pb-1">
+                                 <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                 <span className="text-[10px] font-bold text-slate-900">{(lead.dados_cadastro as any)[f.key] || "—"}</span>
+                               </div>
+                             ))}
+                          </div>
+                        </div>
+
+                        {/* ━━━ CONTATO ━━━ */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ CONTATO ━━</h4>
+                          <div className="grid grid-cols-1 gap-2 pl-2">
+                            {[
+                               { label: "📧 E-mail", key: "email" },
+                               { label: "📞 Telefone", key: "telefone" },
+                               { label: "📱 Celular", key: "celular" },
+                             ].map((f) => (
+                               <div key={f.key} className="flex justify-between border-b border-slate-50 pb-1">
+                                 <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                 <span className="text-[10px] font-bold text-slate-900">{(lead.dados_cadastro as any)[f.key] || (lead as any)[f.key] || "—"}</span>
+                               </div>
+                             ))}
+                          </div>
+                        </div>
+
+                        {/* ━━━ ENDEREÇO ━━━ */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ ENDEREÇO ━━</h4>
+                          <div className="grid grid-cols-1 gap-2 pl-2">
+                            {[
+                               { label: "📮 CEP", key: "cep" },
+                               { label: "🏠 Rua", key: "rua" },
+                               { label: "Complemento", key: "complemento" },
+                               { label: "🏘️ Bairro", key: "bairro" },
+                               { label: "🏙️ Cidade", key: "cidade" },
+                             ].map((f) => (
+                               <div key={f.key} className="flex justify-between border-b border-slate-50 pb-1">
+                                 <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                 <span className="text-[10px] font-bold text-slate-900">{(lead.dados_cadastro as any)[f.key] || "—"}</span>
+                               </div>
+                             ))}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </DialogContent>
