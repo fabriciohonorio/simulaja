@@ -250,7 +250,7 @@ export default function Leads() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-black text-slate-900">Operação Leads - ATUALIZADO</h1>
+        <h1 className="text-2xl font-black text-slate-900">Operação Leads</h1>
         <button
           onClick={() => { setEditingLead(null); setIsDialogOpen(true); }}
           className="flex items-center gap-1 h-8 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
@@ -394,7 +394,7 @@ export default function Leads() {
                               </div>
                             ) : (
                               <div className="space-y-6 py-4">
-                                {/* DADOS DO CONSÓRCIO */}
+                                {/* ━━━ DADOS DO CONSÓRCIO ━━━ */}
                                 <div className="space-y-3">
                                   <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS DO CONSÓRCIO ━━</h4>
                                   <div className="grid grid-cols-2 gap-3 pl-2">
@@ -408,14 +408,95 @@ export default function Leads() {
                                      </div>
                                   </div>
                                 </div>
-                                {/* USANDO MAPEAMENTO MAGALU DEFINITIVO */}
-                                <div className="space-y-4">
-                                  {Object.entries(l.dados_cadastro as Record<string, any>).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between border-b border-slate-50 pb-1">
-                                      <span className="text-[10px] font-bold text-slate-400 uppercase">{key.replace(/_/g, ' ')}</span>
-                                      <span className="text-[10px] font-bold text-slate-900">{String(value)}</span>
-                                    </div>
-                                  ))}
+
+                                {/* ━━━ DADOS MÃE / PAI ━━━ */}
+                                <div className="space-y-3">
+                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS MÃE / PAI ━━</h4>
+                                  <div className="grid grid-cols-1 gap-2 pl-2">
+                                     {[
+                                       { label: "👤 Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE"] },
+                                       { label: "📄 CPF", keys: ["MAE_PAI_CPF", "CPFCONJUGE"] },
+                                       { label: "🪪 Documento", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
+                                       { label: "📅 Emissão", keys: ["MAE_PAI_EMISSAO", "DATAEMISSAO"] },
+                                       { label: "🏛️ Órgão Emissor", keys: ["MAE_PAI_ORGAO_EMISSOR", "ORGAO_EMISSOR"] },
+                                     ].map((f) => (
+                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                         <span className="text-[10px] font-bold text-slate-900">
+                                           {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                                         </span>
+                                       </div>
+                                     ))}
+                                  </div>
+                                </div>
+
+                                {/* ━━━ DADOS PESSOAIS ━━━ */}
+                                <div className="space-y-3">
+                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS PESSOAIS ━━</h4>
+                                  <div className="grid grid-cols-1 gap-2 pl-2">
+                                     {[
+                                       { label: "🎂 Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO"] },
+                                       { label: "⚧️ Sexo", keys: ["SEXO"] },
+                                       { label: "🌍 Nacionalidade", keys: ["NACIONALIDADE"] },
+                                       { label: "📍 Naturalidade", keys: ["NATURALIDADE"] },
+                                       { label: "💍 Estado Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL"] },
+                                       { label: "👨 Nome do Pai", keys: ["NOMEPAI", "PAI_NOME"] },
+                                       { label: "👩 Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME"] },
+                                       { label: "💼 Profissão", keys: ["PROFISSAO"] },
+                                       { label: "💵 Renda", keys: ["RENDA"] },
+                                       { label: "🏢 Empresa", keys: ["EMPRESA"] },
+                                       { label: "📅 Admissão", keys: ["ADMISSAO"] },
+                                       { label: "🏠 Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA"] },
+                                       { label: "⏱️ Tempo Residência", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"] },
+                                     ].map((f) => (
+                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                         <span className="text-[10px] font-bold text-slate-900">
+                                            {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                                         </span>
+                                       </div>
+                                     ))}
+                                  </div>
+                                </div>
+
+                                {/* ━━━ CONTATO ━━━ */}
+                                <div className="space-y-3">
+                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ CONTATO ━━</h4>
+                                  <div className="grid grid-cols-1 gap-2 pl-2">
+                                    {[
+                                       { label: "📧 E-mail", keys: ["EMAIL"] },
+                                       { label: "📞 Telefone", keys: ["TELEFONE"] },
+                                       { label: "📱 Celular", keys: ["CELULAR"] },
+                                     ].map((f) => (
+                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                         <span className="text-[10px] font-bold text-slate-900">
+                                            {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || (l as any)[f.label.split(' ').pop()?.toLowerCase() || ''] || "—"}
+                                         </span>
+                                       </div>
+                                     ))}
+                                  </div>
+                                </div>
+
+                                {/* ━━━ ENDEREÇO ━━━ */}
+                                <div className="space-y-3">
+                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ ENDEREÇO ━━</h4>
+                                  <div className="grid grid-cols-1 gap-2 pl-2">
+                                    {[
+                                       { label: "📮 CEP", keys: ["CEP"] },
+                                       { label: "🏠 Rua", keys: ["LOGRADOURO", "RUA"] },
+                                       { label: "Complemento", keys: ["COMPLEMENTO"] },
+                                       { label: "🏘️ Bairro", keys: ["BAIRRO"] },
+                                       { label: "🏙️ Cidade", keys: ["CIDADE"] },
+                                     ].map((f) => (
+                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                                         <span className="text-[10px] font-bold text-slate-900">
+                                            {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                                         </span>
+                                       </div>
+                                     ))}
+                                  </div>
                                 </div>
                               </div>
                             )}
