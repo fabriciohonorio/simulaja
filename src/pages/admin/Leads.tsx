@@ -423,7 +423,7 @@ export default function Leads() {
                                        <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                          <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
                                          <span className="text-[10px] font-bold text-slate-900">
-                                           {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                                           {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
                                          </span>
                                        </div>
                                      ))}
@@ -452,7 +452,7 @@ export default function Leads() {
                                        <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                          <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
                                          <span className="text-[10px] font-bold text-slate-900">
-                                            {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                                            {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
                                          </span>
                                        </div>
                                      ))}
@@ -471,7 +471,7 @@ export default function Leads() {
                                        <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                          <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
                                          <span className="text-[10px] font-bold text-slate-900">
-                                            {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || (l as any)[f.label.split(' ').pop()?.toLowerCase() || ''] || "—"}
+                                            {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || (l as any)[f.label.split(' ').pop()?.toLowerCase() || ''] || "—"}
                                          </span>
                                        </div>
                                      ))}
@@ -481,10 +481,10 @@ export default function Leads() {
                                 {/* ━━━ ENDEREÇO ━━━ */}
                                 <div className="space-y-3">
                                   <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ ENDEREÇO ━━</h4>
-                                  <div className="grid grid-cols-1 gap-2 pl-2">
+                                  <div className="grid grid-cols-1 gap-2 pl-2 border-b border-slate-100 pb-4">
                                     {[
                                        { label: "📮 CEP", keys: ["CEP"] },
-                                       { label: "🏠 Rua", keys: ["LOGRADOURO", "RUA"] },
+                                       { label: "🏠 Rua", keys: ["LOGRADOURO", "RUA", "LOGRADOURO_"] },
                                        { label: "Complemento", keys: ["COMPLEMENTO"] },
                                        { label: "🏘️ Bairro", keys: ["BAIRRO"] },
                                        { label: "🏙️ Cidade", keys: ["CIDADE"] },
@@ -492,10 +492,22 @@ export default function Leads() {
                                        <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
                                          <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
                                          <span className="text-[10px] font-bold text-slate-900">
-                                            {f.keys.map(k => (l.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                                            {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
                                          </span>
                                        </div>
                                      ))}
+                                  </div>
+                                </div>
+
+                                {/* DEBUG: DADOS BRUTOS (Para identificar por que está vindo em branco) */}
+                                <div className="mt-4 p-2 bg-slate-50 rounded border border-dashed border-slate-200">
+                                  <p className="text-[8px] font-black text-slate-400 mb-2 uppercase tracking-widest">Debug: Todas as Chaves Recebidas</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {Object.keys(l.dados_cadastro as Record<string, any>).map(k => (
+                                      <span key={k} className="text-[7px] bg-white border border-slate-200 px-1 py-0.5 rounded text-slate-600 font-mono">
+                                        {k}: <span className="text-primary">{String((l.dados_cadastro as any)[k]).slice(0, 15)}</span>
+                                      </span>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
