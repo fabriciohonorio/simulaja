@@ -14,6 +14,7 @@ import {
   Package,
   CalendarCheck,
   NotebookPen,
+  ClipboardList,
   RefreshCw
 } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
@@ -370,6 +371,56 @@ export default function Leads() {
                     {/* Ações */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-0.5">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${l.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                              title="Ver Ficha Magalu"
+                            >
+                              <ClipboardList className="h-3.5 w-3.5" />
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className={`${!l.dados_cadastro ? "sm:max-w-[300px]" : "sm:max-w-md"} max-h-[80vh] overflow-y-auto`}>
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <ClipboardList className="h-5 w-5 text-primary" />
+                                Ficha: {l.nome}
+                              </DialogTitle>
+                            </DialogHeader>
+                            {!l.dados_cadastro ? (
+                              <div className="py-8 text-center text-slate-500">
+                                <p className="text-sm">Nenhum dado recebido ainda.</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-6 py-4">
+                                {/* DADOS DO CONSÓRCIO */}
+                                <div className="space-y-3">
+                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS DO CONSÓRCIO ━━</h4>
+                                  <div className="grid grid-cols-2 gap-3 pl-2">
+                                     <div>
+                                       <p className="text-[9px] font-bold text-slate-400 uppercase">Segmento</p>
+                                       <p className="text-xs font-bold">{(l.dados_cadastro as any).SEGMENTO || l.tipo_consorcio || "—"}</p>
+                                     </div>
+                                     <div>
+                                       <p className="text-[9px] font-bold text-slate-400 uppercase">Crédito</p>
+                                       <p className="text-xs font-black text-primary">{formatLeadValue(Number((l.dados_cadastro as any).VALOR_CREDITO || (l.dados_cadastro as any).VALOR || l.valor_credito) || 0)}</p>
+                                     </div>
+                                  </div>
+                                </div>
+                                {/* USANDO MAPEAMENTO MAGALU DEFINITIVO */}
+                                <div className="space-y-4">
+                                  {Object.entries(l.dados_cadastro as Record<string, any>).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between border-b border-slate-50 pb-1">
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase">{key.replace(/_/g, ' ')}</span>
+                                      <span className="text-[10px] font-bold text-slate-900">{String(value)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
                         <a
                           href={`https://wa.me/55${(l.celular || "").replace(/\D/g, "")}?text=Olá!`}
                           target="_blank"
