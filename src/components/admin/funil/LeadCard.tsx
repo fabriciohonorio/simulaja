@@ -385,24 +385,28 @@ export function LeadCard({
               </div>
               
               <div className="flex items-center gap-0.5">
-                {lead.dados_cadastro && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button 
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                        title="Ver Ficha Completa"
-                      >
-                        <ClipboardList className="h-2.5 w-2.5" />
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <ClipboardList className="h-5 w-5 text-primary" />
-                          Ficha de Pré-Cadastro: {lead.nome}
-                        </DialogTitle>
-                      </DialogHeader>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button 
+                      onClick={(e) => e.stopPropagation()}
+                      className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                      title="Ver Ficha Completa"
+                    >
+                      <ClipboardList className="h-2.5 w-2.5" />
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className={`${!lead.dados_cadastro ? "sm:max-w-[300px]" : "sm:max-w-md"} max-h-[80vh] overflow-y-auto`}>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-primary" />
+                        Ficha: {lead.nome}
+                      </DialogTitle>
+                    </DialogHeader>
+                    {!lead.dados_cadastro ? (
+                      <div className="py-8 text-center">
+                        <p className="text-sm text-muted-foreground font-medium">Nenhum dado de pré-cadastro recebido para este lead ainda.</p>
+                      </div>
+                    ) : (
                       <div className="space-y-4 py-4">
                         {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
                           <div key={key} className="border-b border-slate-100 pb-2">
@@ -411,9 +415,9 @@ export function LeadCard({
                           </div>
                         ))}
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
+                    )}
+                  </DialogContent>
+                </Dialog>
                 <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
                   className="w-5 h-5 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
                   title="Agendar">
@@ -442,24 +446,28 @@ export function LeadCard({
             )
         ) : (
           <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
-            {lead.dados_cadastro && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                    title="Ver Ficha Completa"
-                  >
-                    <ClipboardList className="h-3 w-3" />
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                       <ClipboardList className="h-5 w-5 text-primary" />
-                       Ficha de Pré-Cadastro: {lead.nome}
-                    </DialogTitle>
-                  </DialogHeader>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button 
+                  onClick={(e) => e.stopPropagation()}
+                  className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                  title="Ver Ficha Completa"
+                >
+                  <ClipboardList className="h-3 w-3" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className={`${!lead.dados_cadastro ? "sm:max-w-[300px]" : "sm:max-w-md"} max-h-[80vh] overflow-y-auto`}>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                     <ClipboardList className="h-5 w-5 text-primary" />
+                     Ficha: {lead.nome}
+                  </DialogTitle>
+                </DialogHeader>
+                {!lead.dados_cadastro ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-muted-foreground font-medium">Nenhum dado de pré-cadastro recebido para este lead ainda.</p>
+                  </div>
+                ) : (
                   <div className="space-y-4 py-4">
                     {Object.entries(lead.dados_cadastro as Record<string, any>).map(([key, value]) => (
                       <div key={key} className="border-b border-slate-100 pb-2">
@@ -468,9 +476,9 @@ export function LeadCard({
                       </div>
                     ))}
                   </div>
-                </DialogContent>
-              </Dialog>
-            )}
+                )}
+              </DialogContent>
+            </Dialog>
             <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
               title="Agendar">
