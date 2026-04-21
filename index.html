@@ -65,8 +65,50 @@
     </script>
   </head>
 
-  <body>
+  <body class="hide-lovable">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <style>
+      #lovable-badge, #lovable-badge-container, #lovable-badge-cta, #lovable-badge-close, 
+      .lovable-badge, [data-lovable-badge], #gpt-designer-badge,
+      iframe[src*="lovable"], a[href*="lovable.app"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: fixed !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    </style>
+
+    <script>
+      (function() {
+        const remove = () => {
+          const targets = [
+            'lovable-badge', 'lovable-badge-container', 'lovable-badge-cta', 'lovable-badge-close', 'gpt-designer-badge'
+          ];
+          targets.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+          });
+          document.querySelectorAll('.lovable-badge, [data-lovable-badge], a[href*="lovable.app"], iframe[src*="lovable"]').forEach(el => el.remove());
+        };
+
+        // MutationObserver to catch it immediately
+        const observer = new MutationObserver((mutations) => {
+          remove();
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        // Initial run and periodic check as backup
+        remove();
+        setInterval(remove, 1000);
+      })();
+    </script>
   </body>
 </html>
