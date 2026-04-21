@@ -33,6 +33,36 @@
 
       gtag('config', 'G-XLG8KJYX5C');
     </script>
+
+    <style>
+      #lovable-badge, #lovable-badge-container, #lovable-badge-cta, #lovable-badge-close, 
+      .lovable-badge, [data-lovable-badge], #gpt-designer-badge, 
+      div[style*="z-index: 2147483647"], div[style*="z-index: 9999999"], 
+      a[href*="lovable.app"], iframe[src*="lovable"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        z-index: -9999 !important;
+        position: fixed;
+        left: -99999px;
+      }
+    </style>
+    <script>
+      (function() {
+        const remove = () => {
+          const ids = ['lovable-badge', 'lovable-badge-container', 'lovable-badge-cta', 'lovable-badge-close', 'gpt-designer-badge'];
+          ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+          });
+          const badges = document.querySelectorAll('.lovable-badge, [data-lovable-badge], a[href*="lovable.app"], iframe[src*="lovable"]');
+          badges.forEach(b => b.remove());
+        };
+        setInterval(remove, 100);
+        window.addEventListener('load', remove);
+      })();
+    </script>
   </head>
 
   <body>
