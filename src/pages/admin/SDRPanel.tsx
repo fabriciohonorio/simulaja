@@ -204,7 +204,7 @@ export default function SDRPanel() {
                                 <div className="grid grid-cols-2 gap-3 pt-4">
                                     <Button variant="default" className="w-full gap-2 bg-green-500 hover:bg-green-600 h-12" asChild>
                                         <a href={`https://wa.me/55${selectedLead.celular.replace(/\D/g, "")}?text=${encodeURIComponent("Olá, bom dia! Aqui é o Fabricio. Vi sua empresa e pensei em uma forma de gerar mais oportunidades com planejamento financeiro… posso te explicar rapidinho?")}`} target="_blank" rel="noreferrer">
-                                            <WhatsAppIcon className="h-5 w-5" /> Enviar WhatsApp
+                                            <WhatsAppIcon className="h-5 w-5" /> Enviar
                                         </a>
                                     </Button>
                                     <Button variant="outline" className="w-full gap-2 h-12" asChild>

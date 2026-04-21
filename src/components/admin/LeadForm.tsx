@@ -279,6 +279,42 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                   className="bg-white rounded-lg h-9 text-xs"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">CPF / CNPJ</Label>
+                  <Input 
+                    value={getNestedValue(["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL"])}
+                    onChange={(e) => handleNestedChange("CPF", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                   <Label className="text-[10px] uppercase text-slate-400">Nº Documento (RG/CNH)</Label>
+                   <Input 
+                    value={getNestedValue(["RG", "CNH", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO"])}
+                    onChange={(e) => handleNestedChange("RG", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Emissão / Órgão</Label>
+                  <Input 
+                    value={getNestedValue(["DATA_EMISSAO", "EMISSAO"])}
+                    onChange={(e) => handleNestedChange("DATA_EMISSAO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                   <Label className="text-[10px] uppercase text-slate-400">Naturalidade (Cidade/UF)</Label>
+                   <Input 
+                    value={getNestedValue(["NATURALIDADE", "CIDADE_NATAL"])}
+                    onChange={(e) => handleNestedChange("NATURALIDADE", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+              </div>
               <div className="space-y-1">
                 <Label className="text-[10px] uppercase text-slate-400">Nome do Pai</Label>
                 <Input 
@@ -398,12 +434,20 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                 </div>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px] uppercase text-slate-400">Logradouro (Editar)</Label>
-                <Input 
-                  value={getNestedValue(["LOGRADOURO", "RUA", "ENDERECO"])}
-                  onChange={(e) => handleNestedChange("LOGRADOURO", e.target.value)}
-                  className="bg-white rounded-lg h-9 text-xs"
-                />
+                <Label className="text-[10px] uppercase text-slate-400">Logradouro / Complemento</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Input 
+                    value={getNestedValue(["LOGRADOURO", "RUA", "ENDERECO"])}
+                    onChange={(e) => handleNestedChange("LOGRADOURO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs col-span-2"
+                  />
+                  <Input 
+                    placeholder="Compl."
+                    value={getNestedValue(["COMPLEMENTO", "CPL"])}
+                    onChange={(e) => handleNestedChange("COMPLEMENTO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">

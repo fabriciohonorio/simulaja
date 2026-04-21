@@ -470,11 +470,17 @@ export default function Leads() {
                   <section>
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👤 Dados Pessoais</h4>
                     <div className="space-y-3">
-                      {[
+                       {[
+                        { label: "CPF/CNPJ", keys: ["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL"] },
+                        { label: "Documento", keys: ["RG", "CNH", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO"] },
+                        { label: "Tipo Doc", keys: ["TIPO_DOCUMENTO", "DOC_TIPO", "TIPO_DOC"] },
+                        { label: "Emissão", keys: ["DATA_EMISSAO", "EMISSAO", "DATAEMISSAO"] },
+                        { label: "Órgão/UF", keys: ["ORGAO_EMISSOR", "ORGAO_UF", "EMISSOR", "ORGAO_EMISSOR_UF"] },
                         { label: "Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO", "DATA_NASCIMENTO"] },
                         { label: "Sexo", keys: ["SEXO"] },
                         { label: "Est. Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL", "ESTADO_CIVIL_"] },
                         { label: "Nacionalidade", keys: ["NACIONALIDADE"] },
+                        { label: "Naturalidade", keys: ["NATURALIDADE", "CIDADE_NATAL", "NATURALIDADE_UF"] },
                         { label: "Profissão", keys: ["PROFISSAO", "CARGO", "OCUPACAO"] },
                         { label: "Renda Mensal", keys: ["RENDA", "RENDA_MENSAL"] },
                       ].map((f) => (
@@ -556,6 +562,7 @@ export default function Leads() {
                       {[
                         { label: "CEP", keys: ["CEP"] },
                         { label: "Endereço", keys: ["LOGRADOURO", "RUA", "ENDERECO", "LOGRADOURO_", "LOCALIDADE"] },
+                        { label: "Complemento", keys: ["COMPLEMENTO", "CPL", "LOGRADOURO_COMPLEMENTO"] },
                         { label: "Bairro", keys: ["BAIRRO"] },
                         { label: "Cidade", keys: ["CIDADE", "MUNICIPIO", "NOME_CIDADE"] },
                         { label: "Estado", keys: ["UF", "ESTADO"] },

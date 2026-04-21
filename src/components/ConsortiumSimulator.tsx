@@ -598,7 +598,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                       className="flex-1 py-3.5 rounded-[10px] text-sm font-extrabold flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg transition-all"
                     >
                       <WhatsAppIcon className="w-5 h-5 shrink-0" />
-                      <span className="hidden sm:inline">Enviar via WhatsApp</span>
+                      <span className="hidden sm:inline">Enviar</span>
                     </button>
                     <button
                       onClick={handleExportPDF}
