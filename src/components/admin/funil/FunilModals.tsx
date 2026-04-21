@@ -242,17 +242,17 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">💰 Consórcio</h4>
                     <div className="space-y-4">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Crédito Estimado</p>
-                        <p className="text-lg font-black text-slate-900">{formatCurrency(Number(viewingFichaLead.valor_credito || (viewingFichaLead.dados_cadastro as any).VALOR || (viewingFichaLead.dados_cadastro as any).VALOR_CREDITO) || 0)}</p>
+                        <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Crédito Estimado</p>
+                        <p className="text-lg font-black text-slate-900">{formatCurrency(Number(viewingFichaLead.valor_credito || (viewingFichaLead.dados_cadastro as any).VALOR || (viewingFichaLead.dados_cadastro as any).VALOR_CREDITO || (viewingFichaLead.dados_cadastro as any).CREDITO || (viewingFichaLead.dados_cadastro as any).VALUE) || 0)}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Prazo Meses</p>
-                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).PRAZO || "—"}</p>
+                          <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Prazo Meses</p>
+                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).PRAZO || (viewingFichaLead.dados_cadastro as any).MESES || (viewingFichaLead.dados_cadastro as any).PARCELAS || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Segmento</p>
-                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).SEGMENTO || "—"}</p>
+                          <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Segmento</p>
+                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).SEGMENTO || (viewingFichaLead.dados_cadastro as any).TIPO || (viewingFichaLead.dados_cadastro as any).CATEGORIA || "—"}</p>
                         </div>
                       </div>
                     </div>
@@ -262,18 +262,18 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👤 Dados Pessoais</h4>
                     <div className="space-y-3">
                        {[
-                        { label: "CPF/CNPJ", keys: ["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL"] },
-                        { label: "Documento", keys: ["RG", "CNH", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO"] },
+                        { label: "CPF/CNPJ", keys: ["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL", "DOC_PRINCIPAL"] },
+                        { label: "Documento", keys: ["RG", "CNH", "DOCUMENTO", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO"] },
                         { label: "Tipo Doc", keys: ["TIPO_DOCUMENTO", "DOC_TIPO", "TIPO_DOC"] },
-                        { label: "Emissão", keys: ["DATA_EMISSAO", "EMISSAO", "DATAEMISSAO"] },
-                        { label: "Órgão/UF", keys: ["ORGAO_EMISSOR", "ORGAO_UF", "EMISSOR", "ORGAO_EMISSOR_UF"] },
-                        { label: "Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO", "DATA_NASCIMENTO"] },
-                        { label: "Sexo", keys: ["SEXO"] },
+                        { label: "Emissão", keys: ["DATA_EMISSAO", "EMISSAO", "DATAEMISSAO", "DATA_EXPEDICAO"] },
+                        { label: "Órgão/UF", keys: ["ORGAO_EMISSOR", "ORGAO_UF", "EMISSOR", "ORGAO_EMISSOR_UF", "ORGAO_EXPEDIDOR"] },
+                        { label: "Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO", "DATA_NASCIMENTO", "DATA"] },
+                        { label: "Sexo", keys: ["SEXO", "GENERO"] },
                         { label: "Est. Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL", "ESTADO_CIVIL_"] },
-                        { label: "Nacionalidade", keys: ["NACIONALIDADE"] },
+                        { label: "Nacionalidade", keys: ["NACIONALIDADE", "PAIS"] },
                         { label: "Naturalidade", keys: ["NATURALIDADE", "CIDADE_NATAL", "NATURALIDADE_UF"] },
-                        { label: "Profissão", keys: ["PROFISSAO", "CARGO", "OCUPACAO"] },
-                        { label: "Renda Mensal", keys: ["RENDA", "RENDA_MENSAL"] },
+                        { label: "Profissão", keys: ["PROFISSAO", "CARGO", "OCUPACAO", "LOCAL_TRABALHO"] },
+                        { label: "Renda Mensal", keys: ["RENDA", "RENDA_MENSAL", "VALOR_RENDA"] },
                       ].map((f) => (
                         <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
@@ -293,9 +293,9 @@ export function FunilModals({ state }: { state: any }) {
                        {[
                         { label: "Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME", "NOME_MAE"] },
                         { label: "Nome do Pai", keys: ["NOMEPAI", "PAI_NOME", "NOME_PAI"] },
-                        { label: "Resp. Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE"] },
-                        { label: "Resp. CPF", keys: ["MAE_PAI_CPF"] },
-                        { label: "Resp. RG", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
+                        { label: "Resp. Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE", "REPRESENTANTE_NOME"] },
+                        { label: "Resp. CPF", keys: ["MAE_PAI_CPF", "REPRESENTANTE_CPF"] },
+                        { label: "Resp. RG", keys: ["MAE_PAI_DOCUMENTO", "REPRESENTANTE_RG"] },
                       ].map((f) => (
                         <div key={f.label} className="flex flex-col py-1.5 border-b border-slate-50 last:border-0">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{f.label}</span>
