@@ -88,26 +88,35 @@
     <script>
       (function() {
         const remove = () => {
-          const targets = [
-            'lovable-badge', 'lovable-badge-container', 'lovable-badge-cta', 'lovable-badge-close', 'gpt-designer-badge'
-          ];
-          targets.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.remove();
-          });
-          document.querySelectorAll('.lovable-badge, [data-lovable-badge], a[href*="lovable.app"], iframe[src*="lovable"]').forEach(el => el.remove());
+          // IDs and selectors to target
+          const targets = ['lovable-badge', 'lovable-badge-container', 'lovable-badge-cta', 'lovable-badge-close', 'gpt-designer-badge'];
+          const selectors = '.lovable-badge, [data-lovable-badge], a[href*="lovable.app"], iframe[src*="lovable"]';
+
+          const cleanup = (root) => {
+            if (!root) return;
+            targets.forEach(id => {
+              const el = root.getElementById ? root.getElementById(id) : root.querySelector(`#${id}`);
+              if (el) el.remove();
+            });
+            root.querySelectorAll(selectors).forEach(el => el.remove());
+
+            // Recursive shadow DOM check
+            const all = root.querySelectorAll('*');
+            all.forEach(el => {
+              if (el.shadowRoot) cleanup(el.shadowRoot);
+            });
+          };
+
+          cleanup(document);
         };
 
         // MutationObserver to catch it immediately
-        const observer = new MutationObserver((mutations) => {
-          remove();
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
+        const observer = new MutationObserver(() => remove());
+        observer.observe(document.documentElement, { childList: true, subtree: true });
         
         // Initial run and periodic check as backup
         remove();
-        setInterval(remove, 1000);
+        setInterval(remove, 500);
       })();
     </script>
   </body>
