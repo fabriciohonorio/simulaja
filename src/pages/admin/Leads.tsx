@@ -30,7 +30,7 @@ import {
 import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { LeadForm, LeadFormData } from "@/components/admin/LeadForm";
 import { useProfile } from "@/hooks/useProfile";
 import { format, parseISO } from "date-fns";
