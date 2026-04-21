@@ -33,6 +33,7 @@ export function useFunil() {
   const [historicoLead, setHistoricoLead] = useState<Lead | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [savingLead, setSavingLead] = useState(false);
+  const [viewingFichaLead, setViewingFichaLead] = useState<Lead | null>(null);
   const [ultimasTratativas, setUltimasTratativas] = useState<Record<string, HistoricoContato>>({});
   
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -619,6 +620,8 @@ export function useFunil() {
         setSavingLead(false);
       }
     },
+    viewingFichaLead,
+    setViewingFichaLead,
     profile,
   };
 }

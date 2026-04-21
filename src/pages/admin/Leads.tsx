@@ -301,8 +301,11 @@ export default function Leads() {
                     className={`hover:bg-slate-50/50 transition-colors ${isFechado ? "bg-emerald-50/20" : ""}`}
                   >
                     <td className="px-4 py-3">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-black text-slate-900">{l.nome || "Lead Sem Nome"}</span>
+                      <div 
+                        className="flex flex-col gap-0.5 cursor-pointer group/name"
+                        onClick={() => { setEditingLead(l); setIsDialogOpen(true); }}
+                      >
+                        <span className="font-black text-slate-900 group-hover/name:text-primary transition-colors underline-offset-4 group-hover/name:underline decoration-primary/30">{l.nome || "Lead Sem Nome"}</span>
                         <span className="text-[10px] text-slate-400">{l.celular || "Sem telefone"}</span>
                         {l.cidade && (
                           <span className="flex items-center gap-0.5 text-[10px] text-slate-400">
@@ -581,7 +584,8 @@ export default function Leads() {
             )}
           </div>
           
-          <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+          <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+            <Button variant="outline" onClick={() => { const l = viewingFichaLead; setViewingFichaLead(null); setEditingLead(l); setIsDialogOpen(true); }} className="rounded-xl px-6 font-black uppercase text-[10px] tracking-widest border-primary text-primary hover:bg-primary/5">Editar Ficha</Button>
             <Button onClick={() => setViewingFichaLead(null)} className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest">Fechar Ficha</Button>
           </div>
         </DialogContent>

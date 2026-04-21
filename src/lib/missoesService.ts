@@ -145,7 +145,7 @@ export const calcularMissoes = async (
 
     if (filteredEP && filteredEP.length > 0) {
       const leadIds = filteredEP.map(l => l.id);
-      const leadNames = filteredEP.map(l => l.nome);
+      const leadNames = (filteredEP || []).map(l => normalizeName(l.nome));
 
     // 1. Verificar quem já está com EP OK na carteira
     const { data: carteiraEP } = await supabase
@@ -164,9 +164,9 @@ export const calcularMissoes = async (
       .neq("status", "regularizado")
       .in("nome", leadNames);
 
-    const namesInad = new Set((inadEP || []).map((i: any) => i.nome));
+    const namesInad = new Set((inadEP || []).map((i: any) => normalizeName(i.nome)));
 
-    epRealizado = leadsEP.filter(l => idsPagos.has(l.id) && !namesInad.has(l.nome)).length;
+    epRealizado = leadsEP.filter(l => idsPagos.has(l.id) && !namesInad.has(normalizeName(l.nome))).length;
   }
 
   // ── Missão 5: Meta do Mês ──────────────────────────────────────────
@@ -407,12 +407,12 @@ export const getLeadsForMissao = async (
       .in("nome", leadNames);
 
     const carteiraMap = new Map((carteira || []).map(c => [c.lead_id, c]));
-    const inadSet = new Set((inad || []).map((i: any) => i.nome));
+    const inadSet = new Set((inad || []).map((i: any) => normalizeName(i.nome)));
 
     return leads.map(l => {
       const c = carteiraMap.get(l.id);
       const isPaid = c?.status === "EP OK";
-      const isInad = inadSet.has(l.nome);
+      const isInad = inadSet.has(normalizeName(l.nome));
 
       let statusLabel = l.status === "negociacao" ? "📈 Negociação" : 
                        l.status === "proposta" ? "📝 Proposta" : 
@@ -503,4 +503,10 @@ export const marcarMissaoRedesSociais = async (orgId: string, userId: string, su
   }, { onConflict: 'user_id,missao_id,subref_id,data' });
   
   return !error;
+};
+
+export const normalizeName = (name: string): string => {
+  return name.trim().toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
 };

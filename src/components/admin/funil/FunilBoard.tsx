@@ -92,6 +92,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
               compact={isWideView}
               onUpdateField={handleUpdateLeadField}
               onEdit={state.setEditingLead}
+              onViewFicha={state.setViewingFichaLead}
             />
           </div>
         );

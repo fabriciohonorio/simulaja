@@ -299,7 +299,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase text-slate-400">Emissão / Órgão</Label>
+                  <Label className="text-[10px] uppercase text-slate-400">Data Emissão</Label>
                   <Input 
                     value={getNestedValue(["DATA_EMISSAO", "EMISSAO"])}
                     onChange={(e) => handleNestedChange("DATA_EMISSAO", e.target.value)}
@@ -307,13 +307,21 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                   />
                 </div>
                 <div className="space-y-1">
-                   <Label className="text-[10px] uppercase text-slate-400">Naturalidade (Cidade/UF)</Label>
+                   <Label className="text-[10px] uppercase text-slate-400">Órgão Emissor / UF</Label>
                    <Input 
-                    value={getNestedValue(["NATURALIDADE", "CIDADE_NATAL"])}
-                    onChange={(e) => handleNestedChange("NATURALIDADE", e.target.value)}
+                    value={getNestedValue(["ORGAO_EMISSOR", "EMISSOR"])}
+                    onChange={(e) => handleNestedChange("ORGAO_EMISSOR", e.target.value)}
                     className="bg-white rounded-lg h-9 text-xs"
                   />
                 </div>
+              </div>
+              <div className="space-y-1">
+                 <Label className="text-[10px] uppercase text-slate-400">Naturalidade (Cidade/UF)</Label>
+                 <Input 
+                  value={getNestedValue(["NATURALIDADE", "CIDADE_NATAL"])}
+                  onChange={(e) => handleNestedChange("NATURALIDADE", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px] uppercase text-slate-400">Nome do Pai</Label>
@@ -341,13 +349,23 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] uppercase text-slate-400">Estado Civil</Label>
-                <Input 
-                  value={getNestedValue(["ESTADO_CIVIL", "ESTADOCIVIL"])}
-                  onChange={(e) => handleNestedChange("ESTADO_CIVIL", e.target.value)}
-                  className="bg-white rounded-lg h-9 text-xs"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Estado Civil</Label>
+                  <Input 
+                    value={getNestedValue(["ESTADO_CIVIL", "ESTADOCIVIL"])}
+                    onChange={(e) => handleNestedChange("ESTADO_CIVIL", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Nacionalidade</Label>
+                  <Input 
+                    value={getNestedValue(["NACIONALIDADE"])}
+                    onChange={(e) => handleNestedChange("NACIONALIDADE", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -425,11 +443,11 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                   />
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <Label className="text-[10px] uppercase text-slate-400">Logradouro / Bairro</Label>
+                  <Label className="text-[10px] uppercase text-slate-400">Bairro</Label>
                   <Input 
-                    value={`${getNestedValue(["LOGRADOURO", "RUA"])} - ${getNestedValue(["BAIRRO"])}`.replace(/^- |-$/g, "")}
-                    readOnly
-                    className="bg-slate-100 rounded-lg h-9 text-[10px] text-slate-500 cursor-not-allowed"
+                    value={getNestedValue(["BAIRRO"])}
+                    onChange={(e) => handleNestedChange("BAIRRO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
                   />
                 </div>
               </div>
