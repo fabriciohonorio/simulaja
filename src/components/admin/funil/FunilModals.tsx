@@ -243,16 +243,16 @@ export function FunilModals({ state }: { state: any }) {
                     <div className="space-y-4">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Crédito Estimado</p>
-                        <p className="text-lg font-black text-slate-900">{formatCurrency(Number(viewingFichaLead.valor_credito || (viewingFichaLead.dados_cadastro as any).VALOR || (viewingFichaLead.dados_cadastro as any).VALOR_CREDITO || (viewingFichaLead.dados_cadastro as any).CREDITO || (viewingFichaLead.dados_cadastro as any).VALUE) || 0)}</p>
+                        <p className="text-lg font-black text-slate-900">{formatCurrency(Number(viewingFichaLead.valor_credito || (viewingFichaLead.dados_cadastro as any).VALOR || (viewingFichaLead.dados_cadastro as any).VALOR_CREDITO || (viewingFichaLead.dados_cadastro as any).CREDITO || (viewingFichaLead.dados_cadastro as any).VALUE || (viewingFichaLead.dados_cadastro as any).valor || (viewingFichaLead.dados_cadastro as any).valor_credito) || 0)}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Prazo Meses</p>
-                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).PRAZO || (viewingFichaLead.dados_cadastro as any).MESES || (viewingFichaLead.dados_cadastro as any).PARCELAS || "—"}</p>
+                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).PRAZO || (viewingFichaLead.dados_cadastro as any).MESES || (viewingFichaLead.dados_cadastro as any).PARCELAS || (viewingFichaLead.dados_cadastro as any).prazo || (viewingFichaLead.dados_cadastro as any).meses || "—"}</p>
                         </div>
                         <div>
                           <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Segmento</p>
-                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).SEGMENTO || (viewingFichaLead.dados_cadastro as any).TIPO || (viewingFichaLead.dados_cadastro as any).CATEGORIA || "—"}</p>
+                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).SEGMENTO || (viewingFichaLead.dados_cadastro as any).TIPO || (viewingFichaLead.dados_cadastro as any).CATEGORIA || (viewingFichaLead.dados_cadastro as any).segmento || "—"}</p>
                         </div>
                       </div>
                     </div>
@@ -262,8 +262,8 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👤 Dados Pessoais</h4>
                     <div className="space-y-3">
                        {[
-                        { label: "CPF/CNPJ", keys: ["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL", "DOC_PRINCIPAL"] },
-                        { label: "Documento", keys: ["RG", "CNH", "DOCUMENTO", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO"] },
+                        { label: "CPF/CNPJ", keys: ["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL", "DOC_PRINCIPAL", "cpf", "cnpj"] },
+                        { label: "Documento", keys: ["RG", "CNH", "DOCUMENTO", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO", "MAE_PAI_DOCUMENTO", "rg", "cnh", "documento"] },
                         { label: "Tipo Doc", keys: ["TIPO_DOCUMENTO", "DOC_TIPO", "TIPO_DOC"] },
                         { label: "Emissão", keys: ["DATA_EMISSAO", "EMISSAO", "DATAEMISSAO", "DATA_EXPEDICAO"] },
                         { label: "Órgão/UF", keys: ["ORGAO_EMISSOR", "ORGAO_UF", "EMISSOR", "ORGAO_EMISSOR_UF", "ORGAO_EXPEDIDOR"] },
@@ -291,7 +291,7 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👨‍👩‍👦 Filiação & Resp.</h4>
                     <div className="space-y-3">
                        {[
-                        { label: "Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME", "NOME_MAE"] },
+                        { label: "Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME", "NOME_MAE", "MAE_PAI_NOME", "mae_nome", "nome_mae"] },
                         { label: "Nome do Pai", keys: ["NOMEPAI", "PAI_NOME", "NOME_PAI"] },
                         { label: "Resp. Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE", "REPRESENTANTE_NOME"] },
                         { label: "Resp. CPF", keys: ["MAE_PAI_CPF", "REPRESENTANTE_CPF"] },
