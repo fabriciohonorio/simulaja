@@ -10,9 +10,9 @@ export const atualizarStreak = async (userId: string): Promise<number> => {
 
   const { data: perfil } = await (supabase as any)
     .from("perfis")
-    .select("streak_atual, streak_record, ultimo_dia_tratativa")
+    .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (!perfil) return 0;
 

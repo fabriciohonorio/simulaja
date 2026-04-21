@@ -30,7 +30,7 @@ import {
 import { formatCurrency, formatLeadValue } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LeadForm, LeadFormData } from "@/components/admin/LeadForm";
 import { useProfile } from "@/hooks/useProfile";
 import { format, parseISO } from "date-fns";
@@ -48,6 +48,7 @@ export default function Leads() {
   const [editingLead, setEditingLead] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [historyLead, setHistoryLead] = useState<Lead | null>(null);
+  const [viewingFichaLead, setViewingFichaLead] = useState<any>(null);
 
   const filtered = leads.filter(l => {
     const nomeSearch = (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -371,149 +372,13 @@ export default function Leads() {
                     {/* Ações */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-0.5">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${l.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
-                              title="Ver Ficha Magalu"
-                            >
-                              <ClipboardList className="h-3.5 w-3.5" />
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className={`${!l.dados_cadastro ? "sm:max-w-[300px]" : "sm:max-w-md"} max-h-[80vh] overflow-y-auto`}>
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center gap-2">
-                                <ClipboardList className="h-5 w-5 text-primary" />
-                                Ficha: {l.nome}
-                              </DialogTitle>
-                            </DialogHeader>
-                            {!l.dados_cadastro ? (
-                              <div className="py-8 text-center text-slate-500">
-                                <p className="text-sm">Nenhum dado recebido ainda.</p>
-                              </div>
-                            ) : (
-                              <div className="space-y-6 py-4">
-                                {/* ━━━ DADOS DO CONSÓRCIO ━━━ */}
-                                <div className="space-y-3">
-                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS DO CONSÓRCIO ━━</h4>
-                                  <div className="grid grid-cols-2 gap-3 pl-2">
-                                     <div>
-                                       <p className="text-[9px] font-bold text-slate-400 uppercase">Segmento</p>
-                                       <p className="text-xs font-bold">{(l.dados_cadastro as any).SEGMENTO || l.tipo_consorcio || "—"}</p>
-                                     </div>
-                                     <div>
-                                       <p className="text-[9px] font-bold text-slate-400 uppercase">Crédito</p>
-                                       <p className="text-xs font-black text-primary">{formatLeadValue(Number((l.dados_cadastro as any).VALOR_CREDITO || (l.dados_cadastro as any).VALOR || l.valor_credito) || 0)}</p>
-                                     </div>
-                                  </div>
-                                </div>
-
-                                {/* ━━━ DADOS MÃE / PAI ━━━ */}
-                                <div className="space-y-3">
-                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS MÃE / PAI ━━</h4>
-                                  <div className="grid grid-cols-1 gap-2 pl-2">
-                                     {[
-                                       { label: "👤 Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE"] },
-                                       { label: "📄 CPF", keys: ["MAE_PAI_CPF", "CPFCONJUGE"] },
-                                       { label: "🪪 Documento", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
-                                       { label: "📅 Emissão", keys: ["MAE_PAI_EMISSAO", "DATAEMISSAO"] },
-                                       { label: "🏛️ Órgão Emissor", keys: ["MAE_PAI_ORGAO_EMISSOR", "ORGAO_EMISSOR"] },
-                                     ].map((f) => (
-                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                                         <span className="text-[10px] font-bold text-slate-900">
-                                           {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
-                                         </span>
-                                       </div>
-                                     ))}
-                                  </div>
-                                </div>
-
-                                {/* ━━━ DADOS PESSOAIS ━━━ */}
-                                <div className="space-y-3">
-                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS PESSOAIS ━━</h4>
-                                  <div className="grid grid-cols-1 gap-2 pl-2">
-                                     {[
-                                       { label: "🎂 Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO"] },
-                                       { label: "⚧️ Sexo", keys: ["SEXO"] },
-                                       { label: "🌍 Nacionalidade", keys: ["NACIONALIDADE"] },
-                                       { label: "📍 Naturalidade", keys: ["NATURALIDADE"] },
-                                       { label: "💍 Estado Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL"] },
-                                       { label: "👨 Nome do Pai", keys: ["NOMEPAI", "PAI_NOME"] },
-                                       { label: "👩 Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME"] },
-                                       { label: "💼 Profissão", keys: ["PROFISSAO"] },
-                                       { label: "💵 Renda", keys: ["RENDA"] },
-                                       { label: "🏢 Empresa", keys: ["EMPRESA"] },
-                                       { label: "📅 Admissão", keys: ["ADMISSAO"] },
-                                       { label: "🏠 Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA"] },
-                                       { label: "⏱️ Tempo Residência", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"] },
-                                     ].map((f) => (
-                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                                         <span className="text-[10px] font-bold text-slate-900">
-                                            {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
-                                         </span>
-                                       </div>
-                                     ))}
-                                  </div>
-                                </div>
-
-                                {/* ━━━ CONTATO ━━━ */}
-                                <div className="space-y-3">
-                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ CONTATO ━━</h4>
-                                  <div className="grid grid-cols-1 gap-2 pl-2">
-                                    {[
-                                       { label: "📧 E-mail", keys: ["EMAIL"] },
-                                       { label: "📞 Telefone", keys: ["TELEFONE"] },
-                                       { label: "📱 Celular", keys: ["CELULAR"] },
-                                     ].map((f) => (
-                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                                         <span className="text-[10px] font-bold text-slate-900">
-                                            {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || (l as any)[f.label.split(' ').pop()?.toLowerCase() || ''] || "—"}
-                                         </span>
-                                       </div>
-                                     ))}
-                                  </div>
-                                </div>
-
-                                {/* ━━━ ENDEREÇO ━━━ */}
-                                <div className="space-y-3">
-                                  <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ ENDEREÇO ━━</h4>
-                                  <div className="grid grid-cols-1 gap-2 pl-2 border-b border-slate-100 pb-4">
-                                    {[
-                                       { label: "📮 CEP", keys: ["CEP"] },
-                                       { label: "🏠 Rua", keys: ["LOGRADOURO", "RUA", "LOGRADOURO_"] },
-                                       { label: "Complemento", keys: ["COMPLEMENTO"] },
-                                       { label: "🏘️ Bairro", keys: ["BAIRRO"] },
-                                       { label: "🏙️ Cidade", keys: ["CIDADE"] },
-                                     ].map((f) => (
-                                       <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                                         <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                                         <span className="text-[10px] font-bold text-slate-900">
-                                            {f.keys.map(k => (l.dados_cadastro as any)[k] || (l.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
-                                         </span>
-                                       </div>
-                                     ))}
-                                  </div>
-                                </div>
-
-                                {/* DEBUG: DADOS BRUTOS (Para identificar por que está vindo em branco) */}
-                                <div className="mt-4 p-2 bg-slate-50 rounded border border-dashed border-slate-200">
-                                  <p className="text-[8px] font-black text-slate-400 mb-2 uppercase tracking-widest">Debug: Todas as Chaves Recebidas</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {Object.keys(l.dados_cadastro as Record<string, any>).map(k => (
-                                      <span key={k} className="text-[7px] bg-white border border-slate-200 px-1 py-0.5 rounded text-slate-600 font-mono">
-                                        {k}: <span className="text-primary">{String((l.dados_cadastro as any)[k]).slice(0, 15)}</span>
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setViewingFichaLead(l); }}
+                          className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${l.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                          title="Ver Ficha Magalu"
+                        >
+                          <ClipboardList className="h-3.5 w-3.5" />
+                        </button>
                         <a
                           href={`https://wa.me/55${(l.celular || "").replace(/\D/g, "")}?text=Olá!`}
                           target="_blank"
@@ -572,6 +437,128 @@ export default function Leads() {
         allLeads={leads as Lead[]}
       />
 
+      <Dialog open={!!viewingFichaLead} onOpenChange={(open) => !open && setViewingFichaLead(null)}>
+        <DialogContent className={`${!viewingFichaLead?.dados_cadastro ? "sm:max-w-[300px]" : "sm:max-w-md"} max-h-[80vh] overflow-y-auto`}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              Ficha: {viewingFichaLead?.nome}
+            </DialogTitle>
+          </DialogHeader>
+          {!viewingFichaLead?.dados_cadastro ? (
+            <div className="py-8 text-center text-slate-500">
+              <p className="text-sm">Nenhum dado recebido ainda.</p>
+            </div>
+          ) : (
+            <div className="space-y-6 py-4">
+              {/* ━━━ DADOS DO CONSORCIO ━━━ */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS DO CONSÓRCIO ━━</h4>
+                <div className="grid grid-cols-2 gap-3 pl-2">
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">Segmento</p>
+                    <p className="text-xs font-bold">{(viewingFichaLead.dados_cadastro as any).SEGMENTO || viewingFichaLead.tipo_consorcio || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">Crédito</p>
+                    <p className="text-xs font-black text-primary">{formatLeadValue(Number((viewingFichaLead.dados_cadastro as any).VALOR_CREDITO || (viewingFichaLead.dados_cadastro as any).VALOR || viewingFichaLead.valor_credito) || 0)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ━━━ DADOS MÃE / PAI ━━━ */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS MÃE / PAI ━━</h4>
+                <div className="grid grid-cols-1 gap-2 pl-2">
+                  {[
+                    { label: "👤 Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE"] },
+                    { label: "📄 CPF", keys: ["MAE_PAI_CPF", "CPFCONJUGE"] },
+                    { label: "🪪 Documento", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
+                    { label: "📅 Emissão", keys: ["MAE_PAI_EMISSAO", "DATAEMISSAO"] },
+                    { label: "🏛️ Órgão Emissor", keys: ["MAE_PAI_ORGAO_EMISSOR", "ORGAO_EMISSOR"] },
+                  ].map((f) => (
+                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                      <span className="text-[10px] font-bold text-slate-900">
+                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ━━━ DADOS PESSOAIS ━━━ */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS PESSOAIS ━━</h4>
+                <div className="grid grid-cols-1 gap-2 pl-2">
+                  {[
+                    { label: "🎂 Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO"] },
+                    { label: "⚧️ Sexo", keys: ["SEXO"] },
+                    { label: "🌍 Nacionalidade", keys: ["NACIONALIDADE"] },
+                    { label: "📍 Naturalidade", keys: ["NATURALIDADE"] },
+                    { label: "💍 Estado Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL"] },
+                    { label: "👨 Nome do Pai", keys: ["NOMEPAI", "PAI_NOME"] },
+                    { label: "👩 Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME"] },
+                    { label: "💼 Profissão", keys: ["PROFISSAO"] },
+                    { label: "💵 Renda", keys: ["RENDA"] },
+                    { label: "🏢 Empresa", keys: ["EMPRESA"] },
+                    { label: "📅 Admissão", keys: ["ADMISSAO"] },
+                    { label: "🏠 Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA"] },
+                    { label: "⏱️ Tempo Residência", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"] },
+                  ].map((f) => (
+                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                      <span className="text-[10px] font-bold text-slate-900">
+                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ━━━ CONTATO ━━━ */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ CONTATO ━━</h4>
+                <div className="grid grid-cols-1 gap-2 pl-2">
+                  {[
+                    { label: "📧 E-mail", keys: ["EMAIL"] },
+                    { label: "📞 Telefone", keys: ["TELEFONE"] },
+                    { label: "📱 Celular", keys: ["CELULAR"] },
+                  ].map((f) => (
+                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                      <span className="text-[10px] font-bold text-slate-900">
+                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || (viewingFichaLead as any)[f.label.split(' ').pop()?.toLowerCase() || ''] || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ━━━ ENDEREÇO ━━━ */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ ENDEREÇO ━━</h4>
+                <div className="grid grid-cols-1 gap-2 pl-2 border-b border-slate-100 pb-4">
+                  {[
+                    { label: "📮 CEP", keys: ["CEP"] },
+                    { label: "🏠 Rua", keys: ["LOGRADOURO", "RUA", "LOGRADOURO_"] },
+                    { label: "Complemento", keys: ["COMPLEMENTO"] },
+                    { label: "🏘️ Bairro", keys: ["BAIRRO"] },
+                    { label: "🏙️ Cidade", keys: ["CIDADE"] },
+                  ].map((f) => (
+                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
+                      <span className="text-[10px] font-bold text-slate-900">
+                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingLead(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -579,7 +566,6 @@ export default function Leads() {
               {editingLead ? "Editar Lead" : "Novo Lead"}
             </DialogTitle>
           </DialogHeader>
-          {/* key força re-montagem do formulário ao trocar de lead */}
           <LeadForm
             key={editingLead?.id || "new-lead"}
             isSubmitting={submitting}

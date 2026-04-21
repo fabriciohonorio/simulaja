@@ -16,20 +16,16 @@ export default function StreakBadge({ userId, variant = "full" }: StreakBadgePro
     if (!userId) return;
     (supabase as any)
       .from("perfis")
-      .select("streak_atual, streak_record")
+      .select("*")
       .eq("id", userId)
-      .single()
-      .then(({ data, error }: any) => {
-        if (!error && data) {
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
           setStreak(data.streak_atual || 0);
           setRecord(data.streak_record || 0);
         }
-        setLoading(false);
       })
-      .catch((err: any) => {
-        console.error("Erro ao buscar streak:", err);
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, [userId]);
 
   if (loading || streak === 0) return null;

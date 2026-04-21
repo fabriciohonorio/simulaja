@@ -48,7 +48,7 @@ export default function SDRPanel() {
     }, []);
 
     const generateAIScript = (lead: Lead) => {
-        const firstName = lead.nome.split(" ")[0];
+        const firstName = (lead?.nome || "").split(" ")[0];
         const valor = formatCurrency(lead.valor_credito);
         const cidade = lead.cidade ? ` em ${lead.cidade}` : "";
 
