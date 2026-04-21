@@ -60,7 +60,7 @@ export function FunilModals({ state }: { state: any }) {
       <HistoricoModal lead={historicoLead} onClose={handleCloseHistorico} allLeads={leads} />
 
       <Dialog open={!!editingLead} onOpenChange={(open: boolean) => !open && setEditingLead(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[32px] border-none shadow-2xl p-8">
           <DialogHeader>
             <DialogTitle className="font-black text-xl">Editar Lead</DialogTitle>
           </DialogHeader>

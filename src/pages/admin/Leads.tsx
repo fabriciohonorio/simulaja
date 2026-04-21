@@ -81,7 +81,6 @@ export default function Leads() {
     }
   };
 
-  // Recarrega leads do Supabase e sincroniza estado local
   const refetchLeads = useCallback(async () => {
     if (!profile?.organizacao_id) return;
     const { data } = await (supabase as any)
@@ -90,7 +89,6 @@ export default function Leads() {
       .eq("organizacao_id", profile.organizacao_id)
       .order("created_at", { ascending: false });
     if (data) {
-      // Atualiza estado otimisticamente sem normalização extra
       setLeads((prev) =>
         (data as any[]).map((d: any) => {
           const existing = prev.find((l) => l.id === d.id);
@@ -105,7 +103,6 @@ export default function Leads() {
     try {
       const isClosedStatus = ["venda_fechada", "fechado"].includes(formData.status);
       
-      // Payload para a tabela leads (sem organizacao_id para evitar conflito de RLS em updates)
       const updatePayload: any = {
         nome: formData.nome,
         email: formData.email || null,
@@ -128,30 +125,22 @@ export default function Leads() {
         dados_cadastro: formData.dados_cadastro || null,
       };
       
-      // Aplicar o padrão UPPERCASE no nome principal
       updatePayload.nome = formatToUpper(updatePayload.nome);
 
       if (editingLead) {
-        // Se mudou para fechado agora, atualiza a data de fechamento
         if (isClosedStatus && !["venda_fechada", "fechado"].includes(editingLead.status)) {
           updatePayload.status_updated_at = new Date().toISOString();
         }
-        // ── Atualiza na tabela leads ──────────────────────────────────────
         const { error } = await supabase
           .from("leads")
           .update(updatePayload)
           .eq("id", editingLead.id);
-        if (error) {
-          console.error("Erro update lead:", error);
-          throw new Error(error.message || "Erro ao atualizar lead");
-        }
+        if (error) throw new Error(error.message || "Erro ao atualizar lead");
 
-        // Atualiza estado local imediatamente (sem aguardar refetch)
         setLeads((prev) =>
           prev.map((l) => (l.id === editingLead.id ? { ...l, ...updatePayload } : l))
         );
 
-        // ── Sincroniza com carteira em background (não bloqueia o save) ──
         (async () => {
           try {
             const { data: rows } = await (supabase as any)
@@ -191,13 +180,9 @@ export default function Leads() {
 
         toast.success("Lead atualizado com sucesso!");
       } else {
-        // ── Novo lead ────────────────────────────────────────────────────
         const insertPayload = { ...updatePayload, organizacao_id: profile?.organizacao_id };
         const { data: newLeads, error } = await supabase.from("leads").insert([insertPayload]).select();
-        if (error) {
-          console.error("Erro insert lead:", error);
-          throw new Error(error.message || "Erro ao criar lead");
-        }
+        if (error) throw new Error(error.message || "Erro ao criar lead");
 
         if (isClosedStatus && newLeads && newLeads.length > 0) {
           const nl = newLeads[0];
@@ -217,16 +202,13 @@ export default function Leads() {
         }
 
         toast.success("Lead criado com sucesso!");
-        // Refresh completo só para novos leads
         await refetchLeads();
       }
 
       setIsDialogOpen(false);
       setEditingLead(null);
     } catch (err: any) {
-      const msg = typeof err?.message === "string" ? err.message : "Erro ao salvar lead";
-      toast.error(msg);
-      console.error("handleSaveLead error:", err);
+      toast.error(err?.message || "Erro ao salvar lead");
     } finally {
       setSubmitting(false);
     }
@@ -318,7 +300,6 @@ export default function Leads() {
                     key={l.id}
                     className={`hover:bg-slate-50/50 transition-colors ${isFechado ? "bg-emerald-50/20" : ""}`}
                   >
-                    {/* Lead: nome + celular + cidade */}
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-0.5">
                         <span className="font-black text-slate-900">{l.nome || "Lead Sem Nome"}</span>
@@ -332,12 +313,10 @@ export default function Leads() {
                       </div>
                     </td>
 
-                    {/* Segmento */}
                     <td className="px-4 py-3 uppercase text-[10px] font-bold text-slate-500">
                       {l.tipo_consorcio || "Indefinido"}
                     </td>
 
-                    {/* Status + data fechamento */}
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-0.5">
                         {getStatusBadge(l.status)}
@@ -350,7 +329,6 @@ export default function Leads() {
                       </div>
                     </td>
 
-                    {/* Grupo / Cota — destaque para fechados */}
                     <td className="px-4 py-3">
                       {(l.grupo || l.cota) ? (
                         <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black ${
@@ -364,12 +342,10 @@ export default function Leads() {
                       )}
                     </td>
 
-                    {/* Valor */}
                     <td className="px-4 py-3 font-black text-slate-700">
                       {formatLeadValue(Number(l.valor_credito || 0))}
                     </td>
 
-                    {/* Ações */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-0.5">
                         <button
@@ -438,131 +414,176 @@ export default function Leads() {
       />
 
       <Dialog open={!!viewingFichaLead} onOpenChange={(open) => !open && setViewingFichaLead(null)}>
-        <DialogContent className={`${!viewingFichaLead?.dados_cadastro ? "sm:max-w-[300px]" : "sm:max-w-md"} max-h-[80vh] overflow-y-auto`}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-primary" />
-              Ficha: {viewingFichaLead?.nome}
-            </DialogTitle>
-          </DialogHeader>
-          {!viewingFichaLead?.dados_cadastro ? (
-            <div className="py-8 text-center text-slate-500">
-              <p className="text-sm">Nenhum dado recebido ainda.</p>
-            </div>
-          ) : (
-            <div className="space-y-6 py-4">
-              {/* ━━━ DADOS DO CONSORCIO ━━━ */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS DO CONSÓRCIO ━━</h4>
-                <div className="grid grid-cols-2 gap-3 pl-2">
-                  <div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase">Segmento</p>
-                    <p className="text-xs font-bold">{(viewingFichaLead.dados_cadastro as any).SEGMENTO || viewingFichaLead.tipo_consorcio || "—"}</p>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[32px] border-none shadow-2xl p-0">
+          <div className="bg-slate-900 p-8 text-white">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-primary/20 flex items-center justify-center">
+                    <ClipboardList className="h-8 w-8 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase">Crédito</p>
-                    <p className="text-xs font-black text-primary">{formatLeadValue(Number((viewingFichaLead.dados_cadastro as any).VALOR_CREDITO || (viewingFichaLead.dados_cadastro as any).VALOR || viewingFichaLead.valor_credito) || 0)}</p>
+                    <DialogTitle className="text-2xl font-black">{viewingFichaLead?.nome}</DialogTitle>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Ficha de Cadastro Completa</p>
                   </div>
                 </div>
-              </div>
-
-              {/* ━━━ DADOS MÃE / PAI ━━━ */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS MÃE / PAI ━━</h4>
-                <div className="grid grid-cols-1 gap-2 pl-2">
-                  {[
-                    { label: "👤 Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE"] },
-                    { label: "📄 CPF", keys: ["MAE_PAI_CPF", "CPFCONJUGE"] },
-                    { label: "🪪 Documento", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
-                    { label: "📅 Emissão", keys: ["MAE_PAI_EMISSAO", "DATAEMISSAO"] },
-                    { label: "🏛️ Órgão Emissor", keys: ["MAE_PAI_ORGAO_EMISSOR", "ORGAO_EMISSOR"] },
-                  ].map((f) => (
-                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                      <span className="text-[10px] font-bold text-slate-900">
-                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
-                      </span>
-                    </div>
-                  ))}
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">ID do Lead</p>
+                  <p className="text-xs font-mono text-slate-300">#{viewingFichaLead?.id?.substring(0, 8)}</p>
                 </div>
               </div>
+            </DialogHeader>
+          </div>
 
-              {/* ━━━ DADOS PESSOAIS ━━━ */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ DADOS PESSOAIS ━━</h4>
-                <div className="grid grid-cols-1 gap-2 pl-2">
-                  {[
-                    { label: "🎂 Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO"] },
-                    { label: "⚧️ Sexo", keys: ["SEXO"] },
-                    { label: "🌍 Nacionalidade", keys: ["NACIONALIDADE"] },
-                    { label: "📍 Naturalidade", keys: ["NATURALIDADE"] },
-                    { label: "💍 Estado Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL"] },
-                    { label: "👨 Nome do Pai", keys: ["NOMEPAI", "PAI_NOME"] },
-                    { label: "👩 Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME"] },
-                    { label: "💼 Profissão", keys: ["PROFISSAO"] },
-                    { label: "💵 Renda", keys: ["RENDA"] },
-                    { label: "🏢 Empresa", keys: ["EMPRESA"] },
-                    { label: "📅 Admissão", keys: ["ADMISSAO"] },
-                    { label: "🏠 Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA"] },
-                    { label: "⏱️ Tempo Residência", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"] },
-                  ].map((f) => (
-                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                      <span className="text-[10px] font-bold text-slate-900">
-                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
-                      </span>
+          <div className="p-8">
+            {!viewingFichaLead?.dados_cadastro ? (
+              <div className="py-20 text-center">
+                <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <RefreshCw className="h-10 w-10 text-slate-200 animate-spin-slow" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Aguardando Dados</h3>
+                <p className="text-slate-500 text-sm max-w-xs mx-auto">Este lead ainda não preencheu os campos adicionais da ficha de cadastro.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-8">
+                  <section>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">💰 Consórcio</h4>
+                    <div className="space-y-4">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Crédito Estimado</p>
+                        <p className="text-lg font-black text-slate-900">{formatLeadValue(Number(viewingFichaLead.valor_credito || (viewingFichaLead.dados_cadastro as any).VALOR || (viewingFichaLead.dados_cadastro as any).VALOR_CREDITO) || 0)}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Prazo Meses</p>
+                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).PRAZO || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Segmento</p>
+                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).SEGMENTO || "—"}</p>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  </section>
+
+                  <section>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👤 Dados Pessoais</h4>
+                    <div className="space-y-3">
+                      {[
+                        { label: "Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO", "DATA_NASCIMENTO"] },
+                        { label: "Sexo", keys: ["SEXO"] },
+                        { label: "Est. Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL", "ESTADO_CIVIL_"] },
+                        { label: "Nacionalidade", keys: ["NACIONALIDADE"] },
+                        { label: "Profissão", keys: ["PROFISSAO", "CARGO", "OCUPACAO"] },
+                        { label: "Renda Mensal", keys: ["RENDA", "RENDA_MENSAL"] },
+                      ].map((f) => (
+                        <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
+                          <span className="text-xs font-black text-slate-900">
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+
+                <div className="space-y-8">
+                  <section>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👨‍👩‍👦 Filiação & Resp.</h4>
+                    <div className="space-y-3">
+                       {[
+                        { label: "Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME", "NOME_MAE"] },
+                        { label: "Nome do Pai", keys: ["NOMEPAI", "PAI_NOME", "NOME_PAI"] },
+                        { label: "Resp. Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE"] },
+                        { label: "Resp. CPF", keys: ["MAE_PAI_CPF"] },
+                        { label: "Resp. RG", keys: ["MAE_PAI_DOCUMENTO", "DOCUMENTO"] },
+                      ].map((f) => (
+                        <div key={f.label} className="flex flex-col py-1.5 border-b border-slate-50 last:border-0">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{f.label}</span>
+                          <span className="text-xs font-black text-slate-900 mt-0.5">
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">🏢 Profissional & Residência</h4>
+                    <div className="space-y-3">
+                      {[
+                        { label: "Empresa", keys: ["EMPRESA", "LOCAL_TRABALHO"] },
+                        { label: "Admissão", keys: ["ADMISSAO", "DATA_ADMISSAO"] },
+                        { label: "Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA"] },
+                        { label: "Tempo Res.", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"] },
+                      ].map((f) => (
+                        <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
+                          <span className="text-xs font-black text-slate-900">
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+
+                <div className="space-y-8">
+                  <section>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">📱 Contato</h4>
+                    <div className="space-y-4">
+                      <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100/50">
+                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-wider mb-2">WhatsApp / Celular</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-lg font-black text-emerald-800">{viewingFichaLead.celular || "—"}</p>
+                          <WhatsAppIcon className="h-6 w-6 text-emerald-500" />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase">E-mail</span>
+                          <span className="text-xs font-black text-slate-900 truncate">{viewingFichaLead.email || (viewingFichaLead.dados_cadastro as any).EMAIL || "—"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">📍 Localização</h4>
+                    <div className="space-y-3">
+                      {[
+                        { label: "CEP", keys: ["CEP"] },
+                        { label: "Endereço", keys: ["LOGRADOURO", "RUA", "ENDERECO", "LOGRADOURO_", "LOCALIDADE"] },
+                        { label: "Bairro", keys: ["BAIRRO"] },
+                        { label: "Cidade", keys: ["CIDADE", "MUNICIPIO", "NOME_CIDADE"] },
+                        { label: "Estado", keys: ["UF", "ESTADO"] },
+                      ].map((f) => (
+                        <div key={f.label} className="flex flex-col py-1 border-b border-slate-50 last:border-0">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase">{f.label}</span>
+                          <span className="text-xs font-black text-slate-900 mt-0.5">
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || (f.label === "Cidade" ? viewingFichaLead.cidade : "—")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
                 </div>
               </div>
-
-              {/* ━━━ CONTATO ━━━ */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ CONTATO ━━</h4>
-                <div className="grid grid-cols-1 gap-2 pl-2">
-                  {[
-                    { label: "📧 E-mail", keys: ["EMAIL"] },
-                    { label: "📞 Telefone", keys: ["TELEFONE"] },
-                    { label: "📱 Celular", keys: ["CELULAR"] },
-                  ].map((f) => (
-                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                      <span className="text-[10px] font-bold text-slate-900">
-                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || (viewingFichaLead as any)[f.label.split(' ').pop()?.toLowerCase() || ''] || "—"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ━━━ ENDEREÇO ━━━ */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] border-l-2 border-primary pl-2">━━ ENDEREÇO ━━</h4>
-                <div className="grid grid-cols-1 gap-2 pl-2 border-b border-slate-100 pb-4">
-                  {[
-                    { label: "📮 CEP", keys: ["CEP"] },
-                    { label: "🏠 Rua", keys: ["LOGRADOURO", "RUA", "LOGRADOURO_"] },
-                    { label: "Complemento", keys: ["COMPLEMENTO"] },
-                    { label: "🏘️ Bairro", keys: ["BAIRRO"] },
-                    { label: "🏙️ Cidade", keys: ["CIDADE"] },
-                  ].map((f) => (
-                    <div key={f.label} className="flex justify-between border-b border-slate-50 pb-1">
-                      <span className="text-[10px] font-bold text-slate-400">{f.label}</span>
-                      <span className="text-[10px] font-bold text-slate-900">
-                        {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+          
+          <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+            <Button onClick={() => setViewingFichaLead(null)} className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest">Fechar Ficha</Button>
+          </div>
         </DialogContent>
       </Dialog>
+
       <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingLead(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[32px] border-none p-8 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="font-black text-xl">
+            <DialogTitle className="font-black text-2xl mb-6">
               {editingLead ? "Editar Lead" : "Novo Lead"}
             </DialogTitle>
           </DialogHeader>

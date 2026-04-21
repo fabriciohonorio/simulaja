@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ClipboardList } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 
 export const STATUS_OPTIONS = [
@@ -94,6 +95,15 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
     }));
   };
 
+  const getNestedValue = (keys: string[]) => {
+    if (!form.dados_cadastro) return "";
+    for (const k of keys) {
+      if (form.dados_cadastro[k]) return form.dados_cadastro[k];
+      if (form.dados_cadastro[k.toLowerCase()]) return form.dados_cadastro[k.toLowerCase()];
+    }
+    return "";
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -104,7 +114,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
       grupo: formatToFourDigits(form.grupo),
       cota: formatToFourDigits(form.cota),
       indicador_nome: formatToUpper(form.indicador_nome),
-      cidade: formatToUpper(form.cidade),
     };
     
     onSubmit(formattedData);
@@ -113,274 +122,317 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
   const isVendaFechada = STATUS_FECHADOS.includes(form.status);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="nome">Nome Completo</Label>
-        <Input id="nome" required value={form.nome} onChange={handleChange} placeholder="Ex: João Silva" />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="celular">Celular</Label>
-          <Input id="celular" required value={form.celular} onChange={handleChange} placeholder="Ex: (11) 99999-9999" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">E-mail</Label>
-          <Input id="email" type="email" value={form.email} onChange={handleChange} placeholder="Ex: joao@email.com" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="cidade">Cidade</Label>
-          <Input id="cidade" value={form.cidade} onChange={handleChange} placeholder="Ex: São Paulo" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="tipo_consorcio">Tipo</Label>
-          <Select value={form.tipo_consorcio} onValueChange={(val) => handleSelectChange("tipo_consorcio", val)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TIPO_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="valor_credito">Valor Crédito (R$)</Label>
-          <Input id="valor_credito" type="number" value={form.valor_credito} onChange={handleChange} placeholder="Ex: 150000" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="prazo_meses">Prazo (meses)</Label>
-          <Input id="prazo_meses" type="number" value={form.prazo_meses} onChange={handleChange} placeholder="Ex: 120" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label>Status</Label>
-          <Select value={form.status} onValueChange={(val) => handleSelectChange("status", val)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Temperatura</Label>
-          <Select value={form.lead_temperatura} onValueChange={(val) => handleSelectChange("lead_temperatura", val)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TEMPERATURA_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Score</Label>
-          <Select value={form.lead_score_valor} onValueChange={(val) => handleSelectChange("lead_score_valor", val)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {SCORE_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Administradora</Label>
-        <Select value={form.administradora} onValueChange={(val) => handleSelectChange("administradora", val)}>
-          <SelectTrigger><SelectValue placeholder="Selecione a Administradora" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Nenhuma</SelectItem>
-            {ADMINISTRADORAS.map(admin => (
-              <SelectItem key={admin} value={admin}>{admin}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Campos extras para venda fechada */}
-      {isVendaFechada && (
-        <div className="space-y-4 bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
-          <h4 className="text-sm font-black text-emerald-700 flex items-center gap-2">
-            ✅ Dados do Consórcio Adquirido
-          </h4>
+    <form onSubmit={handleSubmit} className="space-y-6 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="nome" className="font-bold">Nome Completo</Label>
+            <Input id="nome" required value={form.nome} onChange={handleChange} placeholder="Ex: João Silva" className="rounded-xl h-11" />
+          </div>
+          
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="grupo">Grupo</Label>
-              <Input
-                id="grupo"
-                value={form.grupo || ""}
-                onChange={handleChange}
-                placeholder="Ex: 1703"
-                className="bg-white"
-              />
+              <Label htmlFor="celular" className="font-bold">Celular</Label>
+              <Input id="celular" required value={form.celular} onChange={handleChange} placeholder="Ex: (11) 99999-9999" className="rounded-xl h-11" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="cota">Cota</Label>
-              <Input
-                id="cota"
-                value={form.cota || ""}
-                onChange={handleChange}
-                placeholder="Ex: 045"
-                className="bg-white"
-              />
+              <Label htmlFor="email" className="font-bold">E-mail</Label>
+              <Input id="email" type="email" value={form.email} onChange={handleChange} placeholder="Ex: joao@email.com" className="rounded-xl h-11" />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="status_updated_at">Data da Venda / Fechamento</Label>
-            <Input
-              id="status_updated_at"
-              type="date"
-              value={form.status_updated_at ? form.status_updated_at.split('T')[0] : ""}
-              onChange={handleChange}
-              className="bg-white"
-            />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cidade" className="font-bold">Cidade</Label>
+              <Input id="cidade" value={form.cidade} onChange={handleChange} placeholder="Ex: São Paulo" className="rounded-xl h-11" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tipo_consorcio" className="font-bold">Tipo Consórcio</Label>
+              <Select value={form.tipo_consorcio} onValueChange={(val) => handleSelectChange("tipo_consorcio", val)}>
+                <SelectTrigger className="rounded-xl h-11"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {TIPO_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="valor_credito" className="font-bold">Valor Crédito</Label>
+              <Input id="valor_credito" type="number" value={form.valor_credito} onChange={handleChange} placeholder="Ex: 150000" className="rounded-xl h-11" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="prazo_meses" className="font-bold">Prazo (meses)</Label>
+              <Input id="prazo_meses" type="number" value={form.prazo_meses} onChange={handleChange} placeholder="Ex: 120" className="rounded-xl h-11" />
+            </div>
           </div>
         </div>
-      )}
 
-      <hr className="my-4 border-muted" />
-      
-      <div className="space-y-3 bg-muted/30 p-3 rounded-lg border border-dashed border-muted-foreground/20">
-        <h4 className="text-sm font-bold flex items-center gap-2 text-muted-foreground">
-          🤝 Dados do Indicador
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="indicador_nome">Nome do Indicador</Label>
-            <Input id="indicador_nome" value={form.indicador_nome || ""} onChange={handleChange} placeholder="Quem indicou?" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="indicador_celular">Celular do Indicador</Label>
-            <Input id="indicador_celular" value={form.indicador_celular || ""} onChange={handleChange} placeholder="Celular do indicador" />
-          </div>
-        </div>
-      </div>
-
-      {/* ━━━ DADOS COMPLETO (MAGALU) ━━━ */}
-      <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-        <h4 className="text-sm font-black text-slate-700 flex items-center gap-2">
-          📋 Ficha de Cadastro Completa (Magalu)
-        </h4>
-        
         <div className="space-y-4">
-          <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">DADOS MÃE / PAI</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Nome Mãe/Pai</Label>
-              <Input value={form.dados_cadastro?.MAE_PAI_NOME || form.dados_cadastro?.CPFCONJUGE || ""} onChange={(e) => handleNestedChange("MAE_PAI_NOME", e.target.value)} placeholder="Nome" className="bg-white text-xs" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="font-bold">Status</Label>
+              <Select value={form.status} onValueChange={(val) => handleSelectChange("status", val)}>
+                <SelectTrigger className="rounded-xl h-11"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">CPF</Label>
-              <Input value={form.dados_cadastro?.MAE_PAI_CPF || form.dados_cadastro?.CPFCONJUGE || ""} onChange={(e) => handleNestedChange("MAE_PAI_CPF", e.target.value)} placeholder="000.000.000-00" className="bg-white text-xs" />
+            <div className="space-y-2">
+              <Label className="font-bold">Temperatura</Label>
+              <Select value={form.lead_temperatura} onValueChange={(val) => handleSelectChange("lead_temperatura", val)}>
+                <SelectTrigger className="rounded-xl h-11"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {TEMPERATURA_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Documento</Label>
-              <Input value={form.dados_cadastro?.MAE_PAI_DOCUMENTO || form.dados_cadastro?.DOCUMENTO || ""} onChange={(e) => handleNestedChange("MAE_PAI_DOCUMENTO", e.target.value)} placeholder="RG" className="bg-white text-xs" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="font-bold">Score</Label>
+              <Select value={form.lead_score_valor} onValueChange={(val) => handleSelectChange("lead_score_valor", val)}>
+                <SelectTrigger className="rounded-xl h-11"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {SCORE_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Emissão</Label>
-              <Input value={form.dados_cadastro?.MAE_PAI_EMISSAO || form.dados_cadastro?.DATAEMISSAO || ""} onChange={(e) => handleNestedChange("MAE_PAI_EMISSAO", e.target.value)} placeholder="00/00/0000" className="bg-white text-xs" />
+            <div className="space-y-2">
+              <Label className="font-bold">Administradora</Label>
+              <Select value={form.administradora} onValueChange={(val) => handleSelectChange("administradora", val)}>
+                <SelectTrigger className="rounded-xl h-11"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {ADMINISTRADORAS.map(admin => (
+                    <SelectItem key={admin} value={admin}>{admin}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Órgão Emissor</Label>
-              <Input value={form.dados_cadastro?.MAE_PAI_ORGAO_EMISSOR || form.dados_cadastro?.ORGAO_EMISSOR || ""} onChange={(e) => handleNestedChange("MAE_PAI_ORGAO_EMISSOR", e.target.value)} placeholder="SSP" className="bg-white text-xs" />
+          </div>
+
+          {/* Venda Fechada Panel */}
+          {isVendaFechada && (
+            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 space-y-4">
+               <h4 className="text-[10px] uppercase font-black text-emerald-600 tracking-widest">💰 Detalhes da Venda</h4>
+               <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="grupo" className="text-[10px] font-bold">Grupo</Label>
+                  <Input id="grupo" value={form.grupo || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" placeholder="0000" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="cota" className="text-[10px] font-bold">Cota</Label>
+                  <Input id="cota" value={form.cota || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" placeholder="000" />
+                </div>
+               </div>
+               <div className="space-y-1">
+                  <Label htmlFor="status_updated_at" className="text-[10px] font-bold">Data do Fechamento</Label>
+                  <Input id="status_updated_at" type="date" value={form.status_updated_at ? form.status_updated_at.split('T')[0] : ""} onChange={handleChange} className="rounded-lg h-9 bg-white" />
+               </div>
             </div>
+          )}
+
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+             <h4 className="text-[10px] uppercase font-black text-slate-400 tracking-widest">🤝 Indicador</h4>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="indicador_nome" className="text-[10px] font-bold">Nome</Label>
+                  <Input id="indicador_nome" value={form.indicador_nome || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="indicador_celular" className="text-[10px] font-bold">Celular</Label>
+                  <Input id="indicador_celular" value={form.indicador_celular || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" />
+                </div>
+             </div>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4 pt-2">
-          <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">DADOS PESSOAIS</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Nascimento</Label>
-              <Input value={form.dados_cadastro?.NASCIMENTO || form.dados_cadastro?.DATANASCIMENTO || ""} onChange={(e) => handleNestedChange("NASCIMENTO", e.target.value)} placeholder="00/00/0000" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Sexo</Label>
-              <Input value={form.dados_cadastro?.SEXO || ""} onChange={(e) => handleNestedChange("SEXO", e.target.value)} placeholder="M/F" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Nacionalidade</Label>
-              <Input value={form.dados_cadastro?.NACIONALIDADE || "Brasileira"} onChange={(e) => handleNestedChange("NACIONALIDADE", e.target.value)} placeholder="Nacionalidade" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Estado Civil</Label>
-              <Input value={form.dados_cadastro?.ESTADO_CIVIL || form.dados_cadastro?.ESTADOCIVIL || ""} onChange={(e) => handleNestedChange("ESTADOCIVIL", e.target.value)} placeholder="Casado..." className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <Label className="text-[10px] uppercase">Nome da Mãe</Label>
-              <Input value={form.dados_cadastro?.NOMEMAE || form.dados_cadastro?.MAE_NOME || ""} onChange={(e) => handleNestedChange("NOMEMAE", e.target.value)} placeholder="Nome completo" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <Label className="text-[10px] uppercase">Nome do Pai</Label>
-              <Input value={form.dados_cadastro?.NOMEPAI || form.dados_cadastro?.PAI_NOME || ""} onChange={(e) => handleNestedChange("NOMEPAI", e.target.value)} placeholder="Nome completo" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <Label className="text-[10px] uppercase">Profissão</Label>
-              <Input value={form.dados_cadastro?.PROFISSAO || ""} onChange={(e) => handleNestedChange("PROFISSAO", e.target.value)} placeholder="Ex: Empresário" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Renda</Label>
-              <Input value={form.dados_cadastro?.RENDA || ""} onChange={(e) => handleNestedChange("RENDA", e.target.value)} placeholder="R$ 0.000" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Admissão</Label>
-              <Input value={form.dados_cadastro?.ADMISSAO || ""} onChange={(e) => handleNestedChange("ADMISSAO", e.target.value)} placeholder="00/00/0000" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <Label className="text-[10px] uppercase">Empresa</Label>
-              <Input value={form.dados_cadastro?.EMPRESA || ""} onChange={(e) => handleNestedChange("EMPRESA", e.target.value)} placeholder="Nome da empresa" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Residência</Label>
-              <Input value={form.dados_cadastro?.TIPO_RESIDENCIA || form.dados_cadastro?.TIPORESIDENCIA || ""} onChange={(e) => handleNestedChange("TIPO_RESIDENCIA", e.target.value)} placeholder="Própria..." className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">Tempo Res.</Label>
-              <Input value={form.dados_cadastro?.TEMPO_RESIDENCIA || form.dados_cadastro?.TEMPORESIDENCIA || ""} onChange={(e) => handleNestedChange("TEMPO_RESIDENCIA", e.target.value)} placeholder="Ex: 5 anos" className="bg-white text-xs" />
+      <div className="bg-slate-50 p-6 rounded-[24px] border border-slate-200 shadow-inner">
+        <h3 className="text-sm font-black text-slate-800 mb-6 flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-primary" />
+          FICHA MAGALU - CAMPOS ADICIONAIS
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Sessão 1: Pessoal */}
+          <div className="space-y-4">
+            <h5 className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">👤 Pessoal & Filiação</h5>
+            <div className="grid gap-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase text-slate-400">Nome da Mãe</Label>
+                <Input 
+                  value={getNestedValue(["MAE_NOME", "NOMEMAE", "NOME_MAE"])}
+                  onChange={(e) => handleNestedChange("MAE_NOME", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase text-slate-400">Nome do Pai</Label>
+                <Input 
+                  value={getNestedValue(["PAI_NOME", "NOMEPAI", "NOME_PAI"])}
+                  onChange={(e) => handleNestedChange("PAI_NOME", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Nascimento</Label>
+                  <Input 
+                    value={getNestedValue(["NASCIMENTO", "DATANASCIMENTO", "DATA_NASCIMENTO"])}
+                    onChange={(e) => handleNestedChange("NASCIMENTO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Sexo</Label>
+                  <Input 
+                    value={getNestedValue(["SEXO"])}
+                    onChange={(e) => handleNestedChange("SEXO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase text-slate-400">Estado Civil</Label>
+                <Input 
+                  value={getNestedValue(["ESTADO_CIVIL", "ESTADOCIVIL"])}
+                  onChange={(e) => handleNestedChange("ESTADO_CIVIL", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-4 pt-2">
-          <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">ENDEREÇO</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="space-y-1 col-span-3">
-              <Label className="text-[10px] uppercase">Rua / Logradouro</Label>
-              <Input value={form.dados_cadastro?.LOGRADOURO || form.dados_cadastro?.RUA || ""} onChange={(e) => handleNestedChange("LOGRADOURO", e.target.value)} placeholder="Rua..." className="bg-white text-xs" />
+          {/* Sessão 2: Profissional */}
+          <div className="space-y-4">
+            <h5 className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">🏢 Profissional & Renda</h5>
+            <div className="grid gap-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase text-slate-400">Empresa / Local Trabalho</Label>
+                <Input 
+                  value={getNestedValue(["EMPRESA", "LOCAL_TRABALHO"])}
+                  onChange={(e) => handleNestedChange("EMPRESA", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase text-slate-400">Profissão / Cargo</Label>
+                <Input 
+                  value={getNestedValue(["PROFISSAO", "CARGO", "OCUPACAO"])}
+                  onChange={(e) => handleNestedChange("PROFISSAO", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Renda Mensal</Label>
+                  <Input 
+                    value={getNestedValue(["RENDA", "RENDA_MENSAL"])}
+                    onChange={(e) => handleNestedChange("RENDA", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Admissão</Label>
+                  <Input 
+                    value={getNestedValue(["ADMISSAO", "DATA_ADMISSAO"])}
+                    onChange={(e) => handleNestedChange("ADMISSAO", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Residência</Label>
+                  <Input 
+                    value={getNestedValue(["TIPO_RESIDENCIA", "TIPORESIDENCIA"])}
+                    onChange={(e) => handleNestedChange("TIPO_RESIDENCIA", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Tempo Res.</Label>
+                  <Input 
+                    value={getNestedValue(["TEMPO_RESIDENCIA", "TEMPORESIDENCIA"])}
+                    onChange={(e) => handleNestedChange("TEMPO_RESIDENCIA", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase">CEP</Label>
-              <Input value={form.dados_cadastro?.CEP || ""} onChange={(e) => handleNestedChange("CEP", e.target.value)} placeholder="00000-000" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <Label className="text-[10px] uppercase">Bairro</Label>
-              <Input value={form.dados_cadastro?.BAIRRO || ""} onChange={(e) => handleNestedChange("BAIRRO", e.target.value)} placeholder="Bairro" className="bg-white text-xs" />
-            </div>
-            <div className="space-y-1 col-span-2">
-              <Label className="text-[10px] uppercase">Cidade / UF</Label>
-              <Input value={`${form.dados_cadastro?.CIDADE || ""} ${form.dados_cadastro?.UF || ""}`.trim()} onChange={(e) => handleNestedChange("CIDADE", e.target.value)} placeholder="Cidade" className="bg-white text-xs" />
+          </div>
+
+          {/* Sessão 3: Localização */}
+          <div className="space-y-4">
+            <h5 className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">📍 Endereço Atendimento</h5>
+            <div className="grid gap-3">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1 col-span-1">
+                  <Label className="text-[10px] uppercase text-slate-400">CEP</Label>
+                  <Input 
+                    value={getNestedValue(["CEP"])}
+                    onChange={(e) => handleNestedChange("CEP", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-[10px] uppercase text-slate-400">Logradouro / Bairro</Label>
+                  <Input 
+                    value={`${getNestedValue(["LOGRADOURO", "RUA"])} - ${getNestedValue(["BAIRRO"])}`.replace(/^- |-$/g, "")}
+                    readOnly
+                    className="bg-slate-100 rounded-lg h-9 text-[10px] text-slate-500 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase text-slate-400">Logradouro (Editar)</Label>
+                <Input 
+                  value={getNestedValue(["LOGRADOURO", "RUA", "ENDERECO"])}
+                  onChange={(e) => handleNestedChange("LOGRADOURO", e.target.value)}
+                  className="bg-white rounded-lg h-9 text-xs"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">Cidade</Label>
+                  <Input 
+                    value={getNestedValue(["CIDADE", "MUNICIPIO"])}
+                    onChange={(e) => handleNestedChange("CIDADE", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase text-slate-400">UF / Estado</Label>
+                  <Input 
+                    value={getNestedValue(["UF", "ESTADO"])}
+                    onChange={(e) => handleNestedChange("UF", e.target.value)}
+                    className="bg-white rounded-lg h-9 text-xs"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar Lead"}</Button>
+      <div className="flex justify-end gap-3 pt-6 border-t">
+        <Button type="button" variant="ghost" onClick={onCancel} className="rounded-xl px-10 h-11 uppercase font-black text-xs tracking-widest">Descartar</Button>
+        <Button type="submit" disabled={isSubmitting} className="rounded-xl px-12 h-11 bg-primary hover:bg-primary/90 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-primary/20">
+          {isSubmitting ? "Gravando..." : "Salvar Alterações"}
+        </Button>
       </div>
     </form>
   );
