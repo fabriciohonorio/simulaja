@@ -35,17 +35,21 @@
     </script>
 
     <style>
-      #lovable-badge, #lovable-badge-container, #lovable-badge-cta, #lovable-badge-close, 
-      .lovable-badge, [data-lovable-badge], #gpt-designer-badge, 
-      div[style*="z-index: 2147483647"], div[style*="z-index: 9999999"], 
-      a[href*="lovable.app"], iframe[src*="lovable"] {
+      /* Highly aggressive CSS to hide any lovable-related elements */
+      [id*="lovable"], [class*="lovable"], [id*="gpt-designer"], [class*="gpt-designer"],
+      a[href*="lovable.app"], a[href*="lovable.dev"], iframe[src*="lovable"],
+      #lovable-badge, #lovable-badge-container, #lovable-badge-cta, #lovable-badge-close,
+      .lovable-badge, [data-lovable-badge] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
         z-index: -9999 !important;
-        position: fixed;
-        left: -99999px;
+        position: fixed !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
       }
     </style>
     <script>
@@ -88,33 +92,34 @@
     <script>
       (function() {
         const remove = () => {
-          // IDs and selectors to target
-          const targets = ['lovable-badge', 'lovable-badge-container', 'lovable-badge-cta', 'lovable-badge-close', 'gpt-designer-badge'];
-          const selectors = '.lovable-badge, [data-lovable-badge], a[href*="lovable.app"], iframe[src*="lovable"]';
-
           const cleanup = (root) => {
             if (!root) return;
-            targets.forEach(id => {
-              const el = root.getElementById ? root.getElementById(id) : root.querySelector(`#${id}`);
-              if (el) el.remove();
-            });
-            root.querySelectorAll(selectors).forEach(el => el.remove());
-
-            // Recursive shadow DOM check
+            
+            // Find all elements and check their ID or class for 'lovable'
             const all = root.querySelectorAll('*');
             all.forEach(el => {
-              if (el.shadowRoot) cleanup(el.shadowRoot);
+              const id = el.id || '';
+              const className = typeof el.className === 'string' ? el.className : '';
+              
+              if (id.toLowerCase().includes('lovable') || 
+                  className.toLowerCase().includes('lovable') ||
+                  id.toLowerCase().includes('gpt-designer') ||
+                  className.toLowerCase().includes('gpt-designer') ||
+                  (el.tagName === 'A' && el.href && (el.href.includes('lovable.app') || el.href.includes('lovable.dev'))) ||
+                  (el.tagName === 'IFRAME' && el.src && el.src.includes('lovable'))) {
+                el.remove();
+              } else if (el.shadowRoot) {
+                cleanup(el.shadowRoot);
+              }
             });
           };
 
           cleanup(document);
         };
 
-        // MutationObserver to catch it immediately
         const observer = new MutationObserver(() => remove());
         observer.observe(document.documentElement, { childList: true, subtree: true });
         
-        // Initial run and periodic check as backup
         remove();
         setInterval(remove, 500);
       })();
