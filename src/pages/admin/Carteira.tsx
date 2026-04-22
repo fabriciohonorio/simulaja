@@ -276,16 +276,20 @@ export default function Carteira() {
   };
 
   const handleOpenTratativas = async (cliente: Cliente) => {
-    if (cliente.lead_id) {
-       const { data: lead } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).maybeSingle();
-       if (lead) {
-         setSelectedLeadForHistory(lead as unknown as Lead);
-         return;
-       }
-    }
-
-    setLoadingTratativas(true);
+    setLoadingClientTratativas(cliente.id);
+    
     try {
+      // 1. Tentar buscar por lead_id se existir
+      if (cliente.lead_id && cliente.lead_id.length > 5) {
+        const { data: lead, error: lErr } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).maybeSingle();
+        if (lead && !lErr) {
+          setSelectedLeadForHistory(lead as unknown as Lead);
+          setLoadingClientTratativas(null);
+          return;
+        }
+      }
+
+      // 2. Tentar buscar por nome exato (ajudando em casos de perda de vínculo)
       const nomeLimpo = (cliente.nome || "").trim();
       const { data: existingLeads } = await supabase.from("leads")
         .select("*")
@@ -312,7 +316,7 @@ export default function Carteira() {
         setSelectedLeadForHistory(fallbackLead);
       }
     } catch (e: any) {
-      console.error("Erro ao abrir tratativas:", e);
+      console.error("Erro critico ao abrir tratativas:", e);
       setSelectedLeadForHistory({
         id: cliente.id,
         nome: cliente.nome,
@@ -320,7 +324,7 @@ export default function Carteira() {
         tipo_consorcio: cliente.tipo_consorcio || "imovel"
       } as any);
     } finally {
-      setLoadingTratativas(false);
+      setLoadingClientTratativas(null);
     }
   };
 
@@ -618,7 +622,7 @@ export default function Carteira() {
     }
   };
 
-  const [loadingTratativas, setLoadingTratativas] = useState(false);
+  const [loadingClientTratativas, setLoadingClientTratativas] = useState<string | null>(null);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-slate-400 font-bold uppercase tracking-widest">Carregando carteira...</div>;
 
@@ -802,6 +806,7 @@ export default function Carteira() {
               <Button 
                 variant="outline" 
                 size="sm" 
+                disabled={loadingClientTratativas === c.id}
                 className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 transition-all ${
                   c.lead_id && leadsComLance.has(c.lead_id)
                     ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20" 
@@ -809,7 +814,11 @@ export default function Carteira() {
                 }`}
                 onClick={() => handleOpenTratativas(c)}
               >
-                <NotebookPen className="h-3 w-3" /> 
+                {loadingClientTratativas === c.id ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <NotebookPen className="h-3 w-3" /> 
+                )}
                 {c.lead_id && leadsComLance.has(c.lead_id) ? "Lance Registrado" : "Tratativas"}
               </Button>
 
