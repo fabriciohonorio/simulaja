@@ -304,19 +304,34 @@ export default function Carteira() {
            await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
         }
       } else {
-        const fallbackLead = {
-          id: cliente.id,
+        // 3. Criar lead shadow no banco (obrigatório para salvar histórico)
+        const shadowStatusDate = cliente.data_adesao 
+          ? (cliente.data_adesao.includes('T') ? cliente.data_adesao : `${cliente.data_adesao}T12:00:00Z`)
+          : new Date().toISOString();
+        
+        const { data: newLead, error: insErr } = await supabase.from("leads").insert({
           nome: cliente.nome,
           celular: cliente.celular || "",
-          valor_credito: cliente.valor_credito || 0,
           tipo_consorcio: cliente.tipo_consorcio || "imovel",
+          valor_credito: cliente.valor_credito || 0,
+          status: "fechado",
+          status_updated_at: shadowStatusDate,
           organizacao_id: profile?.organizacao_id,
-          status: "fechado"
-        } as any;
-        setSelectedLeadForHistory(fallbackLead);
+          origem: "carteira_shadow",
+          grupo: cliente.grupo,
+          cota: cliente.cota
+        }).select().single();
+
+        if (newLead && !insErr) {
+          setSelectedLeadForHistory(newLead as unknown as Lead);
+          await supabase.from("carteira").update({ lead_id: newLead.id }).eq("id", cliente.id);
+        } else {
+          toast({ title: "Erro de Vínculo", description: "Não foi possível criar o registro para salvar o histórico.", variant: "destructive" });
+        }
       }
     } catch (e: any) {
       console.error("Erro critico ao abrir tratativas:", e);
+      // Fallback básico para não travar a UI
       setSelectedLeadForHistory({
         id: cliente.id,
         nome: cliente.nome,
