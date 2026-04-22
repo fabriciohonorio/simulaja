@@ -128,7 +128,7 @@ export default function AdminLayout() {
                 {!collapsed ? (
                     <div className="flex flex-col items-center">
                         <img src="/icon-512.png" alt="Logo" className="h-8 w-auto mb-1" />
-                        <span className="text-[10px] font-black tracking-widest text-[#84CC16]">O ESPECIALISTA</span>
+                        <span className="text-[10px] font-black tracking-widest text-[#84CC16]">CONTEMPLAR CRM</span>
                     </div>
                 ) : (
                     <img src="/icon-512.png" alt="Logo" className="h-8 w-auto" />
