@@ -394,7 +394,7 @@ export function LeadCard({
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
                   className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
-                  title="Ver Ficha Magalu">
+                  title="Ver Ficha Cadastral">
                   <ClipboardList className="h-2.5 w-2.5" />
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
@@ -432,7 +432,7 @@ export function LeadCard({
             </button>
             <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
               className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
-              title="Ver Ficha Magalu">
+              title="Ver Ficha Cadastral">
               <ClipboardList className="h-3.5 w-3.5" />
             </button>
             <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}

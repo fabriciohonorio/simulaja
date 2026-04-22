@@ -263,7 +263,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
       <div className="bg-slate-50 p-6 rounded-[24px] border border-slate-200 shadow-inner">
         <h3 className="text-sm font-black text-slate-800 mb-6 flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-primary" />
-          FICHA MAGALU - CAMPOS ADICIONAIS
+          FICHA CADASTRAL - CAMPOS ADICIONAIS
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

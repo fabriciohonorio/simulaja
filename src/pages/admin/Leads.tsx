@@ -371,7 +371,7 @@ export default function Leads() {
                         <button
                           onClick={(e) => { e.stopPropagation(); setViewingFichaLead(l); }}
                           className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${l.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
-                          title="Ver Ficha Magalu"
+                          title="Ver Ficha Cadastral"
                         >
                           <ClipboardList className="h-3.5 w-3.5" />
                         </button>
