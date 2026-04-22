@@ -202,9 +202,10 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
           }}
         >
           {COLUMNS.map((col, index) => {
-                const colLeads = applyFilters(getColumnLeads(col.id));
-                const totalValor = colLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
+            const colLeads = applyFilters(getColumnLeads(col.id));
+            const totalValor = colLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
+            return (
               <div
                 key={col.id}
                 className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 p-1.5 flex flex-col h-[calc(100vh-160px)] relative group/col mr-2 first:ml-2`}
