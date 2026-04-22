@@ -276,87 +276,71 @@ export default function Carteira() {
   };
 
   const handleOpenTratativas = async (cliente: Cliente) => {
+    // Feedback imediato para o usuário saber que o clique funcionou
+    const toastId = toast({ title: "Carregando tratativas...", description: "Localizando histórico do cliente." });
+
     if (cliente.lead_id) {
-       // Buscar lead completo
-       const { data: lead } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).single();
+       const { data: lead, error: lErr } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).maybeSingle();
        if (lead) {
          setSelectedLeadForHistory(lead as unknown as Lead);
          return;
        }
     }
 
-    // Se não tem lead_id ou lead não encontrado, tentar buscar por nome ou criar
     setLoading(true);
     try {
+      // Busca robusta: tenta nome exato ou com trim
+      const nomeLimpo = (cliente.nome || "").trim();
       const { data: existingLeads, error: searchError } = await supabase.from("leads")
         .select("*")
-        .eq("nome", cliente.nome)
+        .or(`nome.eq."${nomeLimpo}",nome.eq."${nomeLimpo} "`) // Tenta com e sem espaço no fim
         .eq("organizacao_id", profile?.organizacao_id)
         .limit(1);
-
-      if (searchError) {
-        console.error("Erro ao buscar lead:", searchError);
-        toast({ title: "Erro ao localizar lead", description: searchError.message, variant: "destructive" });
-        return;
-      }
 
       if (existingLeads && existingLeads.length > 0) {
         const lead = existingLeads[0];
         setSelectedLeadForHistory(lead as unknown as Lead);
-        // Vincular ao cliente para a próxima vez
-        await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
-      } else {
-        // Criar lead shadow — usar data_adesao como data da venda para NÃO contaminar métricas do mês atual
-        const shadowStatusDate = cliente.data_adesao
-          ? (cliente.data_adesao.includes('T') ? cliente.data_adesao : `${cliente.data_adesao}T12:00:00Z`)
-          : "2020-01-01T12:00:00Z"; // data bem no passado se não houver data de adesão
-        
-        const { data: newLead, error: insErr } = await supabase.from("leads").insert({
-          nome: cliente.nome,
-          celular: cliente.celular,
-          tipo_consorcio: cliente.tipo_consorcio || "imovel",
-          valor_credito: cliente.valor_credito || 0,
-          status: "fechado",
-          status_updated_at: shadowStatusDate,
-          organizacao_id: profile?.organizacao_id,
-          grupo: cliente.grupo,
-          cota: cliente.cota,
-          origem: "carteira_shadow",
-        }).select().single();
-
-        if (insErr) {
-          console.error("Erro ao criar lead shadow:", insErr);
-          toast({ title: "Erro ao criar vínculo", description: insErr.message, variant: "destructive" });
-          return;
+        if (!cliente.lead_id) {
+           await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
         }
+      } else {
+        // Fallback: Criar ou abrir modo simplificado
+        const fallbackLead = {
+          id: cliente.id,
+          nome: cliente.nome,
+          celular: cliente.celular || "",
+          valor_credito: cliente.valor_credito || 0,
+          tipo_consorcio: cliente.tipo_consorcio || "imovel",
+          organizacao_id: profile?.organizacao_id,
+          status: "fechado"
+        } as any;
 
-        if (newLead) {
-          setSelectedLeadForHistory(newLead as unknown as Lead);
-          await supabase.from("carteira").update({ lead_id: newLead.id }).eq("id", cliente.id);
-        } else {
-          // Fallback final: abrir o modal com dados básicos mesmo sem lead no banco
-          setSelectedLeadForHistory({
-            id: cliente.id,
-            nome: cliente.nome,
-            celular: cliente.celular || "",
-            valor_credito: cliente.valor_credito,
-            tipo_consorcio: cliente.tipo_consorcio || "imovel",
-            organizacao_id: profile?.organizacao_id
-          } as any);
+        setSelectedLeadForHistory(fallbackLead);
+        
+        // Tenta criar no banco em background para próximas vezes
+        try {
+           const shadowStatusDate = cliente.data_adesao || new Date().toISOString();
+           await supabase.from("leads").insert({
+              ...fallbackLead,
+              status_updated_at: shadowStatusDate,
+              origem: "carteira_shadow",
+              grupo: cliente.grupo,
+              cota: cliente.cota
+           });
+        } catch (e) {
+           console.warn("Silent failure creating shadow lead", e);
         }
       }
     } catch (e: any) {
-      console.error("Exception ao abrir tratativas:", e);
-      // Fallback em caso de erro total
+      console.error("Exception total ao abrir tratativas:", e);
+      toast({ title: "Aviso", description: "Abrindo histórico em modo simplificado.", variant: "default" });
       setSelectedLeadForHistory({
         id: cliente.id,
         nome: cliente.nome,
         celular: cliente.celular || "",
-        valor_credito: cliente.valor_credito,
-        tipo_consorcio: cliente.tipo_consorcio || "imovel",
-        organizacao_id: profile?.organizacao_id
+        valor_credito: cliente.valor_credito || 0,
+        tipo_consorcio: cliente.tipo_consorcio || "imovel"
       } as any);
-      toast({ title: "Aviso", description: "Abrindo histórico em modo simplificado.", variant: "default" });
     } finally {
       setLoading(false);
     }
