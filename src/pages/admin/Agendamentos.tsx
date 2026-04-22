@@ -49,10 +49,19 @@ export default function Agendamentos() {
         !["fechado", "perdido", "morto", "aguardando_pagamento"].includes(a.status?.toLowerCase() || "")
       );
       
-      // Filtra aniversariantes do mês
+      // Filtra aniversariantes (todos que possuem data)
       const birthdayLeads = allLeads.filter(l => {
         const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.data_nascimento;
-        return birth && isBirthdayThisMonth(birth);
+        return birth && parseBirthday(birth) !== null;
+      }).sort((a, b) => {
+        const dateA = parseBirthday(a.dados_cadastro?.NASCIMENTO || a.dados_cadastro?.data_nascimento)!;
+        const dateB = parseBirthday(b.dados_cadastro?.NASCIMENTO || b.dados_cadastro?.data_nascimento)!;
+        
+        // Compara mês e depois dia
+        if (dateA.getMonth() !== dateB.getMonth()) {
+          return dateA.getMonth() - dateB.getMonth();
+        }
+        return dateA.getDate() - dateB.getDate();
       });
 
       setAgendas(filteredAgendas);
@@ -118,7 +127,7 @@ export default function Agendamentos() {
                   Organização <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600">Total</span>
                 </h1>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
-                   Sua agenda centraliza retornos marcados e aniversariantes do mês para um relacionamento de excelência.
+                   Sua agenda centraliza retornos marcados e datas de nascimento de todos os clientes para um relacionamento de excelência.
                 </p>
               </div>
 
@@ -179,7 +188,7 @@ export default function Agendamentos() {
             <CalendarDays className="h-4 w-4" /> Compromissos
           </TabsTrigger>
           <TabsTrigger value="aniversarios" className="gap-2">
-            <Gift className="h-4 w-4" /> Aniversários do Mês
+            <Gift className="h-4 w-4" /> Aniversários (Todos)
           </TabsTrigger>
         </TabsList>
 
