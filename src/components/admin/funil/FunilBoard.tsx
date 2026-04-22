@@ -97,6 +97,10 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
           </div>
         );
 
+        if (snapshot.isDragging) {
+          return createPortal(cardElement, document.body);
+        }
+
         return cardElement;
       }}
     </Draggable>
