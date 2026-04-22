@@ -69,32 +69,25 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
         };
 
         const cardElement = (
-          <div
-            {...provided.draggableProps}
-            ref={provided.innerRef}
-            style={style}
-            className={snapshot.isDragging ? "pointer-events-none" : ""}
-          >
-            <LeadCard
-              lead={lead}
-              snapshot={snapshot}
-              provided={provided}
-              onDelete={handleDeleteLead}
-              onSetVencimento={(l) => {
-                setVencimentoLead(l);
-                setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
-              }}
-              onOpenHistorico={setHistoricoLead}
-              onAssignLead={assignLead}
-              membros={membros}
-              isManager={isManager}
-              ultimaTratativa={ultimasTratativas[lead.id] ?? null}
-              compact={isWideView}
-              onUpdateField={handleUpdateLeadField}
-              onEdit={state.setEditingLead}
-              onViewFicha={state.setViewingFichaLead}
-            />
-          </div>
+          <LeadCard
+            lead={lead}
+            snapshot={snapshot}
+            provided={provided}
+            onDelete={handleDeleteLead}
+            onSetVencimento={(l) => {
+              setVencimentoLead(l);
+              setSelectedDate(l.data_vencimento ? parseISO(l.data_vencimento) : undefined);
+            }}
+            onOpenHistorico={setHistoricoLead}
+            onAssignLead={assignLead}
+            membros={membros}
+            isManager={isManager}
+            ultimaTratativa={ultimasTratativas[lead.id] ?? null}
+            compact={isWideView}
+            onUpdateField={handleUpdateLeadField}
+            onEdit={state.setEditingLead}
+            onViewFicha={state.setViewingFichaLead}
+          />
         );
 
         if (snapshot.isDragging) {

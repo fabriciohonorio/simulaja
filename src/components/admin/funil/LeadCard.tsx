@@ -194,6 +194,11 @@ export function LeadCard({
         ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
         ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/30 scale-105 z-[9999] rotate-1 bg-white backdrop-blur-sm" : "shadow-sm"}
       `}
+      style={{
+        ...provided.draggableProps.style,
+        width: snapshot.isDragging ? (provided.draggableProps.style?.width || (compact ? 180 : 240)) : 'auto',
+        minWidth: snapshot.isDragging ? (compact ? 140 : 230) : 'auto'
+      }}
     >
       {/* Grip Handle & Draggable Zone - Aumentado para melhor pegada */}
       <div 
