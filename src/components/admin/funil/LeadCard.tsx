@@ -184,14 +184,12 @@ export function LeadCard({
       </span>
     );
   };
-
   return (
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`group relative bg-white border rounded-xl overflow-hidden transition-all duration-200
-        ${compact ? "text-[11px]" : "text-sm"}
+      className={`group relative bg-white border rounded-xl overflow-hidden ${!snapshot.isDragging ? "transition-all duration-200" : ""}
         ${statusNormalized === "fechado" ? "border-emerald-200/80 shadow-[0_0_12px_rgba(34,197,94,0.08)]" : "border-slate-200/70 hover:shadow-lg hover:shadow-slate-200/60 hover:border-slate-300/60 hover:-translate-y-0.5"}
         ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
         ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/30 scale-105 z-[9999] rotate-1 bg-white backdrop-blur-sm" : "shadow-sm"}
