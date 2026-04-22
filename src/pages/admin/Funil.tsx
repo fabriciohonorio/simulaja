@@ -47,7 +47,7 @@ export default function Funil() {
   const activeColor = getCategoryColor(selectedCategory);
 
   return (
-    <div className="space-y-2 select-none no-scrollbar w-full animate-in fade-in duration-700">
+    <div className="space-y-2 select-none no-scrollbar w-full">
       {/* Operational Summary Bar - Ultra Slim */}
       <div className="flex flex-col xl:flex-row gap-2">
         {/* Rapid Status Stats */}
