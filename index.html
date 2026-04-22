@@ -11,19 +11,19 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" href="/icon-512.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
-    <title>Contemplar CRM | Gestão Inteligente de Consórcios</title>
-    <meta name="description" content="Contemplar CRM - A plataforma definitiva para Gestão Comercial de Consórcios." />
+    <title>O Especialista Consórcio</title>
+    <meta name="description" content="O Especialista Consórcio - A plataforma definitiva para Gestão Comercial de Consórcios." />
     <meta name="theme-color" content="#0f172a" />
     
-    <meta property="og:title" content="Contemplar CRM | Gestão Comercial de Consórcio" />
+    <meta property="og:title" content="O Especialista Consórcio | Gestão Comercial de Consórcio" />
     <meta property="og:description" content="Gestão Comercial de Consórcio de Contemplados e Novos. Potencialize suas vendas com inteligência." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/og-image.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Contemplar CRM" />
+    <meta name="twitter:title" content="O Especialista Consórcio" />
     <meta name="twitter:description" content="Gestão Inteligente de Consórcios" />
-
+ 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XLG8KJYX5C"></script>
     <script>
@@ -35,11 +35,10 @@
     </script>
 
     <style>
-      /* Highly aggressive CSS to hide any lovable-related elements */
-      [id*="lovable"], [class*="lovable"], [id*="gpt-designer"], [class*="gpt-designer"],
-      a[href*="lovable.app"], a[href*="lovable.dev"], iframe[src*="lovable"],
+      /* Targeted CSS to hide only Lovable specific elements */
       #lovable-badge, #lovable-badge-container, #lovable-badge-cta, #lovable-badge-close,
-      .lovable-badge, [data-lovable-badge] {
+      .lovable-badge, [data-lovable-badge], #gpt-designer-badge,
+      a[href*="lovable.app"], a[href*="lovable.dev"], iframe[src*="lovable"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
@@ -92,29 +91,27 @@
     <script>
       (function() {
         const remove = () => {
+          const targets = ['lovable-badge', 'lovable-badge-container', 'lovable-badge-cta', 'lovable-badge-close', 'gpt-designer-badge'];
+          const selectors = '.lovable-badge, [data-lovable-badge], a[href*="lovable.app"], a[href*="lovable.dev"], iframe[src*="lovable"]';
+
           const cleanup = (root) => {
             if (!root) return;
             
+            // Remove by targeted ID
+            targets.forEach(id => {
+              const el = root.getElementById ? root.getElementById(id) : root.querySelector(`#${id}`);
+              if (el && el.tagName !== 'BODY' && el.tagName !== 'HTML') el.remove();
+            });
+
+            // Remove by targeted selectors
+            root.querySelectorAll(selectors).forEach(el => {
+              if (el.tagName !== 'BODY' && el.tagName !== 'HTML' && el.id !== 'root') el.remove();
+            });
+
+            // Shadow DOM check
             const all = root.querySelectorAll('*');
             all.forEach(el => {
-              // SEGURANÇA: Não remover o body ou o root
-              if (el.tagName === 'BODY' || el.tagName === 'HTML' || el.id === 'root') return;
-
-              const id = el.id || '';
-              const className = typeof el.className === 'string' ? el.className : '';
-              
-              const isLovable = id.toLowerCase().includes('lovable') || 
-                               className.toLowerCase().includes('lovable') ||
-                               id.toLowerCase().includes('gpt-designer') ||
-                               className.toLowerCase().includes('gpt-designer') ||
-                               (el.tagName === 'A' && el.href && (el.href.includes('lovable.app') || el.href.includes('lovable.dev'))) ||
-                               (el.tagName === 'IFRAME' && el.src && el.src.includes('lovable'));
-              
-              if (isLovable) {
-                el.remove();
-              } else if (el.shadowRoot) {
-                cleanup(el.shadowRoot);
-              }
+              if (el.shadowRoot) cleanup(el.shadowRoot);
             });
           };
 
@@ -125,7 +122,7 @@
         observer.observe(document.documentElement, { childList: true, subtree: true });
         
         remove();
-        setInterval(remove, 1000);
+        setInterval(remove, 1500);
       })();
     </script>
   </body>
