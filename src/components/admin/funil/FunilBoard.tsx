@@ -195,7 +195,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <div
           ref={kanbanRef}
-          className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar px-1 lg:px-2 scroll-smooth ${isWideView ? '' : 'justify-start'}`}
+          className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar px-1 lg:px-2 ${isWideView ? '' : 'justify-start'}`}
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none'
