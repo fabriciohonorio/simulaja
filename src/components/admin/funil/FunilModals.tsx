@@ -25,6 +25,15 @@ import { ADMINISTRADORAS } from "@/hooks/useFunil";
 
 import { LeadForm } from "@/components/admin/LeadForm";
 
+/** Converte valor BRL formatado (ex: "R$ 110.000,00") para number */
+function parseBRLValue(v: any): number {
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  const cleaned = String(v).replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
 export function FunilModals({ state }: { state: any }) {
   const {
     historicoLead,
@@ -243,16 +252,16 @@ export function FunilModals({ state }: { state: any }) {
                     <div className="space-y-4">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Crédito Estimado</p>
-                        <p className="text-lg font-black text-slate-900">{formatCurrency(Number(viewingFichaLead.valor_credito || (viewingFichaLead.dados_cadastro as any).VALOR || (viewingFichaLead.dados_cadastro as any).VALOR_CREDITO || (viewingFichaLead.dados_cadastro as any).CREDITO || (viewingFichaLead.dados_cadastro as any).VALUE || (viewingFichaLead.dados_cadastro as any).valor || (viewingFichaLead.dados_cadastro as any).valor_credito) || 0)}</p>
+                        <p className="text-lg font-black text-slate-900">{formatCurrency(parseBRLValue(viewingFichaLead.valor_credito) || parseBRLValue((viewingFichaLead.dados_cadastro as any).valorCredito) || parseBRLValue((viewingFichaLead.dados_cadastro as any).VALOR_CREDITO))}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Prazo Meses</p>
-                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).PRAZO || (viewingFichaLead.dados_cadastro as any).MESES || (viewingFichaLead.dados_cadastro as any).PARCELAS || (viewingFichaLead.dados_cadastro as any).prazo || (viewingFichaLead.dados_cadastro as any).meses || "—"}</p>
+                          <p className="text-sm font-bold">{viewingFichaLead.prazo_meses || (viewingFichaLead.dados_cadastro as any).prazo || (viewingFichaLead.dados_cadastro as any).PRAZO || (viewingFichaLead.dados_cadastro as any).MESES || "—"}</p>
                         </div>
                         <div>
                           <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Segmento</p>
-                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).SEGMENTO || (viewingFichaLead.dados_cadastro as any).TIPO || (viewingFichaLead.dados_cadastro as any).CATEGORIA || (viewingFichaLead.dados_cadastro as any).segmento || "—"}</p>
+                          <p className="text-sm font-bold uppercase">{viewingFichaLead.tipo_consorcio || (viewingFichaLead.dados_cadastro as any).segmento || (viewingFichaLead.dados_cadastro as any).SEGMENTO || (viewingFichaLead.dados_cadastro as any).TIPO || "—"}</p>
                         </div>
                       </div>
                     </div>
