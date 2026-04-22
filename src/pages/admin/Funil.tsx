@@ -124,7 +124,7 @@ export default function Funil() {
 
       {/* Quick Filters */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0">Filtrar:</span>
+        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0">Filtrar (v2.1):</span>
         {[
           { id: 'todos', label: '🗂 Todos' },
           { id: 'atrasados', label: '🔴 +14 dias sem fechar' },
