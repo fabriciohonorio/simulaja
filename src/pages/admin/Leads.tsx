@@ -334,7 +334,7 @@ export default function Leads() {
                     </td>
 
                     <td className="px-4 py-3 uppercase text-[10px] font-bold text-slate-500">
-                      {l.tipo_consorcio || "Indefinido"}
+                      {l.tipo_consorcio || getDC(l.dados_cadastro, ['segmento', 'SEGMENTO', 'TIPO', 'tipo']) || "Indefinido"}
                     </td>
 
                     <td className="px-4 py-3">
@@ -363,7 +363,7 @@ export default function Leads() {
                     </td>
 
                     <td className="px-4 py-3 font-black text-slate-700">
-                      {formatLeadValue(Number(l.valor_credito || 0))}
+                      {formatLeadValue(Number(l.valor_credito) || parseBRLValue((l.dados_cadastro as any)?.valorCredito) || parseBRLValue((l.dados_cadastro as any)?.VALOR_CREDITO) || 0)}
                     </td>
 
                     <td className="px-4 py-3 text-right">
