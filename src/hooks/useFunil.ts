@@ -247,22 +247,34 @@ export function useFunil() {
             // Remove lead excluído da lista sem precisar re-fetch
             setLeads((prev) => prev.filter((l) => l.id !== (payload.old as any).id));
           } else if (payload.eventType === 'INSERT') {
-            const newLead = payload.new as Lead;
-            setLeads((prev) => {
-              const exists = prev.find((l) => l.id === newLead.id);
-              if (exists) return prev;
-              return [{ ...newLead, nome: newLead.nome || 'Lead Sem Nome', status: normalizeStatus(newLead.status) }, ...prev];
-            });
+            // IMPORTANTE: payload.new do Realtime NÃO inclui colunas JSONB (dados_cadastro)
+            // Por isso fazemos um fetch completo do lead recém-inserido
+            const newLeadId = (payload.new as any).id;
+            (supabase as any).from("leads").select("*").eq("id", newLeadId).maybeSingle()
+              .then(({ data: fullLead }: any) => {
+                if (!fullLead) return;
+                setLeads((prev) => {
+                  const exists = prev.find((l) => l.id === fullLead.id);
+                  if (exists) return prev;
+                  return [{ ...fullLead, nome: fullLead.nome || 'Lead Sem Nome', status: normalizeStatus(fullLead.status) }, ...prev];
+                });
+              });
           } else if (payload.eventType === 'UPDATE') {
-            const updated = payload.new as Lead;
-            setLeads((prev) =>
-              prev.map((l) =>
-                l.id === updated.id
-                  ? { ...l, ...updated, nome: updated.nome || 'Lead Sem Nome', status: normalizeStatus(updated.status) }
-                  : l
-              )
-            );
+            // Para UPDATE também buscamos o lead completo para garantir dados_cadastro atualizado
+            const updatedId = (payload.new as any).id;
+            (supabase as any).from("leads").select("*").eq("id", updatedId).maybeSingle()
+              .then(({ data: fullLead }: any) => {
+                if (!fullLead) return;
+                setLeads((prev) =>
+                  prev.map((l) =>
+                    l.id === fullLead.id
+                      ? { ...l, ...fullLead, nome: fullLead.nome || 'Lead Sem Nome', status: normalizeStatus(fullLead.status) }
+                      : l
+                  )
+                );
+              });
           }
+
         }
       )
       .subscribe();
