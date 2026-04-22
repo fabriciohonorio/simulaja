@@ -375,50 +375,47 @@ export function LeadCard({
                   setIsEditingField({ field: "responsavel", value: lead.responsavel_id || "" });
                 }}
               >
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[8px] font-black text-primary/70 shrink-0 border border-primary/10">
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 shrink-0 border border-slate-200 hover:bg-slate-200 transition-colors">
                   {(() => {
                     const nome = membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?";
                     return nome.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
                   })()}
                 </div>
-                <span className="text-[8px] text-slate-400 truncate max-w-[55px] font-medium">
-                  {(membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "Resp.").split(" ")[0]}
-                </span>
               </div>
               
               <div className="flex items-center gap-0.5">
                 <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-5 h-5 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
+                  className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
                   title="Agendar">
-                  <CalendarIcon className="h-2.5 w-2.5" />
+                  <CalendarIcon className="h-3 w-3" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
-                  className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                  className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
                   title="Ver Ficha Cadastral">
-                  <ClipboardList className="h-2.5 w-2.5" />
+                  <ClipboardList className="h-3.5 w-3.5" />
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-5 h-5 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+                  className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
                   title="WhatsApp">
-                  <WhatsAppIcon className="h-2.5 w-2.5" />
+                  <WhatsAppIcon className="h-3 w-3" />
                 </a>
                 <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-5 h-5 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
+                  className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
                   title="Histórico">
-                  <NotebookPen className="h-2.5 w-2.5" />
+                  <NotebookPen className="h-3 w-3" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
-                  className="w-5 h-5 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
+                  className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
                   title="Editar Lead">
-                  <Pencil className="h-2.5 w-2.5" />
+                  <Pencil className="h-3 w-3" />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-5 h-5 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
+                  className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
                   title="Excluir">
-                  <Trash2 className="h-2.5 w-2.5" />
+                  <Trash2 className="h-3 w-3" />
                 </button>
               </div>
             </div>

@@ -97,10 +97,6 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
           </div>
         );
 
-        if (snapshot.isDragging) {
-          return createPortal(cardElement, document.body);
-        }
-
         return cardElement;
       }}
     </Draggable>
@@ -215,7 +211,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 backdrop-blur-sm p-1.5 flex flex-col h-[calc(100vh-160px)] transition-all relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 p-1.5 flex flex-col h-[calc(100vh-160px)] relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
                   style={{ width: columnWidths[col.id] || (isWideView ? 180 : 240), minWidth: isWideView ? 140 : 230 }}
                 >
                   <div className="mb-2 flex items-center justify-between">
