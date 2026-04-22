@@ -15,6 +15,12 @@ export function parseBirthday(birthStr: string | any): Date | null {
       day = parseInt(parts[0]);
       month = parseInt(parts[1]) - 1; // 0-indexed
       year = parseInt(parts[2]);
+    } else if (birthStr.includes('-')) {
+      // Formato YYYY-MM-DD
+      const parts = birthStr.split('-');
+      year = parseInt(parts[0]);
+      month = parseInt(parts[1]) - 1;
+      day = parseInt(parts[2]);
     } else if (birthStr.length === 8) {
       // Formato DDMMYYYY
       day = parseInt(birthStr.substring(0, 2));

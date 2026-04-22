@@ -90,11 +90,13 @@ export default function Agendamentos() {
     
     // Filtra aniversariantes (todos que possuem data)
     const birthdayLeads = allLeads.filter(l => {
-      const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.data_nascimento;
+      const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.DATANASCIMENTO || l.dados_cadastro?.DATA_NASCIMENTO || l.dados_cadastro?.data_nascimento || l.dados_cadastro?.nascimento || l.dados_cadastro?.birth_date;
       return birth && parseBirthday(birth) !== null;
     }).sort((a, b) => {
-      const dateA = parseBirthday(a.dados_cadastro?.NASCIMENTO || a.dados_cadastro?.data_nascimento)!;
-      const dateB = parseBirthday(b.dados_cadastro?.NASCIMENTO || b.dados_cadastro?.data_nascimento)!;
+      const birthA = a.dados_cadastro?.NASCIMENTO || a.dados_cadastro?.DATANASCIMENTO || a.dados_cadastro?.DATA_NASCIMENTO || a.dados_cadastro?.data_nascimento || a.dados_cadastro?.nascimento || a.dados_cadastro?.birth_date;
+      const birthB = b.dados_cadastro?.NASCIMENTO || b.dados_cadastro?.DATANASCIMENTO || b.dados_cadastro?.DATA_NASCIMENTO || b.dados_cadastro?.data_nascimento || b.dados_cadastro?.nascimento || b.dados_cadastro?.birth_date;
+      const dateA = parseBirthday(birthA)!;
+      const dateB = parseBirthday(birthB)!;
       
       if (dateA.getMonth() !== dateB.getMonth()) {
         return dateA.getMonth() - dateB.getMonth();
@@ -130,7 +132,7 @@ export default function Agendamentos() {
 
   const agendamentosHoje = agendas.filter(a => isToday(parseISO(a.data_vencimento!))).length;
   const aniversariantesHoje = leadsWithBirthday.filter(l => {
-    const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.data_nascimento;
+    const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.DATANASCIMENTO || l.dados_cadastro?.DATA_NASCIMENTO || l.dados_cadastro?.data_nascimento || l.dados_cadastro?.nascimento || l.dados_cadastro?.birth_date;
     return isBirthdayToday(birth);
   }).length;
 
@@ -183,7 +185,8 @@ export default function Agendamentos() {
     const appts = appointments.filter(a => isSameDay(parseISO(a.data_agendada), day));
     const leads = agendas.filter(l => isSameDay(parseISO(l.data_vencimento!), day));
     const births = leadsWithBirthday.filter(l => {
-      const b = parseBirthday(l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.data_nascimento);
+      const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.DATANASCIMENTO || l.dados_cadastro?.DATA_NASCIMENTO || l.dados_cadastro?.data_nascimento || l.dados_cadastro?.nascimento || l.dados_cadastro?.birth_date;
+      const b = parseBirthday(birth);
       return b && b.getDate() === day.getDate() && b.getMonth() === day.getMonth();
     });
     return { appts, leads, births };
@@ -511,7 +514,7 @@ export default function Agendamentos() {
         <TabsContent value="aniversarios" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredBirthdays.map((lead) => {
-              const birthStr = lead.dados_cadastro?.NASCIMENTO || lead.dados_cadastro?.data_nascimento;
+              const birthStr = lead.dados_cadastro?.NASCIMENTO || lead.dados_cadastro?.DATANASCIMENTO || lead.dados_cadastro?.DATA_NASCIMENTO || lead.dados_cadastro?.data_nascimento || lead.dados_cadastro?.nascimento || lead.dados_cadastro?.birth_date;
               const birthDate = parseBirthday(birthStr);
               const hoje = isBirthdayToday(birthStr);
 
