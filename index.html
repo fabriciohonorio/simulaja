@@ -95,18 +95,22 @@
           const cleanup = (root) => {
             if (!root) return;
             
-            // Find all elements and check their ID or class for 'lovable'
             const all = root.querySelectorAll('*');
             all.forEach(el => {
+              // SEGURANÇA: Não remover o body ou o root
+              if (el.tagName === 'BODY' || el.tagName === 'HTML' || el.id === 'root') return;
+
               const id = el.id || '';
               const className = typeof el.className === 'string' ? el.className : '';
               
-              if (id.toLowerCase().includes('lovable') || 
-                  className.toLowerCase().includes('lovable') ||
-                  id.toLowerCase().includes('gpt-designer') ||
-                  className.toLowerCase().includes('gpt-designer') ||
-                  (el.tagName === 'A' && el.href && (el.href.includes('lovable.app') || el.href.includes('lovable.dev'))) ||
-                  (el.tagName === 'IFRAME' && el.src && el.src.includes('lovable'))) {
+              const isLovable = id.toLowerCase().includes('lovable') || 
+                               className.toLowerCase().includes('lovable') ||
+                               id.toLowerCase().includes('gpt-designer') ||
+                               className.toLowerCase().includes('gpt-designer') ||
+                               (el.tagName === 'A' && el.href && (el.href.includes('lovable.app') || el.href.includes('lovable.dev'))) ||
+                               (el.tagName === 'IFRAME' && el.src && el.src.includes('lovable'));
+              
+              if (isLovable) {
                 el.remove();
               } else if (el.shadowRoot) {
                 cleanup(el.shadowRoot);
@@ -121,7 +125,7 @@
         observer.observe(document.documentElement, { childList: true, subtree: true });
         
         remove();
-        setInterval(remove, 500);
+        setInterval(remove, 1000);
       })();
     </script>
   </body>
