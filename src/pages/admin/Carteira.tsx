@@ -288,11 +288,17 @@ export default function Carteira() {
     // Se não tem lead_id ou lead não encontrado, tentar buscar por nome ou criar
     setLoading(true);
     try {
-      const { data: existingLeads } = await supabase.from("leads")
+      const { data: existingLeads, error: searchError } = await supabase.from("leads")
         .select("*")
         .eq("nome", cliente.nome)
         .eq("organizacao_id", profile?.organizacao_id)
         .limit(1);
+
+      if (searchError) {
+        console.error("Erro ao buscar lead:", searchError);
+        toast({ title: "Erro ao localizar lead", description: searchError.message, variant: "destructive" });
+        return;
+      }
 
       if (existingLeads && existingLeads.length > 0) {
         const lead = existingLeads[0];
@@ -304,6 +310,7 @@ export default function Carteira() {
         const shadowStatusDate = cliente.data_adesao
           ? (cliente.data_adesao.includes('T') ? cliente.data_adesao : `${cliente.data_adesao}T12:00:00Z`)
           : "2020-01-01T12:00:00Z"; // data bem no passado se não houver data de adesão
+        
         const { data: newLead, error: insErr } = await supabase.from("leads").insert({
           nome: cliente.nome,
           celular: cliente.celular,
@@ -317,13 +324,22 @@ export default function Carteira() {
           origem: "carteira_shadow",
         }).select().single();
 
+        if (insErr) {
+          console.error("Erro ao criar lead shadow:", insErr);
+          toast({ title: "Erro ao criar vínculo", description: insErr.message, variant: "destructive" });
+          return;
+        }
+
         if (newLead) {
           setSelectedLeadForHistory(newLead as unknown as Lead);
           await supabase.from("carteira").update({ lead_id: newLead.id }).eq("id", cliente.id);
+        } else {
+          toast({ title: "Atenção", description: "Não foi possível gerar as tratativas para este cliente.", variant: "destructive" });
         }
       }
-    } catch (e) {
-      toast({ title: "Erro ao abrir tratativas", variant: "destructive" });
+    } catch (e: any) {
+      console.error("Exception ao abrir tratativas:", e);
+      toast({ title: "Erro ao abrir tratativas", description: e.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
