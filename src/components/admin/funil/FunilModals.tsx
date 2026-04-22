@@ -262,24 +262,24 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👤 Dados Pessoais</h4>
                     <div className="space-y-3">
                        {[
-                        { label: "CPF/CNPJ", keys: ["CPF", "CNPJ", "CPFCNPJ", "DOCUMENTO_PRINCIPAL", "DOC_PRINCIPAL", "cpf", "cnpj", "cpf_cnpj"] },
-                        { label: "Documento", keys: ["RG", "CNH", "DOCUMENTO", "DOCUMENTO_NUMERO", "NUMERO_DOCUMENTO", "MAE_PAI_DOCUMENTO", "rg", "cnh", "documento", "num_documento"] },
-                        { label: "Tipo Doc", keys: ["TIPO_DOCUMENTO", "DOC_TIPO", "TIPO_DOC", "tipo_documento", "tipo_doc"] },
-                        { label: "Emissão", keys: ["DATA_EMISSAO", "EMISSAO", "DATAEMISSAO", "DATA_EXPEDICAO", "data_emissao", "emissao"] },
-                        { label: "Órgão/UF", keys: ["ORGAO_EMISSOR", "ORGAO_UF", "EMISSOR", "ORGAO_EMISSOR_UF", "ORGAO_EXPEDIDOR", "orgao_emissor", "emissor"] },
-                        { label: "Nascimento", keys: ["NASCIMENTO", "DATANASCIMENTO", "DATA_NASCIMENTO", "DATA", "data_nascimento", "nascimento", "birth_date"] },
-                        { label: "Sexo", keys: ["SEXO", "GENERO", "sexo", "genero"] },
-                        { label: "Est. Civil", keys: ["ESTADO_CIVIL", "ESTADOCIVIL", "ESTADO_CIVIL_", "estado_civil"] },
-                        { label: "Nacionalidade", keys: ["NACIONALIDADE", "PAIS", "nacionalidade", "pais"] },
-                        { label: "Naturalidade", keys: ["NATURALIDADE", "CIDADE_NATAL", "NATURALIDADE_UF", "naturalidade"] },
-                        { label: "Profissão", keys: ["PROFISSAO", "CARGO", "OCUPACAO", "LOCAL_TRABALHO", "profissao", "cargo"] },
-                        { label: "Renda Mensal", keys: ["RENDA", "RENDA_MENSAL", "VALOR_RENDA", "renda", "renda_mensal"] },
-                        { label: "Como Conheceu", keys: ["COMO_CONHECEU", "ORIGEM", "COMO_CONHECEU_MAGALU", "como_conheceu", "origem"] },
+                        { label: "CPF/CNPJ", keys: ["cpf", "CPF", "CNPJ", "cnpj"] },
+                        { label: "Documento", keys: ["documento", "rg", "cnh", "RG", "CNH", "DOCUMENTO"] },
+                        { label: "Tipo Doc", keys: ["tipoDocumento", "TIPO_DOCUMENTO", "tipo_documento"] },
+                        { label: "Emissão", keys: ["dataEmissao", "DATA_EMISSAO", "EMISSAO", "data_emissao"] },
+                        { label: "Órgão/UF", keys: ["orgaoEmissor", "ufOrgaoEmissor", "ORGAO_EMISSOR", "orgao_emissor"] },
+                        { label: "Nascimento", keys: ["dataNascimento", "NASCIMENTO", "DATA_NASCIMENTO", "data_nascimento", "nascimento"] },
+                        { label: "Sexo", keys: ["sexo", "SEXO", "GENERO", "genero"] },
+                        { label: "Est. Civil", keys: ["estadoCivil", "ESTADO_CIVIL", "ESTADOCIVIL", "estado_civil"] },
+                        { label: "Nacionalidade", keys: ["nacionalidade", "NACIONALIDADE", "pais", "PAIS"] },
+                        { label: "Naturalidade", keys: ["naturalidade", "NATURALIDADE", "ufNaturalidade", "CIDADE_NATAL"] },
+                        { label: "Profissão", keys: ["profissao", "PROFISSAO", "CARGO", "cargo"] },
+                        { label: "Renda Mensal", keys: ["renda", "RENDA", "RENDA_MENSAL", "renda_mensal"] },
+                        { label: "Como Conheceu", keys: ["comunicacao", "COMO_CONHECEU", "ORIGEM", "como_conheceu"] },
                       ].map((f) => (
                         <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
                           <span className="text-xs font-black text-slate-900">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || "—"}
                           </span>
                         </div>
                       ))}
@@ -292,18 +292,18 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">👨‍👩‍👦 Filiação & Resp.</h4>
                     <div className="space-y-3">
                        {[
-                        { label: "Nome da Mãe", keys: ["NOMEMAE", "MAE_NOME", "NOME_MAE", "MAE_PAI_NOME", "mae_nome", "nome_mae", "nome_da_mae"] },
-                        { label: "Nome do Pai", keys: ["NOMEPAI", "PAI_NOME", "NOME_PAI", "nome_pai", "nome_do_pai"] },
-                        { label: "Resp. Nome", keys: ["MAE_PAI_NOME", "CPFCONJUGE", "REPRESENTANTE_NOME", "responsavel_nome"] },
+                        { label: "Nome da Mãe", keys: ["nomeMae", "MAE_NOME", "NOMEMAE", "NOME_MAE", "mae_nome"] },
+                        { label: "Nome do Pai", keys: ["nomePai", "PAI_NOME", "NOMEPAI", "NOME_PAI", "nome_pai"] },
+                        { label: "Resp. Nome", keys: ["MAE_PAI_NOME", "REPRESENTANTE_NOME", "responsavel_nome"] },
                         { label: "Resp. CPF", keys: ["MAE_PAI_CPF", "REPRESENTANTE_CPF", "responsavel_cpf"] },
                         { label: "Resp. RG", keys: ["MAE_PAI_DOCUMENTO", "REPRESENTANTE_RG", "responsavel_rg"] },
-                        { label: "Conjuge Nome", keys: ["NOME_CONJUGE", "CONJUGE_NOME", "NOME_ESPOSA", "NOME_MARIDO", "nome_conjuge"] },
-                        { label: "Conjuge CPF", keys: ["CPF_CONJUGE", "CONJUGE_CPF", "cpf_conjuge"] },
+                        { label: "Cônjuge Nome", keys: ["nomeConjuge", "NOME_CONJUGE", "CONJUGE_NOME", "nome_conjuge"] },
+                        { label: "Cônjuge CPF", keys: ["cpfConjuge", "CPF_CONJUGE", "CONJUGE_CPF", "cpf_conjuge"] },
                       ].map((f) => (
                         <div key={f.label} className="flex flex-col py-1.5 border-b border-slate-50 last:border-0">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{f.label}</span>
                           <span className="text-xs font-black text-slate-900 mt-0.5">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || "—"}
                           </span>
                         </div>
                       ))}
@@ -314,15 +314,15 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">🏢 Profissional & Residência</h4>
                     <div className="space-y-3">
                       {[
-                        { label: "Empresa", keys: ["EMPRESA", "LOCAL_TRABALHO", "empresa", "trabalho"] },
-                        { label: "Admissão", keys: ["ADMISSAO", "DATA_ADMISSAO", "data_admissao", "admissao"] },
-                        { label: "Tipo Residência", keys: ["TIPO_RESIDENCIA", "TIPORESIDENCIA", "tipo_residencia"] },
-                        { label: "Tempo Res.", keys: ["TEMPO_RESIDENCIA", "TEMPORESIDENCIA", "tempo_residencia"] },
+                        { label: "Empresa", keys: ["nomeEmpresa", "EMPRESA", "LOCAL_TRABALHO", "empresa"] },
+                        { label: "Admissão", keys: ["dataAdmissao", "ADMISSAO", "DATA_ADMISSAO", "data_admissao"] },
+                        { label: "Tipo Residência", keys: ["tipoResidencia", "TIPO_RESIDENCIA", "TIPORESIDENCIA", "tipo_residencia"] },
+                        { label: "Tempo Res.", keys: ["tempoResidenciaAnos", "TEMPO_RESIDENCIA", "TEMPORESIDENCIA", "tempo_residencia"] },
                       ].map((f) => (
                         <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
                           <span className="text-xs font-black text-slate-900">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || "—"}
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || "—"}
                           </span>
                         </div>
                       ))}
@@ -344,7 +344,7 @@ export function FunilModals({ state }: { state: any }) {
                       <div className="space-y-3">
                         <div className="flex flex-col">
                           <span className="text-[9px] font-bold text-slate-400 uppercase">E-mail</span>
-                          <span className="text-xs font-black text-slate-900 truncate">{viewingFichaLead.email || (viewingFichaLead.dados_cadastro as any).EMAIL || (viewingFichaLead.dados_cadastro as any).email || (viewingFichaLead.dados_cadastro as any)["e-mail"] || "—"}</span>
+                          <span className="text-xs font-black text-slate-900 truncate">{viewingFichaLead.email || (viewingFichaLead.dados_cadastro as any).email || (viewingFichaLead.dados_cadastro as any).EMAIL || (viewingFichaLead.dados_cadastro as any)["e-mail"] || "—"}</span>
                         </div>
                       </div>
                     </div>
@@ -354,18 +354,18 @@ export function FunilModals({ state }: { state: any }) {
                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 pb-2 border-b border-primary/10">📍 Localização</h4>
                     <div className="space-y-3">
                       {[
-                        { label: "CEP", keys: ["CEP"] },
-                        { label: "Endereço", keys: ["LOGRADOURO", "RUA", "ENDERECO", "LOGRADOURO_", "LOCALIDADE", "logradouro", "rua"] },
-                        { label: "Número", keys: ["NUMERO", "NUMERO_ENDERECO", "NUM", "numero", "num"] },
-                        { label: "Complemento", keys: ["COMPLEMENTO", "CPL", "LOGRADOURO_COMPLEMENTO", "complemento"] },
-                        { label: "Bairro", keys: ["BAIRRO"] },
-                        { label: "Cidade", keys: ["CIDADE", "MUNICIPIO", "NOME_CIDADE"] },
-                        { label: "Estado", keys: ["UF", "ESTADO"] },
+                        { label: "CEP", keys: ["cep", "CEP"] },
+                        { label: "Endereço", keys: ["logradouro", "LOGRADOURO", "RUA", "rua", "ENDERECO"] },
+                        { label: "Número", keys: ["numero", "NUMERO", "NUM", "num"] },
+                        { label: "Complemento", keys: ["complemento", "COMPLEMENTO", "CPL"] },
+                        { label: "Bairro", keys: ["bairro", "BAIRRO"] },
+                        { label: "Cidade", keys: ["cidade", "CIDADE", "MUNICIPIO"] },
+                        { label: "Estado", keys: ["uf", "UF", "ESTADO"] },
                       ].map((f) => (
                         <div key={f.label} className="flex flex-col py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[9px] font-bold text-slate-400 uppercase">{f.label}</span>
                           <span className="text-xs font-black text-slate-900 mt-0.5">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k] || (viewingFichaLead.dados_cadastro as any)[k.toLowerCase()]).find(v => !!v) || (f.label === "Cidade" ? viewingFichaLead.cidade : "—")}
+                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || (f.label === "Cidade" ? viewingFichaLead.cidade : "—")}
                           </span>
                         </div>
                       ))}

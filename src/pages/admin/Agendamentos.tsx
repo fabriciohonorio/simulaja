@@ -90,11 +90,11 @@ export default function Agendamentos() {
     
     // Filtra aniversariantes (todos que possuem data)
     const birthdayLeads = allLeads.filter(l => {
-      const birth = l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.DATANASCIMENTO || l.dados_cadastro?.DATA_NASCIMENTO || l.dados_cadastro?.data_nascimento || l.dados_cadastro?.nascimento || l.dados_cadastro?.birth_date;
+      const birth = l.dados_cadastro?.dataNascimento || l.dados_cadastro?.NASCIMENTO || l.dados_cadastro?.DATA_NASCIMENTO || l.dados_cadastro?.data_nascimento || l.dados_cadastro?.nascimento;
       return birth && parseBirthday(birth) !== null;
     }).sort((a, b) => {
-      const birthA = a.dados_cadastro?.NASCIMENTO || a.dados_cadastro?.DATANASCIMENTO || a.dados_cadastro?.DATA_NASCIMENTO || a.dados_cadastro?.data_nascimento || a.dados_cadastro?.nascimento || a.dados_cadastro?.birth_date;
-      const birthB = b.dados_cadastro?.NASCIMENTO || b.dados_cadastro?.DATANASCIMENTO || b.dados_cadastro?.DATA_NASCIMENTO || b.dados_cadastro?.data_nascimento || b.dados_cadastro?.nascimento || b.dados_cadastro?.birth_date;
+      const birthA = a.dados_cadastro?.dataNascimento || a.dados_cadastro?.NASCIMENTO || a.dados_cadastro?.DATA_NASCIMENTO || a.dados_cadastro?.data_nascimento || a.dados_cadastro?.nascimento;
+      const birthB = b.dados_cadastro?.dataNascimento || b.dados_cadastro?.NASCIMENTO || b.dados_cadastro?.DATA_NASCIMENTO || b.dados_cadastro?.data_nascimento || b.dados_cadastro?.nascimento;
       const dateA = parseBirthday(birthA)!;
       const dateB = parseBirthday(birthB)!;
       
