@@ -334,12 +334,29 @@ export default function Carteira() {
           setSelectedLeadForHistory(newLead as unknown as Lead);
           await supabase.from("carteira").update({ lead_id: newLead.id }).eq("id", cliente.id);
         } else {
-          toast({ title: "Atenção", description: "Não foi possível gerar as tratativas para este cliente.", variant: "destructive" });
+          // Fallback final: abrir o modal com dados básicos mesmo sem lead no banco
+          setSelectedLeadForHistory({
+            id: cliente.id,
+            nome: cliente.nome,
+            celular: cliente.celular || "",
+            valor_credito: cliente.valor_credito,
+            tipo_consorcio: cliente.tipo_consorcio || "imovel",
+            organizacao_id: profile?.organizacao_id
+          } as any);
         }
       }
     } catch (e: any) {
       console.error("Exception ao abrir tratativas:", e);
-      toast({ title: "Erro ao abrir tratativas", description: e.message, variant: "destructive" });
+      // Fallback em caso de erro total
+      setSelectedLeadForHistory({
+        id: cliente.id,
+        nome: cliente.nome,
+        celular: cliente.celular || "",
+        valor_credito: cliente.valor_credito,
+        tipo_consorcio: cliente.tipo_consorcio || "imovel",
+        organizacao_id: profile?.organizacao_id
+      } as any);
+      toast({ title: "Aviso", description: "Abrindo histórico em modo simplificado.", variant: "default" });
     } finally {
       setLoading(false);
     }
