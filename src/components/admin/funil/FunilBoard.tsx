@@ -206,35 +206,38 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
           const totalValor = colLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
           return (
-            <Droppable droppableId={col.id} key={col.id}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 p-1.5 flex flex-col h-[calc(100vh-160px)] relative group/col ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-                  style={{ width: columnWidths[col.id] || (isWideView ? 180 : 240), minWidth: isWideView ? 140 : 230 }}
-                >
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <h3 className={`font-black text-[11px] truncate uppercase tracking-tighter ${isWideView ? "text-[10px]" : ""}`}>{col.label}</h3>
-                      <p className="text-[9px] text-muted-foreground -mt-0.5">
-                        {colLeads.length} leads · {formatCurrency(totalValor)}
-                      </p>
-                    </div>
-                  </div>
+            <div
+              key={col.id}
+              className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 p-1.5 flex flex-col h-[calc(100vh-160px)] relative group/col`}
+              style={{ width: columnWidths[col.id] || (isWideView ? 180 : 240), minWidth: isWideView ? 140 : 230 }}
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <h3 className={`font-black text-[11px] truncate uppercase tracking-tighter ${isWideView ? "text-[10px]" : ""}`}>{col.label}</h3>
+                  <p className="text-[9px] text-muted-foreground -mt-0.5">
+                    {colLeads.length} leads · {formatCurrency(totalValor)}
+                  </p>
+                </div>
+              </div>
 
+              <div
+                onMouseDown={(e: any) => startResizing(col.id, e)}
+                className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-10"
+              />
+
+              <Droppable droppableId={col.id}>
+                {(provided, snapshot) => (
                   <div
-                    onMouseDown={(e: any) => startResizing(col.id, e)}
-                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-10"
-                  />
-
-                  <div className="space-y-1.5 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px]">
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`space-y-1.5 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30 rounded" : ""}`}
+                  >
                     {colLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
                     {provided.placeholder}
                   </div>
-                </div>
-              )}
-            </Droppable>
+                )}
+              </Droppable>
+            </div>
           );
         })}
       </div>
