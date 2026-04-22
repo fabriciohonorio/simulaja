@@ -276,24 +276,20 @@ export default function Carteira() {
   };
 
   const handleOpenTratativas = async (cliente: Cliente) => {
-    // Feedback imediato para o usuário saber que o clique funcionou
-    const toastId = toast({ title: "Carregando tratativas...", description: "Localizando histórico do cliente." });
-
     if (cliente.lead_id) {
-       const { data: lead, error: lErr } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).maybeSingle();
+       const { data: lead } = await supabase.from("leads").select("*").eq("id", cliente.lead_id).maybeSingle();
        if (lead) {
          setSelectedLeadForHistory(lead as unknown as Lead);
          return;
        }
     }
 
-    setLoading(true);
+    setLoadingTratativas(true);
     try {
-      // Busca robusta: tenta nome exato ou com trim
       const nomeLimpo = (cliente.nome || "").trim();
-      const { data: existingLeads, error: searchError } = await supabase.from("leads")
+      const { data: existingLeads } = await supabase.from("leads")
         .select("*")
-        .or(`nome.eq."${nomeLimpo}",nome.eq."${nomeLimpo} "`) // Tenta com e sem espaço no fim
+        .or(`nome.eq."${nomeLimpo}",nome.eq."${nomeLimpo} "`)
         .eq("organizacao_id", profile?.organizacao_id)
         .limit(1);
 
@@ -304,7 +300,6 @@ export default function Carteira() {
            await supabase.from("carteira").update({ lead_id: lead.id }).eq("id", cliente.id);
         }
       } else {
-        // Fallback: Criar ou abrir modo simplificado
         const fallbackLead = {
           id: cliente.id,
           nome: cliente.nome,
@@ -314,35 +309,18 @@ export default function Carteira() {
           organizacao_id: profile?.organizacao_id,
           status: "fechado"
         } as any;
-
         setSelectedLeadForHistory(fallbackLead);
-        
-        // Tenta criar no banco em background para próximas vezes
-        try {
-           const shadowStatusDate = cliente.data_adesao || new Date().toISOString();
-           await supabase.from("leads").insert({
-              ...fallbackLead,
-              status_updated_at: shadowStatusDate,
-              origem: "carteira_shadow",
-              grupo: cliente.grupo,
-              cota: cliente.cota
-           });
-        } catch (e) {
-           console.warn("Silent failure creating shadow lead", e);
-        }
       }
     } catch (e: any) {
-      console.error("Exception total ao abrir tratativas:", e);
-      toast({ title: "Aviso", description: "Abrindo histórico em modo simplificado.", variant: "default" });
+      console.error("Erro ao abrir tratativas:", e);
       setSelectedLeadForHistory({
         id: cliente.id,
         nome: cliente.nome,
-        celular: cliente.celular || "",
         valor_credito: cliente.valor_credito || 0,
         tipo_consorcio: cliente.tipo_consorcio || "imovel"
       } as any);
     } finally {
-      setLoading(false);
+      setLoadingTratativas(false);
     }
   };
 
@@ -640,7 +618,9 @@ export default function Carteira() {
     }
   };
 
-  if (loading) return <div className="p-20 text-center animate-pulse">Carregando carteira...</div>;
+  const [loadingTratativas, setLoadingTratativas] = useState(false);
+
+  if (loading) return <div className="p-20 text-center animate-pulse text-slate-400 font-bold uppercase tracking-widest">Carregando carteira...</div>;
 
   return (
     <div className="space-y-6">
