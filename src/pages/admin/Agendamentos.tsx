@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, MessageCircle, Phone, Clock, AlertCircle, Search, MapPin, DollarSign, ExternalLink, Gift, PartyPopper, Plus, ChevronLeft, ChevronRight, CheckCircle2, ListFilter, Calendar as CalendarIcon } from "lucide-react";
+import { CalendarDays, MessageCircle, Phone, Clock, AlertCircle, Search, MapPin, DollarSign, ExternalLink, Gift, PartyPopper, Plus, ChevronLeft, ChevronRight, CheckCircle2, ListFilter, Calendar as CalendarIcon, Trash2, Pencil } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isPast, isToday, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, addDays, getDay } from "date-fns";
@@ -63,6 +63,13 @@ export default function Agendamentos() {
     tipo: "reuniao"
   });
   const [allLeadsList, setAllLeadsList] = useState<Lead[]>([]);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState<{
+    id: string;
+    type: 'appointment' | 'lead';
+    date: string;
+    titulo?: string;
+  } | null>(null);
 
   const fetchAgendas = async () => {
     // Busca todos os leads relevantes
@@ -172,6 +179,63 @@ export default function Agendamentos() {
     } else {
       toast({ title: "Agendamento salvo!", description: "Seu compromisso foi registrado com sucesso." });
       setIsAddingAppointment(false);
+      setNewAppt({
+        titulo: "",
+        data: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        descricao: "",
+        lead_id: "none",
+        tipo: "reuniao"
+      });
+      fetchAgendas();
+    }
+  };
+
+  const handleDeleteAppointment = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este agendamento?")) return;
+    
+    const { error } = await supabase.from("agendamentos").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Excluído!", description: "Agendamento removido da sua lista." });
+      fetchAgendas();
+    }
+  };
+
+  const handleDeleteLeadSchedule = async (id: string) => {
+    if (!confirm("Remover este retorno da sua agenda? (Isso não exclui o cliente)")) return;
+    
+    const { error } = await supabase.from("leads").update({ data_vencimento: null }).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Removido!", description: "O retorno foi retirado da sua agenda." });
+      fetchAgendas();
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleData) return;
+    
+    const { id, type, date } = rescheduleData;
+    
+    let error;
+    if (type === 'appointment') {
+      const { error: err } = await supabase.from("agendamentos").update({ 
+        data_agendada: date,
+        titulo: rescheduleData.titulo 
+      }).eq("id", id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("leads").update({ data_vencimento: date }).eq("id", id);
+      error = err;
+    }
+
+    if (error) {
+      toast({ title: "Erro ao transferir", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Transferido!", description: "A nova data foi salva com sucesso." });
+      setIsRescheduling(false);
       fetchAgendas();
     }
   };
@@ -434,7 +498,7 @@ export default function Agendamentos() {
                     <h3 className="font-bold text-lg truncate leading-tight uppercase tracking-tighter">{appt.titulo}</h3>
                     <p className="text-[10px] text-muted-foreground font-medium mb-3">CLIENTE: {formatToUpper(appt.lead?.nome || "Vínculo Direto")}</p>
                     {appt.descricao && <p className="text-xs text-slate-500 line-clamp-2 italic mb-4">"{appt.descricao}"</p>}
-                    <div className="flex gap-2">
+                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -442,6 +506,32 @@ export default function Agendamentos() {
                         onClick={() => appt.lead ? openWhatsApp(appt.lead) : null}
                       >
                         <WhatsAppIcon className="h-4 w-4" /> Contato
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-9 w-9 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border-slate-200"
+                        onClick={() => {
+                          setRescheduleData({
+                            id: appt.id,
+                            type: 'appointment',
+                            date: format(parseISO(appt.data_agendada), "yyyy-MM-dd'T'HH:mm"),
+                            titulo: appt.titulo
+                          });
+                          setIsRescheduling(true);
+                        }}
+                        title="Transferir / Editar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-9 w-9 text-slate-500 hover:text-red-600 hover:bg-red-50 border-slate-200"
+                        onClick={() => handleDeleteAppointment(appt.id)}
+                        title="Excluir Agendamento"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
@@ -492,11 +582,28 @@ export default function Agendamentos() {
                       </Button>
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => window.open(`/admin/funil`, "_self")}
+                        size="icon" 
+                        className="h-9 w-9 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border-slate-200"
+                        onClick={() => {
+                          setRescheduleData({
+                            id: lead.id,
+                            type: 'lead',
+                            date: format(parseISO(lead.data_vencimento!), "yyyy-MM-dd'T'HH:mm")
+                          });
+                          setIsRescheduling(true);
+                        }}
+                        title="Transferir / Remarcar"
                       >
-                        <ExternalLink className="h-4 w-4" /> Ver no Funil
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-9 w-9 text-slate-500 hover:text-red-600 hover:bg-red-50 border-slate-200"
+                        onClick={() => handleDeleteLeadSchedule(lead.id)}
+                        title="Remover da Agenda"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
@@ -504,7 +611,7 @@ export default function Agendamentos() {
               );
             })}
 
-            {filteredAgendas.length === 0 && (
+            {filteredAgendas.length === 0 && appointments.length === 0 && (
               <div className="col-span-full py-20 text-center bg-card rounded-xl border-2 border-dashed border-border opacity-50">
                 <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-lg font-medium">Nenhum agendamento encontrado.</p>
@@ -574,6 +681,43 @@ export default function Agendamentos() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de Transferência / Remarcação */}
+      <Dialog open={isRescheduling} onOpenChange={setIsRescheduling}>
+        <DialogContent className="max-w-md bg-white rounded-3xl border-slate-200">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black text-slate-900 uppercase tracking-tighter">
+              {rescheduleData?.type === 'appointment' ? 'Editar Agendamento' : 'Transferir Retorno'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {rescheduleData?.type === 'appointment' && (
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-400">Título</Label>
+                <Input 
+                  value={rescheduleData.titulo}
+                  onChange={e => setRescheduleData({...rescheduleData, titulo: e.target.value})}
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-slate-400">Nova Data e Hora</Label>
+              <Input 
+                type="datetime-local" 
+                value={rescheduleData?.date}
+                onChange={e => setRescheduleData(rescheduleData ? {...rescheduleData, date: e.target.value} : null)}
+              />
+            </div>
+            <p className="text-xs text-slate-500 italic">
+              Selecione o novo horário para este compromisso na sua agenda.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRescheduling(false)}>Cancelar</Button>
+            <Button onClick={handleReschedule} className="bg-indigo-600 text-white hover:bg-indigo-700">Confirmar Transferência</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
