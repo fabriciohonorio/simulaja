@@ -548,7 +548,8 @@ export default function Carteira() {
       const matchesSearch = (c.nome || "").toLowerCase().includes(searchTerm.toLowerCase()) || (c.grupo || "").includes(searchTerm);
       const adminName = formatToUpper(c.administradora) || "NÃO INFORMADA";
       const matchesAdmin = lotteryAdmin === "TODAS" || adminName === lotteryAdmin;
-      return matchesSearch && matchesAdmin;
+      const matchesStatus = sortOrder === "inadimplentes" ? c.status === "inadimplente" : true;
+      return matchesSearch && matchesAdmin && matchesStatus;
     })
     .sort((a, b) => {
       if (sortOrder === "a-z") return (a.nome || "").localeCompare(b.nome || "");
@@ -750,6 +751,7 @@ export default function Carteira() {
              onChange={(e) => setSortOrder(e.target.value as any)}
            >
               <option value="a-z">Ordem Alfabética</option>
+               <option value="inadimplentes">Inadimplentes</option>
               <option value="espera-desc">Tempo de Espera</option>
               <option value="valor-desc">Maior Crédito</option>
            </select>
@@ -1013,3 +1015,4 @@ export default function Carteira() {
     </div>
   );
 }
+
