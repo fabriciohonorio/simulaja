@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
