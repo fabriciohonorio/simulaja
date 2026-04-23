@@ -308,45 +308,52 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Clientes na Carteira */}
-        <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-xl shadow-indigo-500/20 transition-all hover:scale-[1.02]">
-          <Users className="absolute -bottom-4 -right-4 h-32 w-32 opacity-10 rotate-12" />
-          <div className="relative z-10 flex flex-col gap-1">
-             <div className="flex items-center gap-2 opacity-90">
-               <span className="p-2 bg-white/20 rounded-xl"><Users className="h-5 w-5" /></span>
-               <p className="text-xs font-black uppercase tracking-widest">Clientes na Carteira</p>
-             </div>
-             <p className="text-4xl font-black mt-4">{totalClientes}</p>
-             <p className="text-[10px] bg-white/20 w-fit px-3 py-1 rounded-full font-bold mt-2 uppercase tracking-tight">Contratos Ativos e Contemplados</p>
+        <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-white/20">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Clientes na Carteira</p>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-xl font-black">{totalClientes}</p>
+                <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">Contratos</span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Card 2: % Inadimplência */}
-        <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-xl shadow-rose-500/20 transition-all hover:scale-[1.02]">
-          <AlertTriangle className="absolute -bottom-4 -right-4 h-32 w-32 opacity-10 rotate-12" />
-          <div className="relative z-10 flex flex-col gap-1">
-             <div className="flex items-center gap-2 opacity-90">
-               <span className="p-2 bg-white/20 rounded-xl"><ShieldAlert className="h-5 w-5" /></span>
-               <p className="text-xs font-black uppercase tracking-widest">% Inadimplência</p>
-             </div>
-             <p className="text-4xl font-black mt-4">{percentInadimplencia.toFixed(1)}%</p>
-             <p className="text-[10px] bg-white/20 w-fit px-3 py-1 rounded-full font-bold mt-2 uppercase tracking-tight">
-               {inadimplentesAtivos} cliente(s) em atraso
-             </p>
+        <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-white/20">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Inadimplência</p>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-xl font-black">{percentInadimplencia.toFixed(1)}%</p>
+                <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">{inadimplentesAtivos} em atraso</span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Card 3: Retenção */}
-        <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02]">
-          <Zap className="absolute -bottom-4 -right-4 h-32 w-32 opacity-10 rotate-12" />
-          <div className="relative z-10 flex flex-col gap-1">
-             <div className="flex items-center gap-2 opacity-90">
-               <span className="p-2 bg-white/20 rounded-xl"><Sparkles className="h-5 w-5" /></span>
-               <p className="text-xs font-black uppercase tracking-widest">Retenção de Clientes</p>
-             </div>
-             <p className="text-4xl font-black mt-4">{percentRetencao.toFixed(1)}%</p>
-             <p className="text-[10px] bg-white/20 w-fit px-3 py-1 rounded-full font-bold mt-2 uppercase tracking-tight">Saúde da Carteira</p>
+        <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-white/20">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Retenção</p>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-xl font-black">{percentRetencao.toFixed(1)}%</p>
+                <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">Saúde da Carteira</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

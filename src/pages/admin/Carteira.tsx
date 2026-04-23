@@ -534,14 +534,19 @@ export default function Carteira() {
   };
 
   const filteredAndSorted = clientes
-    .filter(c => (c.nome || "").toLowerCase().includes(searchTerm.toLowerCase()) || (c.grupo || "").includes(searchTerm))
+    .filter(c => {
+      const matchesSearch = (c.nome || "").toLowerCase().includes(searchTerm.toLowerCase()) || (c.grupo || "").includes(searchTerm);
+      const adminName = formatToUpper(c.administradora) || "NÃO INFORMADA";
+      const matchesAdmin = lotteryAdmin === "TODAS" || adminName === lotteryAdmin;
+      return matchesSearch && matchesAdmin;
+    })
     .sort((a, b) => {
       if (sortOrder === "a-z") return (a.nome || "").localeCompare(b.nome || "");
       if (sortOrder === "valor-desc") return (b.valor_credito || 0) - (a.valor_credito || 0);
       if (sortOrder === "espera-desc") {
         const timeA = a.data_adesao ? new Date(a.data_adesao).getTime() : Date.now();
         const timeB = b.data_adesao ? new Date(b.data_adesao).getTime() : Date.now();
-        return timeA - timeB; // Older dates = longer wait = smaller timestamp, ascending order puts smallest first
+        return timeA - timeB;
       }
       return 0;
     });
@@ -656,8 +661,8 @@ export default function Carteira() {
         <Sparkles className="absolute top-4 right-4 h-32 w-32 opacity-10" />
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
            <div className="flex-1">
-             <h2 className="text-xl font-black flex items-center gap-2"><Calculator className="h-5 w-5" /> Sorteio Loteria Federal</h2>
-             <p className="text-blue-100 text-sm font-medium mt-1">Insira o resultado da extração para auditar toda a carteira de clientes de uma só vez.</p>
+             <h2 className="text-xl font-black flex items-center gap-2"><Calculator className="h-5 w-5" /> Filtro Global e Auditoria</h2>
+             <p className="text-blue-100 text-sm font-medium mt-1">Selecione a administradora para filtrar a lista e processar auditorias de sorteio.</p>
            </div>
            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
              <select 

@@ -674,151 +674,112 @@ export default function Metas() {
                 </AdminHeroCard>
             </div>
             
-            {/* Ritmo Diário (Pace) - Standardized Light & Vibrant Style */}
-            <div className="mb-4">
-                <Card className="relative overflow-hidden border-none shadow-xl bg-white text-slate-900 rounded-[16px] border border-slate-100 transition-all hover:shadow-2xl">
-                    {/* Glowing side accent based on status */}
-                    <div className={`absolute inset-y-0 left-0 w-1.5 ${
-                        ritmoStatus === 'verde' ? 'bg-emerald-500' : 
-                        ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
-                        'bg-red-500'
-                    }`} />
-
-                    <div className="absolute top-1/2 -translate-y-1/2 right-12 opacity-[0.03] pointer-events-none">
-                        <Activity className="h-40 w-40 rotate-12 text-slate-400" />
-                    </div>
-
-                    <CardContent className="p-0">
-                        {/* Header Area - Vibrant Light Header */}
-                        <div className={`flex items-center justify-between px-4 py-1.5 text-white bg-gradient-to-r shadow-sm ${
-                            ritmoStatus === 'verde' ? 'from-blue-600 to-indigo-700' : 
-                            ritmoStatus === 'amarelo' ? 'from-amber-400 to-orange-500' : 
-                            'from-red-500 to-pink-600'
-                        }`}>
-                            <div className="flex items-center gap-3">
-                                <div className="p-1.5 rounded-lg bg-white/20 border border-white/30 backdrop-blur-md">
-                                    <Activity className="h-4 w-4 text-white" />
-                                </div>
-                                <h3 className="text-[10px] font-black tracking-[0.2em] uppercase">
-                                    Status de Performance
-                                </h3>
-                            </div>
-                            <div className="flex gap-1 items-center bg-white/20 px-2 py-0.5 rounded-full border border-white/20">
+            {/* Ritmo Diário (Pace) - Simplified & Elegant Style */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card className={`relative overflow-hidden border-none text-white shadow-lg transition-all hover:scale-[1.01] ${
+                    ritmoStatus === 'verde' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-500/20' : 
+                    ritmoStatus === 'amarelo' ? 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/20' : 
+                    'bg-gradient-to-br from-rose-500 to-rose-700 shadow-rose-500/20'
+                }`}>
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <Activity className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Falta para a Meta</p>
+                            <p className="text-xl font-black">{formatCurrency(faltaMes)}</p>
+                            <div className="flex items-center gap-1 mt-1">
                                 <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                                <span className="text-[8px] font-black uppercase tracking-widest">Real-time</span>
+                                <span className="text-[8px] font-bold uppercase opacity-80">{diasUteisRestantes} dias restantes</span>
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
 
-                        {/* Main Body - Light Background */}
-                        <div className="p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10 bg-white/50">
-                            <div className="flex items-center gap-6">
-                                <div className="space-y-0.5">
-                                    <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 leading-none">Falta para Atingimento da Meta</p>
-                                    <div className="flex items-baseline gap-2">
-                                        <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-red-500 drop-shadow-sm">
-                                            {formatCurrency(faltaMes)}
-                                        </h2>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">restante</span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
-                                            <Target className="h-3 w-3 text-blue-500" />
-                                            <span className="text-[10px] text-blue-700 font-bold">Meta Diária:</span>
-                                            <span className="text-[10px] font-black text-blue-900">{formatCurrency(ritmoNecessario)}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 shadow-sm">
-                                            <Sparkles className="h-3 w-3 text-indigo-500" />
-                                            <span className="text-[10px] font-black text-indigo-900">
-                                                {sugestaoVeiculo}v (50k) ou {sugestaoImovel}i (100k)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="w-full md:w-auto flex flex-col gap-3">
-                                <div className="px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100 min-w-[280px]">
-                                    <div className="flex justify-between items-end mb-2">
-                                        <div className="space-y-0.5">
-                                            <span className="text-[9px] text-slate-400 uppercase font-black tracking-[0.1em]">Cronograma</span>
-                                            <p className="text-[11px] font-black text-red-500 flex items-center gap-2">
-                                                {diasUteisRestantes} / {diasUteisTotais} 
-                                                <span className="text-[8px] text-slate-300 font-bold">DIAS RESTANTES</span>
-                                            </p>
-                                        </div>
-                                        <span className="text-lg font-black text-slate-900">
-                                            {((diasUteisPassados / diasUteisTotais) * 100).toFixed(0)}%
-                                        </span>
-                                    </div>
-                                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-1000 shadow-sm" 
-                                            style={{ width: `${(diasUteisPassados / diasUteisTotais) * 100}%` }} 
-                                        />
-                                    </div>
-                                </div>
+                <Card className="relative overflow-hidden border-none bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.01]">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <Target className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Ritmo Diário Necessário</p>
+                            <p className="text-xl font-black">{formatCurrency(ritmoNecessario)}</p>
+                            <p className="text-[8px] font-bold uppercase opacity-80 mt-1">Para atingir 100% da meta</p>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                                {ritmoStatus !== 'verde' && (
-                                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 animate-bounce">
-                                        <Zap className="h-3 w-3 fill-red-500" />
-                                        {ritmoStatus === 'amarelo' ? 'Aumentar pressão operacional' : 'Alerta: Ritmo Crítico'}
-                                    </div>
-                                )}
-                            </div>
+                <Card className="relative overflow-hidden border-none bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-500/20 transition-all hover:scale-[1.01]">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="p-2 rounded-xl bg-white/20">
+                            <Zap className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Sugestão Jarvis</p>
+                            <p className="text-sm font-bold leading-tight">
+                                {sugestaoVeiculo} veículos (50k)<br/>
+                                ou {sugestaoImovel} imóveis (100k)
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Progress Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                            <Target className="h-4 w-4" />Desempenho do Mês
+                <Card className="relative overflow-hidden border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 transition-all hover:scale-[1.01]">
+                    <div className={`absolute top-0 left-0 w-full h-1 ${
+                        ritmoStatus === 'verde' ? 'bg-emerald-500' : 
+                        ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
+                        'bg-rose-500'
+                    }`} />
+                    <CardHeader className="pb-1 pt-3">
+                        <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                            <Target className="h-3.5 w-3.5" /> Desempenho do Mês
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex justify-between items-end mb-1">
+                    <CardContent className="pb-3 pt-1">
+                        <div className="flex justify-between items-end mb-1.5">
                             <div>
-                                <p className={`text-lg sm:text-xl font-bold ${
+                                <p className={`text-xl font-black ${
                                     ritmoStatus === 'verde' ? 'text-emerald-600' : 
                                     ritmoStatus === 'amarelo' ? 'text-amber-600' : 
-                                    'text-red-600'
+                                    'text-rose-600'
                                 }`}>{formatCurrency(realizadoMes)}</p>
-                                <p className="text-[10px] text-muted-foreground -mt-0.5">de {formatCurrency(metaMensal)}</p>
+                                <p className="text-[9px] text-muted-foreground font-bold">META: {formatCurrency(metaMensal)}</p>
                             </div>
-                            <span className={`text-base sm:text-lg font-bold ${
+                            <span className={`text-lg font-black ${
                                 ritmoStatus === 'verde' ? 'text-emerald-700' : 
                                 ritmoStatus === 'amarelo' ? 'text-amber-700' : 
-                                'text-red-700'
+                                'text-rose-700'
                             }`}>{progressoMes.toFixed(1)}%</span>
                         </div>
-                        <div className="w-full bg-secondary/20 rounded-full h-2.5">
+                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                             <div className={`${
                                 ritmoStatus === 'verde' ? 'bg-emerald-500' : 
                                 ritmoStatus === 'amarelo' ? 'bg-amber-500' : 
-                                'bg-red-500'
-                            } h-2.5 rounded-full`} style={{ width: `${progressoMes}%` }} />
+                                'bg-rose-500'
+                            } h-full transition-all duration-1000`} style={{ width: `${Math.min(100, progressoMes)}%` }} />
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                            <Trophy className="h-4 w-4" />Desempenho do Ano
+
+                <Card className="relative overflow-hidden border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 transition-all hover:scale-[1.01]">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500" />
+                    <CardHeader className="pb-1 pt-3">
+                        <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                            <Trophy className="h-3.5 w-3.5 text-indigo-500" /> Desempenho do Ano
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex justify-between items-end mb-1">
+                    <CardContent className="pb-3 pt-1">
+                        <div className="flex justify-between items-end mb-1.5">
                             <div>
-                                <p className="text-lg sm:text-xl font-bold text-green-600">{formatCurrency(realizadoAno)}</p>
-                                <p className="text-[10px] text-muted-foreground -mt-0.5">de {formatCurrency(metaAnual)}</p>
+                                <p className="text-xl font-black text-indigo-600">{formatCurrency(realizadoAno)}</p>
+                                <p className="text-[9px] text-muted-foreground font-bold">META: {formatCurrency(metaAnual)}</p>
                             </div>
-                            <span className="text-base sm:text-lg font-bold text-green-600">{progressoAno.toFixed(1)}%</span>
+                            <span className="text-lg font-black text-indigo-700">{progressoAno.toFixed(1)}%</span>
                         </div>
-                        <div className="w-full bg-secondary/20 rounded-full h-2.5">
-                            <div className="bg-green-600 h-2.5 rounded-full" style={{ width: `${progressoAno}%` }} />
+                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                            <div className="bg-indigo-500 h-full transition-all duration-1000" style={{ width: `${Math.min(100, progressoAno)}%` }} />
                         </div>
                     </CardContent>
                 </Card>
@@ -988,82 +949,55 @@ export default function Metas() {
                     {segmentos.map((seg) => {
                         const { icon: Icon, color, textColor, label } = SEGMENT_CONFIG[seg.segmento] || { icon: BarChart3, color: 'bg-gray-600', textColor: 'text-gray-600', label: seg.segmento };
                         
-                        const alertColor = seg.progresso_meta >= 70 ? 'text-green-600' : seg.progresso_meta >= 40 ? 'text-yellow-600' : 'text-red-600';
-                        const progressColor = seg.progresso_meta >= 70 ? 'bg-green-600' : seg.progresso_meta >= 40 ? 'bg-yellow-500' : 'bg-red-500';
+                        const alertColor = seg.progresso_meta >= 70 ? 'text-emerald-600' : seg.progresso_meta >= 40 ? 'text-amber-600' : 'text-rose-600';
+                        const progressColor = seg.progresso_meta >= 70 ? 'bg-emerald-500' : seg.progresso_meta >= 40 ? 'bg-amber-500' : 'bg-rose-500';
 
                         return (
-                            <Card key={seg.segmento} className="overflow-hidden shadow-md border-none hover:shadow-lg transition-all duration-300">
-                                <CardHeader className={`${color} text-white p-2`}>
+                            <Card key={seg.segmento} className="overflow-hidden shadow-sm border-slate-200 transition-all hover:shadow-md">
+                                <div className={`h-1 ${color.replace('bg-', 'bg-')}`} />
+                                <CardContent className="p-3 space-y-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="p-1 bg-white/20 rounded backdrop-blur-sm">
-                                                <Icon className="h-4 w-4" />
-                                            </div>
-                                            <CardTitle className="text-[13px] font-bold">{label}</CardTitle>
+                                            <Icon className={`h-4 w-4 ${textColor}`} />
+                                            <span className="text-xs font-black uppercase tracking-wider">{label}</span>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-[9px] font-black uppercase bg-white/20 px-1.5 py-0.5 rounded">Meta: {formatCurrency(seg.meta_vendas).replace(',00', '')}</p>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-2.5 space-y-2.5">
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Realizado Mês</span>
-                                            <span className={`text-xs font-black ${alertColor}`}>{seg.progresso_meta.toFixed(1).replace('.', ',')}%</span>
-                                        </div>
-                                        <div className="w-full bg-secondary/30 rounded-full h-1.5 overflow-hidden">
-                                            <div className={`${progressColor} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${Math.min(100, seg.progresso_meta)}%` }} />
-                                        </div>
+                                        <span className={`text-xs font-black ${alertColor}`}>{seg.progresso_meta.toFixed(1)}%</span>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-2 pt-1 border-b border-border/50 pb-2">
+                                    <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
+                                        <div className={`${progressColor} h-full transition-all duration-500`} style={{ width: `${Math.min(100, seg.progresso_meta)}%` }} />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
                                         <div className="space-y-0.5">
                                             <p className="text-[8px] text-muted-foreground uppercase font-bold">Vendido</p>
-                                            <p className="text-[11px] font-bold text-foreground">{formatCurrency(seg.valor_total).replace(',00', '')}</p>
+                                            <p className="text-[10px] font-black text-foreground">{formatCurrency(seg.valor_total).replace(',00', '')}</p>
                                         </div>
                                         <div className="space-y-0.5 text-right">
-                                            <p className="text-[8px] text-muted-foreground uppercase font-bold">Conversão</p>
-                                            <p className="text-[11px] font-bold text-foreground">{seg.taxa_conversao.toFixed(1).replace('.', ',')}%</p>
+                                            <p className="text-[8px] text-muted-foreground uppercase font-bold">Meta</p>
+                                            <p className="text-[10px] font-black text-muted-foreground">{formatCurrency(seg.meta_vendas).replace(',00', '')}</p>
                                         </div>
                                         <div className="space-y-0.5">
                                             <p className="text-[8px] text-muted-foreground uppercase font-bold">Leads</p>
-                                            <p className="text-[11px] font-bold text-foreground">{seg.total_leads}</p>
+                                            <p className="text-[10px] font-black text-foreground">{seg.total_leads}</p>
                                         </div>
                                         <div className="space-y-0.5 text-right">
                                             <p className="text-[8px] text-muted-foreground uppercase font-bold">Vendas</p>
-                                            <p className="text-[11px] font-bold text-foreground">{seg.total_vendas}</p>
+                                            <p className="text-[10px] font-black text-foreground">{seg.total_vendas}</p>
                                         </div>
                                     </div>
 
-                                    <div className="pt-1">
-                                        <div className="flex justify-between mb-0.5">
-                                            <span className="text-[8px] font-bold text-muted-foreground uppercase">Previsão</span>
-                                            <span className="text-[8px] font-bold text-primary uppercase">Mês</span>
+                                    <div className="pt-1 border-t border-slate-100">
+                                        <div className="flex items-center gap-1 text-[9px] font-bold text-indigo-600 mb-0.5">
+                                            <Sparkles className="h-3 w-3" />
+                                            <span className="uppercase tracking-wider">Sugestão</span>
                                         </div>
-                                        <p className="text-sm font-bold text-primary">{formatCurrency(seg.full_previsao).replace(',00', '')}</p>
-                                    </div>
-
-                                    <div className="bg-muted/30 p-2 rounded-md border border-border/50">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-[8px] font-bold text-muted-foreground uppercase">Leads Necessários</span>
-                                        </div>
-                                        <p className="text-sm font-black text-foreground">{seg.leads_necessarios_total}</p>
-                                    </div>
-
-                                    <div className="pt-2">
-                                        <div className="flex flex-col gap-1 text-xs p-2 bg-indigo-50/80 border border-indigo-100 rounded-md">
-                                            <div className="flex items-center gap-1 text-indigo-700 font-bold mb-0.5">
-                                                <Sparkles className="h-3 w-3" />
-                                                <span className="text-[9px] uppercase tracking-wider">Ação Recomendada</span>
-                                            </div>
-                                            <p className="text-[10px] font-medium text-indigo-900 leading-tight">
-                                                {seg.total_leads === 0 ? "Zerar gap: ativar nova campanha urgente." 
-                                                : seg.taxa_conversao < 2 ? "Focar em quebra de objeções e reuniões." 
-                                                : seg.progresso_meta < 70 ? "Pipeline lento: oferecer lance embutido."
-                                                : "Upsell e indicação: contatar clientes recém-fechados."}
-                                            </p>
-                                        </div>
+                                        <p className="text-[9px] text-slate-500 leading-tight">
+                                            {seg.total_leads === 0 ? "Ativar nova campanha." 
+                                            : seg.taxa_conversao < 2 ? "Focar em objeções." 
+                                            : seg.progresso_meta < 70 ? "Pipeline lento."
+                                            : "Upsell e indicação."}
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>
