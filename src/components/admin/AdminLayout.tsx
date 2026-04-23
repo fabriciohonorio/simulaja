@@ -35,6 +35,7 @@ const menuGroups: MenuGroup[] = [
         label: "FERRAMENTAS DE CONVERSÃO",
         items: [
             { icon: Calculator, label: "Simulador", path: "/admin/simulador", color: "text-cyan-500" },
+            { icon: FileText, label: "Carta Contemplada", path: "/admin/carta-analise", color: "text-rose-500" },
         ]
     },
     {

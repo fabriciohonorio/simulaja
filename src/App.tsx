@@ -23,6 +23,7 @@ import Settings from "./pages/admin/Settings";
 import Register from "./pages/admin/Register";
 import ResetPassword from "./pages/admin/ResetPassword";
 import Chat from "./pages/admin/Chat";
+import CartaAnalise from "./pages/admin/CartaAnalise";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="inadimplentes" element={<Inadimplentes />} />
             <Route path="configuracoes" element={<Settings />} />
             <Route path="chat" element={<Chat />} />
+            <Route path="carta-analise" element={<CartaAnalise />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
