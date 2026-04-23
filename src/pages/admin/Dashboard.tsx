@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles, Pencil, Trash2 } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles, Pencil, Trash2, ShieldAlert } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -440,24 +440,6 @@ export default function Dashboard() {
         </AdminHeroCard>
       )}
 
-      {/* Stats Grid — 2-col on phones, 3-col on sm, 6-col on xl */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-        {stats.map((s, i) => (
-          <Card key={i} className="overflow-hidden border-none shadow-sm bg-card hover:bg-accent/5 transition-colors">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`p-1.5 sm:p-2 rounded-lg ${s.bg}`}>
-                  <s.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${s.color}`} />
-                </div>
-              </div>
-              <div>
-                <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
-                <p className="text-base sm:text-xl font-bold text-foreground truncate">{s.value}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Funil de Vendas - Estilo Visual Mockup - Full Width on Mobile, Col on Desktop */}
