@@ -311,6 +311,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Clientes na Carteira */}
         <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+          <Badge className="absolute top-2 right-2 bg-white/20 text-[8px] uppercase font-bold border-none">Layout V2</Badge>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-white/20">
               <Users className="h-5 w-5" />
