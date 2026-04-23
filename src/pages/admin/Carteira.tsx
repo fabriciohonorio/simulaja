@@ -495,6 +495,11 @@ export default function Carteira() {
       });
 
       if (error) throw error;
+
+      // Persiste o status de inadimplente na carteira para refletir a regra visual
+      await supabase.from("carteira").update({ status: "inadimplente" }).eq("id", c.id);
+      setClientes(prev => prev.map(item => item.id === c.id ? { ...item, status: "inadimplente" } : item));
+
       toast({ title: "Cliente enviado para Inadimplentes!" });
     } catch (e) {
       toast({ title: "Erro ao marcar inadimplência", variant: "destructive" });
@@ -551,10 +556,10 @@ export default function Carteira() {
       return 0;
     });
 
-  const getWaitTime = (dateStr?: string | null): { label: string; urgent: boolean } => {
+  const getWaitTime = (dateStr?: string | null, endDateStr?: string | null): { label: string; urgent: boolean } => {
     if (!dateStr) return { label: "Data não informada", urgent: false };
     const date = new Date(dateStr);
-    const now = new Date();
+    const now = endDateStr ? new Date(endDateStr) : new Date();
     const months = differenceInMonths(now, date);
     const days = differenceInDays(now, date);
     if (months >= 12) {
@@ -758,8 +763,11 @@ export default function Carteira() {
                   </span>
                 )}
               </div>
-              <Badge variant={c.cota_contemplada ? "default" : "outline"} className="text-[10px] font-black uppercase shrink-0">
-                {c.cota_contemplada ? "CONTEMPLADO" : "ATIVO"}
+              <Badge 
+                variant={c.status === "inadimplente" ? "destructive" : c.cota_contemplada ? "default" : "outline"} 
+                className="text-[10px] font-black uppercase shrink-0"
+              >
+                {c.status === "inadimplente" ? "INADIMPLENTE" : c.cota_contemplada ? "CONTEMPLADO" : "ATIVO"}
               </Badge>
             </div>
             
@@ -791,18 +799,25 @@ export default function Carteira() {
                 </div>
               ) : (
                 (() => {
-                  const wait = getWaitTime(c.data_adesao);
+                  const wait = getWaitTime(c.data_adesao, c.cota_contemplada);
+                  const isInadimplente = c.status === "inadimplente";
+                  const isContemplado = !!c.cota_contemplada;
+
                   return (
                     <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg border relative ${
-                      wait.urgent
+                      isInadimplente
                         ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : "bg-amber-50 text-amber-700 border-amber-100"
+                        : isContemplado
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-amber-50 text-amber-700 border-amber-100"
                     }`}>
                       <Clock className="h-3 w-3 shrink-0" />
                       <div className="flex-1">
-                        <p className="text-[9px] font-bold uppercase text-center opacity-60 tracking-widest">Aguardando contemplação</p>
+                        <p className="text-[9px] font-bold uppercase text-center opacity-60 tracking-widest">
+                          {isInadimplente ? "Cliente Inadimplente" : isContemplado ? "Cota Contemplada" : "Aguardando contemplação"}
+                        </p>
                         <p className={`text-[11px] font-black uppercase tracking-wider text-center ${
-                          wait.urgent ? "text-rose-700" : "text-amber-700"
+                          isInadimplente ? "text-rose-700" : isContemplado ? "text-blue-700" : "text-amber-700"
                         }`}>
                           {wait.label}
                         </p>
