@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [perfis, setPerfis] = useState<any[]>([]);
   const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
+  const [inadimplentes, setInadimplentes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
@@ -114,6 +115,14 @@ export default function Dashboard() {
         .then(({ data }: any) => {
           setPerfis((data as any[]) || []);
         });
+
+      (supabase as any)
+        .from("inadimplentes")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .then(({ data }: any) => {
+          setInadimplentes((data as any[]) || []);
+        });
     };
 
     fetchData();
@@ -132,6 +141,14 @@ export default function Dashboard() {
         event: '*', 
         schema: 'public', 
         table: 'carteira',
+        filter: `organizacao_id=eq.${profile.organizacao_id}`
+      }, () => {
+        fetchData();
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'inadimplentes',
         filter: `organizacao_id=eq.${profile.organizacao_id}`
       }, () => {
         fetchData();
@@ -175,6 +192,12 @@ export default function Dashboard() {
       return acc + diff;
     }, 0) / leads.filter(l => l.last_interaction_at).length
     : 0;
+
+  // New Metrics
+  const totalClientes = carteira.length;
+  const inadimplentesAtivos = inadimplentes.filter(i => i.status !== 'regularizado').length;
+  const percentInadimplencia = totalClientes > 0 ? (inadimplentesAtivos / totalClientes) * 100 : 0;
+  const percentRetencao = totalClientes > 0 ? ((totalClientes - inadimplentesAtivos) / totalClientes) * 100 : 0;
 
   const stats = [
     { label: "Total Leads", value: totalLeads, icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
@@ -285,133 +308,45 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Seção Emocional/Foco de Vendas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Quase no Bolso */}
-        <div className="relative group overflow-visible p-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02] cursor-default z-10 hover:z-50">
-          <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Card 1: Clientes na Carteira */}
+        <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-xl shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+          <Users className="absolute -bottom-4 -right-4 h-32 w-32 opacity-10 rotate-12" />
+          <div className="relative z-10 flex flex-col gap-1">
              <div className="flex items-center gap-2 opacity-90">
-               <span className="p-1.5 bg-white/20 rounded-lg"><TrendingUp className="h-4 w-4" /></span>
-               <p className="text-[10px] font-black uppercase tracking-widest">💰 Quase no Bolso</p>
+               <span className="p-2 bg-white/20 rounded-xl"><Users className="h-5 w-5" /></span>
+               <p className="text-xs font-black uppercase tracking-widest">Clientes na Carteira</p>
              </div>
-             <p className="text-xl font-black">{formatCurrency(leads.filter(l => l.status === 'negociacao' || l.status === 'simulacao_enviada').reduce((acc, l) => acc + Number(l.valor_credito || 0), 0))}</p>
-             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Volume em Negociação Final</p>
-          </div>
-          
-          {/* Popover Hover */}
-          <div className="absolute top-[105%] left-0 w-full min-w-[300px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-border p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-200 z-50 flex flex-col gap-2">
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tight mb-1 border-b pb-1">Em Negociação Final</p>
-              {(() => {
-                  const filtered = leads.filter(l => l.status === 'negociacao' || l.status === 'simulacao_enviada');
-                  if (filtered.length === 0) return <p className="text-xs text-muted-foreground p-2 text-center">Nenhum lead nesta fase.</p>;
-                  return filtered.map(l => (
-                      <div key={l.id} className="flex flex-col gap-1.5 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
-                          <div className="flex justify-between items-center text-slate-800 dark:text-slate-200">
-                              <span className="text-sm font-bold truncate max-w-[150px]">{l.nome}</span>
-                              <span className="text-xs font-black text-emerald-600">{formatLeadValue(Number(l.valor_credito))}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">{(l.status || '').replace('_', ' ')}</span>
-                              <div className="flex gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); window.open(`/admin/leads?id=${l.id}`, '_self'); }} className="p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded transition-colors" title="Editar Lead"><Pencil className="h-3.5 w-3.5" /></button>
-                                  <button onClick={(e) => handleDeleteLead(l.id, e)} className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors" title="Excluir Lead"><Trash2 className="h-3.5 w-3.5" /></button>
-                                  <button onClick={(e) => { e.stopPropagation(); openWhatsApp(l); }} className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded transition-colors" title="WhatsApp"><WhatsAppIcon className="h-3.5 w-3.5 text-emerald-600" /></button>
-                              </div>
-                          </div>
-                      </div>
-                  ));
-              })()}
+             <p className="text-4xl font-black mt-4">{totalClientes}</p>
+             <p className="text-[10px] bg-white/20 w-fit px-3 py-1 rounded-full font-bold mt-2 uppercase tracking-tight">Contratos Ativos e Contemplados</p>
           </div>
         </div>
 
-        {/* Card 2: Prontos para Fechar */}
-        <div className="relative group overflow-visible p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-default z-10 hover:z-50">
-          <div className="flex flex-col gap-1">
+        {/* Card 2: % Inadimplência */}
+        <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-xl shadow-rose-500/20 transition-all hover:scale-[1.02]">
+          <AlertTriangle className="absolute -bottom-4 -right-4 h-32 w-32 opacity-10 rotate-12" />
+          <div className="relative z-10 flex flex-col gap-1">
              <div className="flex items-center gap-2 opacity-90">
-               <span className="p-1.5 bg-white/20 rounded-lg"><Sparkles className="h-4 w-4" /></span>
-               <p className="text-[10px] font-black uppercase tracking-widest">🔥 Prontos para Fechar</p>
+               <span className="p-2 bg-white/20 rounded-xl"><ShieldAlert className="h-5 w-5" /></span>
+               <p className="text-xs font-black uppercase tracking-widest">% Inadimplência</p>
              </div>
-             <p className="text-xl font-black">{leads.filter(l => l.lead_temperatura === 'quente' && l.status !== 'fechado').length} Leads</p>
-             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Temperatura Quente Ativa</p>
-          </div>
-
-          {/* Popover Hover */}
-          <div className="absolute top-[105%] left-0 w-full min-w-[300px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-border p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-200 z-50 flex flex-col gap-2">
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tight mb-1 border-b pb-1">Leads Quentes</p>
-              {(() => {
-                  const filtered = leads.filter(l => l.lead_temperatura === 'quente' && l.status !== 'fechado').sort((a,b) => {
-                      const aTime = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
-                      const bTime = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
-                      return aTime - bTime; // oldest first
-                  });
-                  if (filtered.length === 0) return <p className="text-xs text-muted-foreground p-2 text-center">Nenhum lead quente no momento.</p>;
-                  return filtered.map(l => (
-                      <div key={l.id} className="flex flex-col gap-1.5 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
-                          <div className="flex justify-between items-center text-slate-800 dark:text-slate-200">
-                              <span className="text-sm font-bold truncate max-w-[150px]">{l.nome}</span>
-                              <span className="text-xs font-black text-blue-600">{formatLeadValue(Number(l.valor_credito))}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
-                                  {l.last_interaction_at ? `Contato há ${Math.floor((Date.now() - new Date(l.last_interaction_at).getTime()) / (1000 * 60 * 60 * 24))}d` : 'Sem contato'}
-                              </span>
-                              <div className="flex gap-1 mt-1">
-                                  <button onClick={(e) => { e.stopPropagation(); window.open(`/admin/leads?id=${l.id}`, '_self'); }} className="p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded transition-colors" title="Editar Lead"><Pencil className="h-3.5 w-3.5" /></button>
-                                  <button onClick={(e) => handleDeleteLead(l.id, e)} className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors" title="Excluir Lead"><Trash2 className="h-3.5 w-3.5" /></button>
-                                  <button onClick={(e) => { e.stopPropagation(); openWhatsApp(l); }} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors" title="WhatsApp"><WhatsAppIcon className="h-3.5 w-3.5 text-blue-600" /></button>
-                              </div>
-                          </div>
-                      </div>
-                  ));
-              })()}
+             <p className="text-4xl font-black mt-4">{percentInadimplencia.toFixed(1)}%</p>
+             <p className="text-[10px] bg-white/20 w-fit px-3 py-1 rounded-full font-bold mt-2 uppercase tracking-tight">
+               {inadimplentesAtivos} cliente(s) em atraso
+             </p>
           </div>
         </div>
 
-        {/* Card 3: Alvos de Hoje */}
-        <div className="relative group overflow-visible p-3 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-xl shadow-violet-500/20 transition-all hover:scale-[1.02] cursor-default z-10 hover:z-50">
-          <div className="flex flex-col gap-1">
+        {/* Card 3: Retenção */}
+        <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02]">
+          <Zap className="absolute -bottom-4 -right-4 h-32 w-32 opacity-10 rotate-12" />
+          <div className="relative z-10 flex flex-col gap-1">
              <div className="flex items-center gap-2 opacity-90">
-               <span className="p-1.5 bg-white/20 rounded-lg"><Target className="h-4 w-4" /></span>
-               <p className="text-[10px] font-black uppercase tracking-widest">🎯 Alvos de Hoje</p>
+               <span className="p-2 bg-white/20 rounded-xl"><Sparkles className="h-5 w-5" /></span>
+               <p className="text-xs font-black uppercase tracking-widest">Retenção de Clientes</p>
              </div>
-             <p className="text-xl font-black">{leads.filter(l => (l.propensity_score || 0) >= 80 && l.status !== 'fechado').length} Oportunidades</p>
-             <p className="text-[10px] bg-white/20 w-fit px-2 py-0.5 rounded-full font-bold">Alta Chance de Fechamento</p>
-          </div>
-
-          {/* Popover Hover */}
-          <div className="absolute top-[105%] left-0 w-full min-w-[300px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-border p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-200 z-50 flex flex-col gap-2">
-              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tight mb-1 border-b pb-1">Alta Propensão {'>'}80%</p>
-              {(() => {
-                  const filtered = leads.filter(l => (l.propensity_score || 0) >= 80 && l.status !== 'fechado');
-                  if (filtered.length === 0) {
-                      const neglected = leads.filter(l => l.last_interaction_at && (Date.now() - new Date(l.last_interaction_at).getTime()) > 7 * 24 * 60 * 60 * 1000 && l.status !== 'fechado');
-                      return (
-                          <div className="p-2 text-center text-slate-800 dark:text-slate-200">
-                              <p className="text-[11px] mb-2 font-medium bg-slate-100 dark:bg-slate-800 py-1 rounded">Nenhum alvo de altíssima propensão.</p>
-                              {neglected.length > 0 && (
-                                  <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded border border-orange-100 dark:border-orange-800 text-left">
-                                      <p className="text-[10px] text-orange-700 dark:text-orange-400 font-bold mb-1">Sugestão Automática:</p>
-                                      <p className="text-[10px] font-medium">{neglected.length} leads sem contato há +7d</p>
-                                      <button onClick={() => window.open(`/admin/leads`, '_self')} className="mt-2 w-full text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-800/50 dark:text-orange-300 py-1.5 rounded font-bold transition-colors">👉 Ver lista</button>
-                                  </div>
-                              )}
-                          </div>
-                      );
-                  }
-                  return filtered.map(l => (
-                      <div key={l.id} className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
-                          <div>
-                              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">{l.nome}</p>
-                              <p className="text-[10px] uppercase font-bold text-slate-500">Score: {l.propensity_score}%</p>
-                          </div>
-                          <div className="flex gap-1">
-                                <button onClick={(e) => { e.stopPropagation(); window.open(`/admin/leads?id=${l.id}`, '_self'); }} className="p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 rounded transition-colors" title="Editar Lead"><Pencil className="h-3.5 w-3.5" /></button>
-                                <button onClick={(e) => handleDeleteLead(l.id, e)} className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors" title="Excluir Lead"><Trash2 className="h-3.5 w-3.5" /></button>
-                                <button onClick={(e) => { e.stopPropagation(); openWhatsApp(l); }} className="p-1.5 text-violet-600 hover:bg-violet-100 rounded transition-colors" title="WhatsApp"><WhatsAppIcon className="h-3.5 w-3.5 text-violet-600" /></button>
-                          </div>
-                      </div>
-                  ));
-              })()}
+             <p className="text-4xl font-black mt-4">{percentRetencao.toFixed(1)}%</p>
+             <p className="text-[10px] bg-white/20 w-fit px-3 py-1 rounded-full font-bold mt-2 uppercase tracking-tight">Saúde da Carteira</p>
           </div>
         </div>
       </div>
