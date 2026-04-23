@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings, MessageSquare, Loader2 } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings, MessageSquare, Loader2, FileText } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Button } from "@/components/ui/button";
