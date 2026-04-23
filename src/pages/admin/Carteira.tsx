@@ -23,7 +23,12 @@ import {
   Trash2,
   CalendarDays,
   Pencil,
-  Loader2
+  Loader2,
+  Home,
+  Car,
+  Bike,
+  Truck,
+  Wrench
 } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Input } from "@/components/ui/input";
@@ -648,6 +653,16 @@ export default function Carteira() {
     }
   };
 
+  const getSegmentIcon = (tipo?: string | null) => {
+    const t = tipo?.toLowerCase() || "";
+    if (t.includes("imóvel") || t.includes("imovel")) return <Home className="h-3.5 w-3.5 text-blue-500" />;
+    if (t.includes("veículo") || t.includes("carro") || t.includes("veiculo")) return <Car className="h-3.5 w-3.5 text-amber-500" />;
+    if (t.includes("moto")) return <Bike className="h-3.5 w-3.5 text-purple-500" />;
+    if (t.includes("pesado") || t.includes("caminhão") || t.includes("caminhao")) return <Truck className="h-3.5 w-3.5 text-emerald-500" />;
+    if (t.includes("serviço") || t.includes("servico")) return <Wrench className="h-3.5 w-3.5 text-rose-500" />;
+    return <Zap className="h-3.5 w-3.5 text-slate-300" />;
+  };
+
   const [loadingClientTratativas, setLoadingClientTratativas] = useState<string | null>(null);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-slate-400 font-bold uppercase tracking-widest">Carregando carteira...</div>;
@@ -756,7 +771,10 @@ export default function Carteira() {
           <div key={c.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-start justify-between mb-3 gap-2">
               <div className="flex flex-col min-w-0">
-                <h4 className="font-black text-slate-900 truncate">{formatToUpper(c.nome)}</h4>
+                <div className="flex items-center gap-1.5">
+                  {getSegmentIcon(c.tipo_consorcio)}
+                  <h4 className="font-black text-slate-900 truncate">{formatToUpper(c.nome)}</h4>
+                </div>
                 {c.administradora && (
                   <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase w-fit mt-1">
                     {formatToUpper(c.administradora)}
