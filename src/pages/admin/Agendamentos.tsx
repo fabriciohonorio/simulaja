@@ -38,7 +38,7 @@ interface Appointment {
   titulo: string;
   data_agendada: string;
   descricao: string | null;
-  lead_id: string;
+  lead_id: string | null;
   tipo: string | null;
   status: string | null;
   lead?: Lead;
@@ -59,7 +59,7 @@ export default function Agendamentos() {
     titulo: "",
     data: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     descricao: "",
-    lead_id: "",
+    lead_id: "none",
     tipo: "reuniao"
   });
   const [allLeadsList, setAllLeadsList] = useState<Lead[]>([]);
@@ -150,16 +150,18 @@ export default function Agendamentos() {
   };
 
   const handleAddAppointment = async () => {
-    if (!newAppt.titulo || !newAppt.data || !newAppt.lead_id) {
-      toast({ title: "Erro", description: "Preencha título, data e cliente.", variant: "destructive" });
+    if (!newAppt.titulo || !newAppt.data) {
+      toast({ title: "Erro", description: "Preencha o título e a data.", variant: "destructive" });
       return;
     }
+
+    const leadIdValue = newAppt.lead_id === "none" || !newAppt.lead_id ? null : newAppt.lead_id;
 
     const { error } = await supabase.from("agendamentos").insert({
       titulo: newAppt.titulo,
       data_agendada: newAppt.data,
       descricao: newAppt.descricao,
-      lead_id: newAppt.lead_id,
+      lead_id: leadIdValue as any, // Cast to any because types might be strict
       tipo: newAppt.tipo,
       criado_por: profile?.id,
       status: "pendente"
@@ -282,9 +284,10 @@ export default function Agendamentos() {
                   <Label className="text-[10px] font-black uppercase text-slate-400">Vincular a um Cliente</Label>
                   <Select value={newAppt.lead_id} onValueChange={v => setNewAppt({...newAppt, lead_id: v})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente..." />
+                      <SelectValue placeholder="Selecione um cliente (opcional)..." />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">Sem vínculo (Evento Geral)</SelectItem>
                       {allLeadsList.map(l => (
                         <SelectItem key={l.id} value={l.id}>{formatToUpper(l.nome)}</SelectItem>
                       ))}
