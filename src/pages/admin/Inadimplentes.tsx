@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { createPortal } from "react-dom";
 import { 
   MessageCircle, 
   Copy, 
@@ -64,11 +65,11 @@ interface Inadimplente {
   administradora: string | null;
 }
 
-const COLUMNS = [
-  { id: "em_atraso", label: "Em Atraso", color: "from-red-500 to-rose-600", border: "border-t-red-500", dot: "bg-red-500" },
-  { id: "notificado", label: "Notificado", color: "from-amber-500 to-yellow-600", border: "border-t-amber-500", dot: "bg-amber-500" },
-  { id: "negociando", label: "Negociando", color: "from-orange-500 to-orange-700", border: "border-t-orange-500", dot: "bg-orange-600" },
-  { id: "regularizado", label: "Regularizado", color: "from-emerald-500 to-teal-600", border: "border-t-emerald-500", dot: "bg-emerald-500" },
+const DEFAULT_COLUMNS = [
+  { id: "em_atraso", color: "from-red-500 to-rose-600", border: "border-t-red-500", dot: "bg-red-500" },
+  { id: "notificado", color: "from-amber-500 to-yellow-600", border: "border-t-amber-500", dot: "bg-amber-500" },
+  { id: "negociando", color: "from-orange-500 to-orange-700", border: "border-t-orange-500", dot: "bg-orange-600" },
+  { id: "regularizado", color: "from-emerald-500 to-teal-600", border: "border-t-emerald-500", dot: "bg-emerald-500" },
 ];
 
 export default function Inadimplentes() {
@@ -90,6 +91,62 @@ export default function Inadimplentes() {
   });
   const [saving, setSaving] = useState(false);
   const [editingItem, setEditingItem] = useState<Inadimplente | null>(null);
+  const [isWideView, setIsWideView] = useState(() => localStorage.getItem("inadimplentes_wide_view") === "true");
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem("inadimplentes_column_widths");
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [columnLabels, setColumnLabels] = useState(() => {
+    const saved = localStorage.getItem("inadimplentes_column_labels");
+    return saved ? JSON.parse(saved) : {
+      em_atraso: "Em Atraso",
+      notificado: "Notificado",
+      negociando: "Negociando",
+      regularizado: "Regularizado"
+    };
+  });
+  const [editingStage, setEditingStage] = useState<string | null>(null);
+
+  const kanbanRef = useRef<HTMLDivElement>(null);
+  const isDraggingCardRef = useRef(false);
+
+  useEffect(() => {
+    localStorage.setItem("inadimplentes_wide_view", String(isWideView));
+  }, [isWideView]);
+
+  useEffect(() => {
+    localStorage.setItem("inadimplentes_column_widths", JSON.stringify(columnWidths));
+  }, [columnWidths]);
+
+  useEffect(() => {
+    localStorage.setItem("inadimplentes_column_labels", JSON.stringify(columnLabels));
+  }, [columnLabels]);
+
+  const resizingRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
+
+  const startResizing = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    resizingRef.current = {
+      id,
+      startX: e.pageX,
+      startWidth: columnWidths[id] || (isWideView ? 180 : 280),
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", stopResizing);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!resizingRef.current) return;
+    const { id, startX, startWidth } = resizingRef.current;
+    const newWidth = Math.max(150, Math.min(600, startWidth + (e.pageX - startX)));
+    setColumnWidths((prev) => ({ ...prev, [id]: newWidth }));
+  };
+
+  const stopResizing = () => {
+    resizingRef.current = null;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", stopResizing);
+  };
 
   const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 
@@ -284,6 +341,22 @@ export default function Inadimplentes() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        
+        <div className="flex items-center bg-white p-1 rounded-xl border border-slate-100 h-12 shrink-0">
+          <button
+            onClick={() => setIsWideView(false)}
+            className={`px-4 h-full rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${!isWideView ? "bg-slate-900 text-white shadow-lg" : "text-slate-400"}`}
+          >
+            Padrão
+          </button>
+          <button
+            onClick={() => setIsWideView(true)}
+            className={`px-4 h-full rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${isWideView ? "bg-slate-900 text-white shadow-lg" : "text-slate-400"}`}
+          >
+            Wide
+          </button>
+        </div>
+
         <Tabs value={administradoraFilter} onValueChange={setAdministradoraFilter} className="shrink-0 w-full lg:w-auto">
           <TabsList className="h-12 bg-white border border-slate-100 p-1 rounded-xl w-full">
             <TabsTrigger value="todos" className="text-[10px] font-black uppercase tracking-tighter px-4">Todos</TabsTrigger>
@@ -295,37 +368,72 @@ export default function Inadimplentes() {
       </div>
 
       {/* Advanced Kanban Board */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-6 no-scrollbar min-h-[600px]">
-          {COLUMNS.map((col, i) => {
+      <DragDropContext 
+        onDragEnd={onDragEnd}
+        onDragStart={() => { isDraggingCardRef.current = true; }}
+      >
+        <div 
+          ref={kanbanRef}
+          className="flex overflow-x-auto pb-6 no-scrollbar min-h-[600px] gap-4"
+        >
+          {DEFAULT_COLUMNS.map((col, i) => {
             if (isMobile && i !== mobileColIdx) return null;
             const items = getColumnItems(col.id);
+            const colLabel = columnLabels[col.id as keyof typeof columnLabels];
+            const colTotal = items.reduce((s, item) => s + (item.valor_parcela * item.parcelas_atrasadas), 0);
             
             return (
-              <div key={col.id} className={`${isMobile ? "w-full" : "min-w-[300px] w-[300px]"} flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500`}>
-                {/* Mobile Column Nav */}
-                <div className="md:hidden flex items-center justify-between gap-4 mb-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
-                   <Button variant="ghost" size="icon" onClick={() => setMobileColIdx(m => Math.max(0, m - 1))} disabled={mobileColIdx===0}><ChevronLeft/></Button>
-                   <div className="flex flex-col items-center">
-                      <span className={`h-2 w-10 rounded-full mb-1 bg-gradient-to-r ${col.color}`} />
-                      <span className="font-black text-[10px] uppercase text-slate-900 tracking-widest">{col.label} ({items.length})</span>
-                   </div>
-                   <Button variant="ghost" size="icon" onClick={() => setMobileColIdx(m => Math.min(COLUMNS.length-1, m + 1))} disabled={mobileColIdx===COLUMNS.length-1}><ChevronRight/></Button>
-                </div>
-
-                {/* Desktop Header */}
-                <div className="hidden md:flex flex-col mb-4 px-2">
+              <div 
+                key={col.id} 
+                className={cn(
+                  "flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-500 shrink-0 relative",
+                  isMobile ? "w-full" : ""
+                )}
+                style={{ 
+                  width: isMobile ? "100%" : (columnWidths[col.id] || (isWideView ? 200 : 300)),
+                  minWidth: isMobile ? "100%" : (isWideView ? 160 : 250)
+                }}
+              >
+                {/* Column Header */}
+                <div className="flex flex-col mb-4 px-2">
                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 group/header">
                          <span className={`h-2.5 w-2.5 rounded-full ${col.dot}`} />
-                         <span className="font-black text-[11px] uppercase tracking-[2px] text-slate-500">{col.label}</span>
+                         {editingStage === col.id ? (
+                           <Input 
+                             autoFocus
+                             className="h-6 py-0 px-1 text-[11px] font-black uppercase tracking-[1px] w-32 border-slate-200"
+                             value={colLabel}
+                             onChange={e => setColumnLabels({...columnLabels, [col.id]: e.target.value})}
+                             onBlur={() => setEditingStage(null)}
+                             onKeyDown={e => e.key === 'Enter' && setEditingStage(null)}
+                           />
+                         ) : (
+                           <span 
+                             className="font-black text-[11px] uppercase tracking-[1px] text-slate-500 cursor-pointer hover:text-slate-900 flex items-center gap-1"
+                             onClick={() => setEditingStage(col.id)}
+                           >
+                             {colLabel}
+                             <Pencil className="h-2.5 w-2.5 opacity-0 group-hover/header:opacity-100" />
+                           </span>
+                         )}
                       </div>
                       <span className="bg-slate-100 text-slate-500 text-[9px] font-black px-1.5 py-0.5 rounded-full">{items.length}</span>
+                   </div>
+                   <div className="flex justify-between items-center mb-2">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Total: {formatCurrency(colTotal)}</p>
                    </div>
                    <div className={`h-1.5 w-full rounded-full bg-slate-100 overflow-hidden`}>
                       <div className={`h-full bg-gradient-to-r ${col.color}`} style={{ width: `${Math.min(100, (items.length/data.length)*100)}%` }} />
                    </div>
                 </div>
+
+                {!isMobile && (
+                  <div
+                    onMouseDown={(e: any) => startResizing(col.id, e)}
+                    className="absolute right-[-8px] top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-10"
+                  />
+                )}
 
                 <Droppable droppableId={col.id}>
                   {(provided, snapshot) => (
@@ -337,60 +445,79 @@ export default function Inadimplentes() {
                       <div className="space-y-3">
                         {items.map((item, idx) => (
                           <Draggable draggableId={item.id} index={idx} key={item.id}>
-                            {(prov, snap) => (
-                              <div
-                                ref={prov.innerRef}
-                                {...prov.draggableProps}
-                                {...prov.dragHandleProps}
-                                onClick={() => handleEdit(item)}
-                                className={`relative group bg-white rounded-3xl p-4 shadow-sm border border-slate-100 transition-all hover:shadow-xl hover:-translate-y-1 ${snap.isDragging ? "shadow-2xl ring-2 ring-primary/20 rotate-2" : ""}`}
-                              >
-                                <div className="flex items-start justify-between mb-3">
-                                   <div className="flex-1 min-w-0">
-                                      <h4 className="font-black text-slate-900 text-sm truncate uppercase tracking-tighter">{formatToUpper(item.nome)}</h4>
-                                      <div className="flex items-center gap-1.5 mt-1">
-                                         <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">Grupo {formatToFourDigits(item.grupo)}</span>
-                                         <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">{formatToUpper(item.administradora)}</span>
-                                      </div>
-                                   </div>
-                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <button 
-                                        onClick={(e) => { 
-                                          e.stopPropagation(); 
-                                          if (item.celular) {
-                                            const num = item.celular.replace(/\D/g, '');
-                                            window.open(`https://wa.me/55${num}`, '_blank');
-                                          } else {
-                                            toast.error('Número de celular não informado');
-                                          }
-                                        }}
-                                        className="p-2 text-emerald-500 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 rounded-lg transition-colors"
-                                        title="Chamar no WhatsApp"
-                                     >
-                                        <WhatsAppIcon className="h-4 w-4" />
-                                     </button>
-                                     <button 
-                                        onClick={(e) => handleDelete(item.id, e)}
-                                        className="p-2 text-rose-400 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 rounded-lg transition-colors"
-                                        title="Excluir devedor"
-                                     >
-                                        <Trash2 className="h-4 w-4" />
-                                     </button>
-                                   </div>
-                                </div>
+                            {(prov, snap) => {
+                              const cardContent = (
+                                <div
+                                  ref={prov.innerRef}
+                                  {...prov.draggableProps}
+                                  {...prov.dragHandleProps}
+                                  onClick={() => handleEdit(item)}
+                                  className={cn(
+                                    "relative group bg-white rounded-3xl p-4 shadow-sm border border-slate-100 transition-all hover:shadow-xl",
+                                    snap.isDragging ? "shadow-2xl ring-2 ring-primary/20 rotate-2 z-[9999]" : "",
+                                    isWideView ? "p-3" : "p-4"
+                                  )}
+                                  style={{
+                                    ...prov.draggableProps.style,
+                                    width: snap.isDragging ? (isMobile ? "calc(100% - 24px)" : (columnWidths[col.id] || (isWideView ? 200 : 300)) - 16) : "auto"
+                                  }}
+                                >
+                                  <div className="flex items-start justify-between mb-3">
+                                     <div className="flex-1 min-w-0">
+                                        <h4 className={cn("font-black text-slate-900 truncate uppercase tracking-tighter", isWideView ? "text-xs" : "text-sm")}>{formatToUpper(item.nome)}</h4>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                           <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">G {formatToFourDigits(item.grupo)}</span>
+                                           <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">{formatToUpper(item.administradora)}</span>
+                                        </div>
+                                     </div>
+                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <button 
+                                          onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            if (item.celular) {
+                                              const num = item.celular.replace(/\D/g, '');
+                                              window.open(`https://wa.me/55${num}`, '_blank');
+                                            } else {
+                                              toast.error('Número de celular não informado');
+                                            }
+                                          }}
+                                          className="p-1.5 text-emerald-500 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 rounded-lg transition-colors"
+                                          title="Chamar no WhatsApp"
+                                       >
+                                          <WhatsAppIcon className="h-4 w-4" />
+                                       </button>
+                                       <button 
+                                          onClick={(e) => handleDelete(item.id, e)}
+                                          className="p-1.5 text-rose-400 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 rounded-lg transition-colors"
+                                          title="Excluir devedor"
+                                       >
+                                          <Trash2 className="h-4 w-4" />
+                                       </button>
+                                     </div>
+                                  </div>
 
-                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-50">
-                                   <div className="flex flex-col">
-                                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Parcela</p>
-                                      <p className="font-black text-slate-900 mt-1">{formatCurrency(item.valor_parcela)}</p>
-                                   </div>
-                                   <div className={`p-2 rounded-xl bg-red-50 text-red-600 flex items-center gap-1.5 ${item.status === 'regularizado' ? 'bg-emerald-50 text-emerald-600' : ''}`}>
-                                      <ShieldAlert className="h-3 w-3" />
-                                      <span className="text-[10px] font-black">{item.parcelas_atrasadas}x</span>
-                                   </div>
+                                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-50">
+                                     <div className="flex flex-col">
+                                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none">Dívida Total</p>
+                                        <p className={cn("font-black text-slate-900 mt-1", isWideView ? "text-xs" : "text-sm")}>{formatCurrency(item.valor_parcela * item.parcelas_atrasadas)}</p>
+                                     </div>
+                                     <div className={cn(
+                                       "p-2 rounded-xl flex items-center gap-1.5",
+                                       item.status === 'regularizado' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600',
+                                       isWideView ? "p-1.5" : "p-2"
+                                     )}>
+                                        <ShieldAlert className="h-3 w-3" />
+                                        <span className="text-[10px] font-black">{item.parcelas_atrasadas}x</span>
+                                     </div>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              );
+
+                              if (snap.isDragging) {
+                                return createPortal(cardContent, document.body);
+                              }
+                              return cardContent;
+                            }}
                           </Draggable>
                         ))}
                         {provided.placeholder}
