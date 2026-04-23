@@ -191,8 +191,45 @@ export default function Inadimplentes() {
   };
 
   const onDragEnd = async (result: DropResult) => {
+    const { destination, draggableId } = result;
+    if (!destination) return;
+    
+    const newStatus = destination.droppableId;
+    const item = data.find(d => d.id === draggableId);
+
     // Perform optimistic the change
     await handleKanbanDragEnd(result, data, setData, "inadimplentes", "🎉 Cliente regularizado!");
+
+    // Se mudou para regularizado, sincroniza com a carteira
+    if (newStatus === "regularizado" && item && profile?.organizacao_id) {
+       try {
+         // Busca na carteira por nome, grupo e cota para garantir unicidade
+         const { data: carteiraItems, error: searchError } = await supabase
+           .from("carteira")
+           .select("id, status")
+           .eq("nome", item.nome)
+           .eq("grupo", item.grupo)
+           .eq("cota", item.cota)
+           .eq("organizacao_id", profile.organizacao_id);
+
+         if (searchError) throw searchError;
+
+         if (carteiraItems && carteiraItems.length > 0) {
+            // Atualiza o status na carteira para "ativo" (ou null) para sair do vermelho
+            const { error: updateError } = await supabase
+              .from("carteira")
+              .update({ status: "ativo" })
+              .eq("id", carteiraItems[0].id);
+
+            if (updateError) throw updateError;
+            
+            toast.success(`Carteira de ${item.nome} regularizada!`);
+         }
+       } catch (e) {
+         console.error("Erro ao sincronizar com carteira:", e);
+         toast.error("Erro ao atualizar status na carteira");
+       }
+    }
   };
 
   const handleSave = async () => {
