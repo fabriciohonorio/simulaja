@@ -92,6 +92,13 @@ export default function Carteira() {
   const [editingDateId, setEditingDateId] = useState<string | null>(null);
   const [editDateValue, setEditDateValue] = useState("");
   
+  // State para nova cota
+  const [newCotaCliente, setNewCotaCliente] = useState<{
+    nome: string; celular?: string | null; administradora?: string | null; tipo_consorcio?: string | null;
+  } | null>(null);
+  const [newCotaForm, setNewCotaForm] = useState({ grupo: "", cota: "", valor_credito: "", data_adesao: "" });
+  const [savingNewCota, setSavingNewCota] = useState(false);
+
   // State para contemplação manual
   const [manualContemplationClient, setManualContemplationClient] = useState<Cliente | null>(null);
 
@@ -667,6 +674,35 @@ export default function Carteira() {
     return <Zap className="h-3.5 w-3.5 text-slate-300" />;
   };
 
+  const handleAddNovaCota = async () => {
+    if (!newCotaCliente || !newCotaForm.grupo || !newCotaForm.cota || !profile?.organizacao_id) return;
+    setSavingNewCota(true);
+    try {
+      const isoDate = newCotaForm.data_adesao ? new Date(newCotaForm.data_adesao).toISOString() : new Date().toISOString();
+      const { error } = await supabase.from("carteira").insert({
+        nome: newCotaCliente.nome,
+        celular: newCotaCliente.celular,
+        administradora: newCotaCliente.administradora,
+        tipo_consorcio: newCotaCliente.tipo_consorcio,
+        grupo: formatToFourDigits(newCotaForm.grupo),
+        cota: formatToFourDigits(newCotaForm.cota),
+        valor_credito: Number(newCotaForm.valor_credito) || 0,
+        data_adesao: isoDate,
+        status: "ativo",
+        organizacao_id: profile.organizacao_id,
+      });
+      if (error) throw error;
+      toast({ title: "Nova cota adicionada com sucesso!" });
+      setNewCotaCliente(null);
+      setNewCotaForm({ grupo: "", cota: "", valor_credito: "", data_adesao: "" });
+      fetchClientes();
+    } catch (e) {
+      toast({ title: "Erro ao adicionar cota", variant: "destructive" });
+    } finally {
+      setSavingNewCota(false);
+    }
+  };
+
   const [loadingClientTratativas, setLoadingClientTratativas] = useState<string | null>(null);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-slate-400 font-bold uppercase tracking-widest">Carregando carteira...</div>;
@@ -771,152 +807,227 @@ export default function Carteira() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredAndSorted.map((c) => (
-          <div key={c.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
-            <div className="flex items-start justify-between mb-3 gap-2">
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5">
-                  {getSegmentIcon(c.tipo_consorcio)}
-                  <h4 className="font-black text-slate-900 truncate">{formatToUpper(c.nome)}</h4>
-                </div>
-                {c.administradora && (
-                  <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase w-fit mt-1">
-                    {formatToUpper(c.administradora)}
-                  </span>
-                )}
-              </div>
-              <Badge 
-                variant={c.status === "inadimplente" ? "destructive" : c.cota_contemplada ? "default" : "outline"} 
-                className="text-[10px] font-black uppercase shrink-0"
-              >
-                {c.status === "inadimplente" ? "INADIMPLENTE" : c.cota_contemplada ? "CONTEMPLADO" : "ATIVO"}
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-xs mb-4">
-              <div 
-                className="cursor-pointer bg-slate-50 p-2 rounded-lg hover:bg-slate-100"
-                onClick={() => c.grupo && (setSelectedGrupo(c.grupo), setShowContemplations(true), fetchContemplations(c.grupo))}
-              >
-                <p className="text-slate-400 font-bold uppercase text-[9px]">Grupo / Cota</p>
-                <p className="font-black flex items-center gap-1">{formatToFourDigits(c.grupo) || "-"} / {formatToFourDigits(c.cota) || "-"} <ExternalLink className="h-3 w-3" /></p>
-              </div>
-              <div className="p-2 border-l border-slate-50">
-                <p className="text-slate-400 font-bold uppercase text-[9px]">Crédito</p>
-                <p className="font-black text-blue-600">{formatCurrency(Number(c.valor_credito || 0))}</p>
-              </div>
-            </div>
+      {/* Agrupamento Multi-Cota por Cliente */}
+      {(() => {
+        // Agrupar por nome normalizado
+        const grouped = new Map<string, Cliente[]>();
+        filteredAndSorted.forEach(c => {
+          const key = (c.nome || "").trim().toUpperCase();
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key)!.push(c);
+        });
 
-            <div className="flex flex-col gap-2 mb-4">
-              {editingDateId === c.id ? (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-slate-50 border-slate-200">
-                  <Input 
-                    type="date" 
-                    className="h-8 text-xs font-bold" 
-                    value={editDateValue}
-                    onChange={e => setEditDateValue(e.target.value)}
-                  />
-                  <Button size="sm" className="h-8 text-xs font-black" onClick={() => handleSaveDate(c.id, c.lead_id)}>Salvar</Button>
-                  <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setEditingDateId(null)}>Cancelar</Button>
-                </div>
-              ) : (
-                (() => {
-                  const wait = getWaitTime(c.data_adesao, c.cota_contemplada);
-                  const isInadimplente = c.status === "inadimplente";
-                  const isContemplado = !!c.cota_contemplada;
+        return Array.from(grouped.entries()).map(([nomeKey, cotas]) => {
+          const primeiro = cotas[0];
+          const totalCredito = cotas.reduce((s, c) => s + Number(c.valor_credito || 0), 0);
+          const multiCota = cotas.length > 1;
 
-                  return (
-                    <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg border relative ${
-                      isInadimplente
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : isContemplado
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
-                          : "bg-amber-50 text-amber-700 border-amber-100"
-                    }`}>
-                      <Clock className="h-3 w-3 shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-[9px] font-black uppercase text-center opacity-80 tracking-widest">
-                          {isInadimplente ? "Cliente Inadimplente" : isContemplado ? "Cota Contemplada" : "Aguardando contemplação"}
-                        </p>
-                        <p className={`text-[12px] font-black uppercase tracking-wider text-center ${
-                          isInadimplente ? "text-rose-700" : isContemplado ? "text-blue-700" : "text-amber-700"
-                        }`}>
-                          {isInadimplente ? `Total: ${wait.label}` : wait.label}
-                        </p>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setEditingDateId(c.id);
-                          setEditDateValue(c.data_adesao ? new Date(c.data_adesao).toISOString().split('T')[0] : '');
-                        }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white/50 hover:bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 shadow-sm"
-                        title="Corrigir Data de Adesão"
+          return (
+            <div key={nomeKey} className={`rounded-2xl border shadow-sm bg-white overflow-hidden ${
+              multiCota ? "border-indigo-200" : "border-slate-100"
+            }`}>
+              {/* Header do cliente */}
+              <div className={`flex items-center justify-between px-4 py-2.5 ${
+                multiCota ? "bg-indigo-50 border-b border-indigo-100" : "bg-slate-50 border-b border-slate-100"
+              }`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  {getSegmentIcon(primeiro.tipo_consorcio)}
+                  <span className="font-black text-slate-900 truncate text-sm">{formatToUpper(primeiro.nome)}</span>
+                  {multiCota && (
+                    <span className="text-[9px] font-black bg-indigo-500 text-white px-1.5 py-0.5 rounded-full">
+                      {cotas.length} COTAS
+                    </span>
+                  )}
+                  {primeiro.administradora && (
+                    <span className="text-[8px] font-black text-slate-400 bg-white px-1.5 py-0.5 rounded uppercase hidden sm:block">
+                      {formatToUpper(primeiro.administradora)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {multiCota && (
+                    <span className="text-[9px] font-black text-indigo-600">
+                      Total: {formatCurrency(totalCredito)}
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 px-2 text-[9px] font-black uppercase gap-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                    onClick={() => {
+                      setNewCotaCliente({
+                        nome: primeiro.nome,
+                        celular: primeiro.celular,
+                        administradora: primeiro.administradora,
+                        tipo_consorcio: primeiro.tipo_consorcio,
+                      });
+                      setNewCotaForm({ grupo: "", cota: "", valor_credito: "", data_adesao: "" });
+                    }}
+                  >
+                    <Plus className="h-3 w-3" /> Nova Cota
+                  </Button>
+                </div>
+              </div>
+
+              {/* Grid de cotas — cada uma isolada */}
+              <div className={`grid gap-0 divide-y divide-slate-50 ${
+                multiCota ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+              }`}>
+                {cotas.map((c) => (
+                  <div key={c.id} className="p-4">
+                    {/* Identificação da Cota */}
+                    <div className="grid grid-cols-2 gap-4 text-xs mb-3">
+                      <div
+                        className="cursor-pointer bg-slate-50 p-2 rounded-lg hover:bg-slate-100"
+                        onClick={() => c.grupo && (setSelectedGrupo(c.grupo), setShowContemplations(true), fetchContemplations(c.grupo))}
                       >
-                        <Pencil className="h-3 w-3" />
-                      </button>
+                        <p className="text-slate-400 font-bold uppercase text-[9px]">Grupo / Cota</p>
+                        <p className="font-black flex items-center gap-1">{formatToFourDigits(c.grupo) || "-"} / {formatToFourDigits(c.cota) || "-"} <ExternalLink className="h-3 w-3" /></p>
+                      </div>
+                      <div className="p-2 border-l border-slate-50">
+                        <p className="text-slate-400 font-bold uppercase text-[9px]">Crédito</p>
+                        <p className="font-black text-blue-600">{formatCurrency(Number(c.valor_credito || 0))}</p>
+                      </div>
                     </div>
-                  );
-                })()
-              )}
+
+                    {/* Badge status isolado por cota */}
+                    <div className="flex flex-col gap-2 mb-3">
+                      {editingDateId === c.id ? (
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-slate-50 border-slate-200">
+                          <Input
+                            type="date"
+                            className="h-8 text-xs font-bold"
+                            value={editDateValue}
+                            onChange={e => setEditDateValue(e.target.value)}
+                          />
+                          <Button size="sm" className="h-8 text-xs font-black" onClick={() => handleSaveDate(c.id, c.lead_id)}>Salvar</Button>
+                          <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setEditingDateId(null)}>Cancelar</Button>
+                        </div>
+                      ) : (() => {
+                        const wait = getWaitTime(c.data_adesao, c.cota_contemplada);
+                        const isInadimplente = c.status === "inadimplente";
+                        const isContemplado = !!c.cota_contemplada;
+                        return (
+                          <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg border relative ${
+                            isInadimplente ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : isContemplado ? "bg-blue-50 text-blue-700 border-blue-200"
+                            : "bg-amber-50 text-amber-700 border-amber-100"
+                          }`}>
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-[9px] font-black uppercase text-center opacity-80 tracking-widest">
+                                {isInadimplente ? "Cliente Inadimplente" : isContemplado ? "Cota Contemplada" : "Aguardando contemplação"}
+                              </p>
+                              <p className={`text-[12px] font-black uppercase tracking-wider text-center ${
+                                isInadimplente ? "text-rose-700" : isContemplado ? "text-blue-700" : "text-amber-700"
+                              }`}>
+                                {isInadimplente ? `Total: ${wait.label}` : wait.label}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => { setEditingDateId(c.id); setEditDateValue(c.data_adesao ? new Date(c.data_adesao).toISOString().split('T')[0] : ''); }}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-white/50 hover:bg-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-slate-600 shadow-sm"
+                              title="Corrigir Data de Adesão"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Ações isoladas por cota */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline" size="sm"
+                        disabled={loadingClientTratativas === c.id}
+                        className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 transition-all ${
+                          c.lead_id && leadsComLance.has(c.lead_id)
+                            ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20"
+                            : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                        }`}
+                        onClick={() => handleOpenTratativas(c)}
+                      >
+                        {loadingClientTratativas === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <NotebookPen className="h-3 w-3" />}
+                        {c.lead_id && leadsComLance.has(c.lead_id) ? "Lance Registrado" : "Tratativas"}
+                      </Button>
+
+                      {c.boleto_url && (
+                        <Button variant="ghost" size="sm" className="flex-1 h-8 text-[9px] font-black uppercase bg-blue-50 text-blue-600" onClick={() => window.open(c.boleto_url!, '_blank')}>
+                          <FileText className="h-3.5 w-3.5 mr-1" /> Boleto
+                        </Button>
+                      )}
+
+                      <Button variant="ghost" size="sm"
+                        className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-50 rounded-lg shrink-0"
+                        onClick={() => handleMarkAsInadimplente(c)}
+                        title="Marcar como Inadimplente"
+                      >
+                        <ShieldAlert className="h-4 w-4" />
+                      </Button>
+
+                      {!c.cota_contemplada && (
+                        <Button variant="ghost" size="sm"
+                          className="h-8 w-8 p-0 text-amber-500 hover:bg-amber-50 rounded-lg shrink-0"
+                          onClick={() => handleManualContemplationAction(c)}
+                          title="Contemplar Manualmente esta cota"
+                        >
+                          <Trophy className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          );
+        });
+      })()}
 
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                disabled={loadingClientTratativas === c.id}
-                className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 transition-all ${
-                  c.lead_id && leadsComLance.has(c.lead_id)
-                    ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20" 
-                    : "border-slate-200 hover:bg-slate-50 text-slate-600"
-                }`}
-                onClick={() => handleOpenTratativas(c)}
-              >
-                {loadingClientTratativas === c.id ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <NotebookPen className="h-3 w-3" /> 
-                )}
-                {c.lead_id && leadsComLance.has(c.lead_id) ? "Lance Registrado" : "Tratativas"}
-              </Button>
-
-              {c.boleto_url && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="flex-1 h-8 text-[9px] font-black uppercase bg-blue-50 text-blue-600"
-                  onClick={() => window.open(c.boleto_url!, '_blank')}
-                >
-                  <FileText className="h-3.5 w-3.5 mr-1" /> Boleto
-                </Button>
-              )}
-
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-50 rounded-lg shrink-0"
-                onClick={() => handleMarkAsInadimplente(c)}
-                title="Marcar como Inadimplente"
-              >
-                <ShieldAlert className="h-4 w-4" />
-              </Button>
-              
-              {!c.cota_contemplada && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0 text-amber-500 hover:bg-amber-50 rounded-lg shrink-0"
-                  onClick={() => handleManualContemplationAction(c)}
-                  title="Contemplar Manualmente"
-                >
-                  <Trophy className="h-4 w-4" />
-                </Button>
-              )}
+      {/* Modal Nova Cota */}
+      <Dialog open={!!newCotaCliente} onOpenChange={(open) => { if (!open) setNewCotaCliente(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-indigo-500" />
+              Nova Cota — {newCotaCliente?.nome}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Os dados do cliente ({newCotaCliente?.administradora}) serão mantidos. Preencha apenas os dados do novo contrato.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-500">Grupo</label>
+                <Input placeholder="ex: 1561" value={newCotaForm.grupo} onChange={e => setNewCotaForm(p => ({...p, grupo: e.target.value}))} className="h-9 font-bold mt-1" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-500">Cota</label>
+                <Input placeholder="ex: 0617" value={newCotaForm.cota} onChange={e => setNewCotaForm(p => ({...p, cota: e.target.value}))} className="h-9 font-bold mt-1" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase text-slate-500">Crédito (R$)</label>
+              <Input type="number" placeholder="ex: 106000" value={newCotaForm.valor_credito} onChange={e => setNewCotaForm(p => ({...p, valor_credito: e.target.value}))} className="h-9 font-bold mt-1" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase text-slate-500">Data de Adesão / Fechamento</label>
+              <Input type="date" value={newCotaForm.data_adesao} onChange={e => setNewCotaForm(p => ({...p, data_adesao: e.target.value}))} className="h-9 font-bold mt-1" />
             </div>
           </div>
-        ))}
-      </div>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setNewCotaCliente(null)}>Cancelar</Button>
+            <Button
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-black"
+              disabled={savingNewCota || !newCotaForm.grupo || !newCotaForm.cota}
+              onClick={handleAddNovaCota}
+            >
+              {savingNewCota ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar Nova Cota"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!manualContemplationClient} onOpenChange={(open) => { if (!open) setManualContemplationClient(null); }}>
         <DialogContent className="max-w-sm text-center p-8 bg-gradient-to-br from-amber-400 to-amber-600 border-none rounded-3xl shadow-2xl">
