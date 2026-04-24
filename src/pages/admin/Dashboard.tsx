@@ -31,6 +31,7 @@ interface Lead {
   celular: string | null;
   responsavel_id: string | null;
   propensity_score: number | null;
+  dados_cadastro: any | null;
 }
 interface CarteiraItem {
   id: string;
@@ -250,7 +251,8 @@ export default function Dashboard() {
       const dateToCheck = l.status_updated_at || l.created_at || "";
       const isInMonth = dateToCheck.startsWith(currentMonthStr);
       const isShadow = (l as any).origem === "carteira_shadow";
-      return isClosed && isInMonth && !isShadow;
+      const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+      return isClosed && isInMonth && !isShadow && !isRetroativo;
     })
     .reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
   
@@ -280,7 +282,8 @@ export default function Dashboard() {
       const dateToCheck = l.status_updated_at || l.created_at || "";
       const isInMonth = dateToCheck.startsWith(currentMonthStr);
       const isShadow = (l as any).origem === "carteira_shadow";
-      return isClosed && isInMonth && l.responsavel_id && !isShadow;
+      const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+      return isClosed && isInMonth && l.responsavel_id && !isShadow && !isRetroativo;
     })
     .reduce((acc: Record<string, number>, lead) => {
       const rid = lead.responsavel_id!;

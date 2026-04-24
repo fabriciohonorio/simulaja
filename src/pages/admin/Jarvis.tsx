@@ -53,6 +53,7 @@ interface Lead {
     updated_at: string | null;
     status_updated_at: string | null;
     tipo_consorcio: string | null;
+    dados_cadastro?: any;
 }
 
 interface Inadimplente {
@@ -257,7 +258,8 @@ export default function Jarvis() {
                         });
                         const segmentVendas = segmentLeads.filter(l => {
                             const s = (l.status || "").toLowerCase().replace("_", " ");
-                            return s === "fechado" || s === "venda fechada";
+                            const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+                            return (s === "fechado" || s === "venda fechada") && !isRetroativo;
                         });
                         const currentMonthVendas = segmentVendas.filter(l => {
                             const dateToCheck = l.status_updated_at || l.updated_at || "";
@@ -301,13 +303,19 @@ export default function Jarvis() {
             const fechadosMes = leads.filter(l => {
                 const s = (l.status || "").toLowerCase().replace("_", " ");
                 const isClosed = s === "fechado" || s === "venda fechada";
+                const isRetroativo = l.dados_cadastro?.is_retroativo === true;
                 const dateToCheck = l.status_updated_at || l.updated_at || "";
-                return isClosed && dateToCheck.startsWith(currentMonthStr);
+                return isClosed && dateToCheck.startsWith(currentMonthStr) && !isRetroativo;
             });
             const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             
             const currentYear = new Date().getFullYear().toString();
-            const realizadoAno = leads.filter(l => ["fechado", "venda_fechada"].includes((l.status || "").toLowerCase()) && (l.status_updated_at || "").startsWith(currentYear)).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+            const realizadoAno = leads.filter(l => {
+                const s = (l.status || "").toLowerCase().replace("_", " ");
+                const isClosed = s === "fechado" || s === "venda fechada";
+                const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+                return isClosed && !isRetroativo && (l.status_updated_at || "").startsWith(currentYear);
+            }).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
             const progressoAno = metaAnual > 0 ? (realizadoAno / metaAnual) * 100 : 0;
             
             const emNegociacao = leads.filter(l => !["fechado", "venda_fechada", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));

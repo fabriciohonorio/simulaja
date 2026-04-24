@@ -107,6 +107,7 @@ interface Lead {
     status_updated_at: string | null;
     tipo_consorcio: string | null;
     propensity_score?: number | null;
+    dados_cadastro?: any;
 }
 
 interface CarteiraItem {
@@ -261,7 +262,8 @@ export default function Metas() {
                 const currentMonthLeads = segmentLeads.filter(l => l.created_at?.startsWith(mesStr));
                 const segmentVendas = segmentLeads.filter(l => {
                     const s = (l.status || "").toLowerCase().replace("_", " ");
-                    return s === "fechado" || s === "venda fechada";
+                    const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+                    return (s === "fechado" || s === "venda fechada") && !isRetroativo;
                 });
                 const currentMonthVendas = segmentVendas.filter(l => {
                     const dateToCheck = l.status_updated_at || l.created_at || "";
@@ -439,7 +441,8 @@ export default function Metas() {
 
     const fechados = leads.filter(l => {
         const s = (l.status || "").toLowerCase().replace("_", " ");
-        return s === "fechado" || s === "venda fechada";
+        const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+        return (s === "fechado" || s === "venda fechada") && !isRetroativo;
     });
     const realizadoMes = fechados.filter(l => {
         const dateToCheck = l.status_updated_at || l.created_at || "";

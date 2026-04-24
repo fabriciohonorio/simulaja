@@ -139,7 +139,10 @@ export default function Leads() {
         indicador_celular: formData.indicador_celular || null,
         grupo: formatToFourDigits(formData.grupo),
         cota: formatToFourDigits(formData.cota),
-        dados_cadastro: formData.dados_cadastro || null,
+        dados_cadastro: {
+          ...(formData.dados_cadastro || {}),
+          is_retroativo: formData.is_retroativo || false
+        },
       };
       
       updatePayload.nome = formatToUpper(updatePayload.nome);
@@ -639,6 +642,7 @@ export default function Leads() {
               grupo: editingLead.grupo || "",
               cota: editingLead.cota || "",
               status_updated_at: editingLead.status_updated_at || "",
+              is_retroativo: editingLead.dados_cadastro?.is_retroativo || false,
               dados_cadastro: editingLead.dados_cadastro || null,
             } : {
               nome: "", email: "", celular: "", cidade: "",
@@ -646,6 +650,7 @@ export default function Leads() {
               status: "novo_lead", lead_temperatura: "morno", lead_score_valor: "medio",
               administradora: "none", grupo: "", cota: "",
               status_updated_at: "",
+              is_retroativo: false,
             }}
             onSubmit={handleSaveLead}
             onCancel={() => setIsDialogOpen(false)}

@@ -52,7 +52,9 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
   };
 
   const currentColLeads = applyFilters(getColumnLeads(currentCol.id));
-  const currentColTotal = currentColLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
+  const currentColTotal = currentColLeads
+    .filter(l => l.dados_cadastro?.is_retroativo !== true)
+    .reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
   const renderLeadCard = (lead: Lead, idx: number) => (
     <Draggable draggableId={lead.id} index={idx} key={lead.id}>
@@ -200,7 +202,9 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
         >
           {COLUMNS.map((col, index) => {
             const colLeads = applyFilters(getColumnLeads(col.id));
-            const totalValor = colLeads.reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
+            const totalValor = colLeads
+              .filter(l => l.dados_cadastro?.is_retroativo !== true)
+              .reduce((s: number, l: Lead) => s + Number(l.valor_credito), 0);
 
             return (
               <div

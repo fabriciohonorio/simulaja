@@ -59,6 +59,7 @@ export interface LeadFormData {
   administradora: string;
   indicador_nome?: string;
   indicador_celular?: string;
+  is_retroativo?: boolean;
   // Campos de venda fechada
   grupo?: string;
   cota?: string;
@@ -77,8 +78,17 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
   const [form, setForm] = useState<LeadFormData>(initialData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setForm(prev => ({ ...prev, [id]: value }));
+    const { id, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setForm(prev => ({ 
+        ...prev, 
+        [id]: checked,
+        // Se for retroativo, garante que o status é fechado
+        status: checked ? "fechado" : prev.status 
+      }));
+    } else {
+      setForm(prev => ({ ...prev, [id]: value }));
+    }
   };
 
   const handleSelectChange = (id: keyof LeadFormData, value: string) => {
@@ -119,7 +129,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
     onSubmit(formattedData);
   };
 
-  const isVendaFechada = STATUS_FECHADOS.includes(form.status);
+  const isVendaFechada = STATUS_FECHADOS.includes(form.status) || form.is_retroativo;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 py-4">
@@ -224,25 +234,37 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
           </div>
 
           {/* Venda Fechada Panel */}
-          {isVendaFechada && (
-            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 space-y-4">
+          <div className={`p-4 rounded-2xl border space-y-4 transition-colors ${isVendaFechada ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-60'}`}>
+             <div className="flex items-center justify-between">
                <h4 className="text-[10px] uppercase font-black text-emerald-600 tracking-widest">💰 Detalhes da Venda</h4>
-               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label htmlFor="grupo" className="text-[10px] font-bold">Grupo</Label>
-                  <Input id="grupo" value={form.grupo || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" placeholder="0000" />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="cota" className="text-[10px] font-bold">Cota</Label>
-                  <Input id="cota" value={form.cota || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" placeholder="000" />
-                </div>
+               <div className="flex items-center gap-2">
+                 <input 
+                  type="checkbox" 
+                  id="is_retroativo" 
+                  checked={form.is_retroativo} 
+                  onChange={handleChange}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                 />
+                 <Label htmlFor="is_retroativo" className="text-[9px] font-black uppercase text-slate-500 cursor-pointer">Inclusão Retroativa</Label>
                </div>
-               <div className="space-y-1">
-                  <Label htmlFor="status_updated_at" className="text-[10px] font-bold">Data do Fechamento</Label>
-                  <Input id="status_updated_at" type="date" value={form.status_updated_at ? form.status_updated_at.split('T')[0] : ""} onChange={handleChange} className="rounded-lg h-9 bg-white" />
-               </div>
-            </div>
-          )}
+             </div>
+
+             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="grupo" className="text-[10px] font-bold">Grupo</Label>
+                <Input id="grupo" value={form.grupo || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" placeholder="0000" disabled={!isVendaFechada} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="cota" className="text-[10px] font-bold">Cota</Label>
+                <Input id="cota" value={form.cota || ""} onChange={handleChange} className="rounded-lg h-9 bg-white" placeholder="000" disabled={!isVendaFechada} />
+              </div>
+             </div>
+             <div className="space-y-1">
+                <Label htmlFor="status_updated_at" className="text-[10px] font-bold">Data do Fechamento</Label>
+                <Input id="status_updated_at" type="date" value={form.status_updated_at ? form.status_updated_at.split('T')[0] : ""} onChange={handleChange} className="rounded-lg h-9 bg-white" disabled={!isVendaFechada} />
+             </div>
+          </div>
+
 
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
              <h4 className="text-[10px] uppercase font-black text-slate-400 tracking-widest">🤝 Indicador</h4>
