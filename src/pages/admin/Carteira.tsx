@@ -900,40 +900,45 @@ export default function Carteira() {
             );
           }
 
-          // ── MULTI-COTA: one card, compact rows per cota ─────────────────────
+          // ── MULTI-COTA: same card, side by side in the same row ────────────
           return (
-            <div key={nomeKey} className="p-4 rounded-2xl bg-white border border-indigo-200 shadow-sm hover:shadow-md transition-all col-span-1">
-              {/* Client header */}
-              <div className="flex items-center justify-between mb-3 gap-2">
-                <div className="flex items-center gap-2 min-w-0">
+            <div key={nomeKey} className="col-span-full">
+              {/* Thin grouping strip */}
+              <div className="flex items-center justify-between px-1 mb-2">
+                <div className="flex items-center gap-2">
                   {getSegmentIcon(primeiro.tipo_consorcio)}
-                  <h4 className="font-black text-slate-900 truncate">{formatToUpper(primeiro.nome)}</h4>
-                  <span className="text-[9px] font-black bg-indigo-500 text-white px-1.5 py-0.5 rounded-full shrink-0">{cotas.length} COTAS</span>
+                  <span className="text-xs font-black text-indigo-700 uppercase tracking-wide">{formatToUpper(primeiro.nome)}</span>
+                  <span className="text-[9px] font-black bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full">{cotas.length} COTAS · Total: {formatCurrency(totalCredito)}</span>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[9px] font-black text-indigo-600">Total: {formatCurrency(totalCredito)}</span>
-                  {novaCotaBtn}
-                </div>
+                {novaCotaBtn}
               </div>
-              {primeiro.administradora && <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase w-fit mb-3 block">{formatToUpper(primeiro.administradora)}</span>}
 
-              {/* Compact cota rows */}
-              <div className="space-y-3">
+              {/* Row of identical compact cards */}
+              <div className={`grid gap-4 ${cotas.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}>
                 {cotas.map((c, idx) => (
-                  <div key={c.id} className="border border-slate-100 rounded-xl p-3 bg-slate-50/50">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cota {idx + 1}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-black text-slate-700 cursor-pointer hover:text-indigo-600" onClick={() => c.grupo && (setSelectedGrupo(c.grupo), setShowContemplations(true), fetchContemplations(c.grupo))}>
-                          G: {formatToFourDigits(c.grupo)} / C: {formatToFourDigits(c.cota)} <ExternalLink className="h-2.5 w-2.5 inline" />
-                        </span>
-                        <span className="text-xs font-black text-blue-600">{formatCurrency(Number(c.valor_credito || 0))}</span>
-                        <Badge variant={c.status === "inadimplente" ? "destructive" : c.cota_contemplada ? "default" : "outline"} className="text-[8px] font-black uppercase">
-                          {c.status === "inadimplente" ? "INAD." : c.cota_contemplada ? "CONTEMPL." : "ATIVO"}
-                        </Badge>
+                  <div key={c.id} className="p-4 rounded-2xl bg-white border border-indigo-100 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-black text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded uppercase">Cota {idx + 1}</span>
+                        </div>
+                        {c.administradora && <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase w-fit mt-1">{formatToUpper(c.administradora)}</span>}
+                      </div>
+                      <Badge variant={c.status === "inadimplente" ? "destructive" : c.cota_contemplada ? "default" : "outline"} className="text-[10px] font-black uppercase shrink-0">
+                        {c.status === "inadimplente" ? "INADIMPLENTE" : c.cota_contemplada ? "CONTEMPLADO" : "ATIVO"}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-xs mb-4">
+                      <div className="cursor-pointer bg-slate-50 p-2 rounded-lg hover:bg-slate-100" onClick={() => c.grupo && (setSelectedGrupo(c.grupo), setShowContemplations(true), fetchContemplations(c.grupo))}>
+                        <p className="text-slate-400 font-bold uppercase text-[9px]">Grupo / Cota</p>
+                        <p className="font-black flex items-center gap-1">{formatToFourDigits(c.grupo) || "-"} / {formatToFourDigits(c.cota) || "-"} <ExternalLink className="h-3 w-3" /></p>
+                      </div>
+                      <div className="p-2 border-l border-slate-50">
+                        <p className="text-slate-400 font-bold uppercase text-[9px]">Crédito</p>
+                        <p className="font-black text-blue-600">{formatCurrency(Number(c.valor_credito || 0))}</p>
                       </div>
                     </div>
-                    <div className="mb-2">{renderCotaStatus(c)}</div>
+                    <div className="mb-4">{renderCotaStatus(c)}</div>
                     {renderCotaActions(c)}
                   </div>
                 ))}
