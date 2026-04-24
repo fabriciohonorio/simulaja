@@ -113,6 +113,7 @@ export function LeadCard({
   ultimaTratativa,
   compact = false,
   onUpdateField,
+  onEdit,
   onViewFicha,
 }: {
   lead: Lead;
