@@ -159,12 +159,12 @@ export default function Carteira() {
         setLeadsComLance(leadsSet);
       }
 
-      // Persistir data_adesao enriquecida de volta ao banco para clientes que tinham o campo vazio
+      // Persistir data_adesao enriquecida de volta ao banco - PRIORIDADE PARA O LEAD
       const persistPromises: Promise<any>[] = [];
       for (const c of uniqueClients) {
-        if (!c.data_adesao && c.lead_id) {
+        if (c.lead_id) {
           const enrichedDate = leadDateMap.get(c.lead_id);
-          if (enrichedDate) {
+          if (enrichedDate && enrichedDate !== c.data_adesao) {
             persistPromises.push(
               supabase.from("carteira").update({ data_adesao: enrichedDate }).eq("id", c.id) as any
             );
@@ -208,15 +208,18 @@ export default function Carteira() {
         }
       }
 
-      const formattedUniqueClients = uniqueClients.map(c => ({
-        ...c,
-        nome: formatToUpper(c.nome),
-        grupo: formatToFourDigits(c.grupo),
-        cota: formatToFourDigits(c.cota),
-        administradora: formatToUpper(c.administradora),
-        // Usa data do lead se data_adesao estiver vazia (fallback em memória)
-        data_adesao: c.data_adesao || (c.lead_id ? (leadDateMap.get(c.lead_id) ?? null) : null),
-      }));
+      const formattedUniqueClients = uniqueClients.map(c => {
+        const leadDate = c.lead_id ? (leadDateMap.get(c.lead_id) ?? null) : null;
+        return {
+          ...c,
+          nome: formatToUpper(c.nome),
+          grupo: formatToFourDigits(c.grupo),
+          cota: formatToFourDigits(c.cota),
+          administradora: formatToUpper(c.administradora),
+          // Prioriza SEMPRE a data do lead se disponível
+          data_adesao: leadDate || c.data_adesao,
+        };
+      });
 
       setClientes(formattedUniqueClients);
     } catch (e) {
@@ -833,13 +836,13 @@ export default function Carteira() {
                     }`}>
                       <Clock className="h-3 w-3 shrink-0" />
                       <div className="flex-1">
-                        <p className="text-[9px] font-bold uppercase text-center opacity-60 tracking-widest">
+                        <p className="text-[9px] font-black uppercase text-center opacity-80 tracking-widest">
                           {isInadimplente ? "Cliente Inadimplente" : isContemplado ? "Cota Contemplada" : "Aguardando contemplação"}
                         </p>
-                        <p className={`text-[11px] font-black uppercase tracking-wider text-center ${
+                        <p className={`text-[12px] font-black uppercase tracking-wider text-center ${
                           isInadimplente ? "text-rose-700" : isContemplado ? "text-blue-700" : "text-amber-700"
                         }`}>
-                          {wait.label}
+                          {isInadimplente ? `Total: ${wait.label}` : wait.label}
                         </p>
                       </div>
                       <button 
