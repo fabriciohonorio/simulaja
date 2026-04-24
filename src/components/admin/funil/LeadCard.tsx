@@ -189,7 +189,6 @@ export function LeadCard({
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
-      {...provided.dragHandleProps}
       className={`group relative bg-white border rounded-xl overflow-hidden ${!snapshot.isDragging ? "transition-all duration-200" : ""}
         ${statusNormalized === "fechado" ? "border-emerald-200/80 shadow-[0_0_12px_rgba(34,197,94,0.08)]" : "border-slate-200/70 hover:shadow-lg hover:shadow-slate-200/60 hover:border-slate-300/60 hover:-translate-y-0.5"}
         ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
@@ -411,7 +410,10 @@ export function LeadCard({
                   title="Histórico">
                   <NotebookPen className="h-3 w-3" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
+                <button onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (onEdit) onEdit(lead); 
+                }}
                   className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
                   title="Editar Lead">
                   <Pencil className="h-3 w-3" />
@@ -449,7 +451,10 @@ export function LeadCard({
               title="Histórico">
               <NotebookPen className="h-3 w-3" />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
+            <button onClick={(e) => { 
+              e.stopPropagation(); 
+              if (onEdit) onEdit(lead); 
+            }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
               title="Editar Lead">
               <Pencil className="h-3 w-3" />
