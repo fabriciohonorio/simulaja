@@ -158,13 +158,13 @@ export function LeadCard({
   const vencAtrasado = isPastDue(lead.data_vencimento);
 
   const dataReferenciaDias = isFechado && lead.status_updated_at ? parseISO(lead.status_updated_at) : new Date();
-  const diasDesdeEntrada = lead.created_at ? Math.max(0, differenceInDays(dataReferenciaDias, parseISO(lead.created_at))) : 0;
+  const diasNaEtapa = lead.status_updated_at ? Math.max(0, differenceInDays(dataReferenciaDias, parseISO(lead.status_updated_at))) : (lead.created_at ? Math.max(0, differenceInDays(dataReferenciaDias, parseISO(lead.created_at))) : 0);
 
   const timeInfoText = () => {
     if (statusNormalized === "novo_lead") {
       return (
         <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
-          Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : '--/--'} · {diasDesdeEntrada}d
+          Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : '--/--'}
         </span>
       );
     }
@@ -175,13 +175,13 @@ export function LeadCard({
       
       return (
         <span className="flex items-center gap-1 text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
-          🏆 Vendido: {dateText} · {diasDesdeEntrada}d
+          🏆 Vendido: {dateText}
         </span>
       );
     }
     return (
       <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1 py-0.5 rounded font-black uppercase tracking-tighter border border-red-100 text-[8px]">
-        <Clock className="w-2 h-2" /> {diasDesdeEntrada} {diasDesdeEntrada === 1 ? 'dia' : 'dias'}
+        <Clock className="w-2 h-2" /> {diasNaEtapa} {diasNaEtapa === 1 ? 'dia' : 'dias'}
       </span>
     );
   };
@@ -216,13 +216,13 @@ export function LeadCard({
       }`} />
 
       {/* Badge urgência circular — canto superior direito */}
-      {diasDesdeEntrada > 5 && statusNormalized !== "fechado" && statusNormalized !== "morto" && (
+      {diasNaEtapa > 5 && statusNormalized !== "fechado" && statusNormalized !== "morto" && (
         <div className={`absolute top-1.5 right-1.5 flex items-center justify-center rounded-full text-[7px] font-black leading-none w-6 h-6 z-10 border-2 border-white shadow-sm ${
-          diasDesdeEntrada > 30 ? "bg-red-500 text-white" :
-          diasDesdeEntrada > 14 ? "bg-orange-400 text-white" :
+          diasNaEtapa > 30 ? "bg-red-500 text-white" :
+          diasNaEtapa > 14 ? "bg-orange-400 text-white" :
           "bg-amber-100 text-amber-700 border-amber-200"
         }`}>
-          {diasDesdeEntrada > 99 ? "99+" : diasDesdeEntrada}d
+          {diasNaEtapa > 99 ? "99+" : diasNaEtapa}d
         </div>
       )}
 
@@ -280,16 +280,16 @@ export function LeadCard({
         <div className="flex items-center gap-1 text-[8px]">
           {statusNormalized === "novo_lead" ? (
             <span className="text-sky-500 font-bold">
-              Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"} · {diasDesdeEntrada}d
+              Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"}
             </span>
           ) : statusNormalized === "fechado" ? (
             <span className="text-emerald-600 font-black">
-              🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"} · {diasDesdeEntrada}d
+              🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"}
             </span>
           ) : (
-            <span className={`font-black ${diasDesdeEntrada > 14 ? "text-red-500" : "text-slate-400"}`}>
+            <span className={`font-black ${diasNaEtapa > 14 ? "text-red-500" : "text-slate-400"}`}>
               <Clock className="w-2 h-2 inline mr-0.5" />
-              {diasDesdeEntrada} {diasDesdeEntrada === 1 ? "dia" : "dias"} na etapa
+              {diasNaEtapa} {diasNaEtapa === 1 ? "dia" : "dias"} na etapa
             </span>
           )}
         </div>
@@ -299,8 +299,8 @@ export function LeadCard({
             {formatLeadValue(Number(lead.valor_credito) || 0)}
           </p>
           {!compact && (
-            <span className="text-[9px] text-slate-400 font-bold">
-              · {lead.prazo_meses}m
+            <span className="text-[9px] text-slate-400 font-bold" title="Prazo do consórcio em meses">
+              · {lead.prazo_meses} meses
             </span>
           )}
         </div>
