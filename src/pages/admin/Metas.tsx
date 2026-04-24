@@ -51,7 +51,7 @@ import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ComposedChart, Bar, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import { ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart as RechartsPieChart, Pie, Cell } from "recharts";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -843,17 +843,17 @@ export default function Metas() {
                 })()}
             </div>
 
-            {/* Chart + Thermometer */}
-            {/* Chart Section */}
-            <div className="w-full">
-                <Card className="w-full shadow-sm border-slate-200/60 bg-white/50 backdrop-blur-sm overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50/30">
+            {/* Chart Section — Evolução + Pizza Segmentos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Evolução Mensal — menor */}
+                <Card className="shadow-sm border-slate-200/60 bg-white/50 backdrop-blur-sm overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 bg-slate-50/30">
                         <div>
-                           <CardTitle className="text-sm sm:text-base font-bold text-slate-800">Evolução Mensal (Últimos 4 Meses)</CardTitle>
-                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Desempenho de metas vs realizado</p>
+                           <CardTitle className="text-xs font-bold text-slate-800">Evolução Mensal (Últimos 4 Meses)</CardTitle>
+                           <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Metas vs Realizado</p>
                         </div>
                     </CardHeader>
-                    <CardContent className="h-56 sm:h-72 pt-6">
+                    <CardContent className="h-44 pt-3 pb-2">
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={monthsData}>
                                 <defs>
@@ -863,17 +863,94 @@ export default function Metas() {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                                <YAxis tickFormatter={v => `R$${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                <YAxis tickFormatter={v => `${v >= 1000 ? (v / 1000) + "k" : v}`} tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} width={40} />
                                 <Tooltip 
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
                                     formatter={(value: number) => [formatCurrency(value), "Valor"]}
                                 />
-                                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} iconType="circle" />
-                                <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={40} />
-                                <Bar dataKey="realizado" name="Realizado" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={40} />
+                                <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} iconType="circle" />
+                                <Bar dataKey="meta" name="Meta" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={28} />
+                                <Bar dataKey="realizado" name="Realizado" fill="url(#barGradient)" radius={[4, 4, 0, 0]} barSize={28} />
                             </ComposedChart>
                         </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Pizza — Participação por Segmento no Mês */}
+                <Card className="shadow-sm border-slate-200/60 bg-white/50 backdrop-blur-sm overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3 bg-slate-50/30">
+                        <div>
+                           <CardTitle className="text-xs font-bold text-slate-800">Participação por Segmento</CardTitle>
+                           <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Vendas do mês por categoria</p>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="h-44 pt-2 pb-2">
+                        {(() => {
+                            const PIE_COLORS: Record<string, string> = {
+                                imoveis: '#2563eb',
+                                veiculos: '#16a34a',
+                                motos: '#f97316',
+                                pesados: '#9333ea',
+                                investimentos: '#ca8a04',
+                            };
+                            const pieData = segmentos
+                                .filter(s => s.valor_total > 0)
+                                .map(s => ({
+                                    name: SEGMENT_CONFIG[s.segmento]?.label || s.segmento,
+                                    value: s.valor_total,
+                                    color: PIE_COLORS[s.segmento] || '#94a3b8',
+                                    segmento: s.segmento,
+                                }));
+                            
+                            if (pieData.length === 0) {
+                                return (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                                        <PieChart className="h-8 w-8 opacity-20" />
+                                        <p className="text-[10px] font-bold uppercase tracking-wider">Sem vendas este mês</p>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="flex items-center h-full gap-2">
+                                    <ResponsiveContainer width="55%" height="100%">
+                                        <RechartsPieChart>
+                                            <Pie
+                                                data={pieData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={38}
+                                                outerRadius={65}
+                                                paddingAngle={3}
+                                                dataKey="value"
+                                            >
+                                                {pieData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '11px' }}
+                                                formatter={(value: number) => [formatCurrency(value), "Vendido"]}
+                                            />
+                                        </RechartsPieChart>
+                                    </ResponsiveContainer>
+                                    <div className="flex-1 space-y-1.5 overflow-hidden">
+                                        {pieData.map((entry) => {
+                                            const total = pieData.reduce((s, p) => s + p.value, 0);
+                                            const pct = total > 0 ? ((entry.value / total) * 100).toFixed(1) : '0';
+                                            return (
+                                                <div key={entry.segmento} className="flex items-center gap-1.5">
+                                                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                                                    <span className="text-[9px] font-bold text-slate-600 truncate flex-1">{entry.name}</span>
+                                                    <span className="text-[9px] font-black" style={{ color: entry.color }}>{pct}%</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </CardContent>
                 </Card>
             </div>
