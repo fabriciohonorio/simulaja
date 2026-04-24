@@ -178,18 +178,18 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
       <div className="relative group w-full">
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 500)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -ml-8 border-4 border-background group-hover:opacity-100 opacity-80"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-white/80 backdrop-blur-md text-slate-700 shadow-xl rounded-full p-2.5 hover:bg-primary hover:text-white active:scale-90 transition-all -ml-5 border border-slate-200 group-hover:opacity-100 opacity-0 lg:opacity-60"
           aria-label="Rolar para esquerda"
         >
-          <ChevronLeft className="h-10 w-10" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
 
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 500)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -mr-8 border-4 border-background group-hover:opacity-100 opacity-80"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-white/80 backdrop-blur-md text-slate-700 shadow-xl rounded-full p-2.5 hover:bg-primary hover:text-white active:scale-90 transition-all -mr-5 border border-slate-200 group-hover:opacity-100 opacity-0 lg:opacity-60"
           aria-label="Rolar para direita"
         >
-          <ChevronRight className="h-10 w-10" />
+          <ChevronRight className="h-5 w-5" />
         </button>
 
         <div
