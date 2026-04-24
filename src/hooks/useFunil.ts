@@ -175,13 +175,23 @@ export function useFunil() {
       if (finalStatuses.includes(lead.status || "")) return;
 
       const lastInteraction = new Date(lead.last_interaction_at || lead.created_at || now.toISOString());
+      const stageStart = new Date(lead.status_updated_at || lead.created_at || now.toISOString());
+      
       const hoursDiff = (now.getTime() - lastInteraction.getTime()) / (1000 * 60 * 60);
+      const stageDays = (now.getTime() - stageStart.getTime()) / (1000 * 60 * 60 * 24);
+      
       let newTemp = lead.lead_temperatura || "quente";
       let newStatus = lead.status;
 
-      if (hoursDiff > 24 * 7) newTemp = "morto";
-      else if (hoursDiff > 24 * 3) newTemp = "frio";
-      else if (hoursDiff > 24) newTemp = "morno";
+      // Regra de Automovimentação: > 35 dias parado na mesma etapa -> Morto
+      if (stageDays > 35) {
+        newStatus = "morto";
+        newTemp = "morto";
+      } else {
+        if (hoursDiff > 24 * 7) newTemp = "morto";
+        else if (hoursDiff > 24 * 3) newTemp = "frio";
+        else if (hoursDiff > 24) newTemp = "morno";
+      }
 
       let score = 0;
       let reasons: string[] = [];

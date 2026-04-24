@@ -215,12 +215,13 @@ export function LeadCard({
           : TEMP_STRIPE[lead.lead_temperatura || "frio"] || "bg-slate-300"
       }`} />
 
-      {/* Badge urgência circular — canto superior direito */}
-      {diasNaEtapa > 5 && statusNormalized !== "fechado" && statusNormalized !== "morto" && (
+      {/* Badge urgência circular — canto superior direito (PADRONIZADO) */}
+      {statusNormalized !== "fechado" && (
         <div className={`absolute top-1.5 right-1.5 flex items-center justify-center rounded-full text-[7px] font-black leading-none w-6 h-6 z-10 border-2 border-white shadow-sm ${
-          diasNaEtapa > 30 ? "bg-red-500 text-white" :
-          diasNaEtapa > 14 ? "bg-orange-400 text-white" :
-          "bg-amber-100 text-amber-700 border-amber-200"
+          diasNaEtapa > 30 ? "bg-red-500 text-white animate-pulse" :
+          diasNaEtapa > 14 ? "bg-orange-500 text-white" :
+          diasNaEtapa > 5 ? "bg-amber-100 text-amber-700 border-amber-200" :
+          "bg-slate-100 text-slate-500 border-slate-200"
         }`}>
           {diasNaEtapa > 99 ? "99+" : diasNaEtapa}d
         </div>
@@ -276,23 +277,20 @@ export function LeadCard({
           </div>
         )}
 
-        {/* Timing */}
-        <div className="flex items-center gap-1 text-[8px]">
-          {statusNormalized === "novo_lead" ? (
-            <span className="text-sky-500 font-bold">
-              Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"}
-            </span>
-          ) : statusNormalized === "fechado" ? (
-            <span className="text-emerald-600 font-black">
-              🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"}
-            </span>
-          ) : (
-            <span className={`font-black ${diasNaEtapa > 14 ? "text-red-500" : "text-slate-400"}`}>
-              <Clock className="w-2 h-2 inline mr-0.5" />
-              {diasNaEtapa} {diasNaEtapa === 1 ? "dia" : "dias"} na etapa
-            </span>
-          )}
-        </div>
+        {/* Timing/Status Info */}
+        {(statusNormalized === "novo_lead" || statusNormalized === "fechado") && (
+          <div className="flex items-center gap-1 text-[8px]">
+            {statusNormalized === "novo_lead" ? (
+              <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
+                Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"}
+              </span>
+            ) : (
+              <span className="text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
+                🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"}
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="flex items-baseline gap-1.5 pt-0.5">
           <p className={`text-primary font-black ${compact ? "text-[10px]" : "text-[12px]"}`}>
