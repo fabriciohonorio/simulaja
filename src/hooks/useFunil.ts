@@ -24,6 +24,7 @@ export function useFunil() {
   const [administradora, setAdministradora] = useState("");
   const [saving, setSaving] = useState(false);
   const [administradoraFilter, setAdministradoraFilter] = useState("todos");
+  const [indicadorFilter, setIndicadorFilter] = useState("todos");
   
   const [vencimentoLead, setVencimentoLead] = useState<Lead | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -598,11 +599,11 @@ export function useFunil() {
     startResizing,
     getColumnLeads,
     handleGenerateReport,
-    onDragEnd,
-    handleSaveVencimento,
-    handleSaveCelebration,
-    handleDeleteLead,
     handleCloseHistorico,
+    indicadorFilter,
+    setIndicadorFilter,
+    administradoraFilter,
+    setAdministradoraFilter,
     editingLead,
     setEditingLead,
     savingLead,

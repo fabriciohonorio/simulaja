@@ -158,18 +158,21 @@ export default function Funil() {
           />
         </div>
 
-        <Tabs 
-          value={funilState.administradoraFilter} 
-          onValueChange={funilState.setAdministradoraFilter} 
-          className="shrink-0"
-        >
-          <TabsList className="h-7 bg-white border border-slate-200 p-0.5">
-            <TabsTrigger value="todos" className="text-[9px] font-black px-2 h-6 uppercase tracking-tighter">Todos</TabsTrigger>
-            {ADMINISTRADORAS.map(admin => (
-              <TabsTrigger key={admin} value={admin} className="text-[9px] font-black px-2 h-6 uppercase tracking-tighter">{admin}</TabsTrigger>
-            ))}
-          </TabsList>
         </Tabs>
+ 
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          <span className="text-[8px] font-black text-slate-400 uppercase">Indicador:</span>
+          <select 
+            className="h-7 bg-white border border-slate-200 text-[9px] font-black px-2 rounded outline-none focus:ring-1 focus:ring-primary/30 min-w-[120px] uppercase"
+            value={funilState.indicadorFilter}
+            onChange={(e) => funilState.setIndicadorFilter(e.target.value)}
+          >
+            <option value="todos">Todos os Indicadores</option>
+            {Array.from(new Set(funilState.leads.map((l: any) => l.indicador_nome).filter(Boolean))).sort().map((ind: any) => (
+              <option key={ind} value={ind}>{ind}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="hidden lg:flex items-center bg-white p-0.5 rounded border border-slate-200 h-7 shrink-0">
           <button

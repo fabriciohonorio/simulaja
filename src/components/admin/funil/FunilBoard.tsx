@@ -32,6 +32,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
     isManager,
     ultimasTratativas,
     handleUpdateLeadField,
+    indicadorFilter,
   } = state;
 
   const currentCol = COLUMNS[mobileColIdx];
@@ -47,7 +48,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
         quickFilter === 'sem_tratativa' ? !(l as any).ultima_tratativa :
         quickFilter === 'hoje' ? (l.data_vencimento ? new Date(l.data_vencimento).toDateString() === today.toDateString() : false) :
         true;
-      return matchSearch && matchQuick;
+      const matchIndicador = indicadorFilter === 'todos' || l.indicador_nome === indicadorFilter;
+      return matchSearch && matchQuick && matchIndicador;
     });
   };
 
