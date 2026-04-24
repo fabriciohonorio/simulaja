@@ -158,8 +158,18 @@ export default function Funil() {
           />
         </div>
 
+        <Tabs 
+          value={funilState.administradoraFilter} 
+          onValueChange={funilState.setAdministradoraFilter} 
+          className="shrink-0"
+        >
+          <TabsList className="h-7 bg-white border border-slate-200 p-0.5">
+            <TabsTrigger value="todos" className="text-[9px] font-black px-2 h-6 uppercase tracking-tighter">Todos</TabsTrigger>
+            {ADMINISTRADORAS.map(admin => (
+              <TabsTrigger key={admin} value={admin} className="text-[9px] font-black px-2 h-6 uppercase tracking-tighter">{admin}</TabsTrigger>
+            ))}
+          </TabsList>
         </Tabs>
- 
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           <span className="text-[8px] font-black text-slate-400 uppercase">Indicador:</span>
           <select 
