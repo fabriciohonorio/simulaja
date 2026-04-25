@@ -5,7 +5,12 @@ import { VitePWA } from "vite-plugin-pwa"
 import { componentTagger } from "lovable-tagger"
 
 // https://vitejs.dev/config/
+const buildVersion = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+
 export default defineConfig(({ mode }) => ({
+  define: {
+    __APP_VERSION__: JSON.stringify(buildVersion),
+  },
   plugins: [
     react(),
     VitePWA({
