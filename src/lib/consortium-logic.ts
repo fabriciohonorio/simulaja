@@ -48,11 +48,10 @@ export const getLoteriaStatus = (
 
   let calculationBasis = lotId;
 
-  // Rule for Ademicon Vehicles: Use only the "milhar" (last 4 digits)
-  const isAdemiconVehicle = cleanAdmin.includes("ADEMICON") && 
-    (cleanTipo.includes("veículo") || cleanTipo.includes("veiculo"));
+  // Rule for Ademicon: Universally use only the "milhar" (last 4 digits) for calculations
+  const isAdemicon = cleanAdmin.includes("ADEMICON");
 
-  if (isAdemiconVehicle) {
+  if (isAdemicon) {
     calculationBasis = lotId % 10000;
   }
 

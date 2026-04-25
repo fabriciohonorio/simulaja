@@ -724,27 +724,65 @@ export default function Carteira() {
              <h2 className="text-xl font-black flex items-center gap-2"><Calculator className="h-5 w-5" /> Filtro Global e Auditoria</h2>
              <p className="text-blue-100 text-sm font-medium mt-1">Selecione a administradora para filtrar a lista e processar auditorias de sorteio.</p>
            </div>
-           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-             <select 
-               className="h-12 bg-white/10 border border-white/20 text-white rounded-md px-3 font-bold text-sm outline-none cursor-pointer appearance-none"
-               value={lotteryAdmin}
-               onChange={e => setLotteryAdmin(e.target.value)}
-             >
-               <option value="TODAS" className="text-slate-800">Todas as Administradoras</option>
-               <option value="SERVOPA" className="text-slate-800 font-bold bg-amber-50">SERVOPA</option>
-               {Array.from(new Set(["MAGALU", "ADEMICON", ...clientes.map(c => formatToUpper(c.administradora)).filter(Boolean)])).sort().map(admin => (
-                 admin !== "SERVOPA" && <option key={admin as string} value={admin as string} className="text-slate-800">{admin as string}</option>
-               ))}
-             </select>
-             <Input 
-               placeholder="Loteria Federal..." 
-               value={lotteryNumber} 
-               onChange={e => setLotteryNumber(e.target.value)} 
-               className="h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-200 min-w-[150px]"
-             />
-             <Button onClick={checkLotteryGlobal} className="h-12 bg-white text-blue-700 hover:bg-blue-50 font-black uppercase text-xs shrink-0">
-               Processar Sorteio
-             </Button>
+           <div className="flex flex-col gap-1 w-full md:w-auto">
+             <div className="flex flex-col md:flex-row gap-2">
+               <select 
+                 className="h-12 bg-white/10 border border-white/20 text-white rounded-md px-3 font-bold text-sm outline-none cursor-pointer appearance-none"
+                 value={lotteryAdmin}
+                 onChange={e => setLotteryAdmin(e.target.value)}
+               >
+                 <option value="TODAS" className="text-slate-800">Todas as Administradoras</option>
+                 <option value="SERVOPA" className="text-slate-800 font-bold bg-amber-50">SERVOPA</option>
+                 {Array.from(new Set(["MAGALU", "ADEMICON", ...clientes.map(c => formatToUpper(c.administradora)).filter(Boolean)])).sort().map(admin => (
+                   admin !== "SERVOPA" && <option key={admin as string} value={admin as string} className="text-slate-800">{admin as string}</option>
+                 ))}
+               </select>
+               <Input 
+                 placeholder="Loteria Federal..." 
+                 value={lotteryNumber} 
+                 onChange={e => setLotteryNumber(e.target.value)} 
+                 className="h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-200 min-w-[150px]"
+               />
+               <Button onClick={checkLotteryGlobal} className="h-12 bg-white text-blue-700 hover:bg-blue-50 font-black uppercase text-xs shrink-0">
+                 Processar Sorteio
+               </Button>
+             </div>
+             {lotteryNumber && lotteryNumber.replace(/\D/g, '').length >= 4 && (
+               <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
+                  <p className="text-blue-200 text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-400" /> 
+                    Pedras Chaves (Por Grupo)
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(() => {
+                      const uniqueGroups = new Map<string, { admin: string; cotaSorteada: number }>();
+                      clientes.forEach(c => {
+                        if (!c.grupo) return;
+                        const adminName = formatToUpper(c.administradora) || "NÃO INFORMADA";
+                        if (lotteryAdmin !== "TODAS" && adminName !== lotteryAdmin) return;
+                        
+                        if (!uniqueGroups.has(c.grupo)) {
+                           const status = getLoteriaStatus(lotteryNumber, "1", c.grupo, c.administradora, c.tipo_consorcio);
+                           if (status && status.winCota > 0) {
+                              uniqueGroups.set(c.grupo, { admin: adminName, cotaSorteada: status.winCota });
+                           }
+                        }
+                      });
+                      
+                      const entries = Array.from(uniqueGroups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                      
+                      if (entries.length === 0) return <span className="text-xs text-blue-300/50">Nenhum grupo listado.</span>;
+                      
+                      return entries.map(([grupo, data]) => (
+                        <div key={grupo} className="bg-blue-900/40 px-2.5 py-1 rounded border border-blue-400/20 text-white text-xs flex items-center gap-2">
+                          <span className="font-bold opacity-70">G: {grupo}</span>
+                          <span className="font-black text-amber-400">{data.cotaSorteada}</span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+               </div>
+             )}
            </div>
         </div>
 
