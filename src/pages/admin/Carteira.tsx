@@ -747,8 +747,14 @@ export default function Carteira() {
                  Processar Sorteio
                </Button>
              </div>
+
+           </div>
+        </div>
+
+        {lotteryChecked && (
+          <div className="mt-4 p-4 bg-white/10 rounded-xl border border-white/20 animate-in fade-in slide-in-from-top-4">
              {lotteryNumber && lotteryNumber.replace(/\D/g, '').length >= 4 && (
-               <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
+               <div className="mb-4 p-3 bg-white/5 rounded-xl border border-white/10">
                   <p className="text-blue-200 text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-1">
                     <Zap className="w-3 h-3 text-amber-400" /> 
                     Pedras Chaves (Por Grupo)
@@ -783,11 +789,7 @@ export default function Carteira() {
                   </div>
                </div>
              )}
-           </div>
-        </div>
-
-        {lotteryChecked && (
-          <div className="mt-4 p-4 bg-white/10 rounded-xl border border-white/20 animate-in fade-in slide-in-from-top-4">
+             
              {lotteryWinners.length > 0 ? (
                <div>
                   <p className="font-black text-emerald-300 text-sm uppercase tracking-widest mb-2">🎉 {lotteryWinners.length} Ganhador(es) Encontrado(s){lotteryAdmin !== "TODAS" ? ` NA ${lotteryAdmin}` : ""}!</p>
