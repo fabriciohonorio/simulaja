@@ -83,7 +83,7 @@ export default function Carteira() {
   const [lotteryAdmin, setLotteryAdmin] = useState<string>("TODAS"); // NOVO STATE
   const [lotteryWinners, setLotteryWinners] = useState<Cliente[]>([]);
   const [lotteryChecked, setLotteryChecked] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"a-z" | "valor-desc" | "espera-desc">("a-z");
+  const [sortOrder, setSortOrder] = useState<"a-z" | "valor-desc" | "espera-desc" | "inadimplentes" | "grupo-asc" | "grupo-desc">("a-z");
   const [todasCotasContempladas, setTodasCotasContempladas] = useState<any[]>([]);
   const [selectedLeadForHistory, setSelectedLeadForHistory] = useState<Lead | null>(null);
   const [leadsComLance, setLeadsComLance] = useState<Set<string>>(new Set());
@@ -564,6 +564,8 @@ export default function Carteira() {
     .sort((a, b) => {
       if (sortOrder === "a-z") return (a.nome || "").localeCompare(b.nome || "");
       if (sortOrder === "valor-desc") return (b.valor_credito || 0) - (a.valor_credito || 0);
+      if (sortOrder === "grupo-asc") return (a.grupo || "").localeCompare(b.grupo || "", undefined, { numeric: true });
+      if (sortOrder === "grupo-desc") return (b.grupo || "").localeCompare(a.grupo || "", undefined, { numeric: true });
       if (sortOrder === "espera-desc") {
         const timeA = a.data_adesao ? new Date(a.data_adesao).getTime() : Date.now();
         const timeB = b.data_adesao ? new Date(b.data_adesao).getTime() : Date.now();
@@ -830,9 +832,11 @@ export default function Carteira() {
              onChange={(e) => setSortOrder(e.target.value as any)}
            >
               <option value="a-z">Ordem Alfabética</option>
-               <option value="inadimplentes">Inadimplentes</option>
+              <option value="inadimplentes">Inadimplentes</option>
               <option value="espera-desc">Tempo de Espera</option>
               <option value="valor-desc">Maior Crédito</option>
+              <option value="grupo-asc">Grupo (Menor ➡️ Maior)</option>
+              <option value="grupo-desc">Grupo (Maior ➡️ Menor)</option>
            </select>
         </div>
         <Button
