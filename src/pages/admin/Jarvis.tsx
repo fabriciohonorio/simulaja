@@ -35,6 +35,8 @@ import { ptBR } from "date-fns/locale";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import JarvisHero from "@/components/admin/JarvisHero";
 import { GRUPOS } from "@/components/ConsortiumSimulator";
+import { aiService } from "@/services/aiService";
+import { calcularMissoes, Missao } from "@/lib/missoesService";
 
 interface Message {
     id: string;
@@ -101,6 +103,7 @@ export default function Jarvis() {
     const [historicoContatos, setHistoricoContatos] = useState<any[]>([]);
     const [segmentMetas, setSegmentMetas] = useState<MetricaSegmento[]>([]);
     const [metaAnual, setMetaAnual] = useState(0);
+    const [missoes, setMissoes] = useState<Missao[]>([]);
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -211,6 +214,15 @@ export default function Jarvis() {
                     allLeads = leadsRes.data as Lead[];
                     setLeads(allLeads);
                     
+                    if (profile?.id && profile?.organizacao_id) {
+                        try {
+                            const res = await calcularMissoes(profile.id, profile.organizacao_id, profile.tipo_acesso);
+                            setMissoes(res.missoes);
+                        } catch(e) {
+                            console.error("Erro ao carregar missões no Jarvis:", e);
+                        }
+                    }
+
                     // Saudação automática ao carregar (após carregar os dados)
                     setTimeout(() => {
                         const prioritarios = allLeads.filter(l => !["fechado", "perdido", "desistiu"].includes((l.status || "").toLowerCase())).length;
@@ -295,218 +307,136 @@ export default function Jarvis() {
         setMessages(prev => [...prev, userMsg]);
         setQuestion("");
 
-        // Simulando processamento inteligente
-        setTimeout(() => {
-            const currentMonthStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }).substring(0, 7);
-            const metaMensal = metaAnual / 12;
-            
-            const fechadosMes = leads.filter(l => {
-                const s = (l.status || "").toLowerCase().replace("_", " ");
-                const isClosed = s === "fechado" || s === "venda fechada";
-                const isRetroativo = l.dados_cadastro?.is_retroativo === true;
-                const dateToCheck = l.status_updated_at || l.updated_at || "";
-                return isClosed && dateToCheck.startsWith(currentMonthStr) && !isRetroativo;
-            });
-            const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-            
-            const currentYear = new Date().getFullYear().toString();
-            const realizadoAno = leads.filter(l => {
-                const s = (l.status || "").toLowerCase().replace("_", " ");
-                const isClosed = s === "fechado" || s === "venda fechada";
-                const isRetroativo = l.dados_cadastro?.is_retroativo === true;
-                return isClosed && !isRetroativo && (l.status_updated_at || "").startsWith(currentYear);
-            }).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-            const progressoAno = metaAnual > 0 ? (realizadoAno / metaAnual) * 100 : 0;
-            
-            const emNegociacao = leads.filter(l => !["fechado", "venda_fechada", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));
-            const pipelineValue = emNegociacao.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
-            const diasNoMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-            const diaHoje = new Date().getDate();
-            const projecao = diaHoje > 0 ? (realizadoMes / diaHoje) * diasNoMes : 0;
+        const currentMonthStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }).substring(0, 7);
+        const metaMensal = metaAnual / 12;
+        
+        const fechadosMes = leads.filter(l => {
+            const s = (l.status || "").toLowerCase().replace("_", " ");
+            const isClosed = s === "fechado" || s === "venda fechada";
+            const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+            const dateToCheck = l.status_updated_at || l.updated_at || "";
+            return isClosed && dateToCheck.startsWith(currentMonthStr) && !isRetroativo;
+        });
+        const realizadoMes = fechadosMes.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+        
+        const currentYear = new Date().getFullYear().toString();
+        const realizadoAno = leads.filter(l => {
+            const s = (l.status || "").toLowerCase().replace("_", " ");
+            const isClosed = s === "fechado" || s === "venda fechada";
+            const isRetroativo = l.dados_cadastro?.is_retroativo === true;
+            return isClosed && !isRetroativo && (l.status_updated_at || "").startsWith(currentYear);
+        }).reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+        const progressoAno = metaAnual > 0 ? (realizadoAno / metaAnual) * 100 : 0;
+        
+        const emNegociacao = leads.filter(l => !["fechado", "venda_fechada", "perdido", "desistiu", "novo"].includes((l.status || "").toLowerCase()));
+        const pipelineValue = emNegociacao.reduce((acc, l) => acc + Number(l.valor_credito || 0), 0);
+        const diasNoMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+        const diaHoje = new Date().getDate();
+        const projecao = diaHoje > 0 ? (realizadoMes / diaHoje) * diasNoMes : 0;
 
-            // Inadimplência
-            const dividaTotal = inadimplentes.filter(i => i.status !== "regularizado").reduce((acc, i) => acc + (i.valor_parcela * i.parcelas_atrasadas), 0);
-            const inadCount = inadimplentes.filter(i => i.status !== "regularizado").length;
+        // Inadimplência
+        const dividaTotal = inadimplentes.filter(i => i.status !== "regularizado").reduce((acc, i) => acc + (i.valor_parcela * i.parcelas_atrasadas), 0);
+        const inadCount = inadimplentes.filter(i => i.status !== "regularizado").length;
+        const criticos = inadimplentes.filter(i => i.parcelas_atrasadas > 2);
+        const criticosLista = criticos.map(i => `${i.nome} (${formatCurrency(i.valor_parcela * i.parcelas_atrasadas)})`).join(", ");
 
-            let responseContent = "";
-            let newAnalysis: JarvisAnalysis | null = null;
-            const queryLower = query.toLowerCase();
+        const getCount = (st: string) => leads.filter(l => (l.status || "").toLowerCase() === st).length;
+        const novosHoje = leads.filter(l => l.created_at?.startsWith(new Date().toISOString().split('T')[0])).length;
+        const leadsFrios = leads.filter(l => (l as any).lead_temperatura === "frio").length;
+        
+        const imo = segmentMetas.find(s => s.segmento === 'imoveis');
+        const vei = segmentMetas.find(s => s.segmento === 'veiculos');
+        const pctImo = imo && imo.meta_vendas > 0 ? Math.round((imo.valor_total / imo.meta_vendas) * 100) : 0;
+        const pctVei = vei && vei.meta_vendas > 0 ? Math.round((vei.valor_total / vei.meta_vendas) * 100) : 0;
 
-            // Lógica de FAQ Dinâmica / Simulação
-            if ((queryLower.includes("parcela") || queryLower.includes("quanto custa") || queryLower.includes("simula")) && (queryLower.includes("mil") || queryLower.includes("m") || /\d/.test(query))) {
-                const valorMatch = query.match(/(\d+)/g);
-                const valor = valorMatch ? parseInt(valorMatch.join("")) : 0;
-                if (valor > 0) {
-                    const sim = findParcela(valor * (queryLower.includes("mil") ? 1000 : 1), queryLower);
-                    responseContent = `Cara, pra ${formatCurrency(sim.credito)} a parcela fica R$ ${sim.r50.toFixed(2)} em ${sim.prazo} meses no Grupo ${sim.grupo}. Essa é a carta na manga. Liga e oferece agora!`;
-                }
-            } else if (queryLower.includes("cotas contempladas") || (queryLower.includes("numeros") && queryLower.includes("contemplado"))) {
-                const qtdAgrupada = cotasContempladas.reduce((acc, cota) => {
-                    acc[cota.grupo] = (acc[cota.grupo] || 0) + 1;
-                    return acc;
-                }, {} as Record<string, number>);
-                const total = Object.values(qtdAgrupada).reduce((a: number, b: number) => a + b, 0);
-                const resumo = Object.entries(qtdAgrupada).map(([g, q]) => `Grupo ${g}: ${q} cotas`).join(", ");
-                responseContent = `Atualmente temos ${total} cotas contempladas registradas no histórico do sistema. Resumo: ${resumo || "Ainda não temos registros."}`;
-            } else if (queryLower.includes("cliente") || queryLower.includes("sobre o") || queryLower.includes("como ta o lead")) {
-                const nameWords = queryLower.replace(/cliente|sobre o|como ta o lead|trata|onde ta|em que etapa|o lead/g, "").trim().split(" ");
-                // find potential lead
-                const specificLead = leads.find(l => {
-                    const lName = ((l as any).nome || "").toLowerCase();
-                    return nameWords.length > 0 && nameWords[0] !== "" && lName.includes(nameWords[0]);
-                });
-                if (specificLead) {
-                    const lHist = historicoContatos.filter(h => h.lead_id === specificLead.id);
-                    const lastInter = lHist.length > 0 ? lHist[0].resumo : "Nenhuma tratativa registrada ainda.";
-                    const statusVal = ((specificLead.status || specificLead.id ? "em prospecção" : specificLead.status) as string).toUpperCase();
-                    
-                    let cotaInsight = "";
-                    const grupo = (specificLead as any).grupo;
-                    const cota = (specificLead as any).cota;
-                    
-                    if (grupo && cota && cotasContempladas) {
-                        const clienteCota = parseInt(cota.toString().replace(/\D/g, ''));
-                        const cotasDoGrupo = cotasContempladas.filter(c => c.grupo === grupo);
-                        
-                        if (cotasDoGrupo.length > 0 && !isNaN(clienteCota)) {
-                            let minDiff = Infinity;
-                            let closest = "";
-                            cotasDoGrupo.forEach(c => {
-                                const parseC = parseInt(c.cota.toString().replace(/\D/g, ''));
-                                if (!isNaN(parseC)) {
-                                    const diff = Math.abs(parseC - clienteCota);
-                                    if (diff < minDiff) {
-                                        minDiff = diff;
-                                        closest = c.cota;
-                                    }
-                                }
-                            });
-                            
-                            if (closest !== "") {
-                                const chanceText = minDiff <= 30 ? "ALTÍSSIMA 🚀" : minDiff <= 100 ? "BOA 🔥" : "Média 📊";
-                                cotaInsight = `\n\n🎯 Análise de Contemplação:\nO cliente está no Grupo ${grupo}, Cota ${cota}.\nVerifiquei o histórico do grupo e a cota contemplada mais próxima foi a ${closest} (distância de ${minDiff} números).\nA chance empírica dele puxar por lance fixo no momento é ${chanceText}.`;
-                            }
-                        } else {
-                            cotaInsight = `\n\n🎯 Análise de Contemplação: Cliente no grupo ${grupo}, porém não temos registros numéricos suficientes de cotas sorteadas desse grupo para medir a chance de lance fixo.`;
-                        }
-                    } else if (!grupo || !cota) {
-                        cotaInsight = "\n\n💡 Dica: Preencha o Grupo e a Cota desse cliente na carteira para eu analisar a distância pros lances da Loteria Federal.";
-                    }
+        // Construir um super contexto resumido para o Jarvis, sem expor os dados completos de leads,
+        // apenas um resumo e as informações essenciais para responder.
+        
+        // Simulações disponíveis (Grupos)
+        const gruposInfo = Object.entries(GRUPOS).map(([tipo, lista]) => {
+            return `Segmento ${tipo.toUpperCase()}:\n` + lista.slice(0, 5).map(g => `- Grupo: ${g.grupo}, Crédito: R$ ${g.credito}, Parcela: R$ ${g.r50}, Prazo: ${g.prazo}m`).join("\n");
+        }).join("\n\n");
 
-                    responseContent = `Vamos lá! O cliente ${(specificLead as any).nome} está na etapa [${statusVal}] do funil. O valor sondado é de ${formatCurrency(specificLead.valor_credito || 0)}.\n Última tratativa registrada: "${lastInter}"${cotaInsight}`;
-                } else {
-                    responseContent = `Não consegui encontrar nenhum cliente com esse nome exato ativo hoje no funil. Pode repetir o nome completo?`;
-                }
-            } else if (queryLower.includes("inadimplencia") || queryLower.includes("devendo") || queryLower.includes("pagar") || queryLower.includes("atraso")) {
-                responseContent = `Fabricio, tão devendo ${formatCurrency(dividaTotal)} de ${inadCount} clientes. Isso tá crítico. Manda mensagem pros 3 piores devedores da lista agora e resolve isso.`;
-            } else if (queryLower.includes("segmento") || queryLower.includes("setor")) {
-                const pior = segmentMetas.sort((a,b) => (a.valor_total/a.meta_vendas) - (b.valor_total/b.meta_vendas))[0];
-                const pctPior = Math.round((pior.valor_total / pior.meta_vendas) * 100);
-                responseContent = `${pior.segmento.toUpperCase()} tá em ${pctPior}%, Fabricio — isso tá feio. Faltam ${formatCurrency(pior.meta_vendas - pior.valor_total)} pra cota do mês. Puxa a lista desse segmento e liga agora!`;
-            } else if (queryLower.includes("bom dia") || queryLower.includes("novidades") || queryLower.includes("resumo") || queryLower.includes("e aí") || queryLower.includes("funil") || queryLower.includes("crm") || queryLower.includes("tudo") || queryLower.includes("geral") || queryLower.includes("carteira")) {
-                const score = emNegociacao.length > 0 ? Math.min(100, Math.round((realizadoMes / metaMensal) * 100)) : 0;
-                const dataHoje = new Date().toLocaleDateString('pt-BR');
-                
-                const getCount = (st: string) => leads.filter(l => (l.status || "").toLowerCase() === st).length;
-                const leadsAtivos = emNegociacao.length;
-                const novosHoje = leads.filter(l => l.created_at?.startsWith(new Date().toISOString().split('T')[0])).length;
-                const leadsFrios = leads.filter(l => (l as any).lead_temperatura === "frio").length;
-                
-                const esfriando = emNegociacao.slice(0, 2).map(l => (l as any).nome || "Lead S/ Nome").join(", ");
-                const quentes = emNegociacao.filter(l => (l as any).lead_score_valor === "premium" || (l as any).lead_score_valor === "alto").slice(0, 2).map(l => (l as any).nome || "Lead Quente").join(", ") || "Nenhum";
+        // Cotas Contempladas
+        const qtdAgrupada = cotasContempladas.reduce((acc, cota) => {
+            acc[cota.grupo] = (acc[cota.grupo] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        const cotasContempladasResumo = Object.entries(qtdAgrupada).map(([g, q]) => `Grupo ${g}: ${q} cotas`).join(", ");
 
-                const diasRestantes = Math.max(0, diasNoMes - diaHoje);
-                
-                const imo = segmentMetas.find(s => s.segmento === 'imoveis');
-                const vei = segmentMetas.find(s => s.segmento === 'veiculos');
-                
-                const pctImo = imo && imo.meta_vendas > 0 ? Math.round((imo.valor_total / imo.meta_vendas) * 100) : 0;
-                const pctVei = vei && vei.meta_vendas > 0 ? Math.round((vei.valor_total / vei.meta_vendas) * 100) : 0;
-                
-                const criticos = inadimplentes.filter(i => i.parcelas_atrasadas > 2);
-                const criticosLista = criticos.slice(0, 2).map(i => `${i.nome} (${formatCurrency(i.valor_parcela * i.parcelas_atrasadas)})`).join(", ");
+        // Missões Diárias
+        const missoesInfo = missoes.map(m => `- ${m.label}: ${m.atual} / ${m.meta} ${m.concluida ? "✅ CONCLUÍDA" : "⏳ PENDENTE"}`).join("\n");
 
-                let basePrompt = `Score de saúde: [SCORE]/100
-Data de hoje: [DATA]
+        const contextBuilder = `
+--- DADOS EM TEMPO REAL DO CRM ---
 
-FUNIL:
-Prospecção: [PROS] | Qualificação: [QUAL] | Proposta: [PROP] | Negociação: [NEG] | Fechamento: [FECH]
+DATA DE HOJE: ${new Date().toLocaleDateString('pt-BR')} (Faltam ${Math.max(0, diasNoMes - diaHoje)} dias para o fim do mês)
 
-LEADS:
-Ativos: [ATIVOS] | Novos hoje: [NOVOS_HOJE] | Frios/risco: [FRIOS]
-Esfriando (sem contato): [LISTA_ESFRIANDO]
-Maior chance de fechar: [LISTA_QUENTE]
+1. FUNIL E VENDAS DO MÊS:
+- Prospecção (Novos): ${getCount('novo')}
+- Qualificação (Em Andamento): ${getCount('em_andamento')}
+- Proposta: ${getCount('proposta')}
+- Negociação: ${getCount('negociacao')}
+- Fechamentos: ${getCount('fechado')}
+- Realizado no Mês: ${formatCurrency(realizadoMes)} de uma meta de ${formatCurrency(metaMensal)}.
+- Projeção de Fechamento Mês: ${formatCurrency(projecao)}
+- Progressão Anual: ${Math.round(progressoAno)}% (${formatCurrency(realizadoAno)} de ${formatCurrency(metaAnual)})
+- Pipeline Total em Negociação: ${formatCurrency(pipelineValue)} (${emNegociacao.length} leads)
+- Novos leads hoje: ${novosHoje}
+- Leads esfriando (risco): ${leadsFrios}
 
-METAS DO MÊS ([DIAS_RESTANTES] dias restantes):
-Imóveis: [PCT_IMO]% — [REALIZADO_IMO] de [META_IMO]
-Veículos: [PCT_VEI]% — [REALIZADO_VEI] de [META_VEI]
+2. METAS POR SEGMENTO (MÊS):
+- Imóveis: ${pctImo}% (${formatCurrency(imo?.valor_total || 0)} / ${formatCurrency(imo?.meta_vendas || 0)})
+- Veículos: ${pctVei}% (${formatCurrency(vei?.valor_total || 0)} / ${formatCurrency(vei?.meta_vendas || 0)})
 
-INADIMPLÊNCIA:
-Total: [INAD_COUNT] | Críticos: [INAD_CRITICOS]
-Lista crítica: [LISTA_CRITICA]
+3. MISSÕES DO DIA (Dashboard de Missões):
+${missoesInfo || "Nenhuma missão disponível no momento."}
 
-PIPELINE TOTAL: [PIPELINE_TOTAL]
+4. INADIMPLÊNCIA:
+- Total Devendo: ${formatCurrency(dividaTotal)} (${inadCount} clientes ativos)
+- Clientes Críticos (>2 parcelas): ${criticosLista || "Nenhum no momento."}
 
-Ação obrigatória: Liga agora para o primeiro da lista esfriando ou crítica. Bora!`;
+5. SIMULADOR E COTAS (Para cálculos de parcelas):
+${gruposInfo}
 
-                responseContent = basePrompt
-                    .replace('[SCORE]', score.toString())
-                    .replace('[DATA]', dataHoje)
-                    .replace('[PROS]', getCount('novo').toString())
-                    .replace('[QUAL]', getCount('em_andamento').toString())
-                    .replace('[PROP]', getCount('proposta').toString())
-                    .replace('[NEG]', getCount('negociacao').toString())
-                    .replace('[FECH]', getCount('fechado').toString())
-                    .replace('[ATIVOS]', leadsAtivos.toString())
-                    .replace('[NOVOS_HOJE]', novosHoje.toString())
-                    .replace('[FRIOS]', leadsFrios.toString())
-                    .replace('[LISTA_ESFRIANDO]', esfriando || "Nenhum no radar")
-                    .replace('[LISTA_QUENTE]', quentes)
-                    .replace('[DIAS_RESTANTES]', diasRestantes.toString())
-                    .replace('[PCT_IMO]', pctImo.toString())
-                    .replace('[REALIZADO_IMO]', imo ? formatCurrency(imo.valor_total) : "R$0")
-                    .replace('[META_IMO]', imo ? formatCurrency(imo.meta_vendas) : "R$0")
-                    .replace('[PCT_VEI]', pctVei.toString())
-                    .replace('[REALIZADO_VEI]', vei ? formatCurrency(vei.valor_total) : "R$0")
-                    .replace('[META_VEI]', vei ? formatCurrency(vei.meta_vendas) : "R$0")
-                    .replace('[INAD_COUNT]', inadCount.toString())
-                    .replace('[INAD_CRITICOS]', criticos.length.toString())
-                    .replace('[LISTA_CRITICA]', criticosLista || "Limpa!")
-                    .replace('[PIPELINE_TOTAL]', formatCurrency(pipelineValue));
-                
-                newAnalysis = {
-                    metaTotal: metaMensal, realizado: realizadoMes, pipeline: pipelineValue,
-                    projecao: projecao, inadimplencia: dividaTotal,
-                    recomendacao: projecao >= metaMensal ? "EXPANSÃO E COBRANÇA" : "RECUPERAÇÃO DE VENDAS",
-                    detalhes: [
-                        `Inadimplência em ${formatCurrency(dividaTotal)}`,
-                        `${Math.round(progressoAno || 0)}% da meta alcançada`,
-                        `${emNegociacao.length} leads no funil`
-                    ]
-                };
-            } else {
-                const getCount = (st: string) => leads.filter(l => (l.status || "").toLowerCase() === st).length;
-                const fechados = getCount('fechado');
-                const andamento = emNegociacao.length;
-                const totCotas = cotasContempladas.length;
-                
-                responseContent = `Eu monitorei todas as bases do CRM agora. No total da sua operação temos:\n- ${fechados} clientes fechados (Carteira)\n- ${andamento} negócios em andamento no Funil, somando ${formatCurrency(pipelineValue)} em negociação.\n- ${totCotas} cotas ganhadoras registradas no histórico dos grupos.\n\nTudo está atualizado e visível na minha memória. Posso calcular uma simulação, analisar a chance de um cliente específico ou te dar o resumo financeiro (fale 'resumo'). O que manda?`;
-            }
+6. HISTÓRICO DE CONTEMPLAÇÕES (Loteria):
+Cotas Vencedoras: ${cotasContempladasResumo || "Sem registros ainda."}
 
-            const jarvisMsg: Message = {
-                id: (Date.now()+1).toString(),
-                role: "jarvis",
-                content: responseContent,
-                timestamp: new Date(),
-                type: newAnalysis ? "analysis" : "text",
-                data: newAnalysis || undefined
+--- FIM DOS DADOS ---
+Instrução: Se a pergunta do usuário for pedir um resumo ou o cenário atual, use a nova análise que seria gerada abaixo, mas seja humano. 
+`;
+
+        const response = await aiService.askJarvis(contextBuilder, query);
+        
+        let newAnalysis: JarvisAnalysis | null = null;
+        if (query.toLowerCase().includes("resumo") || query.toLowerCase().includes("funil") || query.toLowerCase().includes("tudo")) {
+            newAnalysis = {
+                metaTotal: metaMensal, realizado: realizadoMes, pipeline: pipelineValue,
+                projecao: projecao, inadimplencia: dividaTotal,
+                recomendacao: projecao >= metaMensal ? "EXPANSÃO E COBRANÇA" : "RECUPERAÇÃO DE VENDAS",
+                detalhes: [
+                    `Inadimplência em ${formatCurrency(dividaTotal)}`,
+                    `${Math.round(progressoAno || 0)}% da meta alcançada`,
+                    `${emNegociacao.length} leads no funil`
+                ]
             };
+        }
 
-            setMessages(prev => [...prev, jarvisMsg]);
-            setAnalysis(newAnalysis);
-            setIsAnalyzing(false);
-            speak(responseContent);
-        }, 1500);
+        const responseContent = response.answer;
+
+        const jarvisMsg: Message = {
+            id: (Date.now()+1).toString(),
+            role: "jarvis",
+            content: responseContent,
+            timestamp: new Date(),
+            type: newAnalysis ? "analysis" : "text",
+            data: newAnalysis || undefined
+        };
+
+        setMessages(prev => [...prev, jarvisMsg]);
+        setAnalysis(newAnalysis);
+        setIsAnalyzing(false);
+        speak(responseContent);
     };
 
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;

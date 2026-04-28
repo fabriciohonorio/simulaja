@@ -41,6 +41,42 @@ export const aiService = {
     },
 
     /**
+     * Ask Jarvis a question with full CRM context
+     */
+    async askJarvis(context: string, question: string) {
+        if (!env.ai.apiKey) {
+            console.warn("AI API Key not configured.");
+            return { answer: "Estou sem minha chave de API configurada no momento. Por favor, adicione a VITE_AI_API_KEY no arquivo .env para que eu possa processar sua pergunta com inteligência artificial.", error: "AI Key missing" };
+        }
+
+        const prompt = `Você é o Jarvis, o estrategista comercial de elite e assistente inteligente de um sistema de CRM de consórcios.
+Você tem acesso aos seguintes dados em tempo real da operação:
+
+${context}
+
+Responda à pergunta do usuário de forma concisa, direta, extremamente inteligente e analítica. 
+Aja como um parceiro de negócios e consultor de elite. Traga insights se possível. 
+Se a pergunta for sobre simulação (ex: parcelas, prazos), use as informações de grupos fornecidas no contexto.
+Se a pergunta for sobre um cliente específico, procure-o no contexto. Se não encontrar os detalhes, diga o que você sabe ou peça mais informações.
+NÃO seja robótico. Seja persuasivo e motivador.
+
+PERGUNTA DO USUÁRIO: "${question}"`;
+
+        try {
+            if (env.ai.provider === "claude") {
+                const res = await this.callClaude(prompt);
+                return { answer: res.script, error: null };
+            } else {
+                const res = await this.callGemini(prompt);
+                return { answer: res.script, error: null };
+            }
+        } catch (error) {
+            console.error("AI Service Error:", error);
+            return { answer: "Desculpe, ocorreu um erro de conexão com meu núcleo de processamento neural. Tente novamente em instantes.", error };
+        }
+    },
+
+    /**
      * Call Anthropic Claude API
      */
     async callClaude(prompt: string) {
