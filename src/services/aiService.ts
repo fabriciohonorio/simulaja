@@ -49,16 +49,18 @@ export const aiService = {
             return { answer: "Estou sem minha chave de API configurada no momento. Por favor, adicione a VITE_AI_API_KEY no arquivo .env para que eu possa processar sua pergunta com inteligência artificial.", error: "AI Key missing" };
         }
 
-        const prompt = `Você é o Jarvis, o estrategista comercial de elite e assistente inteligente de um sistema de CRM de consórcios.
-Você tem acesso aos seguintes dados em tempo real da operação:
+        const prompt = `Você é um diretor comercial especialista em consórcio.
+Seu objetivo é:
+- Aumentar conversão
+- Priorizar ações com maior impacto financeiro
+- Dar respostas diretas, estratégicas e acionáveis
 
+Nunca responda de forma genérica.
+Sempre use os dados fornecidos.
+Se possível, traga números, prioridades e próximos passos.
+
+DADOS FORNECIDOS (OPERAÇÃO E CRM EM TEMPO REAL):
 ${context}
-
-Responda à pergunta do usuário de forma concisa, direta, extremamente inteligente e analítica. 
-Aja como um parceiro de negócios e consultor de elite. Traga insights se possível. 
-Se a pergunta for sobre simulação (ex: parcelas, prazos), use as informações de grupos fornecidas no contexto.
-Se a pergunta for sobre um cliente específico, procure-o no contexto. Se não encontrar os detalhes, diga o que você sabe ou peça mais informações.
-NÃO seja robótico. Seja persuasivo e motivador.
 
 PERGUNTA DO USUÁRIO: "${question}"`;
 
