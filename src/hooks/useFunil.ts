@@ -606,8 +606,6 @@ export function useFunil() {
     handleCloseHistorico,
     indicadorFilter,
     setIndicadorFilter,
-    administradoraFilter,
-    setAdministradoraFilter,
     editingLead,
     setEditingLead,
     savingLead,
