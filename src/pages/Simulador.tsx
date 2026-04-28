@@ -391,6 +391,11 @@ _app.contemplarcrm.com.br_`;
 
       {/* Card principal */}
       <div className="w-full max-w-[580px] rounded-[22px] p-6 sm:p-8" style={{ background: "#fff", boxShadow: "0 4px 40px rgba(15,32,68,.10)" }}>
+        {categoria === "imovel" && (
+          <div className="w-full rounded-lg px-4 py-2 mb-4 text-center text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider animate-pulse" style={{ background: "linear-gradient(90deg, #ef4444, #f43f5e)", boxShadow: "0 4px 14px rgba(239, 68, 68, 0.3)" }}>
+            Promoção Extra! De 27 à 30/04 - Economia de até R$ 28.000,00*
+          </div>
+        )}
         {/* Slider */}
         <p className="text-xs font-semibold text-center mb-2" style={{ color: "#6b7a99" }}>Valor do crédito desejado</p>
         <div className="text-center mb-5">

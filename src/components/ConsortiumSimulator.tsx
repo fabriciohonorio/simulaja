@@ -86,40 +86,33 @@ export const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "6030", credito: 280000, r50: 1163.83, prazo: 198, tx: 25, fr: 1 },
     { grupo: "6030", credito: 300000, r50: 1246.96, prazo: 198, tx: 25, fr: 1 },
     { grupo: "6035", credito: 320000, r50: 1197.94, prazo: 228, tx: 27, fr: 1 },
-    { grupo: "6042", credito: 350000, r50: 1234.46, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 400000, r50: 1410.82, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 420000, r50: 1481.36, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 430000, r50: 1516.63, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 450000, r50: 1587.17, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 500000, r50: 1763.52, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 600000, r50: 2116.22, prazo: 240, tx: 26, fr: 1 },
-    { grupo: "6042", credito: 700000, r50: 2468.93, prazo: 240, tx: 26, fr: 1 },
+    // Promoção Extra até 30/04
+    { grupo: "6042", credito: 350000, r50: 1141.67, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 400000, r50: 1304.77, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 450000, r50: 1467.86, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 500000, r50: 1630.96, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 600000, r50: 1957.15, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 650000, r50: 2120.25, prazo: 240, tx: 26, fr: 1 },
+    { grupo: "6042", credito: 700000, r50: 2283.34, prazo: 240, tx: 26, fr: 1 },
     { grupo: "6042", credito: 1000000, r50: 3527.04, prazo: 240, tx: 26, fr: 1 },
   ],
   veiculo: [
-    { grupo: "5294", credito: 37000, r50: 276.62, prazo: 99, tx: 20, fr: 1 },
-    { grupo: "5294", credito: 40000, r50: 299.04, prazo: 99, tx: 20, fr: 1 },
-    { grupo: "5294", credito: 50000, r50: 373.80, prazo: 99, tx: 20, fr: 1 },
-    { grupo: "5294", credito: 60000, r50: 448.56, prazo: 99, tx: 20, fr: 1 },
-    { grupo: "5294", credito: 70000, r50: 523.31, prazo: 99, tx: 20, fr: 1 },
-    { grupo: "5295", credito: 80000, r50: 575.99, prazo: 100, tx: 18, fr: 1 },
-    { grupo: "5295", credito: 90000, r50: 647.99, prazo: 100, tx: 18, fr: 1 },
-    { grupo: "5295", credito: 100000, r50: 719.99, prazo: 100, tx: 18, fr: 1 },
-    { grupo: "5295", credito: 110000, r50: 791.99, prazo: 100, tx: 18, fr: 1 },
-    { grupo: "5295", credito: 120000, r50: 863.99, prazo: 100, tx: 18, fr: 1 },
-    { grupo: "5295", credito: 130000, r50: 935.98, prazo: 100, tx: 18, fr: 1 },
-    { grupo: "5286", credito: 140000, r50: 1259.99, prazo: 84, tx: 22, fr: 1 },
-    { grupo: "5286", credito: 150000, r50: 1349.99, prazo: 84, tx: 22, fr: 1 },
-    { grupo: "5286", credito: 160000, r50: 1439.99, prazo: 84, tx: 22, fr: 1 },
+    { grupo: "Magalu", credito: 37000, r50: 414.59, prazo: 67 },
+    { grupo: "Magalu", credito: 40000, r50: 293.64, prazo: 98 },
+    { grupo: "Magalu", credito: 50000, r50: 367.04, prazo: 98 },
+    { grupo: "Magalu", credito: 60000, r50: 440.45, prazo: 98 },
+    { grupo: "Magalu", credito: 80000, r50: 587.27, prazo: 98 },
+    { grupo: "Magalu", credito: 100000, r50: 726.89, prazo: 99 },
+    { grupo: "Magalu", credito: 120000, r50: 888.59, prazo: 100 },
+    { grupo: "Magalu", credito: 130000, r50: 962.62, prazo: 100 },
   ],
   pesados: [
-    { grupo: "5998", credito: 180000, r50: 1309.29, prazo: 96, tx: 16, fr: 1 },
-    { grupo: "5998", credito: 200000, r50: 1454.77, prazo: 96, tx: 16, fr: 1 },
-    { grupo: "5998", credito: 220000, r50: 1600.24, prazo: 96, tx: 16, fr: 1 },
-    { grupo: "5998", credito: 250000, r50: 1818.46, prazo: 96, tx: 16, fr: 1 },
-    { grupo: "5998", credito: 280000, r50: 2036.68, prazo: 96, tx: 16, fr: 1 },
-    { grupo: "5998", credito: 300000, r50: 2182.15, prazo: 96, tx: 16, fr: 1 },
-    { grupo: "5998", credito: 350000, r50: 2545.84, prazo: 96, tx: 16, fr: 1 },
+    { grupo: "Magalu", credito: 190000, r50: 939.30, prazo: 134 },
+    { grupo: "Magalu", credito: 200000, r50: 1043.66, prazo: 134 },
+    { grupo: "Magalu", credito: 220000, r50: 1148.03, prazo: 134 },
+    { grupo: "Magalu", credito: 250000, r50: 1304.58, prazo: 134 },
+    { grupo: "Magalu", credito: 280000, r50: 1461.13, prazo: 134 },
+    { grupo: "Magalu", credito: 300000, r50: 1565.50, prazo: 134 },
   ],
 };
 
@@ -356,6 +349,11 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
           </p>
 
           <div className="rounded-[22px] p-6 sm:p-8 bg-card border border-border shadow-xl">
+            {categoria === "imovel" && (
+              <div className="w-full rounded-lg px-4 py-2 mb-4 text-center text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider animate-pulse" style={{ background: "linear-gradient(90deg, #ef4444, #f43f5e)", boxShadow: "0 4px 14px rgba(239, 68, 68, 0.3)" }}>
+                Promoção Extra! De 27 à 30/04 - Economia de até R$ 28.000,00*
+              </div>
+            )}
             <p className="text-xs font-semibold text-center mb-2 text-muted-foreground">Valor do crédito desejado</p>
             <div className="text-center mb-5">
               <span className="text-sm font-bold mr-1 text-muted-foreground">R$</span>
