@@ -74,6 +74,13 @@ export const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "Magalu", credito: 180000, r50: 652.85, prazo: 220 },
     { grupo: "Magalu", credito: 200000, r50: 725.39, prazo: 220 },
     { grupo: "Magalu", credito: 220000, r50: 797.93, prazo: 220 },
+    { grupo: "Magalu", credito: 250000, r50: 906.75, prazo: 220 },
+    { grupo: "Magalu", credito: 300000, r50: 1088.10, prazo: 220 },
+    { grupo: "Magalu", credito: 400000, r50: 1450.80, prazo: 220 },
+    { grupo: "Magalu", credito: 500000, r50: 1813.50, prazo: 220 },
+    { grupo: "Magalu", credito: 600000, r50: 2176.20, prazo: 220 },
+    { grupo: "Magalu", credito: 800000, r50: 2901.60, prazo: 220 },
+    { grupo: "Magalu", credito: 1000000, r50: 3627.00, prazo: 220 },
   ],
   veiculo: [
     // Moto - 75 meses
@@ -152,6 +159,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   const [resultado, setResultado] = useState<GrupoItem | null>(null);
   const [historico, setHistorico] = useState<HistItem[]>([]);
   const [bloqueado, setBloqueado] = useState(false);
+  const [simulationMode, setSimulationMode] = useState<"credit" | "installment">("credit");
   
   const [lanceDinheiroPct, setLanceDinheiroPct] = useState(0);
   const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
@@ -339,12 +347,30 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
           </p>
 
           <div className="rounded-[22px] p-6 sm:p-8 bg-card border border-border shadow-xl">
+            <div className="flex justify-center mb-6">
+              <div className="flex bg-muted p-1 rounded-xl border border-border">
+                <button 
+                  onClick={() => setSimulationMode('credit')}
+                  className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'credit' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                >
+                  Simular por Crédito
+                </button>
+                <button 
+                  onClick={() => setSimulationMode('installment')}
+                  className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'installment' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                >
+                  Simular por Parcela
+                </button>
+              </div>
+            </div>
 
-            <p className="text-xs font-semibold text-center mb-2 text-muted-foreground">Valor do crédito desejado</p>
+            <p className="text-xs font-semibold text-center mb-2 text-muted-foreground">
+              {simulationMode === "credit" ? "Valor do crédito desejado" : "Quanto você quer pagar por mês (50%)"}
+            </p>
             <div className="text-center mb-5">
               <span className="text-sm font-bold mr-1 text-muted-foreground">R$</span>
               <span className="text-3xl sm:text-4xl font-extrabold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-                {g.credito.toLocaleString("pt-BR")}
+                {simulationMode === "credit" ? g.credito.toLocaleString("pt-BR") : g.r50.toLocaleString("pt-BR")}
               </span>
             </div>
 
@@ -360,9 +386,17 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                 background: `linear-gradient(to right, hsl(var(--secondary)) 0%, hsl(var(--secondary)) ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
               }}
             />
-            <div className="flex justify-between text-xs text-muted-foreground mb-6">
-              <span>R$ {lista[0].credito.toLocaleString("pt-BR")}</span>
-              <span>R$ {lista[lista.length - 1].credito.toLocaleString("pt-BR")}</span>
+            <div className="flex justify-between text-[10px] font-bold text-muted-foreground mb-6 uppercase tracking-tight">
+              <span>
+                {simulationMode === "credit" 
+                  ? `Min: R$ ${lista[0].credito.toLocaleString("pt-BR")}` 
+                  : `Min: R$ ${lista[0].r50.toLocaleString("pt-BR")}`}
+              </span>
+              <span>
+                {simulationMode === "credit" 
+                  ? `Max: R$ ${lista[lista.length - 1].credito.toLocaleString("pt-BR")}` 
+                  : `Max: R$ ${lista[lista.length - 1].r50.toLocaleString("pt-BR")}`}
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-2 justify-center mb-6">
