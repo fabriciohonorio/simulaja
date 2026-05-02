@@ -226,60 +226,113 @@ export default function Comissoes() {
 
   const handleGenerateReport = () => {
     const doc = new jsPDF();
-    const title = "Relatorio de Comissoes";
+    const companyName = "PROSPERA PLANEJAMENTO CONSÓRCIOS";
+    const reportTitle = "EXTRATO DE COMISSIONAMENTO";
     const dateStr = format(new Date(), "dd/MM/yyyy HH:mm");
 
-    doc.setFontSize(16);
-    doc.text(title, 10, 10);
-    doc.setFontSize(10);
-    doc.text(`Gerado em: ${dateStr}`, 10, 16);
-    doc.line(10, 18, 200, 18);
+    // Header Color Bar
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, 210, 40, 'F');
 
-    let y = 25;
+    // Branding
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text("Cliente", 10, y);
-    doc.text("G/C", 60, y);
-    doc.text("Venda", 80, y);
-    doc.text("Total", 110, y);
-    doc.text("Fracionamento (1/X)", 140, y);
-    doc.text("Status", 185, y);
-    doc.line(10, y + 2, 200, y + 2);
+    doc.setFontSize(18);
+    doc.text(companyName, 15, 20);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(reportTitle, 15, 28);
+    doc.text(`Emissão: ${dateStr}`, 155, 28);
+
+    let y = 55;
+    
+    // Summary Cards in PDF
+    doc.setFillColor(248, 250, 252); // slate-50
+    doc.roundedRect(15, y - 5, 180, 20, 3, 3, 'F');
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL EM COMISSÕES", 20, y + 2);
+    doc.text("TOTAL A RECEBER (MÊS)", 130, y + 2);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(5, 150, 105); // emerald-600
+    doc.text(formatCurrency(totalComissoes), 20, y + 10);
+    doc.text(formatCurrency(totalReceberMes), 130, y + 10);
+
+    y += 35;
+
+    // Table Header
+    doc.setFillColor(241, 245, 249); // slate-100
+    doc.rect(15, y - 6, 180, 8, 'F');
+    doc.setTextColor(71, 85, 105); // slate-600
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text("CLIENTE", 20, y - 1);
+    doc.text("GRUPO/COTA", 65, y - 1);
+    doc.text("VENDA", 95, y - 1);
+    doc.text("TOTAL", 125, y - 1);
+    doc.text("PARCELA ATUAL", 150, y - 1);
+    doc.text("STATUS", 180, y - 1);
+    
     y += 8;
 
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    filtered.forEach((c) => {
-      if (y > 280) {
+    doc.setTextColor(30, 41, 59);
+
+    filtered.forEach((c, index) => {
+      if (y > 275) {
         doc.addPage();
-        y = 20;
+        y = 30;
+        // Re-draw header on new page if needed or just line
+        doc.line(15, y - 5, 195, y - 5);
       }
-      doc.text(c.cliente_nome.substring(0, 25), 10, y);
-      doc.text(`${c.grupo || ""}/${c.cota || ""}`, 60, y);
-      doc.text(formatCurrency(c.valor_venda).replace("R$", "").trim(), 80, y);
-      doc.text(formatCurrency(c.comissao_total).replace("R$", "").trim(), 110, y);
+      
+      // Zebra striping
+      if (index % 2 === 0) {
+        doc.setFillColor(252, 253, 254);
+        doc.rect(15, y - 5, 180, 7, 'F');
+      }
+
+      doc.text(c.cliente_nome.substring(0, 28), 20, y);
+      doc.text(`${c.grupo || "-"}/${c.cota || "-"}`, 65, y);
+      doc.text(formatCurrency(c.valor_venda).replace("R$", "").trim(), 95, y);
+      doc.text(formatCurrency(c.comissao_total).replace("R$", "").trim(), 125, y);
       
       const valorParcela = formatCurrency(c.comissao_total / c.parcelas_comissao);
-      doc.text(`1/${c.parcelas_comissao} - ${valorParcela}`, 140, y);
+      doc.text(`1/${c.parcelas_comissao} (${valorParcela})`, 150, y);
       
-      doc.text(c.status === "estornado" ? "ESTORNADO" : "ATIVO", 185, y);
-      y += 6;
+      const statusText = c.status === "estornado" ? "ESTORNADO" : "ATIVO";
+      if (statusText === "ESTORNADO") doc.setTextColor(225, 29, 72);
+      doc.text(statusText, 180, y);
+      doc.setTextColor(30, 41, 59);
+      
+      y += 7;
     });
 
     const totalReceberReport = filtered.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
-    y += 10;
-    if (y > 270) { doc.addPage(); y = 20; }
-    doc.line(10, y, 200, y);
-    y += 10;
-    doc.setFont("helvetica", "bold");
-    doc.text("RESUMO DE RECEBIMENTO", 10, y);
-    doc.setFontSize(14);
-    doc.setTextColor(5, 150, 105); // emerald-600
-    doc.text(`TOTAL A RECEBER NESTE MES: ${formatCurrency(totalReceberReport)}`, 10, y + 8);
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "italic");
-    doc.text("* Nota: O valor acima representa a soma da parcela atual (1/X) de todos os contratos ativos.", 10, y + 15);
+    y += 15;
+    if (y > 260) { doc.addPage(); y = 30; }
 
-    doc.save(`relatorio-comissoes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    doc.setFillColor(236, 253, 245); // emerald-50
+    doc.roundedRect(15, y, 180, 25, 3, 3, 'F');
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(5, 150, 105);
+    doc.text("RESUMO DE FECHAMENTO MENSAL", 25, y + 8);
+    
+    doc.setFontSize(14);
+    doc.text(`VALOR TOTAL A RECEBER: ${formatCurrency(totalReceberReport)}`, 25, y + 18);
+    
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(100, 116, 139);
+    doc.text("* Documento gerado automaticamente pelo sistema CONTEMPLAR CRM.", 15, 285);
+
+    doc.save(`extrato-comissoes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
     toast({ title: "Relatório gerado com sucesso!" });
   };
 
