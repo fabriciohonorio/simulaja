@@ -87,7 +87,7 @@ export default function Comissoes() {
     try {
       const { data } = await supabase
         .from("leads")
-        .select("id, nome, valor_credito, grupo, cota")
+        .select("id, nome, valor_credito, grupo, cota, status_updated_at")
         .in("status", ["fechado", "venda_fechada"])
         .eq("organizacao_id", profile.organizacao_id);
       setLeadsFechados(data || []);
@@ -104,6 +104,9 @@ export default function Comissoes() {
         setGrupo(lead.grupo || "");
         setCota(lead.cota || "");
         setValorVendaStr(formatCurrencyInput((Number(lead.valor_credito) * 100).toString()));
+        if (lead.status_updated_at) {
+          setDataVenda(lead.status_updated_at.split("T")[0]);
+        }
       }
     } else if (selectedLeadId === "manual" && !isModalOpen) {
       setNomeCliente("");
