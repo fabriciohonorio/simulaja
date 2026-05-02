@@ -23,39 +23,53 @@ import { jsPDF } from "jspdf";
 import { useProfile } from "@/hooks/useProfile";
 
 const sliderThumbStyles = `
+  input[type=range].custom-slider {
+    height: 38px;
+    background: transparent !important;
+  }
   input[type=range].custom-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    background: linear-gradient(90deg, #FF7A00, #FF9533);
-    border: 4px solid #ffffff;
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #FF7A00, #FFB800);
+    border: 6px solid #ffffff;
     border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 122, 0, 0.4), inset 0 0 4px rgba(0,0,0,0.1);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: grab;
+    box-shadow: 0 5px 25px rgba(255, 122, 0, 0.5), inset 0 0 4px rgba(0,0,0,0.1);
+    margin-top: -13px;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
   }
   input[type=range].custom-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2) rotate(15deg);
-    box-shadow: 0 6px 20px rgba(255, 122, 0, 0.5), inset 0 0 4px rgba(0,0,0,0.1);
+    transform: scale(1.15);
+    box-shadow: 0 8px 35px rgba(255, 122, 0, 0.7), inset 0 0 4px rgba(0,0,0,0.1);
   }
-  input[type=range].custom-slider:active::-webkit-slider-thumb {
-    transform: scale(0.9);
-    background: #FF7A00;
+  input[type=range].custom-slider::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+  }
+  input[type=range].custom-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 14px;
+    cursor: pointer;
+    border-radius: 7px;
+    border: none;
   }
   input[type=range].custom-slider::-moz-range-thumb {
-    width: 30px;
-    height: 30px;
+    width: 38px;
+    height: 38px;
     background: #FF7A00;
-    border: 4px solid #ffffff;
+    border: 6px solid #ffffff;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 122, 0, 0.4);
-    transition: all 0.3s ease;
+    box-shadow: 0 5px 25px rgba(255, 122, 0, 0.5);
   }
-  input[type=range].custom-slider::-moz-range-thumb:hover {
-    transform: scale(1.2);
-  }
-  input[type=range].custom-slider:active::-moz-range-thumb {
-    transform: scale(0.9);
+  input[type=range].custom-slider::-moz-range-track {
+    width: 100%;
+    height: 14px;
+    cursor: pointer;
+    background: #e2e8f0;
+    border-radius: 7px;
   }
 `;
 
@@ -330,9 +344,9 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   const lockWppUrl = `https://wa.me/5541997925357?text=${encodeURIComponent("Olá Fabricio! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <style>{sliderThumbStyles}</style>
-      <section id="simulator" className="py-20 bg-background">
+      <section id="simulator" className="py-20 bg-transparent">
         <div className="container max-w-[620px] mx-auto px-4">
           <p className="text-[0.65rem] font-black tracking-[0.25em] uppercase text-center mb-3 text-[#FF7A00]">Estratégia</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-2 text-foreground">
@@ -379,7 +393,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               onChange={(e) => setIdx(Number(e.target.value))}
               className="custom-slider w-full h-3 rounded-full cursor-pointer appearance-none mb-2"
               style={{
-                background: `linear-gradient(to right, #FF7A00 0%, #FF7A00 ${pct}%, #f1f5f9 ${pct}%, #f1f5f9 100%)`,
+                background: `linear-gradient(to right, #FF7A00 0%, #FF7A00 ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
               }}
             />
             <div className="flex justify-between text-[9px] font-black text-muted-foreground/50 mb-8 uppercase tracking-widest">

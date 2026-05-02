@@ -104,9 +104,13 @@ const Index = () => {
       <Diferencial />
 
       <div id="simulator" className="scroll-mt-20">
-        <section className="py-24 bg-gradient-to-b from-white to-blue-50/50">
-          <div className="container max-w-4xl mx-auto px-4">
-            <div className="max-w-2xl mx-auto mb-12 bg-white border border-blue-100 rounded-3xl p-8 md:p-10 text-center shadow-xl shadow-blue-900/5">
+        <section className="py-24 bg-gradient-to-b from-white via-blue-50/30 to-blue-50/80 relative overflow-hidden">
+          {/* Subtle decorative circles */}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#FF7A00]/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+          
+          <div className="container max-w-4xl mx-auto px-4 relative z-10">
+            <div className="max-w-2xl mx-auto mb-12 bg-white/80 backdrop-blur-sm border border-blue-100/50 rounded-3xl p-8 md:p-10 text-center shadow-2xl shadow-blue-900/10 transition-all hover:scale-[1.01]">
               <p className="text-sm font-bold tracking-[0.25em] uppercase text-[#C9A96A] mb-4">
                 Decisão Inteligente
               </p>
