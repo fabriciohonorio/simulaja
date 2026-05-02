@@ -4,7 +4,7 @@ import cardVeiculo from "@/assets/card-veiculo.jpg";
 import cardMoto from "@/assets/card-moto.jpg";
 import cardAgro from "@/assets/card-agro.jpg";
 import cardNautica from "@/assets/card-nautica.jpg";
-import cardInvest from "@/assets/card-investimento.jpg";
+import cardInvest from "@/assets/card-investment-chalets.jpg";
 
 const segments = [
   { id: "imovel", label: "Imóvel", image: cardImovel, top: "48%", left: "64%" },
