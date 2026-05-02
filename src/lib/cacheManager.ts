@@ -4,7 +4,9 @@
  * forçando hard reload em todos os dispositivos (Android, iOS, Desktop).
  */
 
+// BUILD FORCE v2.5.1 - 2026-05-02 - cache bust for Android commissioning module
 const BUILD_VERSION = __APP_VERSION__;
+
 const VERSION_KEY = "app_build_version";
 
 export async function checkAndClearCache(): Promise<void> {
