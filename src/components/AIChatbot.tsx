@@ -19,6 +19,7 @@ const AIChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [showInput, setShowInput] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [leadData, setLeadData] = useState({
     objetivo: "",
     prazo: "",
@@ -38,8 +39,12 @@ const AIChatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  const addBotMessage = (content: string, options?: { label: string; value: string }[]) => {
-    setMessages((prev) => [...prev, { role: "bot", content, options }]);
+  const addBotMessage = (content: string, options?: { label: string; value: string }[], delay = 1000) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setMessages((prev) => [...prev, { role: "bot", content, options }]);
+      setIsTyping(false);
+    }, delay);
   };
 
   const addUserMessage = (content: string) => {
@@ -242,6 +247,16 @@ const AIChatbot = () => {
                 </div>
               </div>
             ))}
+
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-muted text-foreground rounded-2xl px-4 py-2.5 text-sm rounded-bl-md flex gap-1">
+                  <span className="dot w-1 h-1 bg-slate-400 rounded-full"></span>
+                  <span className="dot w-1 h-1 bg-slate-400 rounded-full"></span>
+                  <span className="dot w-1 h-1 bg-slate-400 rounded-full"></span>
+                </div>
+              </div>
+            )}
 
             {/* Options */}
             {messages.length > 0 && messages[messages.length - 1].options && (
