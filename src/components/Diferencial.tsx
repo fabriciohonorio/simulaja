@@ -1,26 +1,33 @@
-import { BarChart3, Target, Users, Headphones } from "lucide-react";
+import { BarChart3, Target, Users, Headphones, CheckCircle2 } from "lucide-react";
 
 const features = [
   {
     icon: BarChart3,
-    title: "Análise do melhor valor de carta",
-    desc: "Análise do melhor valor de sua carta após a contemplação. Lucratividade com a venda da carta contemplada.",
+    title: "Análise de grupo antes da entrada",
+    desc: "Avaliamos histórico de contemplação, taxa administrativa e perfil do grupo antes de você assinar qualquer adesão.",
   },
   {
     icon: Target,
-    title: "Acompanhamento e estratégia de lance",
-    desc: "Garante a agilidade e eficiência na contemplação com a melhor estratégia de lance.",
+    title: "Estratégia de lance personalizada",
+    desc: "Definimos o melhor momento e formato de lance — embutido, fixo ou livre — para acelerar sua contemplação.",
   },
   {
     icon: Users,
-    title: "Planejamento Patrimonial",
-    desc: "Após reunião e conversa com o cliente, alinhamos o melhor projeto capaz de entregar o bem de acordo com suas necessidades.",
+    title: "Planejamento de contemplação",
+    desc: "Alinhamos prazo, valor de crédito e estratégia ao seu objetivo real, e não apenas à venda de uma cota.",
   },
   {
     icon: Headphones,
-    title: "Atendimento Completo",
-    desc: "Atendimento pessoal e online de norte a sul, com as melhores tecnologias.",
+    title: "Acompanhamento até a carta de crédito",
+    desc: "Suporte consultivo do primeiro mês até o uso da carta — assembleias, lances, transferência e utilização.",
   },
+];
+
+const provas = [
+  "Atendimento personalizado, um a um",
+  "Foco em estratégia, não apenas em venda",
+  "Experiência consolidada no segmento de consórcios",
+  "Grupos com melhores condições iniciando este mês",
 ];
 
 const Diferencial = () => {
@@ -31,9 +38,12 @@ const Diferencial = () => {
           <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
             Diferencial
           </p>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground">
-            Consultoria Inteligente
+          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4">
+            Qual a diferença de fazer com um especialista?
           </h2>
+          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            Mais do que vender uma cota, construímos um plano de contemplação adequado ao seu objetivo.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -49,6 +59,20 @@ const Diferencial = () => {
               <p className="text-muted-foreground leading-relaxed">{feat.desc}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-12 max-w-3xl mx-auto bg-card border border-border rounded-2xl p-8">
+          <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4 text-center">
+            Por que confiar
+          </p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {provas.map((p, i) => (
+              <li key={i} className="flex items-start gap-3 text-foreground">
+                <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                <span className="text-sm md:text-base leading-snug">{p}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
