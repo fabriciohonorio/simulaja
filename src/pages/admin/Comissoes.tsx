@@ -315,6 +315,8 @@ export default function Comissoes() {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(reportTitle, 15, 28);
+    doc.setFont("helvetica", "bold");
+    doc.text("REFERENCIA MAIO/2026", 15, 34);
     doc.text(`Emissão: ${dateStr}`, 155, 28);
 
     let y = 55;
