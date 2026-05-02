@@ -54,6 +54,7 @@ interface Comissao {
   grupo?: string;
   cota?: string;
   administradora?: string;
+  parcela_atual: number;
   created_at: string;
 }
 
@@ -77,6 +78,7 @@ export default function Comissoes() {
   const [pagamentosRetroativosStr, setPagamentosRetroativosStr] = useState("");
   const [dataVenda, setDataVenda] = useState(new Date().toISOString().split("T")[0]);
   const [administradora, setAdministradora] = useState("MAGALU");
+  const [parcelaAtual, setParcelaAtual] = useState(1);
 
   useEffect(() => {
     fetchComissoes();
@@ -116,6 +118,18 @@ export default function Comissoes() {
             setTipoComissionamento("LINEAR"); // 13x is linear-ish
           } else {
             setRegra("DEMAIS");
+          }
+        }
+        
+        // Auto-calculate parcela atual for retroactive
+        if (lead.status_updated_at) {
+          const saleDate = new Date(lead.status_updated_at);
+          const today = new Date();
+          const diffMonths = (today.getFullYear() - saleDate.getFullYear()) * 12 + (today.getMonth() - saleDate.getMonth());
+          if (diffMonths > 0) {
+            setParcelaAtual(diffMonths + 1);
+          } else {
+            setParcelaAtual(1);
           }
         }
       }
@@ -191,7 +205,8 @@ export default function Comissoes() {
         parcelas_comissao,
         pagamentos_retroativos: pagamentosRetroativos,
         data_venda: dataVenda,
-        administradora
+        administradora,
+        parcela_atual: parcelaAtual
       });
 
       if (error) throw error;
@@ -215,6 +230,7 @@ export default function Comissoes() {
     setTipoComissionamento("REDUZIDA");
     setPagamentosRetroativosStr("");
     setDataVenda(new Date().toISOString().split("T")[0]);
+    setParcelaAtual(1);
   };
 
   const handleMarcarInadimplente = async (comissao: Comissao) => {
@@ -335,7 +351,7 @@ export default function Comissoes() {
       doc.text(formatCurrency(c.comissao_total).replace("R$", "").trim(), 130, y);
       
       const valorParcela = formatCurrency(c.comissao_total / c.parcelas_comissao);
-      doc.text(`1/${c.parcelas_comissao} (${valorParcela})`, 155, y);
+      doc.text(`${c.parcela_atual || 1}/${c.parcelas_comissao} (${valorParcela})`, 155, y);
       
       const statusText = c.status === "estornado" ? "ESTORNADO" : "ATIVO";
       if (statusText === "ESTORNADO") doc.setTextColor(225, 29, 72);
@@ -489,7 +505,7 @@ export default function Comissoes() {
                   <td className="px-4 py-3 text-[11px] font-medium text-slate-500">
                     <div className="flex flex-col">
                       <span className="uppercase text-[9px] text-slate-400">{c.tipo_comissionamento}</span>
-                      <span className="font-bold text-slate-700">1/{c.parcelas_comissao} - {formatCurrency(c.comissao_total / c.parcelas_comissao)}</span>
+                      <span className="font-bold text-slate-700">{c.parcela_atual || 1}/{c.parcelas_comissao} - {formatCurrency(c.comissao_total / c.parcelas_comissao)}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-blue-600 font-medium">
@@ -578,12 +594,20 @@ export default function Comissoes() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase text-slate-500">Data da Venda</label>
-                <Input type="date" value={dataVenda} onChange={e => setDataVenda(e.target.value)} />
+                <label className="text-xs font-bold uppercase text-slate-500">Parcela Atual</label>
+                <Input 
+                  type="number"
+                  value={parcelaAtual} 
+                  onChange={e => setParcelaAtual(Number(e.target.value))} 
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-slate-500">Data da Venda</label>
+                <Input type="date" value={dataVenda} onChange={e => setDataVenda(e.target.value)} />
+              </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase text-slate-500">Regra (Taxa)</label>
                 <Select value={regra} onValueChange={setRegra}>

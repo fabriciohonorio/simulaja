@@ -713,6 +713,12 @@ export function useFunil() {
 
             const valorVenda = Number(formData.valor_credito) || 0;
             const comissao_total = (valorVenda * taxa_comissao) / 100;
+            
+            // Calcula a parcela atual baseada na data da venda
+            const saleDate = formData.status_updated_at ? new Date(formData.status_updated_at) : new Date();
+            const today = new Date();
+            const diffMonths = (today.getFullYear() - saleDate.getFullYear()) * 12 + (today.getMonth() - saleDate.getMonth());
+            const parcela_atual = diffMonths > 0 ? diffMonths + 1 : 1;
 
             await supabase.from("comissoes").insert({
               organizacao_id: profile?.organizacao_id,
@@ -729,7 +735,8 @@ export function useFunil() {
               parcelas_comissao,
               data_venda: formData.status_updated_at ? formData.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
               pagamentos_retroativos: 1, // Default to 1 to show it's retroactive, or leave empty
-              administradora: formData.administradora
+              administradora: formData.administradora,
+              parcela_atual
             });
             
             // Also upsert to carteira
