@@ -74,13 +74,13 @@ export const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "Magalu", credito: 180000, r50: 652.85, prazo: 220 },
     { grupo: "Magalu", credito: 200000, r50: 725.39, prazo: 220 },
     { grupo: "Magalu", credito: 220000, r50: 797.93, prazo: 220 },
-    { grupo: "Magalu", credito: 250000, r50: 906.75, prazo: 220 },
     { grupo: "Magalu", credito: 300000, r50: 1088.10, prazo: 220 },
     { grupo: "Magalu", credito: 400000, r50: 1450.80, prazo: 220 },
     { grupo: "Magalu", credito: 500000, r50: 1813.50, prazo: 220 },
-    { grupo: "Magalu", credito: 600000, r50: 2176.20, prazo: 220 },
-    { grupo: "Magalu", credito: 800000, r50: 2901.60, prazo: 220 },
-    { grupo: "Magalu", credito: 1000000, r50: 3627.00, prazo: 220 },
+    { grupo: "Magalu", credito: 700000, r50: 2283.34, prazo: 220 },
+    { grupo: "Magalu", credito: 1000000, r50: 3261.92, prazo: 220 },
+    { grupo: "Magalu", credito: 2000000, r50: 6523.84, prazo: 220 },
+    { grupo: "Magalu", credito: 5000000, r50: 14784.60, prazo: 220 },
   ],
   veiculo: [
     // Moto - 75 meses
