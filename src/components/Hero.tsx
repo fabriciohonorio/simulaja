@@ -26,8 +26,11 @@ const Hero = () => {
       {/* Premium gradient overlay - strong on the left, soft on the right */}
       <div className="absolute inset-0 bg-gradient-to-r from-[hsl(213,70%,8%)]/95 via-[hsl(213,70%,10%)]/70 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
+      
+      {/* Dimmer overlay - behind content but on top of background */}
+      <div className={`absolute inset-0 bg-[#0D214F]/80 transition-opacity duration-700 z-10 pointer-events-none ${activeId ? 'opacity-100' : 'opacity-0'}`} />
 
-      <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32 z-10">
+      <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32 z-20">
         <div className="max-w-2xl space-y-7">
           <div>
             <h1 className="cin-reveal text-4xl sm:text-5xl md:text-6xl font-black leading-[1.1] tracking-tight text-white uppercase">
@@ -84,7 +87,7 @@ const Hero = () => {
       </div>
 
       {/* Futuristic Dream Interaction Layer - On Top for Mouse Events */}
-      <div className="absolute inset-0 z-50 pointer-events-none">
+      <div className="absolute inset-0 z-40 pointer-events-none">
         <DreamInteraction activeId={activeId} />
       </div>
     </section>

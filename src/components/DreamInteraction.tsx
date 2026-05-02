@@ -40,14 +40,7 @@ const DreamInteraction = ({ activeId }: DreamInteractionProps) => {
           height: 100%;
           object-cover: cover;
         }
-        .bg-dimmer-dark {
-          background: rgba(13, 33, 79, 0.85);
-          transition: opacity 0.8s ease;
-        }
       `}</style>
-
-      {/* Dimmer overlay when active */}
-      <div className={`absolute inset-0 bg-dimmer-dark pointer-events-none z-0 ${activeId ? 'opacity-100' : 'opacity-0'}`} />
 
       {/* No more internal trigger zones - they are now in Hero.tsx */}
 
