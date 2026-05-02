@@ -527,11 +527,13 @@ export function useFunil() {
     if (comissaoRegra === "GOLDEN") taxa_comissao = 5;
     if (comissaoRegra === "SILVER") taxa_comissao = 3;
     if (comissaoRegra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
+    if (celebrationLead.administradora === "ADEMICON") taxa_comissao = 2.5;
 
     let parcelas_comissao = 1;
     if (comissaoTipo === "REDUZIDA") parcelas_comissao = 10;
     if (comissaoTipo === "LINEAR") parcelas_comissao = 4;
     if (comissaoRegra === "INDICACAO_MAGALU") parcelas_comissao = 4;
+    if (celebrationLead.administradora === "ADEMICON") parcelas_comissao = 13;
 
     const valorVenda = Number(celebrationLead.valor_credito) || 0;
     const comissao_total = (valorVenda * taxa_comissao) / 100;
@@ -549,7 +551,8 @@ export function useFunil() {
       tipo_comissionamento: comissaoRegra === "INDICACAO_MAGALU" ? "LINEAR" : comissaoTipo,
       comissao_total,
       parcelas_comissao,
-      data_venda: new Date().toISOString().split('T')[0]
+      data_venda: new Date().toISOString().split('T')[0],
+      administradora: celebrationLead.administradora
     });
 
     toast.success("Cliente adicionado à carteira e comissão registrada!");
@@ -698,11 +701,15 @@ export function useFunil() {
             
             // Se for retroativo (vendas até Março), a taxa é obrigatoriamente 3.5%
             if (formData.is_retroativo) taxa_comissao = 3.5;
+            
+            // Regra específica Ademicon
+            if (formData.administradora === "ADEMICON") taxa_comissao = 2.5;
 
             let parcelas_comissao = 1;
             if (formData.comissao_tipo === "REDUZIDA") parcelas_comissao = 10;
             if (formData.comissao_tipo === "LINEAR") parcelas_comissao = 4;
             if (formData.comissao_regra === "INDICACAO_MAGALU") parcelas_comissao = 4;
+            if (formData.administradora === "ADEMICON") parcelas_comissao = 13;
 
             const valorVenda = Number(formData.valor_credito) || 0;
             const comissao_total = (valorVenda * taxa_comissao) / 100;
@@ -721,7 +728,8 @@ export function useFunil() {
               comissao_total,
               parcelas_comissao,
               data_venda: formData.status_updated_at ? formData.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
-              pagamentos_retroativos: 1 // Default to 1 to show it's retroactive, or leave empty
+              pagamentos_retroativos: 1, // Default to 1 to show it's retroactive, or leave empty
+              administradora: formData.administradora
             });
             
             // Also upsert to carteira

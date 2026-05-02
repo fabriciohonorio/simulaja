@@ -53,6 +53,7 @@ interface Comissao {
   data_venda: string;
   grupo?: string;
   cota?: string;
+  administradora?: string;
   created_at: string;
 }
 
@@ -75,6 +76,7 @@ export default function Comissoes() {
   const [tipoComissionamento, setTipoComissionamento] = useState("REDUZIDA");
   const [pagamentosRetroativosStr, setPagamentosRetroativosStr] = useState("");
   const [dataVenda, setDataVenda] = useState(new Date().toISOString().split("T")[0]);
+  const [administradora, setAdministradora] = useState("MAGALU");
 
   useEffect(() => {
     fetchComissoes();
@@ -87,7 +89,7 @@ export default function Comissoes() {
     try {
       const { data } = await supabase
         .from("leads")
-        .select("id, nome, valor_credito, grupo, cota, status_updated_at")
+        .select("id, nome, valor_credito, grupo, cota, status_updated_at, administradora")
         .in("status", ["fechado", "venda_fechada"])
         .eq("organizacao_id", profile.organizacao_id);
       setLeadsFechados(data || []);
@@ -106,6 +108,15 @@ export default function Comissoes() {
         setValorVendaStr(formatCurrencyInput((Number(lead.valor_credito) * 100).toString()));
         if (lead.status_updated_at) {
           setDataVenda(lead.status_updated_at.split("T")[0]);
+        }
+        if (lead.administradora) {
+          setAdministradora(lead.administradora);
+          if (lead.administradora === "ADEMICON") {
+            setRegra("ADEMICON");
+            setTipoComissionamento("LINEAR"); // 13x is linear-ish
+          } else {
+            setRegra("DEMAIS");
+          }
         }
       }
     } else if (selectedLeadId === "manual" && !isModalOpen) {
@@ -154,11 +165,13 @@ export default function Comissoes() {
     if (regra === "SILVER") taxa_comissao = 3;
     if (regra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
     if (regra === "RETROATIVO") taxa_comissao = 3.5;
+    if (regra === "ADEMICON") taxa_comissao = 2.5;
 
     let parcelas_comissao = 1;
     if (tipoComissionamento === "REDUZIDA") parcelas_comissao = 10;
     if (tipoComissionamento === "LINEAR") parcelas_comissao = 4;
     if (regra === "INDICACAO_MAGALU") parcelas_comissao = 4;
+    if (regra === "ADEMICON") parcelas_comissao = 13;
 
     const comissao_total = (valorVenda * taxa_comissao) / 100;
 
@@ -177,7 +190,8 @@ export default function Comissoes() {
         comissao_total,
         parcelas_comissao,
         pagamentos_retroativos: pagamentosRetroativos,
-        data_venda: dataVenda
+        data_venda: dataVenda,
+        administradora
       });
 
       if (error) throw error;
@@ -287,11 +301,12 @@ export default function Comissoes() {
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.text("CLIENTE", 20, y - 1);
-    doc.text("GRUPO/COTA", 65, y - 1);
-    doc.text("VENDA", 95, y - 1);
-    doc.text("TOTAL", 125, y - 1);
-    doc.text("PARCELA ATUAL", 150, y - 1);
-    doc.text("STATUS", 180, y - 1);
+    doc.text("ADMIN", 60, y - 1);
+    doc.text("G/C", 85, y - 1);
+    doc.text("VENDA", 105, y - 1);
+    doc.text("TOTAL", 130, y - 1);
+    doc.text("PARCELA ATUAL", 155, y - 1);
+    doc.text("STATUS", 185, y - 1);
     
     y += 8;
 
@@ -313,17 +328,18 @@ export default function Comissoes() {
         doc.rect(15, y - 5, 180, 7, 'F');
       }
 
-      doc.text(c.cliente_nome.substring(0, 28), 20, y);
-      doc.text(`${c.grupo || "-"}/${c.cota || "-"}`, 65, y);
-      doc.text(formatCurrency(c.valor_venda).replace("R$", "").trim(), 95, y);
-      doc.text(formatCurrency(c.comissao_total).replace("R$", "").trim(), 125, y);
+      doc.text(c.cliente_nome.substring(0, 22), 20, y);
+      doc.text(c.administradora || "MAGALU", 60, y);
+      doc.text(`${c.grupo || "-"}/${c.cota || "-"}`, 85, y);
+      doc.text(formatCurrency(c.valor_venda).replace("R$", "").trim(), 105, y);
+      doc.text(formatCurrency(c.comissao_total).replace("R$", "").trim(), 130, y);
       
       const valorParcela = formatCurrency(c.comissao_total / c.parcelas_comissao);
-      doc.text(`1/${c.parcelas_comissao} (${valorParcela})`, 150, y);
+      doc.text(`1/${c.parcelas_comissao} (${valorParcela})`, 155, y);
       
       const statusText = c.status === "estornado" ? "ESTORNADO" : "ATIVO";
       if (statusText === "ESTORNADO") doc.setTextColor(225, 29, 72);
-      doc.text(statusText, 180, y);
+      doc.text(statusText, 185, y);
       doc.setTextColor(30, 41, 59);
       
       y += 7;
@@ -452,7 +468,12 @@ export default function Comissoes() {
             <tbody className="divide-y divide-slate-100">
               {filtered.map(c => (
                 <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-slate-800">{c.cliente_nome}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-800">
+                    <div className="flex flex-col">
+                      <span>{c.cliente_nome}</span>
+                      <span className="text-[9px] text-slate-400 font-black">{c.administradora || "MAGALU"}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-xs text-slate-500">
                     {c.grupo || "-"} / {c.cota || "-"}
                   </td>
@@ -575,21 +596,30 @@ export default function Comissoes() {
                     <SelectItem value="DEMAIS">Demais (4%)</SelectItem>
                     <SelectItem value="INDICACAO_MAGALU">Indicação Magalu (0.8%)</SelectItem>
                     <SelectItem value="RETROATIVO">Retroativo (3.5%)</SelectItem>
+                    <SelectItem value="ADEMICON">Ademicon (2.5%)</SelectItem>
                   </SelectContent>
                 </Select>
+                {(regra === "INDICACAO_MAGALU" || regra === "ADEMICON") && (
+                  <p className="text-[10px] text-orange-500 font-bold">
+                    {regra === "ADEMICON" ? "Ademicon é fixo em 13x" : "Indicação Magalu é fixo em 4x"}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase text-slate-500">Tipo (Parcelas)</label>
-                <Select value={tipoComissionamento} onValueChange={setTipoComissionamento}>
+                <Select 
+                  value={regra === "ADEMICON" ? "LINEAR" : tipoComissionamento} 
+                  onValueChange={setTipoComissionamento}
+                  disabled={regra === "ADEMICON" || regra === "INDICACAO_MAGALU"}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="REDUZIDA">Reduzida 50/50 (10x)</SelectItem>
-                    <SelectItem value="LINEAR">Linear (4x)</SelectItem>
+                    <SelectItem value="LINEAR">Linear</SelectItem>
                   </SelectContent>
                 </Select>
-                {regra === "INDICACAO_MAGALU" && <p className="text-[10px] text-orange-500 font-bold">Indicação Magalu é sempre 4x</p>}
               </div>
             </div>
 
