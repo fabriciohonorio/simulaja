@@ -99,28 +99,42 @@ const Index = () => {
         <SegmentCards />
       </div>
 
+      <MeetSpecialist />
+
+      <Diferencial />
+
       <div id="simulator" className="scroll-mt-20">
         <section className="py-24 bg-background">
           <div className="container max-w-4xl mx-auto px-4">
+            <div className="max-w-2xl mx-auto mb-10 bg-card border border-border rounded-2xl p-6 md:p-8 text-center shadow-sm">
+              <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary mb-3">
+                Antes de simular
+              </p>
+              <p className="text-foreground text-base md:text-lg leading-relaxed">
+                Entrar no consórcio é fácil. <strong>Difícil é ser contemplado rápido.</strong>
+                <br />
+                A maioria das pessoas entra sem estratégia — e paga essa decisão com tempo.
+              </p>
+              <p className="text-xs text-muted-foreground mt-4 italic">
+                Grupos com melhores condições iniciando este mês.
+              </p>
+            </div>
+
             <div className="text-center mb-12">
               <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
                 Simulador
               </p>
               <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4">
-                Simule seu Consórcio em segundos
+                Descobrir meu plano em segundos
               </h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Descubra agora o valor do seu crédito, parcelas e o prazo ideal para o seu planejamento.
+                Visualize quanto investir, em quanto tempo contemplar e qual estratégia se encaixa no seu objetivo.
               </p>
             </div>
             <ConsortiumSimulator onSimulateSubmit={handleSimulateSubmit} />
           </div>
         </section>
       </div>
-
-      <MeetSpecialist />
-
-      <Diferencial />
 
       <FinalCTA />
       

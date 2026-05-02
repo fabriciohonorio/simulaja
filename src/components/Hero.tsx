@@ -27,16 +27,18 @@ const Hero = () => {
         <div className="max-w-2xl space-y-7">
           <div>
             <h1 className="cin-reveal text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
-              OESPECIALISTA
+              CONSÓRCIO NÃO
             </h1>
             <h1 className="cin-reveal cin-delay-1 text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-[#C9A96A]">
-              CONSÓRCIO
+              É SORTE.
+            </h1>
+            <h1 className="cin-reveal cin-delay-1 text-3xl sm:text-4xl md:text-5xl font-black leading-[0.95] tracking-tight text-white/90 mt-2">
+              É estratégia de contemplação.
             </h1>
           </div>
 
           <p className="cin-reveal cin-delay-2 text-base md:text-lg text-white/75 max-w-md leading-relaxed">
-            Imóveis, veículos e investimentos com planejamento financeiro e{" "}
-            <strong className="text-white font-bold">sem juros</strong>.
+            Entenda <strong className="text-white font-bold">quanto investir</strong>, em <strong className="text-white font-bold">quanto tempo</strong> contemplar e como <strong className="text-white font-bold">antecipar sua carta de crédito</strong> com planejamento.
           </p>
 
           {/* Services checklist */}
@@ -55,19 +57,20 @@ const Hero = () => {
               <ClipboardCheck className="w-5 h-5 text-[#C9A96A]" />
             </div>
             <p className="text-sm md:text-[15px] text-white/85 leading-snug font-medium">
-              Você está a um passo de iniciar seu planejamento
+              Diagnóstico estratégico antes de qualquer entrada em grupo.
             </p>
           </div>
 
           {/* CTA Button */}
-          <div className="cin-reveal cin-delay-4 pt-2">
+          <div className="cin-reveal cin-delay-4 pt-2 space-y-2">
             <a
               href="#simulator"
               className="inline-flex items-center gap-3 bg-[#FF6B1A] hover:bg-[#FF7A2E] text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-[#FF6B1A]/30 active:scale-95"
             >
-              Quero Simular Agora
+              Ver minha estratégia
               <ArrowRight className="w-5 h-5" />
             </a>
+            <p className="text-xs text-white/60 pl-2">Sem compromisso. Não enviamos spam.</p>
           </div>
         </div>
       </div>
