@@ -2,7 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 
 const AboutConsortium = () => {
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-20 bg-blue-50/20">
       <div className="container max-w-5xl mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4 uppercase tracking-tight">

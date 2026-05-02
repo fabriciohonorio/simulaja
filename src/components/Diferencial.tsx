@@ -32,7 +32,7 @@ const provas = [
 
 const Diferencial = () => {
   return (
-    <section className="py-24 bg-background">
+    <section className="py-24 bg-blue-50/20">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">

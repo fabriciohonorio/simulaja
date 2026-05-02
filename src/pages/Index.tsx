@@ -104,31 +104,31 @@ const Index = () => {
       <Diferencial />
 
       <div id="simulator" className="scroll-mt-20">
-        <section className="py-24 bg-background">
+        <section className="py-24 bg-gradient-to-b from-white to-blue-50/50">
           <div className="container max-w-4xl mx-auto px-4">
-            <div className="max-w-2xl mx-auto mb-10 bg-card border border-border rounded-2xl p-6 md:p-8 text-center shadow-sm">
-              <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary mb-3">
-                Antes de simular
+            <div className="max-w-2xl mx-auto mb-12 bg-white border border-blue-100 rounded-3xl p-8 md:p-10 text-center shadow-xl shadow-blue-900/5">
+              <p className="text-sm font-bold tracking-[0.25em] uppercase text-[#C9A96A] mb-4">
+                Decisão Inteligente
               </p>
-              <p className="text-foreground text-base md:text-lg leading-relaxed">
-                Consórcio não é sobre esperar — <strong>é sobre planejar o momento certo.</strong>
-                <br />
-                A maioria das pessoas entra sem estratégia — e paga essa decisão com tempo.
+              <p className="text-foreground text-lg md:text-xl leading-relaxed font-medium">
+                "Consórcio não é sobre esperar — <span className="text-primary font-bold">é sobre planejar o momento certo.</span>"
               </p>
-              <p className="text-xs text-muted-foreground mt-4 italic">
-                Grupos com melhores condições iniciando este mês.
+              <div className="h-1 w-20 bg-[#C9A96A]/20 mx-auto mt-6 rounded-full" />
+              <p className="text-sm text-muted-foreground mt-6 leading-relaxed">
+                A maioria das pessoas entra sem estratégia e paga essa decisão com tempo. <br className="hidden md:block" />
+                <strong className="text-foreground">Grupos com melhores condições iniciando este mês.</strong>
               </p>
             </div>
 
             <div className="text-center mb-12">
-              <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
-                Simulador
+              <p className="text-xs font-bold tracking-[0.2em] uppercase text-secondary mb-4">
+                Simulador Dinâmico
               </p>
-              <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-4">
-                Descobrir meu plano em segundos
+              <h2 className="text-3xl md:text-5xl font-black text-foreground mb-4 tracking-tight">
+                Simule sua estratégia em segundos
               </h2>
-              <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-                Visualize quanto investir, em quanto tempo contemplar e qual estratégia se encaixa no seu objetivo.
+              <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Visualize agora quanto investir, em quanto tempo contemplar e qual estratégia se encaixa no seu objetivo real.
               </p>
             </div>
             <ConsortiumSimulator onSimulateSubmit={handleSimulateSubmit} />

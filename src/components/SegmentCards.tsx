@@ -40,7 +40,7 @@ const segments = [
 
 const SegmentCards = () => {
   return (
-    <section className="py-24 bg-muted/30">
+    <section className="py-20 bg-blue-50/20">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
           <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
@@ -70,7 +70,7 @@ const SegmentCards = () => {
                 <p className="text-muted-foreground text-sm mb-4 leading-relaxed">{seg.desc}</p>
                 <a
                   href="#simulator"
-                  className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-white px-6 py-2.5 rounded-full text-sm font-black uppercase tracking-wider transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 bg-[#FF7A00] hover:bg-[#FF8B1F] text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all hover:scale-[1.03] hover:shadow-lg shadow-orange-500/20"
                 >
                   Simular
                 </a>

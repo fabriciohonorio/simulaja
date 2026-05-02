@@ -26,23 +26,17 @@ const Hero = () => {
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div className="max-w-2xl space-y-7">
           <div>
-            <h1 className="cin-reveal text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
-              CONSÓRCIO NÃO
-            </h1>
-            <h1 className="cin-reveal cin-delay-1 text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-[#C9A96A]">
-              É SORTE.
-            </h1>
-            <h1 className="cin-reveal cin-delay-1 text-3xl sm:text-4xl md:text-5xl font-black leading-[0.95] tracking-tight text-white/90 mt-2">
-              É estratégia de contemplação.
+            <h1 className="cin-reveal text-4xl sm:text-5xl md:text-6xl font-black leading-[1.1] tracking-tight text-white uppercase">
+              Consórcio não é sobre esperar — <span className="text-[#C9A96A]">é sobre planejar</span> o momento certo.
             </h1>
           </div>
 
-          <p className="cin-reveal cin-delay-2 text-base md:text-lg text-white/75 max-w-md leading-relaxed">
-            Entenda <strong className="text-white font-bold">quanto investir</strong>, em <strong className="text-white font-bold">quanto tempo</strong> contemplar e como <strong className="text-white font-bold">antecipar sua carta de crédito</strong> com planejamento.
+          <p className="cin-reveal cin-delay-2 text-base md:text-lg text-white/85 max-w-xl leading-relaxed">
+            Descubra <strong className="text-white font-bold">quanto investir</strong>, em <strong className="text-white font-bold">quanto tempo</strong> e como tomar uma <strong className="text-white font-bold">decisão mais inteligente</strong> para conquistar seu patrimônio.
           </p>
 
           {/* Services checklist */}
-          <ul className="space-y-2.5">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
             {services.map((service, i) => (
               <li key={i} className={`cin-reveal cin-delay-${Math.min(i + 1, 4)} flex items-center gap-3 text-white/80`}>
                 <CheckCircle2 className="w-4 h-4 text-[#C9A96A] flex-shrink-0" />
@@ -62,15 +56,20 @@ const Hero = () => {
           </div>
 
           {/* CTA Button */}
-          <div className="cin-reveal cin-delay-4 pt-2 space-y-2">
-            <a
-              href="#simulator"
-              className="inline-flex items-center gap-3 bg-[#FF6B1A] hover:bg-[#FF7A2E] text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-[#FF6B1A]/30 active:scale-95"
-            >
-              Ver minha estratégia
-              <ArrowRight className="w-5 h-5" />
-            </a>
-            <p className="text-xs text-white/60 pl-2">Sem compromisso. Não enviamos spam.</p>
+          <div className="cin-reveal cin-delay-4 pt-2 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <a
+                href="#simulator"
+                className="inline-flex items-center gap-3 bg-[#FF7A00] hover:bg-[#FF8B1F] text-white px-8 py-5 rounded-full text-base font-black uppercase tracking-widest shadow-xl hover:shadow-[#FF7A00]/40 transition-all hover:scale-[1.03] active:scale-95"
+              >
+                Ver minha simulação
+                <ArrowRight className="w-5 h-5" />
+              </a>
+              <div className="flex flex-col pl-2">
+                <span className="text-xs font-bold text-[#C9A96A] uppercase tracking-wider">Leva menos de 30 segundos</span>
+                <span className="text-[10px] text-white/60">Sem compromisso. Não enviamos spam.</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
