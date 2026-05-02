@@ -25,47 +25,61 @@ import ResetPassword from "./pages/admin/ResetPassword";
 import Chat from "./pages/admin/Chat";
 import CartaAnalise from "./pages/admin/CartaAnalise";
 import Comissoes from "./pages/admin/Comissoes";
+import AIChatbot from "./components/AIChatbot";
+import { useLocation } from "react-router-dom";
+
+const AppContent = () => {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+
+  return (
+    <>
+      <Toaster />
+      <Sonner />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/simulador" element={<Simulador />} />
+        <Route path="/parceiro" element={<Simulador />} />
+        <Route path="/indicacoes" element={<Indicacoes />} />
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/admin/register" element={<Register />} />
+        <Route path="/admin/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="funil" element={<Funil />} />
+          <Route path="simulador" element={<SimuladorAdmin />} />
+          <Route path="agendamentos" element={<Agendamentos />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="metas" element={<Metas />} />
+          <Route path="jarvis" element={<Jarvis />} />
+          <Route path="carteira" element={<Carteira />} />
+          <Route path="inadimplentes" element={<Inadimplentes />} />
+          <Route path="comissoes" element={<Comissoes />} />
+          <Route path="configuracoes" element={<Settings />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="carta-analise" element={<CartaAnalise />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {!isAdmin && <AIChatbot />}
+    </>
+  );
+};
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/simulador" element={<Simulador />} />
-          <Route path="/parceiro" element={<Simulador />} />
-          <Route path="/indicacoes" element={<Indicacoes />} />
-          <Route path="/admin/login" element={<Login />} />
-          <Route path="/admin/register" element={<Register />} />
-          <Route path="/admin/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="funil" element={<Funil />} />
-            <Route path="simulador" element={<SimuladorAdmin />} />
-            <Route path="agendamentos" element={<Agendamentos />} />
-            <Route path="leads" element={<Leads />} />
-            <Route path="metas" element={<Metas />} />
-            <Route path="jarvis" element={<Jarvis />} />
-            <Route path="carteira" element={<Carteira />} />
-            <Route path="inadimplentes" element={<Inadimplentes />} />
-            <Route path="comissoes" element={<Comissoes />} />
-            <Route path="configuracoes" element={<Settings />} />
-            <Route path="chat" element={<Chat />} />
-            <Route path="carta-analise" element={<CartaAnalise />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

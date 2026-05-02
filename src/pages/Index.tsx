@@ -143,8 +143,6 @@ const Index = () => {
       <FinalCTA />
       
       <Footer />
-      
-      <AIChatbot />
     </main>
   );
 };
