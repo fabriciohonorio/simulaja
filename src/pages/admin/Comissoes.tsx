@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
+import { format } from "date-fns";
+import { jsPDF } from "jspdf";
 import { 
   DollarSign, 
   Plus, 
@@ -10,7 +12,8 @@ import {
   Calculator,
   AlertTriangle,
   History,
-  CheckCircle2
+  CheckCircle2,
+  FileDown
 } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Button } from "@/components/ui/button";
@@ -221,6 +224,50 @@ export default function Comissoes() {
     }
   };
 
+  const handleGenerateReport = () => {
+    const doc = new jsPDF();
+    const title = "Relatorio de Comissoes";
+    const dateStr = format(new Date(), "dd/MM/yyyy HH:mm");
+
+    doc.setFontSize(16);
+    doc.text(title, 10, 10);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${dateStr}`, 10, 16);
+    doc.line(10, 18, 200, 18);
+
+    let y = 25;
+    doc.setFont("helvetica", "bold");
+    doc.text("Cliente", 10, y);
+    doc.text("G/C", 60, y);
+    doc.text("Venda", 80, y);
+    doc.text("Total", 110, y);
+    doc.text("Fracionamento (1/X)", 140, y);
+    doc.text("Status", 185, y);
+    doc.line(10, y + 2, 200, y + 2);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    filtered.forEach((c) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(c.cliente_nome.substring(0, 25), 10, y);
+      doc.text(`${c.grupo || ""}/${c.cota || ""}`, 60, y);
+      doc.text(formatCurrency(c.valor_venda).replace("R$", "").trim(), 80, y);
+      doc.text(formatCurrency(c.comissao_total).replace("R$", "").trim(), 110, y);
+      
+      const valorParcela = formatCurrency(c.comissao_total / c.parcelas_comissao);
+      doc.text(`1/${c.parcelas_comissao} - ${valorParcela}`, 140, y);
+      
+      doc.text(c.status === "estornado" ? "ESTORNADO" : "ATIVO", 185, y);
+      y += 6;
+    });
+
+    doc.save(`relatorio-comissoes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast({ title: "Relatório gerado com sucesso!" });
+  };
+
   const formatCurrencyInput = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     if (!numbers) return "";
@@ -247,9 +294,14 @@ export default function Comissoes() {
           </h1>
           <p className="text-sm text-slate-500 font-medium">Gerencie comissões, regras fracionadas e estornos.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider">
-          <Plus className="h-4 w-4 mr-2" /> Nova Comissão
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={handleGenerateReport} className="flex-1 sm:flex-none font-bold uppercase tracking-wider border-slate-200">
+            <FileDown className="h-4 w-4 mr-2" /> Relatório
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider">
+            <Plus className="h-4 w-4 mr-2" /> Nova Comissão
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -321,7 +373,10 @@ export default function Comissoes() {
                     {formatCurrency(c.comissao_total)}
                   </td>
                   <td className="px-4 py-3 text-[11px] font-medium text-slate-500">
-                    {c.tipo_comissionamento} ({c.parcelas_comissao}x)
+                    <div className="flex flex-col">
+                      <span className="uppercase text-[9px] text-slate-400">{c.tipo_comissionamento}</span>
+                      <span className="font-bold text-slate-700">1/{c.parcelas_comissao} - {formatCurrency(c.comissao_total / c.parcelas_comissao)}</span>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-blue-600 font-medium">
                     {c.pagamentos_retroativos > 0 ? formatCurrency(c.pagamentos_retroativos) : "-"}
