@@ -14,7 +14,8 @@ import {
   History,
   CheckCircle2,
   FileDown,
-  Trash2
+  Trash2,
+  Edit2
 } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ export default function Comissoes() {
   const [leadsFechados, setLeadsFechados] = useState<any[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>("none");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [editingComissao, setEditingComissao] = useState<Comissao | null>(null);
 
   // Form State
   const [nomeCliente, setNomeCliente] = useState("");
@@ -185,30 +187,38 @@ export default function Comissoes() {
     if (regra === "ADEMICON") parcelas_comissao = 13;
 
     const comissao_total = (valorVenda * taxa_comissao) / 100;
+    const payload = {
+      organizacao_id: profile.organizacao_id,
+      usuario_id: profile.id,
+      cliente_nome: nomeCliente,
+      lead_id: selectedLeadId !== "none" && selectedLeadId !== "manual" ? selectedLeadId : null,
+      grupo,
+      cota,
+      valor_venda: valorVenda,
+      regra_comissao: regra,
+      taxa_comissao,
+      tipo_comissionamento: tipoComissionamento,
+      comissao_total,
+      parcelas_comissao,
+      pagamentos_retroativos: pagamentosRetroativos,
+      data_venda: dataVenda,
+      administradora,
+      parcela_atual: parcelaAtual
+    };
 
     try {
-      const { error } = await supabase.from("comissoes").insert({
-        organizacao_id: profile.organizacao_id,
-        usuario_id: profile.id,
-        cliente_nome: nomeCliente,
-        lead_id: selectedLeadId !== "none" && selectedLeadId !== "manual" ? selectedLeadId : null,
-        grupo,
-        cota,
-        valor_venda: valorVenda,
-        regra_comissao: regra,
-        taxa_comissao,
-        tipo_comissionamento: tipoComissionamento,
-        comissao_total,
-        parcelas_comissao,
-        pagamentos_retroativos: pagamentosRetroativos,
-        data_venda: dataVenda,
-        administradora,
-        parcela_atual: parcelaAtual
-      });
+      let error;
+      if (editingComissao) {
+        const { error: err } = await supabase.from("comissoes").update(payload).eq("id", editingComissao.id);
+        error = err;
+      } else {
+        const { error: err } = await supabase.from("comissoes").insert(payload);
+        error = err;
+      }
 
       if (error) throw error;
       
-      toast({ title: "Comissão registrada com sucesso!" });
+      toast({ title: editingComissao ? "Comissão atualizada!" : "Comissão registrada!" });
       setIsModalOpen(false);
       resetForm();
       fetchComissoes();
@@ -218,6 +228,7 @@ export default function Comissoes() {
   };
 
   const resetForm = () => {
+    setEditingComissao(null);
     setSelectedLeadId("none");
     setNomeCliente("");
     setGrupo("");
@@ -228,6 +239,23 @@ export default function Comissoes() {
     setPagamentosRetroativosStr("");
     setDataVenda(new Date().toISOString().split("T")[0]);
     setParcelaAtual(1);
+    setAdministradora("MAGALU");
+  };
+
+  const handleEditComissao = (c: Comissao) => {
+    setEditingComissao(c);
+    setSelectedLeadId(c.lead_id || "manual");
+    setNomeCliente(c.cliente_nome);
+    setGrupo(c.grupo || "");
+    setCota(c.cota || "");
+    setValorVendaStr(formatCurrencyInput((Number(c.valor_venda) * 100).toString()));
+    setRegra(c.regra_comissao);
+    setTipoComissionamento(c.tipo_comissionamento);
+    setPagamentosRetroativosStr(formatCurrencyInput((Number(c.pagamentos_retroativos) * 100).toString()));
+    setDataVenda(c.data_venda);
+    setParcelaAtual(c.parcela_atual || 1);
+    setAdministradora(c.administradora || "MAGALU");
+    setIsModalOpen(true);
   };
 
   const handleMarcarInadimplente = async (comissao: Comissao) => {
@@ -577,6 +605,9 @@ export default function Comissoes() {
                           <AlertTriangle className="h-4 w-4" />
                         </Button>
                       )}
+                      <Button variant="ghost" size="sm" onClick={() => handleEditComissao(c)} className="text-blue-500 hover:text-blue-600 hover:bg-blue-50" title="Editar comissão">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDeleteComissao(c.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" title="Excluir comissão">
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -598,7 +629,8 @@ export default function Comissoes() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="font-black text-xl flex items-center gap-2">
-              <Plus className="h-5 w-5 text-emerald-500" /> Nova Comissão
+              {editingComissao ? <Edit2 className="h-5 w-5 text-blue-500" /> : <Plus className="h-5 w-5 text-emerald-500" />}
+              {editingComissao ? "Editar Comissão" : "Nova Comissão"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -711,8 +743,8 @@ export default function Comissoes() {
               />
             </div>
 
-            <Button onClick={handleSaveComissao} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase mt-4">
-              Salvar Comissão
+            <Button onClick={handleSaveComissao} className={`w-full ${editingComissao ? 'bg-blue-600 hover:bg-blue-700' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-black uppercase mt-4`}>
+              {editingComissao ? "Salvar Alterações" : "Salvar Comissão"}
             </Button>
           </div>
         </DialogContent>
