@@ -338,12 +338,12 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
       <style>{sliderThumbStyles}</style>
       <section id="simulator" className="py-20 bg-background">
         <div className="container max-w-[620px] mx-auto px-4">
-          <p className="text-xs font-bold tracking-[0.16em] uppercase text-center mb-2" style={{ color: "#f47920" }}>Simulador</p>
+          <p className="text-xs font-bold tracking-[0.16em] uppercase text-center mb-2" style={{ color: "#f47920" }}>Sua estratégia</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-2 text-foreground">
-            Simule seu Consórcio <span className="text-primary">em segundos</span>
+            Descubra <span className="text-primary">seu plano de contemplação</span>
           </h2>
           <p className="text-sm text-center text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
-            Descubra agora o valor do seu crédito, parcelas e o prazo ideal para o seu planejamento.
+            Em poucos segundos você visualiza crédito, parcela e prazo ideais para o seu objetivo.
           </p>
 
           <div className="rounded-[22px] p-6 sm:p-8 bg-card border border-border shadow-xl">
@@ -353,19 +353,19 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                   onClick={() => setSimulationMode('credit')}
                   className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'credit' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
                 >
-                  Simular por Crédito
+                  Por valor a conquistar
                 </button>
                 <button 
                   onClick={() => setSimulationMode('installment')}
                   className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'installment' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
                 >
-                  Simular por Parcela
+                  Por valor mensal
                 </button>
               </div>
             </div>
 
             <p className="text-xs font-semibold text-center mb-2 text-muted-foreground">
-              {simulationMode === "credit" ? "Valor do crédito desejado" : "Quanto você quer pagar por mês (50%)"}
+              {simulationMode === "credit" ? "Quanto você quer conquistar?" : "Quanto você pode investir por mês?"}
             </p>
             <div className="text-center mb-5">
               <span className="text-sm font-bold mr-1 text-muted-foreground">R$</span>
@@ -466,7 +466,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
               <Clock className="w-3.5 h-3.5 text-primary opacity-75" />
-              Após clicar em SIMULAR AGORA, você terá o valor da sua simulação.
+              Em segundos você verá sua estratégia personalizada de contemplação.
             </div>
 
             <button
@@ -474,9 +474,12 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               disabled={bloqueado}
               className="w-full py-4 rounded-[10px] text-base font-extrabold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all disabled:opacity-45 disabled:cursor-not-allowed bg-secondary hover:bg-secondary/90 text-white shadow-lg"
             >
-              Simular Agora
+              Ver minha simulação
               <ArrowRight className="w-5 h-5" />
             </button>
+            <p className="text-[11px] text-center text-muted-foreground mt-3">
+              Sem compromisso. Não enviamos spam.
+            </p>
 
             {isInternal && (
               <div className="mt-8 pt-6 border-t border-border">
