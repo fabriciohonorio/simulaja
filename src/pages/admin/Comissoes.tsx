@@ -47,6 +47,8 @@ interface Comissao {
   valor_estorno: number;
   status: string;
   data_venda: string;
+  grupo?: string;
+  cota?: string;
   created_at: string;
 }
 
@@ -62,6 +64,8 @@ export default function Comissoes() {
 
   // Form State
   const [nomeCliente, setNomeCliente] = useState("");
+  const [grupo, setGrupo] = useState("");
+  const [cota, setCota] = useState("");
   const [valorVendaStr, setValorVendaStr] = useState("");
   const [regra, setRegra] = useState("DEMAIS");
   const [tipoComissionamento, setTipoComissionamento] = useState("REDUZIDA");
@@ -79,7 +83,7 @@ export default function Comissoes() {
     try {
       const { data } = await supabase
         .from("leads")
-        .select("id, nome, valor_credito")
+        .select("id, nome, valor_credito, grupo, cota")
         .in("status", ["fechado", "venda_fechada"])
         .eq("organizacao_id", profile.organizacao_id);
       setLeadsFechados(data || []);
@@ -93,10 +97,14 @@ export default function Comissoes() {
       const lead = leadsFechados.find(l => l.id === selectedLeadId);
       if (lead) {
         setNomeCliente(lead.nome);
+        setGrupo(lead.grupo || "");
+        setCota(lead.cota || "");
         setValorVendaStr(formatCurrencyInput((Number(lead.valor_credito) * 100).toString()));
       }
     } else if (selectedLeadId === "manual" && !isModalOpen) {
       setNomeCliente("");
+      setGrupo("");
+      setCota("");
       setValorVendaStr("");
     }
   }, [selectedLeadId, leadsFechados]);
@@ -152,6 +160,8 @@ export default function Comissoes() {
         usuario_id: profile.id,
         cliente_nome: nomeCliente,
         lead_id: selectedLeadId !== "none" && selectedLeadId !== "manual" ? selectedLeadId : null,
+        grupo,
+        cota,
         valor_venda: valorVenda,
         regra_comissao: regra,
         taxa_comissao,
@@ -176,6 +186,8 @@ export default function Comissoes() {
   const resetForm = () => {
     setSelectedLeadId("none");
     setNomeCliente("");
+    setGrupo("");
+    setCota("");
     setValorVendaStr("");
     setRegra("DEMAIS");
     setTipoComissionamento("REDUZIDA");
@@ -282,6 +294,7 @@ export default function Comissoes() {
             <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="px-4 py-3">Cliente</th>
+                <th className="px-4 py-3">Grupo/Cota</th>
                 <th className="px-4 py-3">Venda</th>
                 <th className="px-4 py-3">Regra</th>
                 <th className="px-4 py-3">Comissão Total</th>
@@ -295,6 +308,9 @@ export default function Comissoes() {
               {filtered.map(c => (
                 <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-4 py-3 font-semibold text-slate-800">{c.cliente_nome}</td>
+                  <td className="px-4 py-3 text-xs text-slate-500">
+                    {c.grupo || "-"} / {c.cota || "-"}
+                  </td>
                   <td className="px-4 py-3">{formatCurrency(c.valor_venda)}</td>
                   <td className="px-4 py-3">
                     <Badge variant="outline" className="bg-slate-50 text-[10px]">
@@ -328,7 +344,7 @@ export default function Comissoes() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500 font-medium">Nenhuma comissão encontrada.</td>
+                  <td colSpan={9} className="px-4 py-8 text-center text-slate-500 font-medium">Nenhuma comissão encontrada.</td>
                 </tr>
               )}
             </tbody>
@@ -367,6 +383,17 @@ export default function Comissoes() {
               </div>
             )}
             
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-slate-500">Grupo</label>
+                <Input value={grupo} onChange={e => setGrupo(e.target.value)} placeholder="0000" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-slate-500">Cota</label>
+                <Input value={cota} onChange={e => setCota(e.target.value)} placeholder="000" />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase text-slate-500">Valor da Venda</label>
