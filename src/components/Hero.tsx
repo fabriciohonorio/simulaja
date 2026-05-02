@@ -1,17 +1,20 @@
+import { useState } from "react";
 import { CheckCircle2, ArrowRight, ClipboardCheck } from "lucide-react";
 import heroBg from "@/assets/hero-premium-desk.jpg";
 import DreamInteraction from "./DreamInteraction";
 
 const Hero = () => {
   const services = [
-    "Consórcio imobiliário",
-    "Consórcio de veículos",
-    "Consórcio de motos",
-    "Consórcio agro",
-    "Consórcio para investimento",
-    "Consórcio para Náutica",
-    "Cartas Contempladas",
+    { label: "Consórcio imobiliário", id: "imovel" },
+    { label: "Consórcio de veículos", id: "veiculo" },
+    { label: "Consórcio de motos", id: "moto" },
+    { label: "Consórcio agro", id: "caminhão" },
+    { label: "Consórcio para investimento", id: "investimento" },
+    { label: "Consórcio para Náutica", id: "nautica" },
+    { label: "Cartas Contempladas", id: "investimento" }, // Reusing invest for now
   ];
+
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   return (
     <section className="cin-parallax cin-vignette relative min-h-screen flex items-center overflow-hidden">
@@ -39,9 +42,14 @@ const Hero = () => {
           {/* Services checklist */}
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
             {services.map((service, i) => (
-              <li key={i} className={`cin-reveal cin-delay-${Math.min(i + 1, 4)} flex items-center gap-3 text-white/80`}>
-                <CheckCircle2 className="w-4 h-4 text-[#C9A96A] flex-shrink-0" />
-                <span className="text-sm md:text-base">{service}</span>
+              <li 
+                key={i} 
+                onMouseEnter={() => setActiveId(service.id)}
+                onMouseLeave={() => setActiveId(null)}
+                className={`cin-reveal cin-delay-${Math.min(i + 1, 4)} flex items-center gap-3 text-white/80 cursor-default transition-all duration-300 ${activeId === service.id ? 'text-cyan-400 translate-x-2' : ''}`}
+              >
+                <CheckCircle2 className={`w-4 h-4 transition-colors ${activeId === service.id ? 'text-cyan-400' : 'text-[#C9A96A]'}`} />
+                <span className="text-sm md:text-base">{service.label}</span>
               </li>
             ))}
           </ul>
@@ -77,7 +85,7 @@ const Hero = () => {
 
       {/* Futuristic Dream Interaction Layer - On Top for Mouse Events */}
       <div className="absolute inset-0 z-50 pointer-events-none">
-        <DreamInteraction />
+        <DreamInteraction activeId={activeId} />
       </div>
     </section>
   );

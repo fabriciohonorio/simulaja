@@ -15,9 +15,11 @@ const segments = [
   { id: "investimento", label: "Investimento", image: cardInvest, top: "78%", left: "64%" },
 ];
 
-const DreamInteraction = () => {
-  const [activeId, setActiveId] = useState<string | null>(null);
+interface DreamInteractionProps {
+  activeId: string | null;
+}
 
+const DreamInteraction = ({ activeId }: DreamInteractionProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
       <style>{`
@@ -47,24 +49,7 @@ const DreamInteraction = () => {
       {/* Dimmer overlay when active */}
       <div className={`absolute inset-0 bg-dimmer-dark pointer-events-none z-0 ${activeId ? 'opacity-100' : 'opacity-0'}`} />
 
-      {/* Interactive Zones over the paper checklist - ONLY ZONES ARE INTERACTIVE */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        {segments.map((seg) => (
-          <div
-            key={seg.id}
-            onMouseEnter={() => setActiveId(seg.id)}
-            onMouseLeave={() => setActiveId(null)}
-            onTouchStart={() => setActiveId(seg.id)}
-            onTouchEnd={() => setActiveId(null)}
-            className="absolute w-[250px] h-[40px] cursor-pointer pointer-events-auto"
-            style={{ 
-              top: seg.top, 
-              left: seg.left, 
-              transform: "perspective(1000px) rotateY(-20deg) rotateX(15deg) rotateZ(-12deg)",
-            }}
-          />
-        ))}
-      </div>
+      {/* No more internal trigger zones - they are now in Hero.tsx */}
 
       {/* Fullscreen Holographic Reveal */}
       {segments.map((seg) => (
