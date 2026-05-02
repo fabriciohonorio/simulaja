@@ -80,12 +80,16 @@ const DreamInteraction = () => {
             className="hologram-fullscreen"
           />
           
-          {/* Huge Label */}
-          <div className="absolute bottom-[15%] flex flex-col items-center pointer-events-none">
-            <h3 className="text-8xl md:text-[15rem] font-black text-white/10 italic uppercase tracking-tighter leading-none">
+          {/* Elegant Floating Label */}
+          <div className="absolute bottom-[18%] flex flex-col items-center pointer-events-none">
+            <h3 className="text-4xl md:text-8xl font-light text-white/40 italic uppercase tracking-[0.2em] leading-none mb-4">
               {seg.label}
             </h3>
-            <span className="text-xs font-black tracking-[1.5em] uppercase text-cyan-400 mt-[-20px] opacity-40">PROJEÇÃO DO SEU SONHO</span>
+            <div className="flex items-center gap-4">
+              <div className="h-[1px] w-12 bg-cyan-400/30" />
+              <span className="text-[10px] font-black tracking-[1.2em] uppercase text-cyan-400/60">PROJEÇÃO ESTRATÉGICA</span>
+              <div className="h-[1px] w-12 bg-cyan-400/30" />
+            </div>
           </div>
         </div>
       ))}
