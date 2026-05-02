@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   History,
   CheckCircle2,
-  FileDown
+  FileDown,
+  Trash2
 } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Button } from "@/components/ui/button";
@@ -149,6 +150,7 @@ export default function Comissoes() {
     if (regra === "GOLDEN") taxa_comissao = 5;
     if (regra === "SILVER") taxa_comissao = 3;
     if (regra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
+    if (regra === "RETROATIVO") taxa_comissao = 3.5;
 
     let parcelas_comissao = 1;
     if (tipoComissionamento === "REDUZIDA") parcelas_comissao = 10;
@@ -221,6 +223,18 @@ export default function Comissoes() {
       fetchComissoes();
     } catch (e: any) {
       toast({ title: "Erro", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteComissao = async (id: string) => {
+    if (!window.confirm("Deseja realmente excluir esta comissão?")) return;
+    try {
+      const { error } = await supabase.from("comissoes").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Comissão excluída com sucesso!" });
+      fetchComissoes();
+    } catch (e: any) {
+      toast({ title: "Erro ao excluir", description: e.message, variant: "destructive" });
     }
   };
 
@@ -465,11 +479,16 @@ export default function Comissoes() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {c.status !== "estornado" && (
-                      <Button variant="ghost" size="sm" onClick={() => handleMarcarInadimplente(c)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" title="Marcar 3 meses inadimplente">
-                        <AlertTriangle className="h-4 w-4" />
+                    <div className="flex justify-end gap-1">
+                      {c.status !== "estornado" && (
+                        <Button variant="ghost" size="sm" onClick={() => handleMarcarInadimplente(c)} className="text-amber-500 hover:text-amber-600 hover:bg-amber-50" title="Marcar 3 meses inadimplente">
+                          <AlertTriangle className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteComissao(c.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" title="Excluir comissão">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -552,6 +571,7 @@ export default function Comissoes() {
                     <SelectItem value="SILVER">Silver (3%)</SelectItem>
                     <SelectItem value="DEMAIS">Demais (4%)</SelectItem>
                     <SelectItem value="INDICACAO_MAGALU">Indicação Magalu (0.8%)</SelectItem>
+                    <SelectItem value="RETROATIVO">Retroativo (3.5%)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

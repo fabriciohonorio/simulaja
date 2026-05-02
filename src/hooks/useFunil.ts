@@ -695,6 +695,9 @@ export function useFunil() {
             if (formData.comissao_regra === "GOLDEN") taxa_comissao = 5;
             if (formData.comissao_regra === "SILVER") taxa_comissao = 3;
             if (formData.comissao_regra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
+            
+            // Se for retroativo (vendas até Março), a taxa é obrigatoriamente 3.5%
+            if (formData.is_retroativo) taxa_comissao = 3.5;
 
             let parcelas_comissao = 1;
             if (formData.comissao_tipo === "REDUZIDA") parcelas_comissao = 10;
@@ -712,7 +715,7 @@ export function useFunil() {
               grupo: formData.grupo,
               cota: formData.cota,
               valor_venda: valorVenda,
-              regra_comissao: formData.comissao_regra || "DEMAIS",
+              regra_comissao: formData.is_retroativo ? "RETROATIVO" : (formData.comissao_regra || "DEMAIS"),
               taxa_comissao,
               tipo_comissionamento: formData.comissao_regra === "INDICACAO_MAGALU" ? "LINEAR" : (formData.comissao_tipo || "REDUZIDA"),
               comissao_total,
