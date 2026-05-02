@@ -168,7 +168,7 @@ export default function Comissoes() {
         tipo_comissionamento: tipoComissionamento,
         comissao_total,
         parcelas_comissao,
-        pagamentos_retroativos,
+        pagamentos_retroativos: pagamentosRetroativos,
         data_venda: dataVenda
       });
 
