@@ -34,6 +34,7 @@ import {
 
 interface Comissao {
   id: string;
+  lead_id?: string;
   cliente_nome: string;
   valor_venda: number;
   regra_comissao: string;
@@ -56,6 +57,8 @@ export default function Comissoes() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [leadsFechados, setLeadsFechados] = useState<any[]>([]);
+  const [selectedLeadId, setSelectedLeadId] = useState<string>("none");
 
   // Form State
   const [nomeCliente, setNomeCliente] = useState("");
@@ -67,8 +70,36 @@ export default function Comissoes() {
 
   useEffect(() => {
     fetchComissoes();
+    fetchLeads();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.organizacao_id]);
+
+  const fetchLeads = async () => {
+    if (!profile?.organizacao_id) return;
+    try {
+      const { data } = await supabase
+        .from("leads")
+        .select("id, nome, valor_credito")
+        .in("status", ["fechado", "venda_fechada"])
+        .eq("organizacao_id", profile.organizacao_id);
+      setLeadsFechados(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedLeadId && selectedLeadId !== "none" && selectedLeadId !== "manual") {
+      const lead = leadsFechados.find(l => l.id === selectedLeadId);
+      if (lead) {
+        setNomeCliente(lead.nome);
+        setValorVendaStr(formatCurrencyInput((Number(lead.valor_credito) * 100).toString()));
+      }
+    } else if (selectedLeadId === "manual" && !isModalOpen) {
+      setNomeCliente("");
+      setValorVendaStr("");
+    }
+  }, [selectedLeadId, leadsFechados]);
 
   const fetchComissoes = async () => {
     if (!profile?.organizacao_id) return;
@@ -120,6 +151,7 @@ export default function Comissoes() {
         organizacao_id: profile.organizacao_id,
         usuario_id: profile.id,
         cliente_nome: nomeCliente,
+        lead_id: selectedLeadId !== "none" && selectedLeadId !== "manual" ? selectedLeadId : null,
         valor_venda: valorVenda,
         regra_comissao: regra,
         taxa_comissao,
@@ -142,6 +174,7 @@ export default function Comissoes() {
   };
 
   const resetForm = () => {
+    setSelectedLeadId("none");
     setNomeCliente("");
     setValorVendaStr("");
     setRegra("DEMAIS");
@@ -312,9 +345,27 @@ export default function Comissoes() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase text-slate-500">Nome do Cliente</label>
-              <Input value={nomeCliente} onChange={e => setNomeCliente(e.target.value)} placeholder="Ex: João Silva" />
+              <label className="text-xs font-bold uppercase text-slate-500">Selecionar Venda (Funil)</label>
+              <Select value={selectedLeadId} onValueChange={setSelectedLeadId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um lead fechado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Selecione...</SelectItem>
+                  {leadsFechados.filter(l => !comissoes.some(c => c.lead_id === l.id)).map((l: any) => (
+                    <SelectItem key={l.id} value={l.id}>{l.nome} - {formatCurrency(Number(l.valor_credito))}</SelectItem>
+                  ))}
+                  <SelectItem value="manual">-- Inserir Manualmente --</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {selectedLeadId === "manual" && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-slate-500">Nome do Cliente</label>
+                <Input value={nomeCliente} onChange={e => setNomeCliente(e.target.value)} placeholder="Ex: João Silva" />
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
