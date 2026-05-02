@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles, Pencil, Trash2, ShieldAlert } from "lucide-react";
+import { Users, UserPlus, TrendingUp, DollarSign, Handshake, Calendar, AlertTriangle, MessageCircle, Clock, CheckCircle2, BarChart3, Bell, Target, Zap, Trophy, MessageSquare, Phone, Sparkles, Pencil, Trash2, ShieldAlert, Coins, Eye, EyeOff } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -63,6 +63,7 @@ export default function Dashboard() {
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
   const { toast } = useToast();
+  const [showCommission, setShowCommission] = useState(true);
 
   const handleDeleteLead = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -375,17 +376,28 @@ export default function Dashboard() {
 
         {/* Card 4: Comissões */}
         <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-white/20">
-              <DollarSign className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Comissão (Líquida)</p>
-              <div className="flex items-baseline gap-1.5">
-                <p className="text-xl font-black">{formatCurrency(comissaoLiquida)}</p>
-                <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">Projetado</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-white/20">
+                <Coins className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Comissão (Líquida)</p>
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-xl font-black">
+                    {showCommission ? formatCurrency(comissaoLiquida) : "••••••"}
+                  </p>
+                  <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">Projetado</span>
+                </div>
               </div>
             </div>
+            <button 
+              onClick={() => setShowCommission(!showCommission)}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              title={showCommission ? "Ocultar Valor" : "Mostrar Valor"}
+            >
+              {showCommission ? <EyeOff className="h-4 w-4 opacity-70" /> : <Eye className="h-4 w-4 opacity-70" />}
+            </button>
           </div>
         </div>
       </div>
