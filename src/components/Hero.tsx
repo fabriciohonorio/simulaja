@@ -1,5 +1,6 @@
 import { CheckCircle2, ArrowRight, ClipboardCheck } from "lucide-react";
 import heroBg from "@/assets/hero-premium-desk.jpg";
+import DreamInteraction from "./DreamInteraction";
 
 const Hero = () => {
   const services = [
@@ -22,6 +23,9 @@ const Hero = () => {
       {/* Premium gradient overlay - strong on the left, soft on the right */}
       <div className="absolute inset-0 bg-gradient-to-r from-[hsl(213,70%,8%)]/95 via-[hsl(213,70%,10%)]/70 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
+
+      {/* Futuristic Dream Interaction Layer */}
+      <DreamInteraction />
 
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div className="max-w-2xl space-y-7">
