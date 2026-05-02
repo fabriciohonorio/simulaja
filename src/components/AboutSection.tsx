@@ -6,7 +6,7 @@ const AboutSection = () => {
           Sobre
         </p>
         <h2 className="cin-reveal cin-delay-1 text-2xl md:text-4xl font-extrabold text-foreground mb-6">
-          Entrar no consórcio é fácil. <span className="text-secondary underline decoration-secondary/30 underline-offset-8">Difícil</span> é ser contemplado rápido.
+          Consórcio não é sobre esperar — <span className="text-secondary underline decoration-secondary/30 underline-offset-8">é sobre planejar</span> o momento certo.
         </h2>
         <p className="cin-reveal cin-delay-2 text-muted-foreground text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
           A maioria das pessoas entra em um grupo sem estratégia — e paga essa decisão com tempo.

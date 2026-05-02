@@ -111,7 +111,7 @@ const Index = () => {
                 Antes de simular
               </p>
               <p className="text-foreground text-base md:text-lg leading-relaxed">
-                Entrar no consórcio é fácil. <strong>Difícil é ser contemplado rápido.</strong>
+                Consórcio não é sobre esperar — <strong>é sobre planejar o momento certo.</strong>
                 <br />
                 A maioria das pessoas entra sem estratégia — e paga essa decisão com tempo.
               </p>
