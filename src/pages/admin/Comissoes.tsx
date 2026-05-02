@@ -165,7 +165,7 @@ export default function Comissoes() {
         valor_venda: valorVenda,
         regra_comissao: regra,
         taxa_comissao,
-        tipo_comissionamento,
+        tipo_comissionamento: tipoComissionamento,
         comissao_total,
         parcelas_comissao,
         pagamentos_retroativos,
