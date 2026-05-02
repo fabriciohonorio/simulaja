@@ -124,10 +124,10 @@ const Index = () => {
               <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
                 Simulador
               </p>
-              <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4">
+              <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-4">
                 Descobrir meu plano em segundos
               </h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
                 Visualize quanto investir, em quanto tempo contemplar e qual estratégia se encaixa no seu objetivo.
               </p>
             </div>

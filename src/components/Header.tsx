@@ -30,7 +30,7 @@ const Header = () => {
       <div className="container max-w-7xl mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl font-black tracking-tight text-white">
-            FABRICIO <span className="text-white/50">|</span> <span className="text-white/70 font-medium text-sm">Especialista em Consórcio</span>
+            O ESPECIALISTA CONSÓRCIO
           </span>
         </div>
 

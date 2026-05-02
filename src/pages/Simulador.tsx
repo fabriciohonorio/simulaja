@@ -247,7 +247,7 @@ export default function Simulador() {
     doc.rect(0, 0, 210, 40, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
-    doc.text("FABRICIO | Especialista Consórcio", 20, 25);
+    doc.text("O ESPECIALISTA CONSÓRCIO", 20, 25);
     doc.setFontSize(10);
     doc.text("app.contemplarcrm.com.br", 20, 32);
     
@@ -319,7 +319,7 @@ export default function Simulador() {
     doc.rect(0, 280, 210, 17, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.text("FABRICIO - ESPECIALISTA EM CONSÓRCIO | ATENDIMENTO EM TODO O BRASIL", 105, 290, { align: 'center' });
+    doc.text("O ESPECIALISTA CONSÓRCIO | ATENDIMENTO EM TODO O BRASIL", 105, 290, { align: 'center' });
     
     doc.save(`simulacao_fabricio_${nome.split(' ')[0] || 'cliente'}.pdf`);
     toast({ title: "PDF Gerado!", description: "A simulação foi salva em seu dispositivo." });
@@ -338,7 +338,7 @@ export default function Simulador() {
     const taxaM = isIm ? 0.00887 : 0.025;
     const pmtF = g.credito * taxaM / (1 - Math.pow(1 + taxaM, -g.prazo));
 
-    const text = `*📋 SIMULAÇÃO DE CONSÓRCIO - FABRICIO*
+    const text = `*📋 SIMULAÇÃO DE CONSÓRCIO - O ESPECIALISTA*
 
 *Cliente:* ${nome || 'Não informado'}
 *Bem:* ${CATEGORIAS.find(c => c.id === categoria)?.label || categoria} (G: ${g.grupo})
@@ -359,8 +359,8 @@ ${incluirComp ? `*🏦 COMPARATIVO FINANCIAMENTO*
 • Parcela Consórcio: *${fmt(g.r50)}*
 • Economia mensal: *${fmt(pmtF - g.r50)}*
 ` : ''}
-_Contemplar CRM - Inteligência em Consórcios_
-_app.contemplarcrm.com.br_`;
+_O Especialista Consórcio_
+_oespecialistaconsorcio.com.br_`;
 
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -575,10 +575,7 @@ _app.contemplarcrm.com.br_`;
         {resultado && (
           <div ref={resultRef} className="rounded-[18px] p-0 mt-8 animate-fade-in overflow-hidden border-2 border-[#0f2044] bg-white shadow-xl">
             <div className="bg-[#0f2044] p-4 text-white">
-              <div className="text-[0.6rem] uppercase tracking-[0.15em] mb-1 font-bold flex items-center justify-between opacity-80">
-                <span>PROPOSTA GERADA POR FABRICIO</span>
-                <CheckCircle2 className="w-3 h-3 text-green-400" />
-              </div>
+                <span>PROPOSTA GERADA PELO ESPECIALISTA</span>
               <h3 className="text-lg font-bold">Simulação Detalhada</h3>
             </div>
             

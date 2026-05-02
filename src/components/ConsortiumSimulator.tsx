@@ -278,7 +278,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
     doc.rect(0, 277, 210, 20, 'F');
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(10);
-    doc.text("www.oespecialistaconsorcio.com.br", 105, 288, { align: "center" });
+    doc.text("oespecialistaconsorcio.com.br", 105, 288, { align: "center" });
     
     doc.save(`simulacao_consorcio_${simNome.replace(/\s+/g, '_').toLowerCase()}.pdf`);
     
@@ -613,7 +613,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                         if (lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) {
                             msg += `*Estratégia de Lance:* ${lanceDinheiroPct + lanceEmbutidoPct}%\n`;
                         }
-                        msg += `\n_Para mais detalhes, visite: www.oespecialistaconsorcio.com.br_`;
+                        msg += `\n_Para mais detalhes, visite: oespecialistaconsorcio.com.br_`;
                         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                       }}
                       className="flex-1 py-3.5 rounded-[10px] text-sm font-extrabold flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg transition-all"
@@ -669,7 +669,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                   style={{ background: "#25D366" }}
                 >
                   <WhatsAppIcon className="w-4 h-4" />
-                  🔥 Falar com Fabricio Agora
+                  🔥 Falar com Especialista Agora
                 </a>
               </div>
             )}

@@ -5,12 +5,11 @@ const AboutConsortium = () => {
     <section className="py-20 bg-muted/30">
       <div className="container max-w-5xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-4">
-            O que é <span className="text-primary">Consórcio</span>?
+          <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4 uppercase tracking-tight">
+            Consórcio não é <span className="text-primary">sorte</span>, é estratégia.
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Uma forma inteligente e planejada de adquirir bens sem pagar os juros abusivos dos bancos tradicionais. 
-            É a união de pessoas com o mesmo objetivo de conquista.
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Muitas pessoas acreditam que o consórcio depende da sorte. Na verdade, é uma das ferramentas mais poderosas de <span className="text-foreground font-semibold">alavancagem patrimonial</span> quando utilizada com a estratégia correta.
           </p>
         </div>
         

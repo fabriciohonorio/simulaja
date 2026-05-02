@@ -83,9 +83,8 @@ export function CRMDrawer({ onLoadLead, onSaveSim }: CRMDrawerProps) {
           <div className="mx-auto w-full max-w-lg flex flex-col h-full overflow-hidden">
             <DrawerHeader className="border-b border-gray-100 pb-4 shrink-0">
               <div className="flex items-center justify-between">
-                <DrawerTitle className="text-2xl font-bold text-[#0f2044] flex items-center gap-2">
-                  <span className="font-serif">FABRICIO</span> 
-                  <span className="text-[#f47920] text-lg font-sans font-normal">| CRM Especialista</span>
+                <DrawerTitle className="text-xl font-black text-[#0f2044] tracking-tighter uppercase">
+                  O ESPECIALISTA CONSÓRCIO
                 </DrawerTitle>
                 <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                   <X className="w-6 h-6" />

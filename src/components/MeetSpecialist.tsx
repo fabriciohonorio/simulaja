@@ -11,7 +11,7 @@ const MeetSpecialist = () => {
             <div className="cin-zoom cin-tilt relative w-full max-w-[360px] aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-white/10" data-cin-tilt="5">
               <img
                 src={fabricioImg}
-                alt="Fabrício — Especialista em Consórcio"
+                alt="O ESPECIALISTA CONSÓRCIO"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -24,7 +24,7 @@ const MeetSpecialist = () => {
               Conheça o Especialista
             </p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
-              O Especialista Consórcio
+              O ESPECIALISTA CONSÓRCIO
             </h2>
             <p className="text-white/75 text-base md:text-lg leading-relaxed">
               Mais de 30 anos de experiência no Setor Financeiro, com

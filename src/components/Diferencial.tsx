@@ -38,7 +38,7 @@ const Diferencial = () => {
           <p className="text-sm font-bold tracking-[0.2em] uppercase text-secondary mb-4">
             Diferencial
           </p>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-foreground mb-4">
             Qual a diferença de fazer com um especialista?
           </h2>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
