@@ -67,6 +67,7 @@ export default function Comissoes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [leadsFechados, setLeadsFechados] = useState<any[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>("none");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Form State
   const [nomeCliente, setNomeCliente] = useState("");
@@ -437,13 +438,6 @@ export default function Comissoes() {
             <p className="text-2xl font-black text-rose-600">{formatCurrency(totalEstornos)}</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><History className="h-6 w-6" /></div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Pagamentos Retroativos</p>
-            <p className="text-2xl font-black text-blue-600">{formatCurrency(totalRetroativo)}</p>
-          </div>
-        </div>
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4 border-l-4 border-l-emerald-500">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle2 className="h-6 w-6" /></div>
           <div>
@@ -452,6 +446,47 @@ export default function Comissoes() {
           </div>
         </div>
       </div>
+
+      {selectedIds.length > 0 && (
+        <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-emerald-500 rounded-xl flex items-center justify-center text-2xl font-black">
+              {selectedIds.length}
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase text-slate-400 tracking-widest">Contratos Selecionados</p>
+              <h3 className="text-lg font-black">Somatório Personalizado</h3>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-8">
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Recebível no Mês (Soma)</p>
+              <p className="text-2xl font-black text-emerald-400">
+                {formatCurrency(
+                  comissoes
+                    .filter(c => selectedIds.includes(c.id))
+                    .reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0)
+                )}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Comissão Total (Soma)</p>
+              <p className="text-2xl font-black text-white">
+                {formatCurrency(
+                  comissoes
+                    .filter(c => selectedIds.includes(c.id))
+                    .reduce((acc, c) => acc + Number(c.comissao_total), 0)
+                )}
+              </p>
+            </div>
+          </div>
+          
+          <Button variant="ghost" onClick={() => setSelectedIds([])} className="text-slate-400 hover:text-white hover:bg-slate-800 uppercase text-xs font-black">
+            Limpar Seleção
+          </Button>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -470,6 +505,17 @@ export default function Comissoes() {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
               <tr>
+                <th className="px-4 py-3 w-10 text-center">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-slate-300"
+                    checked={selectedIds.length === filtered.length && filtered.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedIds(filtered.map(c => c.id));
+                      else setSelectedIds([]);
+                    }}
+                  />
+                </th>
                 <th className="px-4 py-3">Cliente</th>
                 <th className="px-4 py-3">Grupo/Cota</th>
                 <th className="px-4 py-3">Venda</th>
@@ -483,7 +529,18 @@ export default function Comissoes() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map(c => (
-                <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(c.id) ? 'bg-emerald-50/30' : ''}`}>
+                  <td className="px-4 py-3 text-center">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-slate-300"
+                      checked={selectedIds.includes(c.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedIds(prev => [...prev, c.id]);
+                        else setSelectedIds(prev => prev.filter(id => id !== c.id));
+                      }}
+                    />
+                  </td>
                   <td className="px-4 py-3 font-semibold text-slate-800">
                     <div className="flex flex-col">
                       <span>{c.cliente_nome}</span>
