@@ -3,7 +3,7 @@ import { X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import robotAvatar from "@/assets/ai-assistant-pro.png";
 
-type Step = "welcome" | "objetivo" | "valor" | "conhecimento" | "simulacao" | "whatsapp";
+type Step = "welcome" | "prazo" | "contexto" | "entrada" | "parcela" | "objetivo_especifico" | "insight" | "whatsapp";
 
 interface Message {
   role: "bot" | "user";
@@ -13,32 +13,6 @@ interface Message {
 
 const WHATSAPP_NUMBER = "5541997925357";
 
-const SIMULATION_TABLE = [
-  { credito: 110000, parcela: 404.14 },
-  { credito: 120000, parcela: 440.88 },
-  { credito: 130000, parcela: 477.61 },
-  { credito: 140000, parcela: 514.35 },
-  { credito: 150000, parcela: 551.09 },
-  { credito: 170000, parcela: 624.57 },
-  { credito: 190000, parcela: 698.05 },
-  { credito: 200000, parcela: 734.79 },
-];
-
-const parseValue = (input: string): number => {
-  const cleaned = input.replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", ".");
-  return parseFloat(cleaned) || 0;
-};
-
-const formatBRL = (value: number): string =>
-  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-const findClosestPlan = (value: number) => {
-  if (value <= 0) return null;
-  return SIMULATION_TABLE.reduce((prev, curr) =>
-    Math.abs(curr.credito - value) < Math.abs(prev.credito - value) ? curr : prev
-  );
-};
-
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>("welcome");
@@ -47,10 +21,12 @@ const AIChatbot = () => {
   const [showInput, setShowInput] = useState(false);
   const [leadData, setLeadData] = useState({
     objetivo: "",
-    valor_credito: "",
-    conhecimento_consorcio: "",
-    interesse_simulacao: "",
-    origem: "Jarvis AI",
+    prazo: "",
+    contexto: "",
+    entrada: "",
+    parcela: "",
+    bem_ideal: "",
+    origem: "Consultoria Inteligente",
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -74,16 +50,16 @@ const AIChatbot = () => {
     setIsOpen(true);
     if (messages.length === 0) {
       setTimeout(() => {
-        addBotMessage("Olá 👋 Sou o Assistente Inteligente do Consórcio Inteligente. Vou te ajudar rápido.");
+        addBotMessage("Olá! Tudo bem? 👋\nEu posso te ajudar a montar um plano estratégico pra você conquistar o que você quer, de forma mais inteligente.");
         setTimeout(() => {
-          setStep("objetivo");
-          addBotMessage("Qual seu objetivo hoje?", [
-            { label: "🚗 Veículo", value: "Veículo" },
+          setStep("welcome");
+          addBotMessage("Me conta uma coisa pra eu te ajudar melhor… 👇\nO que você quer conquistar agora?", [
+            { label: "🚗 Carro", value: "Carro" },
             { label: "🏍️ Moto", value: "Moto" },
             { label: "🏡 Imóvel", value: "Imóvel" },
-            { label: "💰 Investimento", value: "Investimento" },
+            { label: "🤔 Ainda estou avaliando", value: "Avaliando" },
           ]);
-        }, 800);
+        }, 1000);
       }, 400);
     }
   };
@@ -92,74 +68,72 @@ const AIChatbot = () => {
     addUserMessage(label);
 
     switch (step) {
-      case "objetivo":
+      case "welcome":
         setLeadData((prev) => ({ ...prev, objetivo: value }));
         setTimeout(() => {
-          setStep("valor");
+          setStep("prazo");
+          addBotMessage("Perfeito. Agora me diz:\nEssa etapa dando certo, em quanto tempo você gostaria de estar com o bem na mão?", [
+            { label: "⚡ O quanto antes", value: "Imediato" },
+            { label: "📅 Até 6 meses", value: "6 meses" },
+            { label: "🗓️ Até 1 ano", value: "1 ano" },
+            { label: "🧘 Posso planejar com calma", value: "Longo prazo" },
+          ]);
+        }, 800);
+        break;
+
+      case "prazo":
+        setLeadData((prev) => ({ ...prev, prazo: value }));
+        setTimeout(() => {
+          setStep("contexto");
+          addBotMessage("Você já chegou a ver financiamento ou ainda está analisando as melhores opções?", [
+            { label: "🏦 Já vi financiamento", value: "Financiamento" },
+            { label: "🔍 Ainda estou pesquisando", value: "Pesquisando" },
+            { label: "💡 Quero entender melhor antes", value: "Entender" },
+          ]);
+        }, 800);
+        break;
+
+      case "contexto":
+        setLeadData((prev) => ({ ...prev, contexto: value }));
+        setTimeout(() => {
+          setStep("entrada");
+          addBotMessage("Pra montar algo mais assertivo pra você:\nVocê pretende dar algum valor de entrada ou começar do zero?", [
+            { label: "💰 Tenho entrada", value: "Com entrada" },
+            { label: "🚀 Começar sem entrada", value: "Sem entrada" },
+            { label: "📊 Depende da estratégia", value: "Depende" },
+          ]);
+        }, 800);
+        break;
+
+      case "entrada":
+        setLeadData((prev) => ({ ...prev, entrada: value }));
+        setTimeout(() => {
+          setStep("parcela");
+          addBotMessage("E hoje, qual faixa de parcela seria tranquila pra você, sem apertar seu orçamento?", [
+            { label: "💵 Até R$500", value: "Até 500" },
+            { label: "💵 R$500 a R$1.000", value: "500-1000" },
+            { label: "💵 R$1.000 a R$2.000", value: "1000-2000" },
+            { label: "💵 Acima de R$2.000", value: "2000+" },
+          ]);
+        }, 800);
+        break;
+
+      case "parcela":
+        setLeadData((prev) => ({ ...prev, parcela: value }));
+        setTimeout(() => {
+          setStep("objetivo_especifico");
           setShowInput(true);
-          addBotMessage("Qual valor de crédito você deseja? (ex: R$ 50.000)");
-        }, 600);
+          const obj = leadData.objetivo.toLowerCase() === "avaliando" ? "bem" : leadData.objetivo.toLowerCase();
+          addBotMessage(`Agora me conta: qual seria o ${obj} ideal que você tem em mente?`);
+        }, 800);
         break;
 
-      case "conhecimento":
-        setLeadData((prev) => ({ ...prev, conhecimento_consorcio: value }));
-        if (value === "Quero entender melhor") {
-          setTimeout(() => {
-            addBotMessage("Consórcio é uma forma de compra, planejada, sem juros, parcelas acessíveis. Pode ser usada também como investimento.");
-            setTimeout(() => {
-              setStep("simulacao");
-              addBotMessage("Quer que eu simule uma parcela pra você?", [
-                { label: "✅ Sim", value: "Sim" },
-                { label: "⏳ Depois", value: "Depois" },
-              ]);
-            }, 1000);
-          }, 600);
+      case "whatsapp":
+        if (value === "Sim" || value === "WhatsApp") {
+          handleWhatsApp();
         } else {
-          setTimeout(() => {
-            setStep("simulacao");
-            addBotMessage("Quer que eu simule uma parcela pra você?", [
-              { label: "✅ Sim", value: "Sim" },
-              { label: "⏳ Depois", value: "Depois" },
-            ]);
-          }, 600);
-        }
-        break;
-
-      case "simulacao":
-        setLeadData((prev) => ({ ...prev, interesse_simulacao: value }));
-        if (value === "Sim") {
-          setTimeout(() => {
-            const valorNum = parseValue(leadData.valor_credito);
-            const plan = findClosestPlan(valorNum);
-
-            if (plan && leadData.objetivo === "Imóvel") {
-              addBotMessage(
-                `📊 Simulação aproximada — Consórcio Imobiliário Casa Própria\n\n` +
-                `💰 Crédito: ${formatBRL(plan.credito)}\n` +
-                `📅 Parcela reduzida até contemplação: ~${formatBRL(plan.parcela)}/mês\n` +
-                `📆 Plano: 217 meses | Modalidade 50/50\n\n` +
-                `⚠️ Valores aproximados, sujeitos a atualização.`
-              );
-              setTimeout(() => {
-                addBotMessage("Posso calcular sua simulação completa e sua chance de contemplação. Quer ver como acelerar sua casa própria? 🏡");
-                setTimeout(() => {
-                  setStep("whatsapp");
-                  addBotMessage("Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲");
-                }, 1200);
-              }, 1500);
-            } else {
-              addBotMessage("Para uma simulação personalizada do seu perfil, nosso especialista pode te ajudar com os melhores planos disponíveis! 🚀");
-              setTimeout(() => {
-                setStep("whatsapp");
-                addBotMessage("Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲");
-              }, 1000);
-            }
-          }, 600);
-        } else {
-          setTimeout(() => {
-            setStep("whatsapp");
-            addBotMessage("Se preferir, posso te conectar direto com o especialista no WhatsApp. 📲");
-          }, 600);
+          addBotMessage("Sem problemas! Quando estiver pronto, estarei por aqui. Tenha um ótimo dia! 👋");
+          setTimeout(() => setIsOpen(false), 2000);
         }
         break;
     }
@@ -168,23 +142,43 @@ const AIChatbot = () => {
   const handleSendValue = () => {
     if (!inputValue.trim()) return;
     addUserMessage(inputValue);
-    setLeadData((prev) => ({ ...prev, valor_credito: inputValue }));
+    const specificGoal = inputValue;
+    setLeadData((prev) => ({ ...prev, bem_ideal: specificGoal }));
     setInputValue("");
     setShowInput(false);
 
     setTimeout(() => {
-      setStep("conhecimento");
-      addBotMessage("Você já conhece como funciona o consórcio?", [
-        { label: "👍 Sim", value: "Sim" },
-        { label: "👎 Não", value: "Não" },
-        { label: "🤔 Quero entender melhor", value: "Quero entender melhor" },
-      ]);
-    }, 600);
+      setStep("insight");
+      const obj = leadData.objetivo.toLowerCase() === "avaliando" ? "bem" : leadData.objetivo.toLowerCase();
+      addBotMessage(
+        `Pelo que você me falou, dá pra montar um plano bem estratégico pra você conquistar seu ${obj} dentro de um prazo próximo do que você quer, sem precisar entrar em financiamento com juros altos.\n\n` +
+        `E dependendo da estratégia, existe a possibilidade de antecipar isso mais rápido do que a maioria das pessoas imagina.`
+      );
+      
+      setTimeout(() => {
+        setStep("whatsapp");
+        addBotMessage(
+          "Agora faz sentido eu te mostrar como isso funcionaria na prática, com números e possibilidades reais pro seu caso.\n\n" +
+          "Posso te conectar com um especialista pra te explicar isso direto e sem compromisso?",
+          [
+            { label: "✅ Sim, quero entender", value: "Sim" },
+            { label: "📲 Chamar no WhatsApp", value: "WhatsApp" },
+            { label: "⏳ Prefiro ver depois", value: "Depois" },
+          ]
+        );
+      }, 2000);
+    }, 800);
   };
 
   const handleWhatsApp = () => {
     const msg = encodeURIComponent(
-      `Olá, vim pelo atendimento inteligente do simulador e quero falar com o especialista.\n\nObjetivo: ${leadData.objetivo}\nValor: ${leadData.valor_credito}\nConhecimento: ${leadData.conhecimento_consorcio}\nSimulação: ${leadData.interesse_simulacao}`
+      `Olá! Fiz a pré-consultoria inteligente e quero falar com um especialista.\n\n` +
+      `🎯 Objetivo: ${leadData.objetivo}\n` +
+      `⏱️ Prazo: ${leadData.prazo}\n` +
+      `🏦 Contexto: ${leadData.contexto}\n` +
+      `💰 Entrada: ${leadData.entrada}\n` +
+      `💵 Parcela: ${leadData.parcela}\n` +
+      `✨ Bem Ideal: ${leadData.bem_ideal}`
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
   };
@@ -264,12 +258,12 @@ const AIChatbot = () => {
               </div>
             )}
 
-            {/* WhatsApp CTA */}
-            {step === "whatsapp" && (
+            {/* WhatsApp Quick Action (Optional, but keeping for UX) */}
+            {step === "whatsapp" && messages[messages.length - 1].role === "bot" && (
               <div className="pt-2">
                 <Button
                   onClick={handleWhatsApp}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 rounded-xl text-base"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 rounded-xl text-base shadow-lg shadow-green-900/20"
                 >
                   💬 Falar com especialista agora
                 </Button>
@@ -279,7 +273,7 @@ const AIChatbot = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input for valor */}
+          {/* Input for open responses */}
           {showInput && (
             <div className="bg-background border-t border-border px-4 py-3 flex gap-2">
               <input
@@ -287,7 +281,7 @@ const AIChatbot = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendValue()}
-                placeholder="Digite o valor desejado..."
+                placeholder="Escreva aqui..."
                 className="flex-1 bg-muted text-foreground rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-500 border-0"
                 autoFocus
               />
