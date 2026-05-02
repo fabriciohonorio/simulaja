@@ -63,7 +63,7 @@ const Hero = () => {
               <ClipboardCheck className="w-5 h-5 text-[#C9A96A]" />
             </div>
             <p className="text-sm md:text-[15px] text-white/85 leading-snug font-medium">
-              Diagnóstico estratégico antes de qualquer entrada em grupo.
+              Passe o mouse ou o dedo sobre as opções de consórcio.
             </p>
           </div>
 
