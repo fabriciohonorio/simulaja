@@ -7,12 +7,12 @@ import segNautica from "@/assets/slide-jetski.jpeg";
 import segInvest from "@/assets/segment-investment.png";
 
 const segments = [
-  { id: "imovel", label: "Imóvel", image: segHouse, top: "52%", left: "68%" },
-  { id: "veiculo", label: "Veículo", image: segCar, top: "58%", left: "68%" },
-  { id: "moto", label: "Moto", image: segMoto, top: "64%", left: "68%" },
-  { id: "caminhao", label: "Caminhão", image: segTractor, top: "70%", left: "68%" },
-  { id: "nautica", label: "Náutica", image: segNautica, top: "76%", left: "68%" },
-  { id: "investimento", label: "Investimento", image: segInvest, top: "82%", left: "68%" },
+  { id: "imovel", label: "Imóvel", image: segHouse, top: "48%", left: "64%" },
+  { id: "veiculo", label: "Veículo", image: segCar, top: "54%", left: "64%" },
+  { id: "moto", label: "Moto", image: segMoto, top: "60%", left: "64%" },
+  { id: "caminhão", label: "Caminhão", image: segTractor, top: "66%", left: "64%" },
+  { id: "nautica", label: "Náutica", image: segNautica, top: "72%", left: "64%" },
+  { id: "investimento", label: "Investimento", image: segInvest, top: "78%", left: "64%" },
 ];
 
 const DreamInteraction = () => {
@@ -53,7 +53,7 @@ const DreamInteraction = () => {
             onMouseLeave={() => setActiveId(null)}
             onTouchStart={() => setActiveId(seg.id)}
             onTouchEnd={() => setActiveId(null)}
-            className="absolute w-[180px] h-[32px] cursor-pointer"
+            className="absolute w-[250px] h-[40px] cursor-pointer pointer-events-auto"
             style={{ 
               top: seg.top, 
               left: seg.left, 

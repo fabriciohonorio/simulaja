@@ -24,10 +24,7 @@ const Hero = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-[hsl(213,70%,8%)]/95 via-[hsl(213,70%,10%)]/70 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
 
-      {/* Futuristic Dream Interaction Layer */}
-      <DreamInteraction />
-
-      <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
+      <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32 z-10">
         <div className="max-w-2xl space-y-7">
           <div>
             <h1 className="cin-reveal text-4xl sm:text-5xl md:text-6xl font-black leading-[1.1] tracking-tight text-white uppercase">
@@ -76,6 +73,11 @@ const Hero = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Futuristic Dream Interaction Layer - On Top for Mouse Events */}
+      <div className="absolute inset-0 z-50 pointer-events-none">
+        <DreamInteraction />
       </div>
     </section>
   );
