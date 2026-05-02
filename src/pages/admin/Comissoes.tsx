@@ -264,6 +264,21 @@ export default function Comissoes() {
       y += 6;
     });
 
+    const totalReceberReport = filtered.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
+    y += 10;
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.line(10, y, 200, y);
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("RESUMO DE RECEBIMENTO", 10, y);
+    doc.setFontSize(14);
+    doc.setTextColor(5, 150, 105); // emerald-600
+    doc.text(`TOTAL A RECEBER NESTE MES: ${formatCurrency(totalReceberReport)}`, 10, y + 8);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "italic");
+    doc.text("* Nota: O valor acima representa a soma da parcela atual (1/X) de todos os contratos ativos.", 10, y + 15);
+
     doc.save(`relatorio-comissoes-${format(new Date(), "yyyy-MM-dd")}.pdf`);
     toast({ title: "Relatório gerado com sucesso!" });
   };
@@ -282,6 +297,7 @@ export default function Comissoes() {
   const totalComissoes = comissoes.reduce((acc, c) => acc + Number(c.comissao_total || 0), 0);
   const totalEstornos = comissoes.reduce((acc, c) => acc + Number(c.valor_estorno || 0), 0);
   const totalRetroativo = comissoes.reduce((acc, c) => acc + Number(c.pagamentos_retroativos || 0), 0);
+  const totalReceberMes = comissoes.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
 
   if (loading) return <div className="p-20 text-center animate-pulse font-bold text-slate-400 uppercase tracking-widest">Carregando comissionamento...</div>;
 
@@ -324,6 +340,13 @@ export default function Comissoes() {
           <div>
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Pagamentos Retroativos</p>
             <p className="text-2xl font-black text-blue-600">{formatCurrency(totalRetroativo)}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4 border-l-4 border-l-emerald-500">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle2 className="h-6 w-6" /></div>
+          <div>
+            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">A Receber (Mês)</p>
+            <p className="text-2xl font-black text-emerald-600">{formatCurrency(totalReceberMes)}</p>
           </div>
         </div>
       </div>
