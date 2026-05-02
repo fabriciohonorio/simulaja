@@ -1,0 +1,76 @@
+/* Cinematic Effects — drop-in CSS */
+
+/* Reveal */
+.cin-reveal { opacity: 0; transform: translateY(24px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); will-change: opacity, transform; }
+.cin-reveal.cin-in { opacity: 1; transform: translateY(0); }
+.cin-delay-1 { transition-delay: .12s; }
+.cin-delay-2 { transition-delay: .24s; }
+.cin-delay-3 { transition-delay: .36s; }
+.cin-delay-4 { transition-delay: .48s; }
+
+/* Parallax */
+.cin-parallax { position: relative; overflow: hidden; }
+.cin-parallax-inner { will-change: transform; transform: translate3d(0,0,0); }
+
+/* Zoom on enter */
+.cin-zoom { overflow: hidden; }
+.cin-zoom-inner, .cin-zoom > img, .cin-zoom > div {
+  transform: scale(1.18); transition: transform 1.6s cubic-bezier(.2,.7,.2,1); will-change: transform;
+}
+.cin-zoom.cin-in > img, .cin-zoom.cin-in > div, .cin-zoom.cin-in .cin-zoom-inner { transform: scale(1); }
+
+/* Layer scene */
+.cin-scene { position: relative; overflow: hidden; }
+.cin-layer-back, .cin-layer-front { will-change: transform; }
+
+/* Ken Burns */
+@keyframes cin-kb { 0% { transform: scale(1.08) translate(0,0); } 100% { transform: scale(1.18) translate(-2%, -2%); } }
+@keyframes cin-kb-r { 0% { transform: scale(1.08) translate(0,0); } 100% { transform: scale(1.18) translate(2%, -2%); } }
+.cin-kenburns { overflow: hidden; }
+.cin-kenburns > img, .cin-kenburns .cin-kenburns-inner { animation: cin-kb 18s ease-in-out infinite alternate; will-change: transform; }
+.cin-kenburns-r > img, .cin-kenburns-r .cin-kenburns-inner { animation: cin-kb-r 18s ease-in-out infinite alternate; }
+.cin-kenburns-inner { position: absolute; inset: 0; background-size: cover; background-position: center; }
+
+/* Tilt */
+.cin-tilt { transform-style: preserve-3d; transition: transform .25s cubic-bezier(.2,.7,.2,1); will-change: transform; }
+
+/* Cinematic card */
+.cin-card { position: relative; overflow: hidden; transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s; }
+.cin-card:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -20px rgba(0,0,0,.45); }
+.cin-card-img { transition: transform .8s cubic-bezier(.2,.7,.2,1); will-change: transform; }
+.cin-card:hover .cin-card-img, .cin-card:hover img { transform: scale(1.08); }
+.cin-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.35) 100%);
+  opacity: 0; transition: opacity .5s;
+}
+.cin-card:hover::after { opacity: 1; }
+
+/* Vignette */
+.cin-vignette { position: relative; }
+.cin-vignette::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.55) 100%);
+}
+
+/* Fade masks */
+.cin-fade-bottom { --cin-fade-color: #ffffff; position: relative; }
+.cin-fade-bottom::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
+  background: linear-gradient(to bottom, transparent, var(--cin-fade-color));
+  pointer-events: none; z-index: 5;
+}
+.cin-fade-top { --cin-fade-color: #ffffff; position: relative; }
+.cin-fade-top::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 120px;
+  background: linear-gradient(to top, transparent, var(--cin-fade-color));
+  pointer-events: none; z-index: 5;
+}
+
+/* Hero zoom (subtle continuous) */
+@keyframes cin-hero-zoom { 0% { transform: scale(1.05); } 100% { transform: scale(1.12); } }
+.cin-hero-zoom { animation: cin-hero-zoom 14s ease-in-out infinite alternate; will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cin-reveal, .cin-zoom-inner, .cin-zoom > img, .cin-kenburns > img, .cin-hero-zoom, .cin-parallax-inner { animation: none !important; transition: none !important; transform: none !important; opacity: 1 !important; }
+}

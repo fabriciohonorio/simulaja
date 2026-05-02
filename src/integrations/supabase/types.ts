@@ -22,7 +22,7 @@ export type Database = {
           data_agendada: string
           descricao: string | null
           id: string
-          lead_id: string
+          lead_id: string | null
           observacoes: string | null
           status: string | null
           tipo: string | null
@@ -36,7 +36,7 @@ export type Database = {
           data_agendada: string
           descricao?: string | null
           id?: string
-          lead_id: string
+          lead_id?: string | null
           observacoes?: string | null
           status?: string | null
           tipo?: string | null
@@ -50,7 +50,7 @@ export type Database = {
           data_agendada?: string
           descricao?: string | null
           id?: string
-          lead_id?: string
+          lead_id?: string | null
           observacoes?: string | null
           status?: string | null
           tipo?: string | null
@@ -71,6 +71,7 @@ export type Database = {
         Row: {
           administradora: string | null
           boleto_url: string | null
+          celular: string | null
           cota: string | null
           cota_contemplada: string | null
           created_at: string
@@ -90,6 +91,7 @@ export type Database = {
         Insert: {
           administradora?: string | null
           boleto_url?: string | null
+          celular?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
@@ -109,6 +111,7 @@ export type Database = {
         Update: {
           administradora?: string | null
           boleto_url?: string | null
+          celular?: string | null
           cota?: string | null
           cota_contemplada?: string | null
           created_at?: string
@@ -138,6 +141,113 @@ export type Database = {
             columns: ["organizacao_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comissoes: {
+        Row: {
+          administradora: string | null
+          carteira_id: string | null
+          cliente_nome: string
+          comissao_total: number
+          cota: string | null
+          created_at: string
+          data_venda: string
+          grupo: string | null
+          id: string
+          lead_id: string | null
+          meses_inadimplentes: number
+          organizacao_id: string | null
+          pagamentos_retroativos: number
+          parcela_atual: number | null
+          parcelas_comissao: number
+          regra_comissao: string
+          status: string
+          taxa_comissao: number
+          tipo_comissionamento: string
+          updated_at: string
+          usuario_id: string | null
+          valor_estorno: number
+          valor_venda: number
+        }
+        Insert: {
+          administradora?: string | null
+          carteira_id?: string | null
+          cliente_nome: string
+          comissao_total?: number
+          cota?: string | null
+          created_at?: string
+          data_venda?: string
+          grupo?: string | null
+          id?: string
+          lead_id?: string | null
+          meses_inadimplentes?: number
+          organizacao_id?: string | null
+          pagamentos_retroativos?: number
+          parcela_atual?: number | null
+          parcelas_comissao?: number
+          regra_comissao: string
+          status?: string
+          taxa_comissao: number
+          tipo_comissionamento: string
+          updated_at?: string
+          usuario_id?: string | null
+          valor_estorno?: number
+          valor_venda?: number
+        }
+        Update: {
+          administradora?: string | null
+          carteira_id?: string | null
+          cliente_nome?: string
+          comissao_total?: number
+          cota?: string | null
+          created_at?: string
+          data_venda?: string
+          grupo?: string | null
+          id?: string
+          lead_id?: string | null
+          meses_inadimplentes?: number
+          organizacao_id?: string | null
+          pagamentos_retroativos?: number
+          parcela_atual?: number | null
+          parcelas_comissao?: number
+          regra_comissao?: string
+          status?: string
+          taxa_comissao?: number
+          tipo_comissionamento?: string
+          updated_at?: string
+          usuario_id?: string | null
+          valor_estorno?: number
+          valor_venda?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comissoes_carteira_id_fkey"
+            columns: ["carteira_id"]
+            isOneToOne: false
+            referencedRelation: "carteira"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comissoes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
             referencedColumns: ["id"]
           },
         ]
@@ -500,6 +610,7 @@ export type Database = {
           cidade: string | null
           cota: string | null
           created_at: string | null
+          dados_cadastro: Json | null
           data_adesao: string | null
           data_vencimento: string | null
           email: string | null
@@ -529,6 +640,7 @@ export type Database = {
           cidade?: string | null
           cota?: string | null
           created_at?: string | null
+          dados_cadastro?: Json | null
           data_adesao?: string | null
           data_vencimento?: string | null
           email?: string | null
@@ -558,6 +670,7 @@ export type Database = {
           cidade?: string | null
           cota?: string | null
           created_at?: string | null
+          dados_cadastro?: Json | null
           data_adesao?: string | null
           data_vencimento?: string | null
           email?: string | null
