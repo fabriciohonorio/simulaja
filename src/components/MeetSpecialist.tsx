@@ -8,7 +8,7 @@ const MeetSpecialist = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
           {/* Photo */}
           <div className="order-2 md:order-1 flex justify-center md:justify-start">
-            <div className="relative w-full max-w-[360px] aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="cin-zoom cin-tilt relative w-full max-w-[360px] aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl border border-white/10" data-cin-tilt="5">
               <img
                 src={fabricioImg}
                 alt="Fabrício — Especialista em Consórcio"

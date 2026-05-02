@@ -55,13 +55,14 @@ const SegmentCards = () => {
           {segments.map((seg, i) => (
             <div
               key={i}
-              className="group bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className={`cin-card cin-reveal cin-tilt cin-delay-${Math.min(i + 1, 4)} group bg-card rounded-2xl overflow-hidden border border-border shadow-sm transition-all duration-300`}
+              data-cin-tilt="5"
             >
               <div className="h-48 overflow-hidden">
                 <img
                   src={seg.image}
                   alt={seg.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="cin-card-img w-full h-full object-cover"
                 />
               </div>
               <div className="p-6">
