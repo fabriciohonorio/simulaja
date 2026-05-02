@@ -101,6 +101,7 @@ export default function Simulador() {
   const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
   const [incluirComp, setIncluirComp] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [simulationMode, setSimulationMode] = useState<"credit" | "installment">("credit");
 
   const resultRef = useRef<HTMLDivElement>(null);
   const lockRef = useRef<HTMLDivElement>(null);
@@ -391,17 +392,31 @@ _app.contemplarcrm.com.br_`;
 
       {/* Card principal */}
       <div className="w-full max-w-[580px] rounded-[22px] p-6 sm:p-8" style={{ background: "#fff", boxShadow: "0 4px 40px rgba(15,32,68,.10)" }}>
-        {categoria === "imovel" && (
-          <div className="w-full rounded-lg px-4 py-2 mb-4 text-center text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider animate-pulse" style={{ background: "linear-gradient(90deg, #ef4444, #f43f5e)", boxShadow: "0 4px 14px rgba(239, 68, 68, 0.3)" }}>
-            Promoção Extra! De 27 à 30/04 - Economia de até R$ 28.000,00*
+        <div className="flex justify-center mb-6">
+          <div className="flex bg-[#f0f2f5] p-1 rounded-xl border border-[#e4e9f2]">
+            <button 
+              onClick={() => setSimulationMode('credit')}
+              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'credit' ? 'bg-white shadow-sm text-[#0057a8]' : 'text-gray-400'}`}
+            >
+              Simular por Crédito
+            </button>
+            <button 
+              onClick={() => setSimulationMode('installment')}
+              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'installment' ? 'bg-white shadow-sm text-[#0057a8]' : 'text-gray-400'}`}
+            >
+              Simular por Parcela
+            </button>
           </div>
-        )}
+        </div>
+
         {/* Slider */}
-        <p className="text-xs font-semibold text-center mb-2" style={{ color: "#6b7a99" }}>Valor do crédito desejado</p>
+        <p className="text-xs font-semibold text-center mb-2" style={{ color: "#6b7a99" }}>
+          {simulationMode === "credit" ? "Valor do crédito desejado" : "Quanto você quer pagar por mês (50%)"}
+        </p>
         <div className="text-center mb-5">
           <span className="text-sm font-bold mr-1" style={{ color: "#6b7a99" }}>R$</span>
           <span className="text-3xl sm:text-4xl font-extrabold" style={{ color: "#0f2044", letterSpacing: "-0.03em" }}>
-            {g.credito.toLocaleString("pt-BR")}
+            {simulationMode === "credit" ? g.credito.toLocaleString("pt-BR") : g.r50.toLocaleString("pt-BR")}
           </span>
         </div>
 
@@ -417,9 +432,17 @@ _app.contemplarcrm.com.br_`;
             background: `linear-gradient(to right, #0057a8 0%, #0057a8 ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
           }}
         />
-        <div className="flex justify-between text-xs mb-6" style={{ color: "#6b7a99" }}>
-          <span>R$ {lista[0].credito.toLocaleString("pt-BR")}</span>
-          <span>R$ {lista[lista.length - 1].credito.toLocaleString("pt-BR")}</span>
+        <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight mb-6" style={{ color: "#6b7a99" }}>
+          <span>
+            {simulationMode === "credit" 
+              ? `Min: R$ ${lista[0].credito.toLocaleString("pt-BR")}` 
+              : `Min: R$ ${lista[0].r50.toLocaleString("pt-BR")}`}
+          </span>
+          <span>
+            {simulationMode === "credit" 
+              ? `Max: R$ ${lista[lista.length - 1].credito.toLocaleString("pt-BR")}` 
+              : `Max: R$ ${lista[lista.length - 1].r50.toLocaleString("pt-BR")}`}
+          </span>
         </div>
 
         {/* Segmentos */}
