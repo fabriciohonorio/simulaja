@@ -201,8 +201,9 @@ const AIChatbot = () => {
             <img src={robotAvatar} alt="Assistente" className="w-full h-full object-cover" />
             <span className="absolute inset-0 rounded-full bg-violet-500/40 animate-ping" />
           </button>
-          <div className="absolute bottom-full right-0 mb-3 px-3 py-1.5 bg-foreground text-background text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
-            Atendimento Inteligente
+          <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-foreground text-background text-xs rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none shadow-xl border border-white/10 backdrop-blur-sm">
+            <span className="font-bold block">Veja seu plano agora</span>
+            <span className="text-[10px] text-background/70">com o Jarvis, seu assistente virtual</span>
           </div>
         </div>
       )}
