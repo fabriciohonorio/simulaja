@@ -65,6 +65,8 @@ export interface LeadFormData {
   cota?: string;
   status_updated_at?: string;
   dados_cadastro?: any;
+  comissao_regra?: string;
+  comissao_tipo?: string;
 }
 
 interface LeadFormProps {
@@ -248,6 +250,37 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
                  <Label htmlFor="is_retroativo" className="text-[9px] font-black uppercase text-slate-500 cursor-pointer">Inclusão Retroativa</Label>
                </div>
              </div>
+
+            {form.is_retroativo && (
+              <div className="grid grid-cols-2 gap-4 pb-2 border-b border-emerald-100">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold">Regra de Comissão</Label>
+                  <Select value={form.comissao_regra || "DEMAIS"} onValueChange={(val) => handleSelectChange("comissao_regra", val)}>
+                    <SelectTrigger className="rounded-lg h-9 bg-white"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GOLDEN">Golden (5%)</SelectItem>
+                      <SelectItem value="SILVER">Silver (3%)</SelectItem>
+                      <SelectItem value="DEMAIS">Demais (4%)</SelectItem>
+                      <SelectItem value="INDICACAO_MAGALU">Indicação Magalu (0.8%)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold">Fracionamento</Label>
+                  <Select 
+                    value={form.comissao_regra === "INDICACAO_MAGALU" ? "LINEAR" : (form.comissao_tipo || "REDUZIDA")} 
+                    onValueChange={(val) => handleSelectChange("comissao_tipo", val)}
+                    disabled={form.comissao_regra === "INDICACAO_MAGALU"}
+                  >
+                    <SelectTrigger className="rounded-lg h-9 bg-white"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="REDUZIDA">Reduzida (10x)</SelectItem>
+                      <SelectItem value="LINEAR">Linear (4x)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
              <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">

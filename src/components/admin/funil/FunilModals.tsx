@@ -58,6 +58,10 @@ export function FunilModals({ state }: { state: any }) {
     setCota,
     administradora,
     setAdministradora,
+    comissaoRegra,
+    setComissaoRegra,
+    comissaoTipo,
+    setComissaoTipo,
     saving,
     handleSaveCelebration,
     editingLead,
@@ -97,6 +101,9 @@ export function FunilModals({ state }: { state: any }) {
                 cota: editingLead.cota || "",
                 status_updated_at: editingLead.status_updated_at || "",
                 dados_cadastro: editingLead.dados_cadastro || null,
+                is_retroativo: editingLead.dados_cadastro?.is_retroativo || false,
+                comissao_regra: editingLead.dados_cadastro?.comissao_regra || "DEMAIS",
+                comissao_tipo: editingLead.dados_cadastro?.comissao_tipo || "REDUZIDA",
               }}
               onSubmit={handleSaveLead}
               onCancel={() => setEditingLead(null)}
@@ -199,6 +206,40 @@ export function FunilModals({ state }: { state: any }) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-left">
+              <div className="space-y-2">
+                <Label>Regra de Comissão</Label>
+                <Select value={comissaoRegra} onValueChange={setComissaoRegra}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GOLDEN">Golden (5%)</SelectItem>
+                    <SelectItem value="SILVER">Silver (3%)</SelectItem>
+                    <SelectItem value="DEMAIS">Demais (4%)</SelectItem>
+                    <SelectItem value="INDICACAO_MAGALU">Indicação Magalu (0.8%)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Fracionamento</Label>
+                <Select 
+                  value={comissaoRegra === "INDICACAO_MAGALU" ? "LINEAR" : comissaoTipo} 
+                  onValueChange={setComissaoTipo}
+                  disabled={comissaoRegra === "INDICACAO_MAGALU"}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="REDUZIDA">Reduzida (10x)</SelectItem>
+                    <SelectItem value="LINEAR">Linear (4x)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {comissaoRegra === "INDICACAO_MAGALU" && <p className="text-[9px] text-orange-500 font-bold mt-1">Sempre Linear 4x</p>}
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">

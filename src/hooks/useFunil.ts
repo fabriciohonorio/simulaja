@@ -22,6 +22,8 @@ export function useFunil() {
   const [grupo, setGrupo] = useState("");
   const [cota, setCota] = useState("");
   const [administradora, setAdministradora] = useState("");
+  const [comissaoRegra, setComissaoRegra] = useState("DEMAIS");
+  const [comissaoTipo, setComissaoTipo] = useState("REDUZIDA");
   const [saving, setSaving] = useState(false);
   const [administradoraFilter, setAdministradoraFilter] = useState("todos");
   const [indicadorFilter, setIndicadorFilter] = useState("todos");
@@ -520,8 +522,38 @@ export function useFunil() {
       return;
     }
 
-    toast.success("Cliente adicionado à carteira!");
+    // Comissionamento Auto-Create
+    let taxa_comissao = 4; // DEMAIS
+    if (comissaoRegra === "GOLDEN") taxa_comissao = 5;
+    if (comissaoRegra === "SILVER") taxa_comissao = 3;
+    if (comissaoRegra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
+
+    let parcelas_comissao = 1;
+    if (comissaoTipo === "REDUZIDA") parcelas_comissao = 10;
+    if (comissaoTipo === "LINEAR") parcelas_comissao = 4;
+    if (comissaoRegra === "INDICACAO_MAGALU") parcelas_comissao = 4;
+
+    const valorVenda = Number(celebrationLead.valor_credito) || 0;
+    const comissao_total = (valorVenda * taxa_comissao) / 100;
+
+    await supabase.from("comissoes").insert({
+      organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
+      usuario_id: profile?.id,
+      lead_id: celebrationLead.id,
+      cliente_nome: celebrationLead.nome,
+      valor_venda: valorVenda,
+      regra_comissao: comissaoRegra,
+      taxa_comissao,
+      tipo_comissionamento: comissaoRegra === "INDICACAO_MAGALU" ? "LINEAR" : comissaoTipo,
+      comissao_total,
+      parcelas_comissao,
+      data_venda: new Date().toISOString().split('T')[0]
+    });
+
+    toast.success("Cliente adicionado à carteira e comissão registrada!");
     setCelebrationLead(null);
+    setComissaoRegra("DEMAIS");
+    setComissaoTipo("REDUZIDA");
   };
 
   const handleDeleteLead = async (leadId: string, leadNome: string) => {
@@ -569,6 +601,10 @@ export function useFunil() {
     setCota,
     administradora,
     setAdministradora,
+    comissaoRegra,
+    setComissaoRegra,
+    comissaoTipo,
+    setComissaoTipo,
     saving,
     administradoraFilter,
     setAdministradoraFilter,
@@ -613,6 +649,13 @@ export function useFunil() {
       if (!editingLead) return;
       setSavingLead(true);
       try {
+        const dados_cadastro = {
+          ...formData.dados_cadastro,
+          is_retroativo: formData.is_retroativo,
+          comissao_regra: formData.comissao_regra,
+          comissao_tipo: formData.comissao_tipo,
+        };
+
         const { error } = await supabase
           .from("leads")
           .update({
@@ -631,12 +674,66 @@ export function useFunil() {
             indicador_celular: formData.indicador_celular,
             grupo: formData.grupo,
             cota: formData.cota,
-            dados_cadastro: formData.dados_cadastro,
+            dados_cadastro: dados_cadastro,
           })
           .eq("id", editingLead.id);
 
         if (error) throw error;
-        setLeads(prev => prev.map(l => l.id === editingLead.id ? { ...l, ...formData } : l));
+
+        // Se for retroativo, cria comissão se ainda não existir
+        if (formData.is_retroativo) {
+          // Check if comissao already exists
+          const { data: comissoesExistentes } = await supabase
+            .from("comissoes")
+            .select("id")
+            .eq("lead_id", editingLead.id);
+
+          if (!comissoesExistentes || comissoesExistentes.length === 0) {
+            let taxa_comissao = 4; // DEMAIS
+            if (formData.comissao_regra === "GOLDEN") taxa_comissao = 5;
+            if (formData.comissao_regra === "SILVER") taxa_comissao = 3;
+            if (formData.comissao_regra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
+
+            let parcelas_comissao = 1;
+            if (formData.comissao_tipo === "REDUZIDA") parcelas_comissao = 10;
+            if (formData.comissao_tipo === "LINEAR") parcelas_comissao = 4;
+            if (formData.comissao_regra === "INDICACAO_MAGALU") parcelas_comissao = 4;
+
+            const valorVenda = Number(formData.valor_credito) || 0;
+            const comissao_total = (valorVenda * taxa_comissao) / 100;
+
+            await supabase.from("comissoes").insert({
+              organizacao_id: profile?.organizacao_id,
+              usuario_id: profile?.id,
+              lead_id: editingLead.id,
+              cliente_nome: formData.nome,
+              valor_venda: valorVenda,
+              regra_comissao: formData.comissao_regra || "DEMAIS",
+              taxa_comissao,
+              tipo_comissionamento: formData.comissao_regra === "INDICACAO_MAGALU" ? "LINEAR" : (formData.comissao_tipo || "REDUZIDA"),
+              comissao_total,
+              parcelas_comissao,
+              data_venda: formData.status_updated_at ? formData.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              pagamentos_retroativos: 1 // Default to 1 to show it's retroactive, or leave empty
+            });
+            
+            // Also upsert to carteira
+            await (supabase as any).from("carteira").upsert({
+              lead_id: editingLead.id,
+              nome: formData.nome,
+              tipo_consorcio: formData.tipo_consorcio,
+              valor_credito: Number(formData.valor_credito),
+              grupo: formData.grupo,
+              cota: formData.cota,
+              administradora: formData.administradora === "none" ? null : formData.administradora,
+              status: "aguardando",
+              data_adesao: formData.status_updated_at ? formData.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              organizacao_id: profile?.organizacao_id,
+            }, { onConflict: 'lead_id' });
+          }
+        }
+
+        setLeads(prev => prev.map(l => l.id === editingLead.id ? { ...l, ...formData, dados_cadastro } : l));
         setEditingLead(null);
         toast.success("Lead atualizado!");
       } catch (e: any) {

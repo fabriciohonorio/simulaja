@@ -58,6 +58,7 @@ export default function Dashboard() {
   const [perfis, setPerfis] = useState<any[]>([]);
   const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
   const [inadimplentes, setInadimplentes] = useState<any[]>([]);
+  const [comissoes, setComissoes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
@@ -123,6 +124,14 @@ export default function Dashboard() {
         .eq("organizacao_id", profile.organizacao_id)
         .then(({ data }: any) => {
           setInadimplentes((data as any[]) || []);
+        });
+
+      (supabase as any)
+        .from("comissoes")
+        .select("comissao_total, status, valor_estorno")
+        .eq("organizacao_id", profile.organizacao_id)
+        .then(({ data }: any) => {
+          setComissoes((data as any[]) || []);
         });
     };
 
@@ -199,6 +208,10 @@ export default function Dashboard() {
   const inadimplentesAtivos = inadimplentes.filter(i => i.status !== 'regularizado').length;
   const percentInadimplencia = totalClientes > 0 ? (inadimplentesAtivos / totalClientes) * 100 : 0;
   const percentRetencao = totalClientes > 0 ? ((totalClientes - inadimplentesAtivos) / totalClientes) * 100 : 0;
+
+  const totalComissoes = comissoes.reduce((acc, c) => acc + Number(c.comissao_total || 0), 0);
+  const totalEstornos = comissoes.reduce((acc, c) => acc + Number(c.valor_estorno || 0), 0);
+  const comissaoLiquida = totalComissoes - totalEstornos;
 
   const stats = [
     { label: "Total Leads", value: totalLeads, icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
@@ -311,7 +324,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Clientes na Carteira */}
         <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
           <div className="flex items-center gap-3">
@@ -355,6 +368,22 @@ export default function Dashboard() {
               <div className="flex items-baseline gap-1.5">
                 <p className="text-xl font-black">{percentRetencao.toFixed(1)}%</p>
                 <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">Saúde da Carteira</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Comissões */}
+        <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-white/20">
+              <DollarSign className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest leading-tight">Comissão (Líquida)</p>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-xl font-black">{formatCurrency(comissaoLiquida)}</p>
+                <span className="text-[9px] opacity-80 font-bold uppercase tracking-tighter">Projetado</span>
               </div>
             </div>
           </div>

@@ -24,6 +24,7 @@ import Register from "./pages/admin/Register";
 import ResetPassword from "./pages/admin/ResetPassword";
 import Chat from "./pages/admin/Chat";
 import CartaAnalise from "./pages/admin/CartaAnalise";
+import Comissoes from "./pages/admin/Comissoes";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="jarvis" element={<Jarvis />} />
             <Route path="carteira" element={<Carteira />} />
             <Route path="inadimplentes" element={<Inadimplentes />} />
+            <Route path="comissoes" element={<Comissoes />} />
             <Route path="configuracoes" element={<Settings />} />
             <Route path="chat" element={<Chat />} />
             <Route path="carta-analise" element={<CartaAnalise />} />

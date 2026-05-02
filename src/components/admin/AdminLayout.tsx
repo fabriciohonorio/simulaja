@@ -54,6 +54,7 @@ const menuGroups: MenuGroup[] = [
         label: "GESTÃO",
         items: [
             { icon: Target, label: "Metas", path: "/admin/metas", color: "text-amber-500" }, // Todos acessam, limitaremos dentro do componente
+            { icon: Calculator, label: "Comissões", path: "/admin/comissoes", color: "text-emerald-500" },
         ]
     },
     {
