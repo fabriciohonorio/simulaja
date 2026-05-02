@@ -13,10 +13,10 @@ const Hero = () => {
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="cin-parallax cin-vignette relative min-h-screen flex items-center overflow-hidden">
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-no-repeat"
+        className="cin-parallax-inner cin-hero-zoom absolute inset-0 bg-cover bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})`, backgroundPosition: "center right" }}
       />
       {/* Premium gradient overlay - strong on the left, soft on the right */}
@@ -26,15 +26,15 @@ const Hero = () => {
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
         <div className="max-w-2xl space-y-7">
           <div>
-            <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
+            <h1 className="cin-reveal text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-white">
               OESPECIALISTA
             </h1>
-            <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-[#C9A96A]">
+            <h1 className="cin-reveal cin-delay-1 text-5xl sm:text-6xl md:text-[5rem] font-black leading-[0.9] tracking-tight text-[#C9A96A]">
               CONSÓRCIO
             </h1>
           </div>
 
-          <p className="text-base md:text-lg text-white/75 max-w-md leading-relaxed">
+          <p className="cin-reveal cin-delay-2 text-base md:text-lg text-white/75 max-w-md leading-relaxed">
             Imóveis, veículos e investimentos com planejamento financeiro e{" "}
             <strong className="text-white font-bold">sem juros</strong>.
           </p>
@@ -42,7 +42,7 @@ const Hero = () => {
           {/* Services checklist */}
           <ul className="space-y-2.5">
             {services.map((service, i) => (
-              <li key={i} className="flex items-center gap-3 text-white/80">
+              <li key={i} className={`cin-reveal cin-delay-${Math.min(i + 1, 4)} flex items-center gap-3 text-white/80`}>
                 <CheckCircle2 className="w-4 h-4 text-[#C9A96A] flex-shrink-0" />
                 <span className="text-sm md:text-base">{service}</span>
               </li>
@@ -50,7 +50,7 @@ const Hero = () => {
           </ul>
 
           {/* Premium info block */}
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4 max-w-md">
+          <div className="cin-reveal cin-delay-3 flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4 max-w-md">
             <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-[#C9A96A]/15 border border-[#C9A96A]/30 flex items-center justify-center">
               <ClipboardCheck className="w-5 h-5 text-[#C9A96A]" />
             </div>
@@ -60,7 +60,7 @@ const Hero = () => {
           </div>
 
           {/* CTA Button */}
-          <div className="pt-2">
+          <div className="cin-reveal cin-delay-4 pt-2">
             <a
               href="#simulator"
               className="inline-flex items-center gap-3 bg-[#FF6B1A] hover:bg-[#FF7A2E] text-white px-8 py-4 rounded-full text-base font-black uppercase tracking-widest shadow-2xl transition-all hover:scale-105 hover:shadow-[#FF6B1A]/30 active:scale-95"
