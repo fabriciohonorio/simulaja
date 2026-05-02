@@ -718,7 +718,7 @@ export function useFunil() {
             const saleDate = formData.status_updated_at ? new Date(formData.status_updated_at) : new Date();
             const today = new Date();
             const diffMonths = (today.getFullYear() - saleDate.getFullYear()) * 12 + (today.getMonth() - saleDate.getMonth());
-            const parcela_atual = diffMonths > 0 ? diffMonths + 1 : 1;
+            const parcela_atual = diffMonths > 0 ? diffMonths : 1;
 
             await supabase.from("comissoes").insert({
               organizacao_id: profile?.organizacao_id,

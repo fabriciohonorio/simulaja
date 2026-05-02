@@ -127,11 +127,7 @@ export default function Comissoes() {
           const saleDate = new Date(lead.status_updated_at);
           const today = new Date();
           const diffMonths = (today.getFullYear() - saleDate.getFullYear()) * 12 + (today.getMonth() - saleDate.getMonth());
-          if (diffMonths > 0) {
-            setParcelaAtual(diffMonths + 1);
-          } else {
-            setParcelaAtual(1);
-          }
+          setParcelaAtual(diffMonths > 0 ? diffMonths : 1);
         }
       }
     } else if (selectedLeadId === "manual" && !isModalOpen) {
@@ -520,9 +516,8 @@ export default function Comissoes() {
                 <th className="px-4 py-3">Grupo/Cota</th>
                 <th className="px-4 py-3">Venda</th>
                 <th className="px-4 py-3">Regra</th>
-                <th className="px-4 py-3">Comissão Total</th>
-                <th className="px-4 py-3">Fracionamento</th>
-                <th className="px-4 py-3">Retroativo</th>
+                <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Parcela</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
@@ -566,7 +561,7 @@ export default function Comissoes() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-blue-600 font-medium">
-                    {c.pagamentos_retroativos > 0 ? formatCurrency(c.pagamentos_retroativos) : "-"}
+                    {c.parcela_atual || 1}/{c.parcelas_comissao}
                   </td>
                   <td className="px-4 py-3">
                     {c.status === "estornado" ? (
