@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   FileDown,
   Trash2,
-  Edit2
+  Edit2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,9 @@ export default function Comissoes() {
   const [selectedLeadId, setSelectedLeadId] = useState<string>("none");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingComissao, setEditingComissao] = useState<Comissao | null>(null);
+  const [showValues, setShowValues] = useState(false);
+
+  const maskValue = (value: number) => showValues ? formatCurrency(value) : "R$ ••••••";
 
   // Form State
   const [nomeCliente, setNomeCliente] = useState("");
@@ -436,6 +441,17 @@ export default function Comissoes() {
         <div>
           <h1 className="text-2xl font-black flex items-center gap-2">
             <DollarSign className="h-6 w-6 text-emerald-500" /> Comissionamento
+            <button
+              onClick={() => setShowValues(v => !v)}
+              title={showValues ? "Ocultar valores" : "Revelar valores"}
+              className={`ml-2 p-1.5 rounded-lg border transition-all ${
+                showValues
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-600"
+                  : "bg-slate-100 border-slate-200 text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {showValues ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            </button>
           </h1>
           <p className="text-sm text-slate-500 font-medium">Gerencie comissões, regras fracionadas e estornos.</p>
         </div>
@@ -454,21 +470,21 @@ export default function Comissoes() {
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><Calculator className="h-6 w-6" /></div>
           <div>
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Comissões</p>
-            <p className="text-2xl font-black text-slate-800">{formatCurrency(totalComissoes)}</p>
+            <p className="text-2xl font-black text-slate-800">{maskValue(totalComissoes)}</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><TrendingDown className="h-6 w-6" /></div>
           <div>
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Estornos</p>
-            <p className="text-2xl font-black text-rose-600">{formatCurrency(totalEstornos)}</p>
+            <p className="text-2xl font-black text-rose-600">{maskValue(totalEstornos)}</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4 border-l-4 border-l-emerald-500">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle2 className="h-6 w-6" /></div>
           <div>
             <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">A Receber (Mês)</p>
-            <p className="text-2xl font-black text-emerald-600">{formatCurrency(totalReceberMes)}</p>
+            <p className="text-2xl font-black text-emerald-600">{maskValue(totalReceberMes)}</p>
           </div>
         </div>
       </div>
@@ -489,7 +505,7 @@ export default function Comissoes() {
             <div className="text-right">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Recebível no Mês (Soma)</p>
               <p className="text-2xl font-black text-emerald-400">
-                {formatCurrency(
+                {maskValue(
                   comissoes
                     .filter(c => selectedIds.includes(c.id))
                     .reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0)
@@ -499,7 +515,7 @@ export default function Comissoes() {
             <div className="text-right">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Comissão Total (Soma)</p>
               <p className="text-2xl font-black text-white">
-                {formatCurrency(
+                {maskValue(
                   comissoes
                     .filter(c => selectedIds.includes(c.id))
                     .reduce((acc, c) => acc + Number(c.comissao_total), 0)
@@ -575,19 +591,19 @@ export default function Comissoes() {
                   <td className="px-4 py-3 text-xs text-slate-500">
                     {c.grupo || "-"} / {c.cota || "-"}
                   </td>
-                  <td className="px-4 py-3">{formatCurrency(c.valor_venda)}</td>
+                  <td className="px-4 py-3">{maskValue(c.valor_venda)}</td>
                   <td className="px-4 py-3">
                     <Badge variant="outline" className="bg-slate-50 text-[10px]">
                       {c.regra_comissao} ({c.taxa_comissao}%)
                     </Badge>
                   </td>
                   <td className="px-4 py-3 font-bold text-emerald-600">
-                    {formatCurrency(c.comissao_total)}
+                    {maskValue(c.comissao_total)}
                   </td>
                   <td className="px-4 py-3 text-[11px] font-medium text-slate-500">
                     <div className="flex flex-col">
                       <span className="uppercase text-[9px] text-slate-400">{c.tipo_comissionamento}</span>
-                      <span className="font-bold text-slate-700">{c.parcela_atual || 1}/{c.parcelas_comissao} - {formatCurrency(c.comissao_total / c.parcelas_comissao)}</span>
+                      <span className="font-bold text-slate-700">{c.parcela_atual || 1}/{c.parcelas_comissao} - {maskValue(c.comissao_total / c.parcelas_comissao)}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-blue-600 font-medium">
