@@ -1,7 +1,8 @@
 {
-  "name": "Contemplar CRM",
-  "short_name": "Contemplar",
+  "name": "O Especialista Consórcio",
+  "short_name": "Especialista",
   "description": "Gestão Comercial de Consórcio de Elite",
+  "version": "2.5.0",
   "start_url": "/admin",
   "display": "standalone",
   "background_color": "#0F172A",
