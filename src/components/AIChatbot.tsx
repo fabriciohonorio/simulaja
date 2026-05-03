@@ -192,19 +192,23 @@ const AIChatbot = () => {
     <>
       {/* Floating Button */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 group">
+        <div className="fixed bottom-6 right-6 z-50 group flex flex-col items-end gap-3">
+          {/* Tooltip */}
+          <div className="px-4 py-2 bg-foreground text-background text-[11px] font-bold rounded-xl shadow-xl border border-white/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none">
+            Monta seu plano em 1 minuto
+          </div>
+
           <button
             onClick={handleOpen}
-            className="relative flex items-center justify-center w-16 h-16 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 animate-scale-in overflow-hidden"
-            aria-label="Atendimento Inteligente"
+            className="relative flex items-center gap-3 bg-foreground hover:bg-slate-900 text-background pl-1.5 pr-5 py-1.5 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 animate-scale-in overflow-hidden border border-white/10"
+            aria-label="Falar com o Jarvis"
           >
-            <JarvisAvatar className="w-full h-full" />
-            <span className="absolute inset-0 rounded-full bg-cyan-500/20 animate-pulse" />
+            <div className="w-12 h-12 rounded-full overflow-hidden relative">
+              <JarvisAvatar className="w-full h-full" />
+              <span className="absolute inset-0 rounded-full bg-cyan-500/20 animate-pulse" />
+            </div>
+            <span className="font-bold text-sm tracking-tight">Falar com o Jarvis</span>
           </button>
-          <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-foreground text-background text-xs rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none shadow-xl border border-white/10 backdrop-blur-sm">
-            <span className="font-bold block">Veja seu plano agora</span>
-            <span className="text-[10px] text-background/70">com o Jarvis, seu assistente virtual</span>
-          </div>
         </div>
       )}
 
