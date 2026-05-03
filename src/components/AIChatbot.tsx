@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import robotAvatar from "@/assets/ai-assistant-pro.png";
+import JarvisAvatar from "./JarvisAvatar";
 
 type Step = "welcome" | "prazo" | "contexto" | "entrada" | "parcela" | "objetivo_especifico" | "insight" | "whatsapp";
 
@@ -198,8 +198,8 @@ const AIChatbot = () => {
             className="relative flex items-center justify-center w-16 h-16 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 animate-scale-in overflow-hidden"
             aria-label="Atendimento Inteligente"
           >
-            <img src={robotAvatar} alt="Assistente" className="w-full h-full object-cover" />
-            <span className="absolute inset-0 rounded-full bg-violet-500/40 animate-ping" />
+            <JarvisAvatar className="w-full h-full" />
+            <span className="absolute inset-0 rounded-full bg-cyan-500/20 animate-pulse" />
           </button>
           <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-foreground text-background text-xs rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none shadow-xl border border-white/10 backdrop-blur-sm">
             <span className="font-bold block">Veja seu plano agora</span>
@@ -212,13 +212,13 @@ const AIChatbot = () => {
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 w-[92vw] sm:w-96 h-[520px] max-h-[80vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-scale-in border border-border">
           {/* Header */}
-          <div className="bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
-              <img src={robotAvatar} alt="Assistente" className="w-full h-full object-cover" />
+          <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-5 py-4 flex items-center gap-3 border-b border-white/5">
+            <div className="w-10 h-10 rounded-full overflow-hidden border border-cyan-500/30">
+              <JarvisAvatar />
             </div>
             <div className="flex-1">
-              <p className="text-white font-semibold text-sm">Assistente Inteligente</p>
-              <p className="text-white/70 text-xs">Online agora</p>
+              <p className="text-white font-semibold text-sm">Jarvis AI</p>
+              <p className="text-white/70 text-xs">Especialista Virtual</p>
             </div>
             <button
               onClick={() => setIsOpen(false)}
