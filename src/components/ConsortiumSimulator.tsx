@@ -84,6 +84,7 @@ export const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "Magalu", credito: 180000, r50: 652.85, prazo: 220 },
     { grupo: "Magalu", credito: 200000, r50: 725.39, prazo: 220 },
     { grupo: "Magalu", credito: 220000, r50: 797.93, prazo: 220 },
+    { grupo: "6030", credito: 250000, r50: 950.47, prazo: 197, tx: 18, fr: 1 },
     { grupo: "6030", credito: 300000, r50: 1140.56, prazo: 197, tx: 18, fr: 1 },
     { grupo: "6042", credito: 350000, r50: 1141.67, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6042", credito: 400000, r50: 1304.77, prazo: 240, tx: 20, fr: 1 },
@@ -350,7 +351,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
     <div className="min-h-screen flex flex-col bg-transparent">
       <style>{sliderThumbStyles}</style>
       <section id="simulator" className="py-20 bg-transparent">
-        <div className="container max-w-[620px] mx-auto px-4">
+        <div className="container max-w-[620px] mx-auto px-2 sm:px-4">
           <p className="text-[0.65rem] font-black tracking-[0.25em] uppercase text-center mb-3 text-[#FF7A00]">Estratégia</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-2 text-foreground">
             Descubra <span className="text-primary">seu plano de contemplação</span>
@@ -359,18 +360,18 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
             Em poucos segundos você visualiza crédito, parcela e prazo ideais para o seu objetivo.
           </p>
 
-          <div className="rounded-[22px] p-6 sm:p-8 bg-card border border-border shadow-xl">
+          <div className="rounded-[22px] p-4 sm:p-8 bg-card border border-border shadow-xl">
             <div className="flex justify-center mb-6">
               <div className="flex bg-muted p-1 rounded-xl border border-border">
                 <button 
                   onClick={() => setSimulationMode('credit')}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'credit' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                  className={`px-2 py-2 sm:px-4 sm:py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'credit' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
                 >
                   Por valor a conquistar
                 </button>
                 <button 
                   onClick={() => setSimulationMode('installment')}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'installment' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                  className={`px-2 py-2 sm:px-4 sm:py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all ${simulationMode === 'installment' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
                 >
                   Por valor mensal
                 </button>
@@ -412,12 +413,12 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               </span>
             </div>
 
-            <div className="flex flex-wrap gap-2 justify-center mb-6">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 justify-center mb-6">
               {dynamicCategorias.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setCategoria(cat.id)}
-                  className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border-2 ${categoria === cat.id
+                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl sm:rounded-full text-[10px] font-black uppercase tracking-wider transition-all border-2 ${categoria === cat.id
                     ? "bg-[#0D214F] text-white border-[#0D214F] shadow-lg scale-105"
                     : "bg-white text-muted-foreground border-slate-100 hover:border-[#FF7A00] hover:text-[#FF7A00]"
                     }`}
