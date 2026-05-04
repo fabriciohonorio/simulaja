@@ -674,38 +674,6 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
               </p>
             </div>
 
-            {isInternal && (
-              <div className="mt-8 pt-6 border-t border-border">
-                <div className="flex items-center gap-2 mb-4">
-                  <CircleDollarSign className="w-5 h-5 text-secondary" />
-                  <h3 className="font-bold text-foreground">Estratégia de Lance (Opcional)</h3>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Lance Dinheiro (%)</label>
-                    <Input 
-                      type="number" 
-                      value={lanceDinheiroPct || ""} 
-                      onChange={(e) => setLanceDinheiroPct(Number(e.target.value))}
-                      placeholder="Ex: 20"
-                      className="rounded-lg bg-muted/50 border-border text-sm font-mono"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Lance Embutido (%)</label>
-                    <Input 
-                      type="number" 
-                      value={lanceEmbutidoPct || ""} 
-                      onChange={(e) => setLanceEmbutidoPct(Number(e.target.value))}
-                      placeholder="Ex: 10"
-                      className="rounded-lg bg-muted/50 border-border text-sm font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             {resultado && (
               <div ref={resultRef} className="rounded-[18px] p-0 mt-8 animate-fade-in overflow-hidden border-2 border-primary bg-card shadow-xl">
                 <div className="bg-primary p-4 text-white">
