@@ -46,7 +46,7 @@ import { WhatsAppIcon } from "@/components/SocialIcons";
 import { UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
-type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number };
+type GrupoItem = { grupo: string; credito: number; r50: number; prazo: number; tx?: number; fr?: number; };
 
 const GRUPOS: Record<string, GrupoItem[]> = {
   imovel: [
@@ -61,10 +61,13 @@ const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "6041", credito: 190000, r50: 701.09, prazo: 216 },
     { grupo: "6041", credito: 200000, r50: 737.99, prazo: 216 },
     { grupo: "6030", credito: 250000, r50: 941.72, prazo: 199 },
-    { grupo: "6030", credito: 300000, r50: 1130.06, prazo: 199 },
-    { grupo: "6035", credito: 350000, r50: 1286.42, prazo: 220 },
-    { grupo: "6039", credito: 500000, r50: 1672.7, prazo: 230 },
-    { grupo: "6039", credito: 700000, r50: 2341.78, prazo: 230 },
+    { grupo: "6030", credito: 300000, r50: 1140.56, prazo: 197, tx: 18, fr: 1 },
+    { grupo: "6042", credito: 350000, r50: 1141.67, prazo: 240, tx: 20, fr: 1 },
+    { grupo: "6042", credito: 400000, r50: 1304.77, prazo: 240, tx: 20, fr: 1 },
+    { grupo: "6042", credito: 450000, r50: 1467.86, prazo: 240, tx: 20, fr: 1 },
+    { grupo: "6042", credito: 500000, r50: 1630.96, prazo: 240, tx: 20, fr: 1 },
+    { grupo: "6042", credito: 600000, r50: 1957.15, prazo: 240, tx: 20, fr: 1 },
+    { grupo: "6042", credito: 700000, r50: 2069.90, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
   ],
   veiculo: [
