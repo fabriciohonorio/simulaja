@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { gerarPDF } from "@/lib/pdfGenerator";
 import {
   ArrowRight,
   CheckCircle2,
@@ -176,7 +177,8 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   const [simulationMode, setSimulationMode] = useState<"credit" | "installment">("credit");
   
   const [lanceDinheiroPct, setLanceDinheiroPct] = useState(0);
-  const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(0);
+  const [lanceEmbutidoPct, setLanceEmbutidoPct] = useState(25);
+  const [parcelasContemplar, setParcelasContemplar] = useState(1);
   const [incluirComp, setIncluirComp] = useState(true);
 
   const resultRef = useRef<HTMLDivElement>(null);
@@ -347,6 +349,82 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   const wppLockMsg = historico.map((h, i) => `${i + 1}. ${fmtFull(h.credito)} — ${fmtFull(h.r50)} / ${h.prazo}m`).join("\n");
   const lockWppUrl = `https://wa.me/5541997925357?text=${encodeURIComponent("Olá Fabricio! Fiz simulações:\n\n" + wppLockMsg + "\n\nQuero mais informações!")}`;
 
+  // Lance Cálculos
+  const lDinheiroRS = g.credito * (lanceDinheiroPct / 100);
+  const lEmbutidoRS = g.credito * (lanceEmbutidoPct / 100);
+  const lanceTotalPct = lanceDinheiroPct + lanceEmbutidoPct;
+  const lanceTotalRS = lDinheiroRS + lEmbutidoRS;
+  const creditoDisponivel = g.credito - lEmbutidoRS;
+
+  const tx = g.tx !== undefined ? g.tx : 20;
+  const fr = g.fr !== undefined ? g.fr : 1;
+  const seguro = 0; // Padrão
+  const saldoDevedorBruto = g.credito + (g.credito * (tx / 100)) + (g.credito * (fr / 100));
+  
+  const saldoDevedorPosLance = saldoDevedorBruto - (parcelasContemplar * g.r50) - lanceTotalRS;
+  const prazoRestante = g.prazo - parcelasContemplar;
+  const parcelaPos = prazoRestante > 0 && saldoDevedorPosLance > 0 ? saldoDevedorPosLance / prazoRestante : 0;
+
+  const handleGerarPDF = () => {
+    gerarPDF({
+      nomeCliente: simNome || 'Cliente',
+      tipoAquisicao: dynamicCategorias.find(c => c.id === categoria)?.label || categoria,
+      numGrupo: g.grupo,
+      credito: g.credito,
+      taxaAdm: tx,
+      fundoReserva: fr,
+      seguro: seguro,
+      prazo: g.prazo,
+      tipoParcela: 'Reduzida 50%',
+      parcelasContemplar: parcelasContemplar,
+      lanceDinheiroPct: lanceDinheiroPct,
+      lanceEmbutidoPct: lanceEmbutidoPct,
+      lanceTotalRS: lanceTotalRS,
+      lanceTotalPct: lanceTotalPct,
+      valorParcela: g.r50,
+      creditoDisponivel: creditoDisponivel,
+      saldoDevedor: saldoDevedorPosLance > 0 ? saldoDevedorPosLance : saldoDevedorBruto,
+      prazoRestante: prazoRestante,
+      parcelaPosContemp: parcelaPos > 0 ? parcelaPos : g.r50,
+      consultorNome: profile?.nome || 'Consultor'
+    });
+  };
+
+  const handleEnviarWpp = () => {
+    const dataStr = new Date().toLocaleDateString('pt-BR');
+    const msg = [
+      `🏆 *CONTEMPLAR | Simulador de Lance*`,
+      `📅 ${dataStr}`,
+      ``,
+      `👤 *Cliente:* ${simNome || 'Não informado'}`,
+      `📋 *SIMULAÇÃO DE CONSÓRCIO*`,
+      `─────────────────────────`,
+      `🚗 *Bem:* ${dynamicCategorias.find(c => c.id === categoria)?.label || categoria} | Grupo ${g.grupo}`,
+      `💳 *Carta de Crédito:* ${fmt(g.credito)}`,
+      `📆 *Prazo:* ${g.prazo} meses`,
+      `📊 *Tipo de Parcela:* Reduzida 50%`,
+      ``,
+      `🏹 *LANCE*`,
+      `─────────────────────────`,
+      `💵 Dinheiro: ${lanceDinheiroPct}%`,
+      `💡 Embutido: ${lanceEmbutidoPct}%`,
+      `💰 *Total do Lance:* ${lanceTotalPct}% → ${fmt(lanceTotalRS)}`,
+      ``,
+      `✅ *RESULTADOS PÓS-CONTEMPLAÇÃO*`,
+      `─────────────────────────`,
+      `📌 *Valor da Parcela Atual:* ${fmt(g.r50)}`,
+      `💳 Crédito Disponível: ${fmt(creditoDisponivel)}`,
+      `📉 Saldo Devedor: ${fmt(saldoDevedorPosLance > 0 ? saldoDevedorPosLance : saldoDevedorBruto)}`,
+      `🗓️ Prazo Restante: ${prazoRestante} meses`,
+      `📊 *Parcela Pós-Contemplação:* ${fmt(parcelaPos > 0 ? parcelaPos : g.r50)}`,
+      ``,
+      `─────────────────────────`,
+      `📲 _Simulação realizada por ${profile?.nome || 'Consultor'}_`
+    ].join('\n');
+
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-transparent">
       <style>{sliderThumbStyles}</style>
@@ -454,8 +532,104 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                     ))}
                   </div>
                 </div>
+
+                <div className="rounded-[14px] p-5 mb-5 border bg-white shadow-sm border-[#d8e0ee]">
+                  <p className="text-[0.65rem] font-bold tracking-[0.15em] text-[#1a4080] uppercase mb-4 flex items-center gap-2">
+                    <span className="text-base">🏹</span> Simulação de Lance
+                  </p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                    <div>
+                      <label className="text-[0.6rem] font-bold tracking-wider uppercase text-muted-foreground mb-1 block">Pagos até Contemplar</label>
+                      <input 
+                        type="number" min="0" value={parcelasContemplar} 
+                        onChange={(e) => setParcelasContemplar(Number(e.target.value))}
+                        className="w-full bg-[#f8fafd] border border-[#d8e0ee] rounded-lg px-3 py-2 text-sm font-medium font-mono text-foreground outline-none focus:border-[#1a4080]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.6rem] font-bold tracking-wider uppercase text-muted-foreground mb-1 block">Dinheiro (%)</label>
+                      <div className="relative">
+                        <input 
+                          type="number" min="0" max="100" value={lanceDinheiroPct} 
+                          onChange={(e) => setLanceDinheiroPct(Number(e.target.value))}
+                          className="w-full bg-[#f8fafd] border border-[#d8e0ee] rounded-lg pl-3 pr-7 py-2 text-sm font-medium font-mono text-foreground outline-none focus:border-[#1a4080]"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[0.6rem] font-bold tracking-wider uppercase text-muted-foreground mb-1 block">Embutido (%)</label>
+                      <div className="relative">
+                        <input 
+                          type="number" min="0" max="100" value={lanceEmbutidoPct} 
+                          onChange={(e) => setLanceEmbutidoPct(Number(e.target.value))}
+                          className="w-full bg-[#f8fafd] border border-[#d8e0ee] rounded-lg pl-3 pr-7 py-2 text-sm font-medium font-mono text-foreground outline-none focus:border-[#1a4080]"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#f8fafd] border border-[#d8e0ee] rounded-[10px] p-3">
+                    <div className="flex justify-between items-center py-1.5 border-b border-[#d8e0ee]/60">
+                      <span className="text-xs font-medium text-muted-foreground">Dinheiro (R$)</span>
+                      <span className="text-sm font-mono text-foreground">{fmt(lDinheiroRS)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1.5 border-b border-[#d8e0ee]/60">
+                      <span className="text-xs font-medium text-muted-foreground">Embutido (R$)</span>
+                      <span className="text-sm font-mono text-foreground">{fmt(lEmbutidoRS)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2.5 mt-1">
+                      <span className="text-xs font-bold text-[#122040]">TOTAL DO LANCE</span>
+                      <div className="text-right">
+                        <div className="text-[0.65rem] text-muted-foreground font-bold mb-0.5">{lanceTotalPct.toFixed(1)}%</div>
+                        <div className="text-[0.95rem] font-bold text-[#1a4080] font-mono">{fmt(lanceTotalRS)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[14px] p-5 mb-5 relative overflow-hidden" style={{ background: "linear-gradient(160deg, #0c1a30 0%, #122040 100%)", border: "1px solid rgba(26,64,128,0.4)", boxShadow: "0 6px 30px rgba(6,15,30,0.2)" }}>
+                  <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, #1a4080, #e8aa20, #f5c842, #e8aa20, #1a4080)" }} />
+                  <p className="text-[0.65rem] font-bold tracking-[0.15em] uppercase text-white/90 mb-4 flex items-center gap-2">
+                    <span className="text-base opacity-90">✅</span> Resultados da Simulação
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/5 border border-white/10 rounded-[10px] p-3 text-center transition-all hover:bg-white/10" style={{ background: "rgba(200,144,10,0.12)", borderColor: "rgba(200,144,10,0.3)" }}>
+                      <p className="text-[0.55rem] font-bold tracking-wider uppercase text-white/60 mb-1">Parcela Pós-Contemplação</p>
+                      <p className="text-lg sm:text-xl font-bold font-mono text-[#f5c842]">{fmt(parcelaPos > 0 ? parcelaPos : g.r50)}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-[10px] p-3 text-center transition-all hover:bg-white/10">
+                      <p className="text-[0.55rem] font-bold tracking-wider uppercase text-white/60 mb-1">Crédito Disponível</p>
+                      <p className="text-sm font-medium font-mono text-white/90">{fmt(creditoDisponivel)}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-[10px] p-3 text-center transition-all hover:bg-white/10">
+                      <p className="text-[0.55rem] font-bold tracking-wider uppercase text-white/60 mb-1">Saldo Devedor</p>
+                      <p className="text-sm font-medium font-mono text-white/90">{fmt(saldoDevedorPosLance > 0 ? saldoDevedorPosLance : saldoDevedorBruto)}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-[10px] p-3 text-center transition-all hover:bg-white/10">
+                      <p className="text-[0.55rem] font-bold tracking-wider uppercase text-white/60 mb-1">Prazo Restante</p>
+                      <p className="text-sm font-medium font-mono text-white/90">{prazoRestante} x</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                  <button onClick={handleGerarPDF} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-[10px] text-[0.8rem] font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg, #122040 0%, #060f1e 100%)", boxShadow: "0 4px 20px rgba(6,15,30,0.3)" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Gerar PDF
+                  </button>
+                  <button onClick={handleEnviarWpp} className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-[10px] text-[0.8rem] font-bold uppercase tracking-wider text-white transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg, #128C7E 0%, #075E54 100%)", boxShadow: "0 4px 20px rgba(18,140,126,0.3)" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                    Enviar WhatsApp
+                  </button>
+                </div>
+                
                 <div className="h-px bg-border mb-5" />
               </>
+
             )}
 
             <input
