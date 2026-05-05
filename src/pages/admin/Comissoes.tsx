@@ -358,6 +358,13 @@ export default function Comissoes() {
 
     let y = 55;
     
+    const listToPrint = selectedIds.length > 0 
+      ? comissoes.filter(c => selectedIds.includes(c.id)) 
+      : filtered;
+
+    const pdfTotalComissoes = listToPrint.reduce((acc, c) => acc + Number(c.comissao_total || 0), 0);
+    const pdfTotalReceberMes = listToPrint.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
+
     // Summary Cards in PDF
     doc.setFillColor(248, 250, 252); // slate-50
     doc.roundedRect(15, y - 5, 180, 20, 3, 3, 'F');
@@ -365,12 +372,12 @@ export default function Comissoes() {
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.text("TOTAL EM COMISSÕES", 20, y + 2);
-    doc.text("TOTAL A RECEBER (MÊS)", 130, y + 2);
+    doc.text("TOTAL A RECEBER", 130, y + 2);
     
     doc.setFontSize(12);
     doc.setTextColor(5, 150, 105); // emerald-600
-    doc.text(formatCurrency(totalComissoes), 20, y + 10);
-    doc.text(formatCurrency(totalReceberMes), 130, y + 10);
+    doc.text(formatCurrency(pdfTotalComissoes), 20, y + 10);
+    doc.text(formatCurrency(pdfTotalReceberMes), 130, y + 10);
 
     y += 35;
 
@@ -393,10 +400,6 @@ export default function Comissoes() {
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 41, 59);
-
-    const listToPrint = selectedIds.length > 0 
-      ? comissoes.filter(c => selectedIds.includes(c.id)) 
-      : filtered;
 
     listToPrint.forEach((c, index) => {
       if (y > 275) {
@@ -680,36 +683,38 @@ export default function Comissoes() {
             </div>
           </Card>
 
-          <Card className="border-none shadow-sm bg-emerald-600 text-white p-6 flex flex-col justify-between overflow-hidden relative">
-            <Coins className="absolute -bottom-6 -right-6 h-32 w-32 opacity-10 rotate-12" />
+          <Card className="border-none shadow-sm bg-white p-6 flex flex-col justify-between relative">
             <div>
-              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest mb-1">Acumulado Anual</p>
-              <h3 className="text-3xl font-black">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 flex items-center gap-2">
+                <Coins className="h-4 w-4 text-emerald-500" />
+                Acumulado Anual
+              </p>
+              <h3 className="text-3xl font-black text-slate-800">
                 {formatCurrency(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}
               </h3>
             </div>
             
-            <div className="space-y-4 relative z-10">
-              <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
-                <p className="text-[9px] font-bold uppercase opacity-70 mb-1">Mês com maior ganho</p>
+            <div className="space-y-4 mt-6">
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-[9px] font-bold uppercase text-slate-500 mb-1">Mês com maior ganho</p>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-black">
+                  <span className="text-sm font-black text-slate-700">
                     {(() => {
                       const max = [...fechamentos].sort((a, b) => Number(b.valor_total) - Number(a.valor_total))[0];
                       return max ? new Date(max.ano, max.mes - 1).toLocaleString('pt-BR', { month: 'long' }) : "—";
                     })()}
                   </span>
-                  <span className="text-xs font-bold">
+                  <span className="text-xs font-bold text-emerald-600">
                     {formatCurrency(Math.max(...fechamentos.map(f => Number(f.valor_total)), 0))}
                   </span>
                 </div>
               </div>
               
-              <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
-                <p className="text-[9px] font-bold uppercase opacity-70 mb-1">Total de Pagamentos</p>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-[9px] font-bold uppercase text-slate-500 mb-1">Total de Pagamentos</p>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-black">{fechamentos.reduce((acc, f) => acc + f.contagem_vendas, 0)}</span>
-                  <span className="text-[10px] font-bold uppercase opacity-70">Sincronizados</span>
+                  <span className="text-sm font-black text-slate-700">{fechamentos.reduce((acc, f) => acc + f.contagem_vendas, 0)}</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Sincronizados</span>
                 </div>
               </div>
             </div>
