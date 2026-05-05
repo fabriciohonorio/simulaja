@@ -59,6 +59,7 @@ export default function Dashboard() {
   const [carteira, setCarteira] = useState<CarteiraItem[]>([]);
   const [inadimplentes, setInadimplentes] = useState<any[]>([]);
   const [comissoes, setComissoes] = useState<any[]>([]);
+  const [fechamentos, setFechamentos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
@@ -133,6 +134,16 @@ export default function Dashboard() {
         .eq("organizacao_id", profile.organizacao_id)
         .then(({ data }: any) => {
           setComissoes((data as any[]) || []);
+        });
+
+      (supabase as any)
+        .from("fechamentos_mensais")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .order("ano", { ascending: true })
+        .order("mes", { ascending: true })
+        .then(({ data }: any) => {
+          setFechamentos((data as any[]) || []);
         });
     };
 
@@ -317,6 +328,11 @@ export default function Dashboard() {
     })
     .sort((a, b) => b.total - a.total)
     .slice(0, 3);
+
+  const earningsChartData = fechamentos.map(f => ({
+    name: new Date(f.ano, f.mes - 1).toLocaleString('pt-BR', { month: 'short' }).toUpperCase(),
+    valor: Number(f.valor_total)
+  })).slice(-12);
 
 
   if (loading) {
@@ -559,40 +575,52 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-border bg-gradient-to-br from-emerald-500/5 to-transparent">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <Target className="h-5 w-5 text-emerald-600" /> Meta x Realizado
+        {/* Gráfico de Ganhos Reais (Fechamentos) */}
+        <Card className="lg:col-span-3 shadow-sm border-border bg-white">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-emerald-700 font-black">
+              <Coins className="h-5 w-5" /> Histórico de Faturamento Real (Recebidos)
             </CardTitle>
+            <Badge className="bg-emerald-100 text-emerald-700 border-none font-bold">
+              Total Anual: {formatCurrency(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}
+            </Badge>
           </CardHeader>
-          <CardContent className="flex flex-col justify-center h-[220px] sm:h-[300px] space-y-6">
-            <div className="text-center">
-                <p className="text-xs text-muted-foreground uppercase font-bold mb-1">Status do Mês</p>
-                <p className="text-3xl font-black text-emerald-600">{progressoMes.toFixed(2).replace('.', ',')}%</p>
-            </div>
-            
-            <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold uppercase">
-                    <span>Realizado</span>
-                    <span>Meta</span>
-                </div>
-                <div className="w-full bg-emerald-100 rounded-full h-4 overflow-hidden border border-emerald-200">
-                    <div 
-                        className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
-                        style={{ width: `${Math.min(100, progressoMes)}%` }} 
-                    />
-                </div>
-                <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
-                    <span>{formatLeadValue(realizadoMes)}</span>
-                    <span>{formatLeadValue(metaMensal)}</span>
-                </div>
-            </div>
-
-            <div className={`p-3 rounded-lg border text-center ${progressoMes >= 100 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
-                <p className="text-xs font-bold uppercase">
-                    {progressoMes >= 100 ? '🚀 Meta Batida!' : `Ainda faltam ${formatLeadValue(Math.max(0, metaMensal - realizadoMes))}`}
-                </p>
-            </div>
+          <CardContent className="h-[250px]">
+            {earningsChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={earningsChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 'bold', fill: '#64748b' }} 
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tickFormatter={(val) => `R$ ${val / 1000}k`}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    formatter={(value: any) => [formatCurrency(value), "Recebido"]}
+                  />
+                  <Bar dataKey="valor" radius={[6, 6, 0, 0]} barSize={50}>
+                    {earningsChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === earningsChartData.length - 1 ? '#10b981' : '#34d399'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                <Clock className="h-8 w-8 opacity-20" />
+                <p className="text-sm font-medium">Nenhum fechamento registrado ainda.</p>
+                <p className="text-[10px]">Vá em Comissões e use o botão 'Confirmar Recebimento do Mês'</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
