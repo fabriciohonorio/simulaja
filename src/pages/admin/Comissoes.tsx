@@ -390,7 +390,11 @@ export default function Comissoes() {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(30, 41, 59);
 
-    filtered.forEach((c, index) => {
+    const listToPrint = selectedIds.length > 0 
+      ? comissoes.filter(c => selectedIds.includes(c.id)) 
+      : filtered;
+
+    listToPrint.forEach((c, index) => {
       if (y > 275) {
         doc.addPage();
         y = 30;
@@ -421,7 +425,7 @@ export default function Comissoes() {
       y += 7;
     });
 
-    const totalReceberReport = filtered.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
+    const totalReceberReport = listToPrint.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
     y += 15;
     if (y > 260) { doc.addPage(); y = 30; }
 
