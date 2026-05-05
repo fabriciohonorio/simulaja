@@ -75,6 +75,8 @@ export default function Comissoes() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingComissao, setEditingComissao] = useState<Comissao | null>(null);
   const [showValues, setShowValues] = useState(false);
+  const [fechamentos, setFechamentos] = useState<any[]>([]);
+  const [isSavingPagamento, setIsSavingPagamento] = useState(false);
 
   const maskValue = (value: number) => showValues ? formatCurrency(value) : "R$ ••••••";
 
@@ -168,6 +170,21 @@ export default function Comissoes() {
       setLoading(false);
     }
   };
+
+  const fetchFechamentos = async () => {
+    if (!profile?.organizacao_id) return;
+    const { data } = await supabase
+      .from("fechamentos_mensais")
+      .select("*")
+      .eq("organizacao_id", profile.organizacao_id)
+      .order("ano", { ascending: false })
+      .order("mes", { ascending: false });
+    setFechamentos(data || []);
+  };
+
+  useEffect(() => {
+    fetchFechamentos();
+  }, [profile?.organizacao_id]);
 
   const fetchInadimplentes = async () => {
     const { data } = await supabase.from("inadimplentes").select("lead_id, status");
@@ -444,6 +461,62 @@ export default function Comissoes() {
   const totalRetroativo = comissoes.reduce((acc, c) => acc + Number(c.pagamentos_retroativos || 0), 0);
   const totalReceberMes = comissoes.filter(c => c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
 
+  const handleRegistrarPagamentos = async () => {
+    if (selectedIds.length === 0 || !profile?.organizacao_id) return;
+    
+    setIsSavingPagamento(true);
+    const selectedComissoes = comissoes.filter(c => selectedIds.includes(c.id));
+    const valorTotalPago = selectedComissoes.reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
+    
+    const now = new Date();
+    const mes = now.getMonth() + 1;
+    const ano = now.getFullYear();
+
+    try {
+      // 1. Incrementar parcela_atual de cada comissão
+      for (const c of selectedComissoes) {
+        const novaParcela = Math.min((c.parcela_atual || 1) + 1, c.parcelas_comissao);
+        await supabase.from("comissoes").update({ parcela_atual: novaParcela }).eq("id", c.id);
+      }
+
+      // 2. Registrar no fechamento mensal
+      const { data: existing } = await supabase
+        .from("fechamentos_mensais")
+        .select("*")
+        .eq("organizacao_id", profile.organizacao_id)
+        .eq("mes", mes)
+        .eq("ano", ano)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from("fechamentos_mensais").update({
+          valor_total: Number(existing.valor_total) + valorTotalPago,
+          contagem_vendas: Number(existing.contagem_vendas) + selectedIds.length,
+          comissoes_ids: [...(existing.comissoes_ids || []), ...selectedIds]
+        }).eq("id", existing.id);
+      } else {
+        await supabase.from("fechamentos_mensais").insert({
+          organizacao_id: profile.organizacao_id,
+          usuario_id: profile.id,
+          mes,
+          ano,
+          valor_total: valorTotalPago,
+          contagem_vendas: selectedIds.length,
+          comissoes_ids: selectedIds
+        });
+      }
+
+      toast({ title: "Pagamentos registrados!", description: `${formatCurrency(valorTotalPago)} consolidado no fechamento de ${mes}/${ano}.` });
+      setSelectedIds([]);
+      fetchComissoes();
+      fetchFechamentos();
+    } catch (e) {
+      toast({ title: "Erro ao registrar", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSavingPagamento(false);
+    }
+  };
+
   if (loading) return <div className="p-20 text-center animate-pulse font-bold text-slate-400 uppercase tracking-widest">Carregando comissionamento...</div>;
 
   return (
@@ -535,10 +608,44 @@ export default function Comissoes() {
             </div>
           </div>
           
-          <Button variant="ghost" onClick={() => setSelectedIds([])} className="text-slate-400 hover:text-white hover:bg-slate-800 uppercase text-xs font-black">
-            Limpar Seleção
-          </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => setSelectedIds([])} 
+              className="text-slate-400 hover:text-white hover:bg-slate-800 uppercase text-xs font-black"
+              disabled={isSavingPagamento}
+            >
+              Limpar Seleção
+            </Button>
+
+            <Button 
+              onClick={handleRegistrarPagamentos} 
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase text-xs px-6 py-6 rounded-xl shadow-lg shadow-emerald-500/20"
+              disabled={isSavingPagamento}
+            >
+              {isSavingPagamento ? "Processando..." : "Confirmar Recebimento do Mês"}
+            </Button>
+          </div>
         </div>
+      )}
+
+      {fechamentos.length > 0 && (
+        <Card className="border-none shadow-sm bg-slate-50/50 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+              <History className="h-4 w-4" /> Histórico de Fechamentos (Anual)
+            </h3>
+            <Badge variant="outline" className="bg-white">Total Anual: {formatCurrency(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}</Badge>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+            {fechamentos.map((f) => (
+              <div key={f.id} className="min-w-[160px] bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(f.ano, f.mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                <p className="text-lg font-black text-emerald-600">{formatCurrency(f.valor_total)}</p>
+                <p className="text-[9px] text-slate-400 font-bold">{f.contagem_vendas} pagamentos processados</p>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">

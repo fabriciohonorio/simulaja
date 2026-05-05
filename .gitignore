@@ -32,3 +32,4 @@ temp_git/
 eslint*.txt
 .env
 .env.local
+.vercel
