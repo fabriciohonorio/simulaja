@@ -476,21 +476,13 @@ export default function Comissoes() {
     if (selectedIds.length === 0 || !profile?.organizacao_id) return;
     
     setIsSavingPagamento(true);
-    const selectedComissoes = comissoes.filter(c => selectedIds.includes(c.id));
-    const valorTotalPago = selectedComissoes.reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
     
     const now = new Date();
     const mes = now.getMonth() + 1;
     const ano = now.getFullYear();
 
     try {
-      // 1. Incrementar parcela_atual de cada comissão
-      for (const c of selectedComissoes) {
-        const novaParcela = Math.min((c.parcela_atual || 1) + 1, c.parcelas_comissao);
-        await supabase.from("comissoes").update({ parcela_atual: novaParcela }).eq("id", c.id);
-      }
-
-      // 2. Registrar no fechamento mensal
+      // Buscar fechamento do mês para verificar duplicidade
       const { data: existing } = await supabase
         .from("fechamentos_mensais")
         .select("*")
@@ -499,11 +491,36 @@ export default function Comissoes() {
         .eq("ano", ano)
         .maybeSingle();
 
+      const idsJaPagos = existing?.comissoes_ids || [];
+      
+      const selectedComissoes = comissoes.filter(c => selectedIds.includes(c.id));
+      const comissoesParaPagar = selectedComissoes.filter(c => !idsJaPagos.includes(c.id));
+
+      if (comissoesParaPagar.length === 0) {
+        toast({ title: "Atenção", description: "Todos os contratos selecionados já foram registrados neste mês.", variant: "destructive" });
+        setIsSavingPagamento(false);
+        return;
+      }
+
+      if (comissoesParaPagar.length < selectedComissoes.length) {
+        toast({ title: "Aviso", description: "Alguns contratos já haviam sido recebidos este mês e foram ignorados." });
+      }
+
+      const valorTotalPago = comissoesParaPagar.reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
+      const idsParaPagar = comissoesParaPagar.map(c => c.id);
+
+      // 1. Incrementar parcela_atual de cada comissão válida
+      for (const c of comissoesParaPagar) {
+        const novaParcela = Math.min((c.parcela_atual || 1) + 1, c.parcelas_comissao);
+        await supabase.from("comissoes").update({ parcela_atual: novaParcela }).eq("id", c.id);
+      }
+
+      // 2. Registrar no fechamento mensal
       if (existing) {
         await supabase.from("fechamentos_mensais").update({
           valor_total: Number(existing.valor_total) + valorTotalPago,
-          contagem_vendas: Number(existing.contagem_vendas) + selectedIds.length,
-          comissoes_ids: [...(existing.comissoes_ids || []), ...selectedIds]
+          contagem_vendas: Number(existing.contagem_vendas) + comissoesParaPagar.length,
+          comissoes_ids: [...idsJaPagos, ...idsParaPagar]
         }).eq("id", existing.id);
       } else {
         await supabase.from("fechamentos_mensais").insert({
@@ -512,8 +529,8 @@ export default function Comissoes() {
           mes,
           ano,
           valor_total: valorTotalPago,
-          contagem_vendas: selectedIds.length,
-          comissoes_ids: selectedIds
+          contagem_vendas: comissoesParaPagar.length,
+          comissoes_ids: idsParaPagar
         });
       }
 
@@ -529,6 +546,11 @@ export default function Comissoes() {
   };
 
   if (loading) return <div className="p-20 text-center animate-pulse font-bold text-slate-400 uppercase tracking-widest">Carregando comissionamento...</div>;
+
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const currentFechamento = fechamentos.find(f => f.mes === currentMonth && f.ano === currentYear);
+  const idsPagosNesteMes = currentFechamento?.comissoes_ids || [];
 
   return (
     <div className="space-y-6">
@@ -746,7 +768,7 @@ export default function Comissoes() {
                     className="rounded border-slate-300"
                     checked={selectedIds.length === filtered.length && filtered.length > 0}
                     onChange={(e) => {
-                      if (e.target.checked) setSelectedIds(filtered.map(c => c.id));
+                      if (e.target.checked) setSelectedIds(filtered.filter(c => !idsPagosNesteMes.includes(c.id)).map(c => c.id));
                       else setSelectedIds([]);
                     }}
                   />
@@ -762,18 +784,24 @@ export default function Comissoes() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map(c => (
-                <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(c.id) ? 'bg-emerald-50/30' : ''}`}>
+              {filtered.map(c => {
+                const isPago = idsPagosNesteMes.includes(c.id);
+                return (
+                <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(c.id) ? 'bg-emerald-50/30' : ''} ${isPago ? 'opacity-60 bg-slate-50' : ''}`}>
                   <td className="px-4 py-3 text-center">
-                    <input 
-                      type="checkbox" 
-                      className="rounded border-slate-300"
-                      checked={selectedIds.includes(c.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) setSelectedIds(prev => [...prev, c.id]);
-                        else setSelectedIds(prev => prev.filter(id => id !== c.id));
-                      }}
-                    />
+                    {isPago ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
+                    ) : (
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-slate-300"
+                        checked={selectedIds.includes(c.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedIds(prev => [...prev, c.id]);
+                          else setSelectedIds(prev => prev.filter(id => id !== c.id));
+                        }}
+                      />
+                    )}
                   </td>
                   <td className="px-4 py-3 font-semibold text-slate-800">
                     <div className="flex flex-col">
@@ -835,7 +863,8 @@ export default function Comissoes() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+            })}
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-slate-500 font-medium">Nenhuma comissão encontrada.</td>
