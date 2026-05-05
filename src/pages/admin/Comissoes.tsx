@@ -18,8 +18,11 @@ import {
   Trash2,
   Edit2,
   Eye,
-  EyeOff
+  EyeOff,
+  Coins,
+  BarChart3
 } from "lucide-react";
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, BarChart } from "recharts";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -632,23 +635,102 @@ export default function Comissoes() {
       )}
 
       {fechamentos.length > 0 && (
-        <Card className="border-none shadow-sm bg-slate-50/50 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
-              <History className="h-4 w-4" /> Histórico de Fechamentos (Anual)
-            </h3>
-            <Badge variant="outline" className="bg-white">Total Anual: {formatCurrency(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}</Badge>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-            {fechamentos.map((f) => (
-              <div key={f.id} className="min-w-[160px] bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(f.ano, f.mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</p>
-                <p className="text-lg font-black text-emerald-600">{formatCurrency(f.valor_total)}</p>
-                <p className="text-[9px] text-slate-400 font-bold">{f.contagem_vendas} pagamentos processados</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2 border-none shadow-sm bg-white p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-500" /> Evolução de Ganhos Reais
+              </h3>
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 font-bold px-3 py-1">
+                Meta de Retenção: 100%
+              </Badge>
+            </div>
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={fechamentos.map(f => ({
+                  name: new Date(f.ano, f.mes - 1).toLocaleString('pt-BR', { month: 'short' }).toUpperCase(),
+                  valor: Number(f.valor_total)
+                })).slice(-12)}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 'bold', fill: '#64748b' }} 
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tickFormatter={(val) => `R$ ${val / 1000}k`}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    formatter={(value: any) => [formatCurrency(value), "Recebido"]}
+                  />
+                  <Bar dataKey="valor" radius={[6, 6, 0, 0]} barSize={40}>
+                    {fechamentos.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === fechamentos.length - 1 ? '#10b981' : '#34d399'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-emerald-600 text-white p-6 flex flex-col justify-between overflow-hidden relative">
+            <Coins className="absolute -bottom-6 -right-6 h-32 w-32 opacity-10 rotate-12" />
+            <div>
+              <p className="text-[10px] font-black uppercase opacity-80 tracking-widest mb-1">Acumulado Anual</p>
+              <h3 className="text-3xl font-black">
+                {formatCurrency(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}
+              </h3>
+            </div>
+            
+            <div className="space-y-4 relative z-10">
+              <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
+                <p className="text-[9px] font-bold uppercase opacity-70 mb-1">Mês com maior ganho</p>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-black">
+                    {(() => {
+                      const max = [...fechamentos].sort((a, b) => Number(b.valor_total) - Number(a.valor_total))[0];
+                      return max ? new Date(max.ano, max.mes - 1).toLocaleString('pt-BR', { month: 'long' }) : "—";
+                    })()}
+                  </span>
+                  <span className="text-xs font-bold">
+                    {formatCurrency(Math.max(...fechamentos.map(f => Number(f.valor_total)), 0))}
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
-        </Card>
+              
+              <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
+                <p className="text-[9px] font-bold uppercase opacity-70 mb-1">Total de Pagamentos</p>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-black">{fechamentos.reduce((acc, f) => acc + f.contagem_vendas, 0)}</span>
+                  <span className="text-[10px] font-bold uppercase opacity-70">Sincronizados</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="lg:col-span-3 border-none shadow-sm bg-slate-50/50 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                <History className="h-4 w-4" /> Histórico Detalhado (Por Mês)
+              </h3>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+              {fechamentos.map((f) => (
+                <div key={f.id} className="min-w-[160px] bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(f.ano, f.mes - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                  <p className="text-lg font-black text-emerald-600">{formatCurrency(f.valor_total)}</p>
+                  <p className="text-[9px] text-slate-400 font-bold">{f.contagem_vendas} pagamentos</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
