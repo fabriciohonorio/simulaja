@@ -560,27 +560,43 @@ export default function Comissoes() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><Calculator className="h-6 w-6" /></div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Comissões</p>
-            <p className="text-2xl font-black text-slate-800">{maskValue(totalComissoes)}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* Total Comissões */}
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm flex flex-col justify-center gap-1.5 transition-all hover:shadow-md">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-emerald-50/50 text-emerald-600 rounded-md"><Calculator className="h-3.5 w-3.5" /></div>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Total Comissões</p>
           </div>
+          <p className="text-lg font-black text-slate-800 pl-1">{maskValue(totalComissoes)}</p>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl"><TrendingDown className="h-6 w-6" /></div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Estornos</p>
-            <p className="text-2xl font-black text-rose-600">{maskValue(totalEstornos)}</p>
+        
+        {/* Total Estornos */}
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm flex flex-col justify-center gap-1.5 transition-all hover:shadow-md">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-rose-50/50 text-rose-600 rounded-md"><TrendingDown className="h-3.5 w-3.5" /></div>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Total Estornos</p>
           </div>
+          <p className="text-lg font-black text-rose-600 pl-1">{maskValue(totalEstornos)}</p>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4 border-l-4 border-l-emerald-500">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle2 className="h-6 w-6" /></div>
-          <div>
-            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">A Receber (Mês)</p>
-            <p className="text-2xl font-black text-emerald-600">{maskValue(totalReceberMes)}</p>
+
+        {/* A Receber (Mês) */}
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm flex flex-col justify-center gap-1.5 transition-all hover:shadow-md border-l-2 border-l-emerald-500">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-emerald-50 text-emerald-600 rounded-md"><CheckCircle2 className="h-3.5 w-3.5" /></div>
+            <p className="text-[9px] font-black uppercase text-emerald-600 tracking-widest">A Receber (Mês)</p>
           </div>
+          <p className="text-lg font-black text-emerald-600 pl-1">{maskValue(totalReceberMes)}</p>
+        </div>
+
+        {/* Acumulado Anual */}
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm flex flex-col justify-center gap-1.5 transition-all hover:shadow-md">
+          <div className="flex items-center gap-2">
+            <div className="p-1 bg-blue-50/50 text-blue-600 rounded-md"><Coins className="h-3.5 w-3.5" /></div>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Acumulado Anual</p>
+          </div>
+          <p className="text-lg font-black text-slate-800 pl-1">
+            {maskValue(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}
+          </p>
         </div>
       </div>
 
@@ -639,17 +655,22 @@ export default function Comissoes() {
       )}
 
       {fechamentos.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2 border-none shadow-sm bg-white p-6">
-            <div className="flex items-center justify-between mb-6">
+        <div className="space-y-4">
+          <Card className="border-none shadow-sm bg-white p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
               <h3 className="text-sm font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-emerald-500" /> Evolução de Ganhos Reais
               </h3>
-              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 font-bold px-3 py-1">
-                Meta de Retenção: 100%
-              </Badge>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200 font-bold px-2 py-0.5 text-[10px]">
+                  Maior Mês: {formatCurrency(Math.max(...fechamentos.map(f => Number(f.valor_total)), 0))}
+                </Badge>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 font-bold px-2 py-0.5 text-[10px]">
+                  Retenção: 100%
+                </Badge>
+              </div>
             </div>
-            <div className="h-[250px]">
+            <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={fechamentos.map(f => ({
                   name: new Date(f.ano, f.mes - 1).toLocaleString('pt-BR', { month: 'short' }).toUpperCase(),
@@ -660,20 +681,20 @@ export default function Comissoes() {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 'bold', fill: '#64748b' }} 
+                    tick={{ fontSize: 9, fontWeight: 'bold', fill: '#94a3b8' }} 
                   />
                   <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tick={{ fontSize: 9, fill: '#94a3b8' }}
                     tickFormatter={(val) => `R$ ${val / 1000}k`}
                   />
                   <Tooltip
                     cursor={{ fill: '#f8fafc' }}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '12px' }}
                     formatter={(value: any) => [formatCurrency(value), "Recebido"]}
                   />
-                  <Bar dataKey="valor" radius={[6, 6, 0, 0]} barSize={40}>
+                  <Bar dataKey="valor" radius={[4, 4, 0, 0]} barSize={30}>
                     {fechamentos.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={index === fechamentos.length - 1 ? '#10b981' : '#34d399'} />
                     ))}
@@ -683,47 +704,10 @@ export default function Comissoes() {
             </div>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white p-6 flex flex-col justify-between relative">
-            <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 flex items-center gap-2">
-                <Coins className="h-4 w-4 text-emerald-500" />
-                Acumulado Anual
-              </p>
-              <h3 className="text-3xl font-black text-slate-800">
-                {formatCurrency(fechamentos.reduce((acc, f) => acc + Number(f.valor_total), 0))}
-              </h3>
-            </div>
-            
-            <div className="space-y-4 mt-6">
-              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                <p className="text-[9px] font-bold uppercase text-slate-500 mb-1">Mês com maior ganho</p>
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-black text-slate-700">
-                    {(() => {
-                      const max = [...fechamentos].sort((a, b) => Number(b.valor_total) - Number(a.valor_total))[0];
-                      return max ? new Date(max.ano, max.mes - 1).toLocaleString('pt-BR', { month: 'long' }) : "—";
-                    })()}
-                  </span>
-                  <span className="text-xs font-bold text-emerald-600">
-                    {formatCurrency(Math.max(...fechamentos.map(f => Number(f.valor_total)), 0))}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                <p className="text-[9px] font-bold uppercase text-slate-500 mb-1">Total de Pagamentos</p>
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-black text-slate-700">{fechamentos.reduce((acc, f) => acc + f.contagem_vendas, 0)}</span>
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Sincronizados</span>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="lg:col-span-3 border-none shadow-sm bg-slate-50/50 p-4">
+          <Card className="border-none shadow-sm bg-slate-50/50 p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
-                <History className="h-4 w-4" /> Histórico Detalhado (Por Mês)
+              <h3 className="text-xs font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                <History className="h-3.5 w-3.5" /> Histórico Detalhado
               </h3>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
