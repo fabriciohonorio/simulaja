@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Lead } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
@@ -64,11 +65,12 @@ interface Comissao {
 export default function Comissoes() {
   const { profile } = useProfile();
   const [comissoes, setComissoes] = useState<Comissao[]>([]);
+  const [inadimplentes, setInadimplentes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [leadsFechados, setLeadsFechados] = useState<any[]>([]);
+  const [leadsFechados, setLeadsFechados] = useState<Lead[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>("none");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingComissao, setEditingComissao] = useState<Comissao | null>(null);
@@ -167,6 +169,15 @@ export default function Comissoes() {
     }
   };
 
+  const fetchInadimplentes = async () => {
+    const { data } = await supabase.from("inadimplentes").select("lead_id, status");
+    setInadimplentes(data || []);
+  };
+
+  useEffect(() => {
+    fetchInadimplentes();
+  }, []);
+
   const handleSaveComissao = async () => {
     if (!profile?.organizacao_id) return;
     
@@ -227,7 +238,7 @@ export default function Comissoes() {
       setIsModalOpen(false);
       resetForm();
       fetchComissoes();
-    } catch (error: any) {
+    } catch (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     }
   };
@@ -284,7 +295,7 @@ export default function Comissoes() {
       if (error) throw error;
       toast({ title: "Inadimplência e estorno registrados." });
       fetchComissoes();
-    } catch (e: any) {
+    } catch (e) {
       toast({ title: "Erro", description: e.message, variant: "destructive" });
     }
   };
@@ -296,7 +307,7 @@ export default function Comissoes() {
       if (error) throw error;
       toast({ title: "Comissão excluída com sucesso!" });
       fetchComissoes();
-    } catch (e: any) {
+    } catch (e) {
       toast({ title: "Erro ao excluir", description: e.message, variant: "destructive" });
     }
   };
@@ -610,11 +621,21 @@ export default function Comissoes() {
                     {c.parcela_atual || 1}/{c.parcelas_comissao}
                   </td>
                   <td className="px-4 py-3">
-                    {c.status === "estornado" ? (
-                      <Badge variant="destructive" className="text-[10px]">Estornado ({formatCurrency(c.valor_estorno)})</Badge>
-                    ) : (
-                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>
-                    )}
+                    {(() => {
+                      const isInadimplente = inadimplentes.some(i => i.lead_id === c.lead_id && i.status !== "regularizado");
+                      if (c.status === "estornado") {
+                        return <Badge variant="destructive" className="text-[10px]">Estornado ({formatCurrency(c.valor_estorno)})</Badge>;
+                      }
+                      if (isInadimplente) {
+                        return (
+                          <div className="flex flex-col gap-1">
+                            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>
+                            <Badge variant="destructive" className="text-[9px] animate-pulse">Inadimplente</Badge>
+                          </div>
+                        );
+                      }
+                      return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>;
+                    })()}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
@@ -660,7 +681,7 @@ export default function Comissoes() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Selecione...</SelectItem>
-                  {leadsFechados.filter(l => !comissoes.some(c => c.lead_id === l.id)).map((l: any) => (
+                  {leadsFechados.filter(l => !comissoes.some(c => c.lead_id === l.id)).map((l) => (
                     <SelectItem key={l.id} value={l.id}>{l.nome} - {formatCurrency(Number(l.valor_credito))}</SelectItem>
                   ))}
                   <SelectItem value="manual">-- Inserir Manualmente --</SelectItem>

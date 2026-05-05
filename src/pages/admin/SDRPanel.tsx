@@ -42,7 +42,7 @@ export default function SDRPanel() {
             .not("status", "in", ["fechado", "perdido", "morto"])
             .order("propensity_score", { ascending: false })
             .then(({ data }) => {
-                setLeads((data as any) ?? []);
+                setLeads((data as Lead[]) ?? []);
                 setLoading(false);
             });
     }, []);

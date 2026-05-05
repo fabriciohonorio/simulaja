@@ -48,8 +48,8 @@ export function useFunil() {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     
-    (supabase as any).from("perfis").select("id, nome_completo").then(({ data }: any) => {
-      setMembros(data || []);
+    supabase.from("perfis").select("id, nome_completo").then(({ data }) => {
+      setMembros((data as Membro[]) || []);
     });
 
     return () => window.removeEventListener("resize", handleResize);
@@ -79,9 +79,9 @@ export function useFunil() {
       return;
     }
 
-    const { data: carteiraItem } = await (supabase as any).from("carteira").select("id").eq("lead_id", leadId).maybeSingle();
+    const { data: carteiraItem } = await supabase.from("carteira").select("id").eq("lead_id", leadId).maybeSingle();
     if (carteiraItem) {
-      await (supabase as any).from("carteira").update({ [field]: value }).eq("lead_id", leadId);
+      await supabase.from("carteira").update({ [field]: value }).eq("lead_id", leadId);
     }
 
     setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, [field]: value } : l)));
@@ -154,7 +154,7 @@ export function useFunil() {
       return;
     }
 
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("leads")
       .select("*")
       .eq("organizacao_id", profile.organizacao_id)
@@ -164,7 +164,7 @@ export function useFunil() {
       (v: Lead, i: number, a: Lead[]) => a.findIndex((t: Lead) => t.id === v.id) === i
     );
 
-    const fetchedLeads = uniqueRaw.map((lead: any) => ({
+    const fetchedLeads = uniqueRaw.map((lead) => ({
       ...lead,
       nome: lead.nome || "Lead Sem Nome",
       status: normalizeStatus(lead.status),
@@ -217,7 +217,7 @@ export function useFunil() {
       const newReason = reasons.join(" + ");
 
       if (newTemp !== lead.lead_temperatura || newStatus !== lead.status || newScore !== lead.propensity_score) {
-        await (supabase as any).from("leads").update({
+        await supabase.from("leads").update({
           lead_temperatura: newTemp,
           status: newStatus,
           status_updated_at: newStatus !== lead.status ? now.toISOString() : lead.status_updated_at,
@@ -258,13 +258,13 @@ export function useFunil() {
         (payload) => {
           if (payload.eventType === 'DELETE') {
             // Remove lead excluído da lista sem precisar re-fetch
-            setLeads((prev) => prev.filter((l) => l.id !== (payload.old as any).id));
+            setLeads((prev) => prev.filter((l) => l.id !== (payload.old as Lead).id));
           } else if (payload.eventType === 'INSERT') {
             // IMPORTANTE: payload.new do Realtime NÃO inclui colunas JSONB (dados_cadastro)
             // Por isso fazemos um fetch completo do lead recém-inserido
-            const newLeadId = (payload.new as any).id;
-            (supabase as any).from("leads").select("*").eq("id", newLeadId).maybeSingle()
-              .then(({ data: fullLead }: any) => {
+            const newLeadId = (payload.new as Lead).id;
+            supabase.from("leads").select("*").eq("id", newLeadId).maybeSingle()
+              .then(({ data: fullLead }) => {
                 if (!fullLead) return;
                 setLeads((prev) => {
                   const exists = prev.find((l) => l.id === fullLead.id);
@@ -274,9 +274,9 @@ export function useFunil() {
               });
           } else if (payload.eventType === 'UPDATE') {
             // Para UPDATE também buscamos o lead completo para garantir dados_cadastro atualizado
-            const updatedId = (payload.new as any).id;
-            (supabase as any).from("leads").select("*").eq("id", updatedId).maybeSingle()
-              .then(({ data: fullLead }: any) => {
+            const updatedId = (payload.new as Lead).id;
+            supabase.from("leads").select("*").eq("id", updatedId).maybeSingle()
+              .then(({ data: fullLead }) => {
                 if (!fullLead) return;
                 setLeads((prev) =>
                   prev.map((l) =>
@@ -306,7 +306,7 @@ export function useFunil() {
       .eq("organizacao_id", profile.organizacao_id)
       .in("lead_id", leadIds)
       .order("created_at", { ascending: false })
-      .then(({ data }: any) => {
+      .then(({ data }) => {
         if (!data) return;
         const map: Record<string, HistoricoContato> = {};
         (data as HistoricoContato[]).forEach((h) => {
@@ -429,7 +429,7 @@ export function useFunil() {
     if (!vencimentoLead || !selectedDate) return;
     const dateStr = format(selectedDate, "yyyy-MM-dd");
 
-    const updateData: any = {
+    const updateData: Partial<Lead> = {
       data_vencimento: dateStr,
       updated_at: new Date().toISOString(),
     };
@@ -443,13 +443,22 @@ export function useFunil() {
         tipoConsorcio: vencimentoLead.tipo_consorcio,
         data: dateStr,
         hora: horaAgendamento,
-        nota: notaAgendamento,
+        nota: `[AUTOMATIZAÇÃO CRM] Acompanhamento de pagamento para lead ${vencimentoLead.nome}. \nObservação: ${notaAgendamento}`,
       });
 
       if (gcalResult) {
         gcalEventId = gcalResult.eventId;
         updateData.gcal_event_id = gcalEventId;
         toast.success("Evento criado no Google Calendar!", { duration: 4000 });
+        
+        // Log no histórico
+        await supabase.from("historico_contatos").insert({
+          lead_id: vencimentoLead.id,
+          tipo: "sistema",
+          observacao: `[${format(new Date(), "dd/MM")}] Agendamento GCal criado para ${format(selectedDate, "dd/MM")} às ${horaAgendamento}`,
+          resultado: "neutro",
+          organizacao_id: vencimentoLead.organizacao_id
+        });
       }
     }
 
@@ -494,7 +503,7 @@ export function useFunil() {
     if (!celebrationLead) return;
     setSaving(true);
 
-    const { error: carteiraError } = await (supabase as any).from("carteira").upsert({
+    const { error: carteiraError } = await supabase.from("carteira").upsert({
       lead_id: celebrationLead.id,
       nome: celebrationLead.nome,
       tipo_consorcio: celebrationLead.tipo_consorcio,
@@ -650,7 +659,7 @@ export function useFunil() {
     editingLead,
     setEditingLead,
     savingLead,
-    handleSaveLead: async (formData: any) => {
+    handleSaveLead: async (formData: Partial<Lead> & { comissao_regra?: string; comissao_tipo?: string; is_retroativo?: boolean }) => {
       if (!editingLead) return;
       setSavingLead(true);
       try {
@@ -740,7 +749,7 @@ export function useFunil() {
             });
             
             // Also upsert to carteira
-            await (supabase as any).from("carteira").upsert({
+            await supabase.from("carteira").upsert({
               lead_id: editingLead.id,
               nome: formData.nome,
               tipo_consorcio: formData.tipo_consorcio,
@@ -758,8 +767,8 @@ export function useFunil() {
         setLeads(prev => prev.map(l => l.id === editingLead.id ? { ...l, ...formData, dados_cadastro } : l));
         setEditingLead(null);
         toast.success("Lead atualizado!");
-      } catch (e: any) {
-        toast.error("Erro ao salvar: " + e.message);
+      } catch (e) {
+        toast.error("Erro ao salvar: " + (e as Error).message);
       } finally {
         setSavingLead(false);
       }

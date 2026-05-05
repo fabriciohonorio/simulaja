@@ -40,7 +40,7 @@ import { Lead } from "@/types/funil";
 const STATUS_FECHADOS = ["venda_fechada", "fechado"];
 
 /** Converte valor formatado em BRL (ex: "R$ 110.000,00") para number */
-function parseBRLValue(v: any): number {
+function parseBRLValue(v: unknown): number {
   if (!v) return 0;
   if (typeof v === 'number') return v;
   const cleaned = String(v).replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
@@ -49,7 +49,7 @@ function parseBRLValue(v: any): number {
 }
 
 /** Pega o primeiro valor não-vazio de uma lista de chaves no objeto dados_cadastro */
-function getDC(dc: any, keys: string[]): string {
+function getDC(dc: Record<string, unknown> | undefined | null, keys: string[]): string {
   for (const k of keys) {
     if (dc && dc[k]) return dc[k];
   }
@@ -62,10 +62,10 @@ export default function Leads() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingLead, setEditingLead] = useState<any>(null);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [historyLead, setHistoryLead] = useState<Lead | null>(null);
-  const [viewingFichaLead, setViewingFichaLead] = useState<any>(null);
+  const [viewingFichaLead, setViewingFichaLead] = useState<Lead | null>(null);
 
   const filtered = leads.filter(l => {
     const nomeSearch = (l.nome || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -100,14 +100,14 @@ export default function Leads() {
 
   const refetchLeads = useCallback(async () => {
     if (!profile?.organizacao_id) return;
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("leads")
       .select("*")
       .eq("organizacao_id", profile.organizacao_id)
       .order("created_at", { ascending: false });
     if (data) {
       setLeads((prev) =>
-        (data as any[]).map((d: any) => {
+        data.map((d) => {
           const existing = prev.find((l) => l.id === d.id);
           return existing ? { ...existing, ...d } : d;
         })
@@ -120,7 +120,7 @@ export default function Leads() {
     try {
       const isClosedStatus = ["venda_fechada", "fechado"].includes(formData.status);
       
-      const updatePayload: any = {
+      const updatePayload: Partial<Lead> = {
         nome: formData.nome,
         email: formData.email || null,
         celular: formData.celular,
@@ -163,13 +163,13 @@ export default function Leads() {
 
         (async () => {
           try {
-            const { data: rows } = await (supabase as any)
+            const { data: rows } = await supabase
               .from("carteira")
               .select("id")
               .eq("lead_id", editingLead.id)
               .limit(1);
             if (rows && rows.length > 0) {
-              await (supabase as any).from("carteira").update({
+              await supabase.from("carteira").update({
                 nome: updatePayload.nome,
                 celular: updatePayload.celular,
                 tipo_consorcio: updatePayload.tipo_consorcio,
@@ -179,7 +179,7 @@ export default function Leads() {
                 cota: formatToFourDigits(updatePayload.cota),
               }).eq("lead_id", editingLead.id);
             } else if (isClosedStatus) {
-              await (supabase as any).from("carteira").insert([{
+              await supabase.from("carteira").insert([{
                 lead_id: editingLead.id,
                 nome: updatePayload.nome,
                 celular: updatePayload.celular,
@@ -206,7 +206,7 @@ export default function Leads() {
 
         if (isClosedStatus && newLeads && newLeads.length > 0) {
           const nl = newLeads[0];
-          await (supabase as any).from("carteira").insert([{
+          await supabase.from("carteira").insert([{
             lead_id: nl.id,
             nome: nl.nome,
             celular: nl.celular,
@@ -227,8 +227,8 @@ export default function Leads() {
 
       setIsDialogOpen(false);
       setEditingLead(null);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao salvar lead");
+    } catch (err) {
+      toast.error((err as Error)?.message || "Erro ao salvar lead");
     } finally {
       setSubmitting(false);
     }
@@ -366,7 +366,7 @@ export default function Leads() {
                     </td>
 
                     <td className="px-4 py-3 font-black text-slate-700">
-                      {formatLeadValue(Number(l.valor_credito) || parseBRLValue((l.dados_cadastro as any)?.valorCredito) || parseBRLValue((l.dados_cadastro as any)?.VALOR_CREDITO) || 0)}
+                      {formatLeadValue(Number(l.valor_credito) || parseBRLValue(l.dados_cadastro?.valorCredito) || parseBRLValue(l.dados_cadastro?.VALOR_CREDITO) || 0)}
                     </td>
 
                     <td className="px-4 py-3 text-right">
@@ -475,7 +475,7 @@ export default function Leads() {
                     <div className="space-y-4">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <p className="text-[0.9rem] font-bold text-slate-400 uppercase tracking-wider">Crédito Estimado</p>
-                        <p className="text-lg font-black text-slate-900">{formatLeadValue(parseBRLValue(viewingFichaLead.valor_credito) || parseBRLValue((viewingFichaLead.dados_cadastro as any).valorCredito) || parseBRLValue((viewingFichaLead.dados_cadastro as any).VALOR_CREDITO))}</p>
+                        <p className="text-lg font-black text-slate-900">{formatLeadValue(parseBRLValue(viewingFichaLead.valor_credito) || parseBRLValue(viewingFichaLead.dados_cadastro?.valorCredito) || parseBRLValue(viewingFichaLead.dados_cadastro?.VALOR_CREDITO))}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -511,7 +511,7 @@ export default function Leads() {
                         <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
                           <span className="text-xs font-black text-slate-900">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                            {f.keys.map(k => viewingFichaLead.dados_cadastro?.[k]).find(v => !!v) || "—"}
                           </span>
                         </div>
                       ))}
@@ -535,7 +535,7 @@ export default function Leads() {
                         <div key={f.label} className="flex flex-col py-1.5 border-b border-slate-50 last:border-0">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{f.label}</span>
                           <span className="text-xs font-black text-slate-900 mt-0.5">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                            {f.keys.map(k => viewingFichaLead.dados_cadastro?.[k]).find(v => !!v) || "—"}
                           </span>
                         </div>
                       ))}
@@ -554,7 +554,7 @@ export default function Leads() {
                         <div key={f.label} className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[10px] font-bold text-slate-400 uppercase">{f.label}</span>
                           <span className="text-xs font-black text-slate-900">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || "—"}
+                            {f.keys.map(k => viewingFichaLead.dados_cadastro?.[k]).find(v => !!v) || "—"}
                           </span>
                         </div>
                       ))}
@@ -576,7 +576,7 @@ export default function Leads() {
                       <div className="space-y-3">
                         <div className="flex flex-col">
                           <span className="text-[9px] font-bold text-slate-400 uppercase">E-mail</span>
-                          <span className="text-xs font-black text-slate-900 truncate">{viewingFichaLead.email || (viewingFichaLead.dados_cadastro as any).email || (viewingFichaLead.dados_cadastro as any).EMAIL || (viewingFichaLead.dados_cadastro as any)["e-mail"] || "—"}</span>
+                          <span className="text-xs font-black text-slate-900 truncate">{viewingFichaLead.email || viewingFichaLead.dados_cadastro?.email || viewingFichaLead.dados_cadastro?.EMAIL || viewingFichaLead.dados_cadastro?.["e-mail"] || "—"}</span>
                         </div>
                       </div>
                     </div>
@@ -597,7 +597,7 @@ export default function Leads() {
                         <div key={f.label} className="flex flex-col py-1 border-b border-slate-50 last:border-0">
                           <span className="text-[9px] font-bold text-slate-400 uppercase">{f.label}</span>
                           <span className="text-xs font-black text-slate-900 mt-0.5">
-                            {f.keys.map(k => (viewingFichaLead.dados_cadastro as any)[k]).find(v => !!v) || (f.label === "Cidade" ? viewingFichaLead.cidade : "—")}
+                            {f.keys.map(k => viewingFichaLead.dados_cadastro?.[k]).find(v => !!v) || (f.label === "Cidade" ? viewingFichaLead.cidade : "—")}
                           </span>
                         </div>
                       ))}

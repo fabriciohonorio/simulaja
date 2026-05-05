@@ -26,10 +26,10 @@ export default function Funil() {
     );
   }
 
-  const leadsQuentes = funilState.leads.filter((l: any) => l.lead_temperatura === 'quente' && l.status !== 'fechado');
-  const leadsMornos = funilState.leads.filter((l: any) => l.lead_temperatura === 'morno' && l.status !== 'fechado');
-  const leadsFrios = funilState.leads.filter((l: any) => l.lead_temperatura === 'frio' && l.status !== 'fechado');
-  const emAndamento = funilState.leads.filter((l: any) => !['fechado', 'perdido', 'morto'].includes(l.status));
+  const leadsQuentes = funilState.leads.filter((l) => l.lead_temperatura === 'quente' && l.status !== 'fechado');
+  const leadsMornos = funilState.leads.filter((l) => l.lead_temperatura === 'morno' && l.status !== 'fechado');
+  const leadsFrios = funilState.leads.filter((l) => l.lead_temperatura === 'frio' && l.status !== 'fechado');
+  const emAndamento = funilState.leads.filter((l) => !['fechado', 'perdido', 'morto'].includes(l.status || ''));
 
   const displayLeads = selectedCategory === 'quente' ? leadsQuentes : 
                        selectedCategory === 'morno' ? leadsMornos : 
@@ -105,7 +105,7 @@ export default function Funil() {
           </div>
           <div className="flex gap-1 overflow-x-auto no-scrollbar py-0.5 w-full">
             {displayLeads.length > 0 ? (
-                displayLeads.slice(0, 10).map((l: any) => {
+                displayLeads.slice(0, 10).map((l) => {
                     const nome = l.nome || "Lead";
                     const partes = nome.split(' ');
                     const displayNome = `${partes[0]} ${partes[1] ? partes[1][0] + '.' : ''}`;
@@ -133,7 +133,7 @@ export default function Funil() {
         ].map(f => (
           <button
             key={f.id}
-            onClick={() => setQuickFilter(f.id as any)}
+            onClick={() => setQuickFilter(f.id as "quente" | "morno" | "frio" | "todos")}
             className={`text-[9px] font-black px-2 py-1 rounded-full border transition-all ${
               quickFilter === f.id
                 ? 'bg-primary text-white border-primary shadow-sm'
@@ -178,7 +178,7 @@ export default function Funil() {
             onChange={(e) => funilState.setIndicadorFilter(e.target.value)}
           >
             <option value="todos">Todos os Indicadores</option>
-            {Array.from(new Set(funilState.leads.map((l: any) => l.indicador_nome).filter(Boolean))).sort().map((ind: any) => (
+            {Array.from(new Set(funilState.leads.map((l) => l.indicador_nome).filter(Boolean))).sort().map((ind) => (
               <option key={ind} value={ind}>{ind}</option>
             ))}
           </select>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Profile, OrganizationRow } from "@/types";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +14,7 @@ import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 interface MenuGroup {
     label: string;
     items: {
-        icon: any;
+        icon: React.ElementType;
         label: string;
         path: string;
         color: string;
@@ -75,8 +76,8 @@ export default function AdminLayout() {
     const { signOut } = useAuth();
     const location = useLocation();
     const [open, setOpen] = useState(false);
-    const [profile, setProfile] = useState<any>(null);
-    const [org, setOrg] = useState<any>(null);
+    const [profile, setProfile] = useState<Profile | null>(null);
+    const [org, setOrg] = useState<OrganizationRow | null>(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         const saved = localStorage.getItem("admin_sidebar_collapsed");
         return saved === "true";
@@ -94,15 +95,15 @@ export default function AdminLayout() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: profileData } = await (supabase.from("perfis" as any) as any)
+            const { data: profileData } = await supabase.from("perfis")
                 .select("*")
                 .eq("id", user.id)
                 .single();
 
             if (profileData) {
-                setProfile(profileData);
+                setProfile(profileData as Profile);
                 if (profileData.organizacao_id) {
-                    const { data: orgData } = await (supabase.from("organizacoes" as any) as any)
+                    const { data: orgData } = await supabase.from("organizacoes")
                         .select("*")
                         .eq("id", profileData.organizacao_id)
                         .single();

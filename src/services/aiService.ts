@@ -79,6 +79,34 @@ PERGUNTA DO USUÁRIO: "${question}"`;
     },
 
     /**
+     * Analyzes lead history and interactions to qualify temperature and propensity.
+     */
+    async qualifyLeads(leadsContext: string) {
+        if (!env.ai.apiKey) return { analysis: [], error: "AI Key missing" };
+
+        const prompt = `Você é o Jarvis, estrategista de CRM. 
+        Analise a lista de leads e seus históricos de interação abaixo.
+        Para cada lead, determine:
+        1. lead_temperatura: 'quente', 'morno', 'frio' ou 'morto'
+        2. propensity_score: um número de 0 a 100 indicando a chance de fechamento
+        3. propensity_reason: uma breve justificativa estratégica
+
+        Responda APENAS em formato JSON puro (array de objetos), sem markdown:
+        [{"id": "uuid", "temp": "quente", "score": 85, "reason": "Justificativa..."}]
+
+        LISTA DE LEADS E HISTÓRICO:
+        ${leadsContext}`;
+
+        try {
+            const res = env.ai.provider === "claude" ? await this.callClaude(prompt) : await this.callGemini(prompt);
+            return { analysis: JSON.parse(res.script.replace(/```json|```/g, "")), error: null };
+        } catch (error) {
+            console.error("Qualification Error:", error);
+            return { analysis: [], error };
+        }
+    },
+
+    /**
      * Call Anthropic Claude API
      */
     async callClaude(prompt: string) {

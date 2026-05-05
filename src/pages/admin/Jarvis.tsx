@@ -96,6 +96,7 @@ export default function Jarvis() {
     const { profile } = useProfile();
     const [question, setQuestion] = useState("");
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
     const [analysis, setAnalysis] = useState<JarvisAnalysis | null>(null);
     const [leads, setLeads] = useState<Lead[]>([]);
     const [inadimplentes, setInadimplentes] = useState<Inadimplente[]>([]);
@@ -438,6 +439,44 @@ Instrução: Se a pergunta do usuário for pedir um resumo ou o cenário atual, 
         setIsAnalyzing(false);
         speak(responseContent);
     };
+    
+    const handleQualifyAll = async () => {
+        if (leads.length === 0) return;
+        setIsScanning(true);
+        toast({ title: "Jarvis em Ação", description: "Escaneando histórico de leads para re-qualificação..." });
+
+        const context = leads.slice(0, 15).map(l => {
+            const hists = historicoContatos.filter(h => h.lead_id === l.id).slice(0, 3);
+            return `Lead: ${l.id}, Nome: ${l.dados_cadastro?.nome || "Sem Nome"}, Status: ${l.status}, Interações: ${hists.map(h => h.observacao).join(" | ")}`;
+        }).join("\n");
+
+        const { analysis: results, error } = await aiService.qualifyLeads(context);
+
+        if (error || results.length === 0) {
+            toast({ title: "Erro na Qualificação", description: "Não consegui processar os dados agora.", variant: "destructive" });
+            setIsScanning(false);
+            return;
+        }
+
+        let updatedCount = 0;
+        for (const res of results) {
+            const { error: upError } = await supabase.from("leads").update({
+                lead_temperatura: res.temp,
+                propensity_score: res.score,
+                propensity_reason: res.reason,
+                updated_at: new Date().toISOString()
+            }).eq("id", res.id);
+            if (!upError) updatedCount++;
+        }
+
+        toast({ title: "Análise Concluída", description: `${updatedCount} leads foram re-qualificados estrategicamente.` });
+        setIsScanning(false);
+        // Atualiza estado local
+        setLeads(prev => prev.map(l => {
+            const r = results.find((res: any) => res.id === l.id);
+            return r ? { ...l, lead_temperatura: r.temp, propensity_score: r.score, propensity_reason: r.reason } : l;
+        }));
+    };
 
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
@@ -586,6 +625,13 @@ Instrução: Se a pergunta do usuário for pedir um resumo ou o cenário atual, 
                             <ScrollArea className="h-auto space-y-4">
                                 <div className="space-y-4">
                                     {[
+                                        { 
+                                            icon: Zap, 
+                                            text: "Escanear e Qualificar Oportunidades", 
+                                            action: handleQualifyAll,
+                                            loading: isScanning,
+                                            highlight: true
+                                        },
                                         { icon: TrendingUp, text: `Gerar pelo menos ${Math.ceil((metaAnual/12)/100000)} novos leads hoje` },
                                         { icon: Users, text: `O lead 'Consórcio Imobiliário' (R$ 450k) está esfriando` },
                                         { icon: Send, text: "Faltam 4 propostas para bater o ritmo da semana" },
@@ -594,8 +640,16 @@ Instrução: Se a pergunta do usuário for pedir um resumo ou o cenário atual, 
                                     ].map((s, i) => (
                                         <div 
                                             key={i} 
-                                            className="flex gap-4 items-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
+                                            className={`flex gap-4 items-center p-3 rounded-2xl border transition-all cursor-pointer active:scale-[0.98] ${
+                                                (s as any).highlight 
+                                                ? "bg-primary/20 border-primary/40 hover:bg-primary/30" 
+                                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/30"
+                                            } ${(s as any).loading ? "animate-pulse pointer-events-none" : ""}`}
                                             onClick={() => {
+                                                if ((s as any).action) {
+                                                    (s as any).action();
+                                                    return;
+                                                }
                                                 if (s.text.toLowerCase().includes("redes")) {
                                                     toast({
                                                         title: "Sugestão Jarvis",
@@ -605,9 +659,9 @@ Instrução: Se a pergunta do usuário for pedir um resumo ou o cenário atual, 
                                             }}
                                         >
                                             <div className="h-8 w-8 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                                                <s.icon className="h-4 w-4 text-primary-foreground" />
+                                                <s.icon className={`h-4 w-4 ${ (s as any).highlight ? "text-primary animate-pulse" : "text-primary-foreground"}`} />
                                             </div>
-                                            <p className="text-xs font-medium text-slate-300">{s.text}</p>
+                                            <p className={`text-xs font-medium ${ (s as any).highlight ? "text-white font-black" : "text-slate-300"}`}>{s.text}</p>
                                         </div>
                                     ))}
                                 </div>

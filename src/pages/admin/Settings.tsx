@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/hooks/useProfile";
+import { ProfileRow, ConviteRow, OrganizationRow } from "@/types";
 import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown, Upload, CalendarDays, Settings as SettingsIcon } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 
@@ -29,9 +30,9 @@ export default function Settings() {
   const [roleToInvite, setRoleToInvite] = useState("vendedor");
   const [loading, setLoading] = useState(false);
   const [inviting, setInviting] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
-  const [invitations, setInvitations] = useState<any[]>([]);
-  const [org, setOrg] = useState<any>(null);
+  const [users, setUsers] = useState<ProfileRow[]>([]);
+  const [invitations, setInvitations] = useState<ConviteRow[]>([]);
+  const [org, setOrg] = useState<OrganizationRow | null>(null);
   const [changingRole, setChangingRole] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, [profile]);
@@ -40,16 +41,16 @@ export default function Settings() {
     if (!profile?.organizacao_id) return;
     setLoading(true);
     try {
-      const { data: members } = await (supabase.from("perfis" as any) as any)
+      const { data: members } = await supabase.from("perfis")
         .select("*")
         .eq("organizacao_id", profile.organizacao_id);
       setUsers(members || []);
 
-      const { data: orgData } = await (supabase.from("organizacoes" as any) as any)
+      const { data: orgData } = await supabase.from("organizacoes")
         .select("*").eq("id", profile.organizacao_id).single();
       setOrg(orgData);
 
-      const { data: invites } = await (supabase.from("convites" as any) as any)
+      const { data: invites } = await supabase.from("convites")
         .select("*")
         .eq("organizacao_id", profile.organizacao_id)
         .eq("status", "pendente");
@@ -64,7 +65,7 @@ export default function Settings() {
     setInviting(true);
     try {
       const token = Math.random().toString(36).substring(2, 15);
-      const { error } = await (supabase.from("convites" as any) as any).insert({
+      const { error } = await supabase.from("convites").insert({
         email: emailToInvite,
         token,
         organizacao_id: profile.organizacao_id,
@@ -89,7 +90,7 @@ export default function Settings() {
   };
 
   const deleteInvite = async (id: string) => {
-    await (supabase.from("convites" as any) as any).delete().eq("id", id);
+    await supabase.from("convites").delete().eq("id", id);
     toast({ title: "Convite Removido" });
     fetchData();
   };
@@ -99,7 +100,7 @@ export default function Settings() {
     
     setLoading(true);
     try {
-      const { error } = await (supabase.from("perfis" as any) as any)
+      const { error } = await supabase.from("perfis")
         .delete()
         .eq("id", userId);
         
@@ -110,10 +111,10 @@ export default function Settings() {
         description: "O acesso deste colaborador foi revogado com sucesso." 
       });
       fetchData();
-    } catch (err: any) {
+    } catch (err) {
       toast({ 
         title: "Erro ao remover", 
-        description: err.message, 
+        description: (err as Error).message, 
         variant: "destructive" 
       });
     } finally {

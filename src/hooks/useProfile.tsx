@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-export interface Profile {
-  id: string;
-  nome_completo: string | null;
-  tipo_acesso: "admin" | "manager" | "vendedor";
-  organizacao_id: string | null;
-  email?: string | null;
-  avatar_url?: string | null;
-}
+import { Profile } from "@/types";
 
 let _cache: Profile | null = null;
 const _listeners: Array<(p: Profile | null) => void> = [];
 
-export function useProfile() {
+export interface UseProfileReturn {
+  profile: Profile | null;
+  loading: boolean;
+  isAdmin: boolean;
+  isManager: boolean;
+  isVendedor: boolean;
+  refetch: () => Promise<void>;
+}
+
+export const useProfile = (): UseProfileReturn => {
   const [profile, setProfile] = useState<Profile | null>(_cache);
   const [loading, setLoading] = useState(!_cache);
 
@@ -30,18 +31,18 @@ export function useProfile() {
     };
   }, []);
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (): Promise<void> => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    const { data } = await (supabase.from("perfis" as any) as any)
+    const { data } = await supabase.from("perfis")
       .select("id, nome_completo, tipo_acesso, organizacao_id, avatar_url")
       .eq("id", user.id)
       .single();
 
     if (data) {
-      _cache = { ...data, email: user.email };
+      _cache = { ...data, email: user.email } as Profile;
       _listeners.forEach((fn) => fn(_cache));
     }
     setLoading(false);
@@ -52,7 +53,7 @@ export function useProfile() {
   const isVendedor = profile?.tipo_acesso === "vendedor";
 
   return { profile, loading, isAdmin, isManager, isVendedor, refetch: fetchProfile };
-}
+};
 
 // Clear on sign out
 supabase.auth.onAuthStateChange((event) => {

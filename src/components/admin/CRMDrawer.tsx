@@ -28,8 +28,10 @@ interface Lead {
   updated_at: string | null;
 }
 
+import { Lead } from "@/types";
+
 interface CRMDrawerProps {
-  onLoadLead: (lead: any) => void;
+  onLoadLead: (lead: Lead) => void;
   onSaveSim: (leadId: string) => Promise<void>;
 }
 
