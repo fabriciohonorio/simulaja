@@ -122,6 +122,7 @@ export default function Simulador() {
   };
 
   const pct = lista.length > 1 ? (idx / (lista.length - 1)) * 100 : 0;
+  const isLinear = categoria === "servicos";
 
   const confirmar = async () => {
     const nomeOk = nome.trim().length > 0;
@@ -275,7 +276,7 @@ export default function Simulador() {
     addRow("Crédito:", fmt(g.credito), true);
     addRow("Prazo:", `${g.prazo} meses`);
     addRow("Grupo:", g.grupo);
-    addRow("Parcela 50% (Até Contemplação):", fmt(g.r50), true);
+    addRow(isLinear ? "Parcela Linear:" : "Parcela 50% (Até Contemplação):", fmt(g.r50), true);
     
     if (lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) {
       y += 5;
@@ -411,7 +412,7 @@ _oespecialistaconsorcio.com.br_`;
 
         {/* Slider */}
         <p className="text-xs font-semibold text-center mb-2" style={{ color: "#6b7a99" }}>
-          {simulationMode === "credit" ? "Valor do crédito desejado" : "Quanto você quer pagar por mês (50%)"}
+          {simulationMode === "credit" ? "Valor do crédito desejado" : "Quanto você quer pagar por mês"}
         </p>
         <div className="text-center mb-5">
           <span className="text-sm font-bold mr-1" style={{ color: "#6b7a99" }}>R$</span>
@@ -469,7 +470,7 @@ _oespecialistaconsorcio.com.br_`;
         <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
           <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,#16a34a,#4ade80)" }} />
           <p className="text-[0.65rem] font-bold uppercase tracking-wider mb-1" style={{ color: "#15803d" }}>
-            Parcela reduzida 50% <span style={{ color: "#4ade80", fontWeight: 400 }}>· até a contemplação</span>
+            {isLinear ? "Parcela Linear" : "Parcela reduzida 50%"} <span style={{ color: "#4ade80", fontWeight: 400 }}>· {isLinear ? "integral" : "até a contemplação"}</span>
           </p>
           <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "'DM Mono', monospace", color: "#16a34a" }}>
             {fmt(g.r50)}
@@ -582,9 +583,9 @@ _oespecialistaconsorcio.com.br_`;
             <div className="p-5 space-y-4">
               {/* Row 1: Parcela Destaque */}
               <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
-                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">Parcela Reduzida (50%)</p>
+                <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">{isLinear ? "Parcela Linear (Integral)" : "Parcela Reduzida (50%)"}</p>
                 <p className="text-3xl font-black text-[#16a34a]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(resultado.r50)}</p>
-                <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">Investimento inteligente até a contemplação</p>
+                <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">{isLinear ? "Investimento planejado" : "Investimento inteligente até a contemplação"}</p>
               </div>
 
               {/* Grid: Crédito e Prazo */}
@@ -676,7 +677,7 @@ _oespecialistaconsorcio.com.br_`;
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm" style={{ fontFamily: "'DM Mono', monospace", color: "#16a34a" }}>{fmt(h.r50)}</p>
-                  <p className="text-[0.67rem]" style={{ color: "#6b7a99" }}>Reduzida 50%</p>
+                  <p className="text-[0.67rem]" style={{ color: "#6b7a99" }}>Parcela do Plano</p>
                 </div>
               </div>
             ))}
