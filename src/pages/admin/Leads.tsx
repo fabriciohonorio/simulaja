@@ -626,6 +626,7 @@ export default function Leads() {
             key={editingLead?.id || "new-lead"}
             isSubmitting={submitting}
             initialData={editingLead ? {
+              id: editingLead.id,
               nome: editingLead.nome || "",
               email: editingLead.email || "",
               celular: editingLead.celular || "",

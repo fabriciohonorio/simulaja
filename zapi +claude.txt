@@ -1,0 +1,24 @@
+3. O que você vai precisar estruturar no Make.com
+No Make, você vai criar um cenário com a seguinte estrutura lógica (Flow):
+
+Trigger (Custom Webhook): Você vai gerar uma URL de Webhook no Make e colar ela lá no painel do Z-API, na opção "Ao Receber Mensagem" (On Message).
+Filtro (Router): Bloquear mensagens de Grupos ou de números que não sejam clientes.
+Supabase (Search/Create):
+Procura se o celular já existe na tabela leads. Se não existe, cria um lead novo.
+Checa se atendimento_ia está ativo. Se estiver desativado (atendimento humano), o Make encerra a execução aqui e não responde.
+Supabase (Insert Message): Salva a mensagem que o cliente mandou na tabela chat_messages.
+Supabase (Search Messages): Puxa as últimas 10 mensagens desse cliente para a IA ler e lembrar o contexto.
+Módulo IA (Claude ou Gemini):
+System Prompt: "Você é um consultor de consórcios do Especialista Consórcio. Seja humano, persuasivo e tire as dúvidas do cliente usando mensagens curtas..."
+Input: Você passa as 10 mensagens anteriores + a nova mensagem.
+HTTP Request (Z-API Send): Você pega a resposta gerada pela IA e faz um disparo POST para o Z-API mandar de volta para o cliente no WhatsApp.
+Supabase (Insert Message): Salva a resposta da IA na tabela chat_messages para manter o histórico atualizado.
+4. Como ficará o CRM Interno (Próximos Passos no Código)
+Para que você tenha controle total, eu precisarei criar as seguintes interfaces no painel:
+
+Inbox/Chat em Tempo Real: Uma aba no estilo "WhatsApp Web" dentro do painel do lead, onde você consegue ver o robô conversando com o lead ao vivo.
+Botão "Assumir Atendimento": Um botão vermelho que, ao ser clicado, altera o atendimento_ia para FALSE no banco, cortando a IA imediatamente para que você continue a venda de forma humana.
+Injeção de Simulação: Uma função onde a IA, caso o cliente peça, consegue puxar os cálculos do ConsortiumSimulator.tsx e enviar direto no WhatsApp.
+Quer que eu comece criando a estrutura das tabelas de Chat no Supabase (Rodando o script SQL) e preparando a interface do Inbox no CRM para receber essas conversas?
+
+5:22 PM

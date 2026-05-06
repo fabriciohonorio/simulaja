@@ -3,8 +3,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, MessageSquare } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LeadChat } from "./LeadChat";
 
 export const STATUS_OPTIONS = [
   { value: "novo_lead", label: "Novo Lead" },
@@ -46,6 +48,7 @@ const ADMINISTRADORAS = ["MAGALU", "ADEMICON", "SERVOPA"];
 const STATUS_FECHADOS = ["venda_fechada", "fechado"];
 
 export interface LeadFormData {
+  id?: string;
   nome: string;
   email: string;
   celular: string;
@@ -134,8 +137,21 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
   const isVendaFechada = STATUS_FECHADOS.includes(form.status) || form.is_retroativo;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 py-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <Tabs defaultValue="ficha" className="w-full">
+      <div className="flex items-center justify-between mb-4">
+        <TabsList className="bg-slate-100/50">
+          <TabsTrigger value="ficha" className="text-xs uppercase font-black tracking-widest px-6 data-[state=active]:bg-primary data-[state=active]:text-white">📝 Detalhes do Lead</TabsTrigger>
+          {form.id && (
+            <TabsTrigger value="chat" className="text-xs uppercase font-black tracking-widest px-6 gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <MessageSquare className="w-3.5 h-3.5" /> Atendimento IA
+            </TabsTrigger>
+          )}
+        </TabsList>
+      </div>
+
+      <TabsContent value="ficha" className="mt-0">
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="nome" className="font-bold">Nome Completo</Label>
@@ -587,12 +603,20 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, onSubmit, onCan
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-6 border-t">
-        <Button type="button" variant="ghost" onClick={onCancel} className="rounded-xl px-10 h-11 uppercase font-black text-xs tracking-widest">Descartar</Button>
-        <Button type="submit" disabled={isSubmitting} className="rounded-xl px-12 h-11 bg-primary hover:bg-primary/90 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-primary/20">
-          {isSubmitting ? "Gravando..." : "Salvar Alterações"}
-        </Button>
-      </div>
-    </form>
+          <div className="flex justify-end gap-3 pt-6 border-t">
+            <Button type="button" variant="ghost" onClick={onCancel} className="rounded-xl px-10 h-11 uppercase font-black text-xs tracking-widest">Descartar</Button>
+            <Button type="submit" disabled={isSubmitting} className="rounded-xl px-12 h-11 bg-primary hover:bg-primary/90 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-primary/20">
+              {isSubmitting ? "Gravando..." : "Salvar Alterações"}
+            </Button>
+          </div>
+        </form>
+      </TabsContent>
+
+      {form.id && (
+        <TabsContent value="chat" className="mt-0">
+          <LeadChat leadId={form.id} leadName={form.nome} leadCelular={form.celular} />
+        </TabsContent>
+      )}
+    </Tabs>
   );
 };
