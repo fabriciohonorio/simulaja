@@ -219,6 +219,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   };
 
   const pct = lista.length > 1 ? (safeIdx / (lista.length - 1)) * 100 : 0;
+  const isLinear = categoria === "servicos";
 
   const handleExportPDF = () => {
     if (!resultado) return;
@@ -264,7 +265,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
     doc.text(`${resultado.prazo} meses`, 80, 110);
     
     doc.setFont("helvetica", "normal");
-    doc.text("Parcela Reduzida (50%):", 25, 120);
+    doc.text(isLinear ? "Parcela Linear:" : "Parcela Reduzida (50%):", 25, 120);
     doc.setFont("helvetica", "bold");
     doc.setTextColor("#16a34a");
     doc.text(fmtFull(resultado.r50), 80, 120);
@@ -375,7 +376,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
       fundoReserva: fr,
       seguro: seguro,
       prazo: g.prazo,
-      tipoParcela: 'Reduzida 50%',
+      tipoParcela: isLinear ? 'Linear' : 'Reduzida 50%',
       parcelasContemplar: parcelasContemplar,
       lanceDinheiroPct: lanceDinheiroPct,
       lanceEmbutidoPct: lanceEmbutidoPct,
@@ -402,7 +403,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
       `🚗 *Bem:* ${dynamicCategorias.find(c => c.id === categoria)?.label || categoria} | Grupo ${g.grupo}`,
       `💳 *Carta de Crédito:* ${fmt(g.credito)}`,
       `📆 *Prazo:* ${g.prazo} meses`,
-      `📊 *Tipo de Parcela:* Reduzida 50%`,
+      `📊 *Tipo de Parcela:* ${isLinear ? 'Linear' : 'Reduzida 50%'}`,
       ``,
       `🏹 *LANCE*`,
       `─────────────────────────`,
@@ -512,7 +513,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                 <div className="rounded-[14px] p-5 text-center mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "1.5px solid #86efac" }}>
                   <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,#16a34a,#4ade80)" }} />
                   <p className="text-[0.65rem] font-bold uppercase tracking-wider mb-1" style={{ color: "#15803d" }}>
-                    Parcela reduzida 50% <span style={{ color: "#4ade80", fontWeight: 400 }}>· até a contemplação</span>
+                    {isLinear ? "Parcela Linear" : "Parcela reduzida 50%"} <span style={{ color: "#4ade80", fontWeight: 400 }}>· {isLinear ? "integral" : "até a contemplação"}</span>
                   </p>
                   <p className="text-3xl sm:text-4xl font-medium" style={{ fontFamily: "monospace", color: "#16a34a" }}>
                     {fmtFull(g.r50)}
@@ -686,9 +687,9 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                 
                 <div className="p-5 space-y-4">
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
-                    <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">Parcela Reduzida (50%)</p>
+                    <p className="text-[0.65rem] uppercase tracking-wider mb-1 font-bold text-green-700">{isLinear ? "Parcela Linear (Integral)" : "Parcela Reduzida (50%)"}</p>
                     <p className="text-3xl font-black text-[#16a34a]" style={{ fontFamily: "monospace" }}>{fmtFull(resultado.r50)}</p>
-                    <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">Investimento inteligente até a contemplação</p>
+                    <p className="text-[0.6rem] text-green-600 mt-1 uppercase font-medium">{isLinear ? "Investimento planejado" : "Investimento inteligente até a contemplação"}</p>
                   </div>
 
                   <div className={`grid gap-3 ${isInternal && (resultado.tx !== undefined || resultado.fr !== undefined) ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2'}`}>
@@ -768,7 +769,7 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
                         let msg = `*Simulação de Consórcio*\n\n`;
                         msg += `*Crédito:* ${fmtFull(resultado.credito)}\n`;
                         msg += `*Prazo:* ${resultado.prazo} meses\n`;
-                        msg += `*Parcela Reduzida (50%):* ${fmtFull(resultado.r50)}\n\n`;
+                        msg += `*${isLinear ? "Parcela Linear" : "Parcela Reduzida (50%)"}:* ${fmtFull(resultado.r50)}\n\n`;
                         if (resultado.tx !== undefined) msg += `*Taxa Adm:* ${resultado.tx}%\n`;
                         if (resultado.fr !== undefined) msg += `*Fundo Reserva:* ${resultado.fr}%\n`;
                         if (lanceDinheiroPct > 0 || lanceEmbutidoPct > 0) {
