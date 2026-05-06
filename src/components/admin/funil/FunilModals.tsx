@@ -84,6 +84,7 @@ export function FunilModals({ state }: { state: any }) {
           {editingLead && (
             <LeadForm 
               initialData={{
+                id: editingLead.id,
                 nome: editingLead.nome || "",
                 email: editingLead.email || "",
                 celular: editingLead.celular || "",
