@@ -143,7 +143,10 @@ export default function Carteira() {
       let leadDateMap = new Map<string, string>();
       let leadsSet = new Set<string>();
 
-      if (leadIds.length > 0) {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
         const [{ data: leadDates }, { data: lanceInteractions }] = await Promise.all([
           supabase
             .from("leads")
@@ -153,6 +156,7 @@ export default function Carteira() {
             .from("historico_contatos")
             .select("lead_id")
             .eq("tipo", "lance")
+            .gte("created_at", startOfMonth.toISOString())
             .in("lead_id", leadIds),
         ]);
 
@@ -162,8 +166,21 @@ export default function Carteira() {
             l.status_updated_at
           ])
         );
-        leadsSet = new Set((lanceInteractions || []).map(i => i.lead_id));
-        setLeadsComLance(leadsSet);
+
+        // Clientes que tiveram lance este mês
+        const idsComLanceEsteMes = new Set((lanceInteractions || []).map(i => i.lead_id));
+        
+        // Clientes que fecharam venda este mês também devem aparecer como "Lance" (Ativos)
+        const leadsAtivosSet = new Set<string>();
+        uniqueClients.forEach(c => {
+          if (!c.lead_id) return;
+          const isNewSale = c.data_adesao && new Date(c.data_adesao) >= startOfMonth;
+          if (idsComLanceEsteMes.has(c.lead_id) || isNewSale) {
+            leadsAtivosSet.add(c.lead_id);
+          }
+        });
+
+        setLeadsComLance(leadsAtivosSet);
       }
 
       // Persistir data_adesao enriquecida de volta ao banco - PRIORIDADE PARA O LEAD
