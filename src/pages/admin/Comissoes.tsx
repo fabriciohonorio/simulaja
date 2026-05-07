@@ -465,7 +465,19 @@ export default function Comissoes() {
     }).format(Number(numbers) / 100);
   };
 
-  const filtered = comissoes.filter(c => c.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = useMemo(() => {
+    return comissoes.filter(c => c.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [comissoes, searchTerm]);
+
+  const groupedComissoes = useMemo(() => {
+    const groups: Record<string, Comissao[]> = {};
+    filtered.forEach(c => {
+      const admin = c.administradora || "MAGALU";
+      if (!groups[admin]) groups[admin] = [];
+      groups[admin].push(c);
+    });
+    return groups;
+  }, [filtered]);
 
   const totalComissoes = comissoes.reduce((acc, c) => acc + Number(c.comissao_total || 0), 0);
   const totalEstornos = comissoes.reduce((acc, c) => acc + Number(c.valor_estorno || 0), 0);
@@ -762,7 +774,7 @@ export default function Comissoes() {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="px-4 py-3 w-10 text-center">
+                <th className="px-4 py-2 w-10 text-center">
                   <input 
                     type="checkbox" 
                     className="rounded border-slate-300"
@@ -773,98 +785,130 @@ export default function Comissoes() {
                     }}
                   />
                 </th>
-                <th className="px-4 py-3">Cliente</th>
-                <th className="px-4 py-3">Grupo/Cota</th>
-                <th className="px-4 py-3">Venda</th>
-                <th className="px-4 py-3">Regra</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Parcela</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Ações</th>
+                <th className="px-4 py-2">Cliente</th>
+                <th className="px-4 py-2">Grupo/Cota</th>
+                <th className="px-4 py-2">Venda</th>
+                <th className="px-4 py-2">Regra</th>
+                <th className="px-4 py-2">Total</th>
+                <th className="px-4 py-2">Parcela</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map(c => {
-                const isPago = idsPagosNesteMes.includes(c.id);
+              {Object.entries(groupedComissoes).map(([admin, items]) => {
+                const subtotalTotal = items.reduce((acc, c) => acc + Number(c.comissao_total), 0);
+                const subtotalMes = items.filter(c => !idsPagosNesteMes.includes(c.id) && c.status !== 'estornado').reduce((acc, c) => acc + (Number(c.comissao_total) / Number(c.parcelas_comissao)), 0);
+                
                 return (
-                <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(c.id) ? 'bg-emerald-50/30' : ''} ${isPago ? 'opacity-60 bg-slate-50' : ''}`}>
-                  <td className="px-4 py-3 text-center">
-                    {isPago ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
-                    ) : (
-                      <input 
-                        type="checkbox" 
-                        className="rounded border-slate-300"
-                        checked={selectedIds.includes(c.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) setSelectedIds(prev => [...prev, c.id]);
-                          else setSelectedIds(prev => prev.filter(id => id !== c.id));
-                        }}
-                      />
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-slate-800">
-                    <div className="flex flex-col">
-                      <span>{c.cliente_nome}</span>
-                      <span className="text-[9px] text-slate-400 font-black">{c.administradora || "MAGALU"}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
-                    {c.grupo || "-"} / {c.cota || "-"}
-                  </td>
-                  <td className="px-4 py-3">{maskValue(c.valor_venda)}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline" className="bg-slate-50 text-[10px]">
-                      {c.regra_comissao} ({c.taxa_comissao}%)
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 font-bold text-emerald-600">
-                    {maskValue(c.comissao_total)}
-                  </td>
-                  <td className="px-4 py-3 text-[11px] font-medium text-slate-500">
-                    <div className="flex flex-col">
-                      <span className="uppercase text-[9px] text-slate-400">{c.tipo_comissionamento}</span>
-                      <span className="font-bold text-slate-700">{c.parcela_atual || 1}/{c.parcelas_comissao} - {maskValue(c.comissao_total / c.parcelas_comissao)}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-blue-600 font-medium">
-                    {c.parcela_atual || 1}/{c.parcelas_comissao}
-                  </td>
-                  <td className="px-4 py-3">
-                    {(() => {
-                      const isInadimplente = inadimplentes.some(i => i.lead_id === c.lead_id && i.status !== "regularizado");
-                      if (c.status === "estornado") {
-                        return <Badge variant="destructive" className="text-[10px]">Estornado ({formatCurrency(c.valor_estorno)})</Badge>;
-                      }
-                      if (isInadimplente) {
-                        return (
-                          <div className="flex flex-col gap-1">
-                            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>
-                            <Badge variant="destructive" className="text-[9px] animate-pulse">Inadimplente</Badge>
+                  <React.Fragment key={admin}>
+                    <tr className="bg-slate-50/80">
+                      <td colSpan={9} className="px-4 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                            <BarChart3 className="h-3 w-3 text-primary" /> {admin}
+                          </span>
+                          <div className="flex gap-4">
+                            <span className="text-[10px] font-bold text-slate-400">SUBTOTAL {admin}: <span className="text-slate-700">{formatCurrency(subtotalTotal)}</span></span>
+                            <span className="text-[10px] font-bold text-emerald-600">A RECEBER (MÊS): {formatCurrency(subtotalMes)}</span>
                           </div>
-                        );
-                      }
-                      return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>;
-                    })()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      {c.status !== "estornado" && (
-                        <Button variant="ghost" size="sm" onClick={() => handleMarcarInadimplente(c)} className="text-amber-500 hover:text-amber-600 hover:bg-amber-50" title="Marcar 3 meses inadimplente">
-                          <AlertTriangle className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="sm" onClick={() => handleEditComissao(c)} className="text-blue-500 hover:text-blue-600 hover:bg-blue-50" title="Editar comissão">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteComissao(c.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" title="Excluir comissão">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
+                        </div>
+                      </td>
+                    </tr>
+                    {items.map(c => {
+                      const isPago = idsPagosNesteMes.includes(c.id);
+                      return (
+                        <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${selectedIds.includes(c.id) ? 'bg-emerald-50/30' : ''} ${isPago ? 'opacity-60 bg-slate-50' : ''}`}>
+                          <td className="px-4 py-1.5 text-center">
+                            {isPago ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
+                            ) : (
+                              <input 
+                                type="checkbox" 
+                                className="rounded border-slate-300"
+                                checked={selectedIds.includes(c.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) setSelectedIds(prev => [...prev, c.id]);
+                                  else setSelectedIds(prev => prev.filter(id => id !== c.id));
+                                }}
+                              />
+                            )}
+                          </td>
+                          <td className="px-4 py-1.5 font-semibold text-slate-800">
+                            <div className="flex flex-col">
+                              <span>{c.cliente_nome}</span>
+                              <span className="text-[9px] text-slate-400 font-black">{c.administradora || "MAGALU"}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-1.5 text-xs text-slate-500">
+                            {c.grupo || "-"} / {c.cota || "-"}
+                          </td>
+                          <td className="px-4 py-1.5">{maskValue(c.valor_venda)}</td>
+                          <td className="px-4 py-1.5">
+                            <Badge variant="outline" className="bg-slate-50 text-[10px]">
+                              {c.regra_comissao} ({c.taxa_comissao}%)
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-1.5 font-bold text-emerald-600">
+                            {maskValue(c.comissao_total)}
+                          </td>
+                          <td className="px-4 py-1.5 text-[11px] font-medium text-slate-500">
+                            <div className="flex flex-col">
+                              <span className="uppercase text-[9px] text-slate-400">{c.tipo_comissionamento}</span>
+                              <span className="font-bold text-slate-700">{c.parcela_atual || 1}/{c.parcelas_comissao} - {maskValue(c.comissao_total / c.parcelas_comissao)}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-1.5 text-blue-600 font-medium">
+                            {c.parcela_atual || 1}/{c.parcelas_comissao}
+                          </td>
+                          <td className="px-4 py-1.5">
+                            {(() => {
+                              const isInadimplente = inadimplentes.some(i => i.lead_id === c.lead_id && i.status !== "regularizado");
+                              if (c.status === "estornado") {
+                                return <Badge variant="destructive" className="text-[10px]">Estornado ({formatCurrency(c.valor_estorno)})</Badge>;
+                              }
+                              if (isInadimplente) {
+                                return (
+                                  <div className="flex flex-col gap-1">
+                                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>
+                                    <Badge variant="destructive" className="text-[9px] animate-pulse">Inadimplente</Badge>
+                                  </div>
+                                );
+                              }
+                              return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-[10px] border-none">Ativo</Badge>;
+                            })()}
+                          </td>
+                          <td className="px-4 py-1.5 text-right">
+                            <div className="flex justify-end gap-1">
+                              {c.status !== "estornado" && (
+                                <Button variant="ghost" size="sm" onClick={() => handleMarcarInadimplente(c)} className="text-amber-500 hover:text-amber-600 hover:bg-amber-50" title="Marcar 3 meses inadimplente">
+                                  <AlertTriangle className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" onClick={() => handleEditComissao(c)} className="text-blue-500 hover:text-blue-600 hover:bg-blue-50" title="Editar comissão">
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteComissao(c.id)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" title="Excluir comissão">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+
+              {filtered.length > 0 && (
+                <tr className="bg-slate-900 text-white font-black">
+                  <td colSpan={5} className="px-4 py-4 text-right uppercase text-xs tracking-widest">Valor Total Geral de Comissionamento:</td>
+                  <td className="px-4 py-4 text-emerald-400">{maskValue(totalComissoes)}</td>
+                  <td colSpan={2} className="px-4 py-4 text-right uppercase text-xs tracking-widest">A Receber Total (Mês):</td>
+                  <td className="px-4 py-4 text-emerald-400">{maskValue(totalReceberMes)}</td>
                 </tr>
-              );
-            })}
+              )}
+
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-slate-500 font-medium">Nenhuma comissão encontrada.</td>
@@ -942,6 +986,24 @@ export default function Comissoes() {
                 <label className="text-xs font-bold uppercase text-slate-500">Data da Venda</label>
                 <Input type="date" value={dataVenda} onChange={e => setDataVenda(e.target.value)} />
               </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-slate-500">Administradora</label>
+                <Select value={administradora} onValueChange={setAdministradora}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MAGALU">Magalu</SelectItem>
+                    <SelectItem value="ADEMICON">Ademicon</SelectItem>
+                    <SelectItem value="SERVOPA">Servopa</SelectItem>
+                    <SelectItem value="HS">HS Consórcios</SelectItem>
+                    <SelectItem value="OUTRA">Outra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase text-slate-500">Regra (Taxa)</label>
                 <Select value={regra} onValueChange={setRegra}>
