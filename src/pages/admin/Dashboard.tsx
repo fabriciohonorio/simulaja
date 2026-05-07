@@ -64,7 +64,7 @@ export default function Dashboard() {
   const [newLeadFlash, setNewLeadFlash] = useState(false);
   const prevCountRef = useRef(0);
   const { toast } = useToast();
-  const [showCommission, setShowCommission] = useState(true);
+  const [showCommission, setShowCommission] = useState(false);
 
   const handleDeleteLead = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
