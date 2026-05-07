@@ -221,7 +221,7 @@ export default function Comissoes() {
     if (tipoComissionamento === "REDUZIDA") parcelas_comissao = 10;
     if (tipoComissionamento === "LINEAR") parcelas_comissao = 4;
     if (regra === "INDICACAO_MAGALU") parcelas_comissao = 4;
-    if (regra === "ADEMICON") parcelas_comissao = 13;
+    if (regra === "ADEMICON") parcelas_comissao = 15;
 
     const comissao_total = (valorVenda * taxa_comissao) / 100;
     const payload = {
@@ -1021,7 +1021,7 @@ export default function Comissoes() {
                 </Select>
                 {(regra === "INDICACAO_MAGALU" || regra === "ADEMICON") && (
                   <p className="text-[10px] text-orange-500 font-bold">
-                    {regra === "ADEMICON" ? "Ademicon é fixo em 13x" : "Indicação Magalu é fixo em 4x"}
+                    {regra === "ADEMICON" ? "Ademicon é fixo em 15x" : "Indicação Magalu é fixo em 4x"}
                   </p>
                 )}
               </div>

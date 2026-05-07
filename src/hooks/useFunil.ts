@@ -560,7 +560,7 @@ export function useFunil() {
     if (comissaoTipo === "REDUZIDA") parcelas_comissao = 10;
     if (comissaoTipo === "LINEAR") parcelas_comissao = 4;
     if (comissaoRegra === "INDICACAO_MAGALU") parcelas_comissao = 4;
-    if (finalAdmin === "ADEMICON") parcelas_comissao = 13;
+    if (finalAdmin === "ADEMICON") parcelas_comissao = 15;
 
     const comissao_total = (valorCredito * taxa_comissao) / 100;
 
@@ -738,7 +738,7 @@ export function useFunil() {
             if (formData.comissao_tipo === "REDUZIDA") parcelas_comissao = 10;
             if (formData.comissao_tipo === "LINEAR") parcelas_comissao = 4;
             if (formData.comissao_regra === "INDICACAO_MAGALU") parcelas_comissao = 4;
-            if (formData.administradora === "ADEMICON") parcelas_comissao = 13;
+            if (formData.administradora === "ADEMICON") parcelas_comissao = 15;
 
             const valorVenda = Number(formData.valor_credito) || 0;
             const comissao_total = (valorVenda * taxa_comissao) / 100;
