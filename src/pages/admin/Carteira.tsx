@@ -143,6 +143,7 @@ export default function Carteira() {
       let leadDateMap = new Map<string, string>();
       let leadsSet = new Set<string>();
 
+      if (leadIds.length > 0) {
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
