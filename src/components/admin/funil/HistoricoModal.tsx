@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel } from "lucide-react";
+import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
@@ -14,12 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Lead, HistoricoContato } from "@/types/funil";
+import { LeadChat } from "./LeadChat";
 
 export const TIPO_CONTATO_OPTIONS = [
   { value: "whatsapp", label: "WhatsApp", icon: WhatsAppIcon },
@@ -51,6 +52,7 @@ export function HistoricoModal({
   const [tipoContato, setTipoContato] = useState("whatsapp");
   const [observacao, setObservacao] = useState("");
   const [resultado, setResultado] = useState("positivo");
+  const [activeTab, setActiveTab] = useState("chat");
 
   const fetchHistorico = useCallback(async (leadId: string) => {
     setLoadingHistorico(true);
@@ -87,7 +89,7 @@ export function HistoricoModal({
 
     if (error) {
       console.error("Erro ao salvar histórico:", error);
-      toast.error(`Erro ao salvar tratativa: ${error.message}${error.details ? ' - ' + error.details : ''}`);
+      toast.error(`Erro ao salvar tratativa: ${error.message}`);
       setSavingNota(false);
       return;
     }
@@ -98,10 +100,6 @@ export function HistoricoModal({
       updated_at: new Date().toISOString(),
     };
 
-    if (!lead.organizacao_id && organizationFromOtherLeads) {
-      updateData.organizacao_id = organizationFromOtherLeads;
-    }
-
     const { error: updateError } = await supabase
       .from("leads")
       .update(updateData)
@@ -109,12 +107,10 @@ export function HistoricoModal({
 
     if (updateError) {
       console.error("Erro ao atualizar lead:", updateError);
-      toast.error(`Erro ao atualizar lead: ${updateError.message}`);
     }
 
     toast.success("Tratativa registrada!");
 
-    // Atualiza o streak do usuário
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await atualizarStreak(user.id);
@@ -130,127 +126,133 @@ export function HistoricoModal({
 
   return (
     <Dialog open={!!lead} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <NotebookPen className="h-5 w-5 text-primary" />
-            Tratativas — {lead?.nome}
-          </DialogTitle>
-          <DialogDescription>
-            {formatCurrency(Number(lead?.valor_credito))} · {lead?.tipo_consorcio}
-          </DialogDescription>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+        <DialogHeader className="p-6 bg-slate-900 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl font-black">{lead?.nome}</DialogTitle>
+              <DialogDescription className="text-slate-400 font-bold">
+                {formatCurrency(Number(lead?.valor_credito))} · {lead?.tipo_consorcio?.toUpperCase()}
+              </DialogDescription>
+            </div>
+            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
+              <div className={`h-2 w-2 rounded-full ${lead?.atendimento_ia !== false ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-200">
+                {lead?.atendimento_ia !== false ? "AI Ativa" : "Mão Humana"}
+              </span>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border">
-          <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Nova Tratativa</p>
-
-          <div className="flex gap-2 flex-wrap">
-            {TIPO_CONTATO_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setTipoContato(opt.value)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-all ${tipoContato === opt.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
-                  }`}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <div className="px-6 border-b border-slate-100 bg-white">
+            <TabsList className="h-14 bg-transparent gap-8">
+              <TabsTrigger 
+                value="chat" 
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none h-full px-0 font-black uppercase text-[11px] tracking-widest gap-2"
               >
-                <opt.icon className="h-3 w-3" />
-                {opt.label}
-              </button>
-            ))}
+                <Zap className="h-4 w-4" /> WhatsApp Chat
+              </TabsTrigger>
+              <TabsTrigger 
+                value="history" 
+                className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none h-full px-0 font-black uppercase text-[11px] tracking-widest gap-2"
+              >
+                <NotebookPen className="h-4 w-4" /> Histórico CRM
+              </TabsTrigger>
+            </TabsList>
           </div>
 
-          <Textarea
-            placeholder="O que foi tratado? Anotações importantes..."
-            value={observacao}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setObservacao(e.target.value)}
-            className="min-h-[80px] text-sm resize-none"
-          />
+          <div className="flex-1 p-6 overflow-hidden">
+            <TabsContent value="chat" className="m-0 h-full">
+              {lead && <LeadChat lead={lead} />}
+            </TabsContent>
 
-          <div className="flex gap-2 flex-wrap">
-            {RESULTADO_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setResultado(opt.value)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${resultado === opt.value ? opt.color + " border-current" : "bg-background text-muted-foreground border-border hover:border-primary/40"
-                  }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+            <TabsContent value="history" className="m-0 h-full flex flex-col gap-6">
+              <div className="space-y-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nova Nota Interna</p>
 
-          <Button
-            onClick={handleSaveNota}
-            disabled={savingNota || !observacao.trim()}
-            size="sm"
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            {savingNota ? "Salvando..." : "Registrar Tratativa"}
-          </Button>
-        </div>
+                <div className="flex gap-2 flex-wrap">
+                  {TIPO_CONTATO_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setTipoContato(opt.value)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${tipoContato === opt.value
+                        ? "bg-indigo-600 text-white border-indigo-600 shadow-md"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-indigo-400"
+                        }`}
+                    >
+                      <opt.icon className="h-3.5 w-3.5" />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Histórico ({historico.length})
-          </p>
+                <Textarea
+                  placeholder="Descreva o que foi tratado..."
+                  value={observacao}
+                  onChange={(e: any) => setObservacao(e.target.value)}
+                  className="min-h-[100px] text-sm resize-none rounded-xl border-slate-200 bg-white"
+                />
 
-          {loadingHistorico ? (
-            <div className="flex justify-center py-6">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
-            </div>
-          ) : historico.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <NotebookPen className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Nenhuma tratativa registrada ainda.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {historico.map((h, i) => {
-                const resultadoOpt = RESULTADO_OPTIONS.find(r => r.value === h.resultado);
-                const tipoOpt = TIPO_CONTATO_OPTIONS.find(t => t.value === h.tipo);
-                return (
-                  <div key={h.id} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className={`h-2 w-2 rounded-full mt-1.5 shrink-0 ${h.resultado === "positivo" ? "bg-green-500" :
-                        h.resultado === "negativo" ? "bg-red-500" :
-                          h.resultado === "sem_retorno" ? "bg-gray-400" :
-                            "bg-yellow-500"
-                        }`} />
-                      {i < historico.length - 1 && (
-                        <div className="w-px flex-1 bg-border mt-1" />
-                      )}
-                    </div>
-                    <div className="flex-1 pb-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-muted-foreground" />}
-                        <span className="text-[10px] font-semibold text-muted-foreground capitalize">
-                          {tipoOpt?.label ?? h.tipo}
-                        </span>
-                        {resultadoOpt && (
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${resultadoOpt.color}`}>
-                            {resultadoOpt.label}
-                          </span>
-                        )}
-                        <span className="ml-auto text-[9px] text-muted-foreground/60">
-                          {h.created_at
-                            ? formatDistanceToNow(new Date(h.created_at), { addSuffix: true, locale: ptBR })
-                            : "—"}
-                        </span>
-                      </div>
-                      {h.observacao && (
-                        <p className="text-xs text-foreground bg-background rounded px-2 py-1.5 border border-border/50">
-                          {h.observacao}
-                        </p>
-                      )}
-                    </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex gap-2 flex-wrap">
+                    {RESULTADO_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setResultado(opt.value)}
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${resultado === opt.value ? opt.color + " border-current shadow-sm" : "bg-white text-slate-400 border-slate-100 hover:border-slate-300"
+                          }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+
+                  <Button
+                    onClick={handleSaveNota}
+                    disabled={savingNota || !observacao.trim()}
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-widest px-6 rounded-xl h-10 shadow-lg"
+                  >
+                    {savingNota ? "Salvando..." : "Salvar Nota"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Histórico de Atividades</h4>
+                  <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{historico.length} registros</span>
+                </div>
+
+                {loadingHistorico ? (
+                  <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-slate-300" /></div>
+                ) : historico.length === 0 ? (
+                  <div className="text-center py-12 text-slate-300 italic text-sm">Nenhuma nota interna registrada.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {historico.map((h) => {
+                      const tipoOpt = TIPO_CONTATO_OPTIONS.find(t => t.value === h.tipo);
+                      return (
+                        <div key={h.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-indigo-500" />}
+                              <span className="text-[10px] font-black uppercase text-slate-600">{tipoOpt?.label}</span>
+                            </div>
+                            <span className="text-[9px] font-bold text-slate-400">
+                              {h.created_at ? format(new Date(h.created_at), "dd/MM 'às' HH:mm", { locale: ptBR }) : "—"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-700 leading-relaxed">{h.observacao}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </div>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

@@ -29,6 +29,7 @@ const menuGroups: MenuGroup[] = [
             { icon: LayoutDashboard, label: "Dashboard", path: "/admin", color: "text-blue-500" },
             { icon: Briefcase, label: "Funil de Vendas", path: "/admin/funil", color: "text-emerald-500" },
             { icon: Filter, label: "Leads", path: "/admin/leads", color: "text-orange-500" },
+            { icon: MessageSquare, label: "Inbox WhatsApp", path: "/admin/whatsapp-inbox", color: "text-indigo-600" },
             { icon: CalendarDays, label: "Agendamentos", path: "/admin/agendamentos", color: "text-indigo-500" },
         ]
     },

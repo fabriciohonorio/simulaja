@@ -28,6 +28,8 @@ import Comissoes from "./pages/admin/Comissoes";
 import AIChatbot from "./components/AIChatbot";
 import { useLocation } from "react-router-dom";
 
+import WhatsAppInbox from "./pages/admin/WhatsAppInbox";
+
 const AppContent = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
@@ -64,6 +66,7 @@ const AppContent = () => {
           <Route path="comissoes" element={<Comissoes />} />
           <Route path="configuracoes" element={<Settings />} />
           <Route path="chat" element={<Chat />} />
+          <Route path="whatsapp-inbox" element={<WhatsAppInbox />} />
           <Route path="carta-analise" element={<CartaAnalise />} />
         </Route>
         <Route path="*" element={<NotFound />} />

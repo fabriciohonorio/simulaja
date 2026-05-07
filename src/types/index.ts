@@ -21,4 +21,5 @@ export interface Profile extends Omit<ProfileRow, 'tipo_acesso'> {
 
 export interface Lead extends Omit<LeadRow, 'dados_cadastro'> {
   dados_cadastro?: Record<string, any> | null;
+  atendimento_ia?: boolean;
 }
