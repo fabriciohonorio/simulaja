@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import LandingV2 from "./pages/LandingV2";
 import Simulador from "./pages/Simulador";
 import Indicacoes from "./pages/Indicacoes";
 import NotFound from "./pages/NotFound";
@@ -39,7 +40,8 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={<LandingV2 />} />
+        <Route path="/home" element={<Index />} />
         <Route path="/simulador" element={<Simulador />} />
         <Route path="/parceiro" element={<Simulador />} />
         <Route path="/indicacoes" element={<Indicacoes />} />
