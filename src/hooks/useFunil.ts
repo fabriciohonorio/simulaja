@@ -337,10 +337,22 @@ export function useFunil() {
   }, [leads, administradoraFilter]);
 
   const fireConfetti = useCallback(() => {
-    const end = Date.now() + 1500;
+    const end = Date.now() + 5000; // Aumentado para 5 segundos
     const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+      confetti({ 
+        particleCount: 3, 
+        angle: 60, 
+        spread: 55, 
+        origin: { x: 0 },
+        zIndex: 9999
+      });
+      confetti({ 
+        particleCount: 3, 
+        angle: 120, 
+        spread: 55, 
+        origin: { x: 1 },
+        zIndex: 9999
+      });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
@@ -503,31 +515,37 @@ export function useFunil() {
     if (!celebrationLead) return;
     setSaving(true);
 
+    const valorCredito = Number(celebrationLead.valor_credito) || 0;
+    const finalAdmin = (administradora === "none" ? null : administradora) || celebrationLead.administradora;
+
     const { error: carteiraError } = await supabase.from("carteira").upsert({
       lead_id: celebrationLead.id,
       nome: celebrationLead.nome,
+      celular: celebrationLead.celular,
       tipo_consorcio: celebrationLead.tipo_consorcio,
-      valor_credito: Number(celebrationLead.valor_credito),
+      valor_credito: valorCredito,
       grupo,
       cota,
-      administradora: (administradora === "none" ? null : administradora) || celebrationLead.administradora,
+      administradora: finalAdmin,
       status: "aguardando",
       data_adesao: celebrationLead.status_updated_at ? celebrationLead.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
       organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
+      updated_at: new Date().toISOString(),
     }, { onConflict: 'lead_id' });
 
     if (!carteiraError) {
       await supabase.from("leads").update({
         grupo,
         cota,
-        administradora: (administradora === "none" ? null : administradora) || celebrationLead.administradora,
+        administradora: finalAdmin,
       }).eq("id", celebrationLead.id);
     }
 
     setSaving(false);
 
     if (carteiraError) {
-      toast.error("Erro ao salvar na carteira");
+      console.error("Erro detalhado ao salvar na carteira:", carteiraError);
+      toast.error(`Erro ao salvar na carteira: ${carteiraError.message}`);
       return;
     }
 
@@ -536,16 +554,15 @@ export function useFunil() {
     if (comissaoRegra === "GOLDEN") taxa_comissao = 5;
     if (comissaoRegra === "SILVER") taxa_comissao = 3;
     if (comissaoRegra === "INDICACAO_MAGALU") taxa_comissao = 0.8;
-    if (celebrationLead.administradora === "ADEMICON") taxa_comissao = 2.5;
+    if (finalAdmin === "ADEMICON") taxa_comissao = 2.5;
 
     let parcelas_comissao = 1;
     if (comissaoTipo === "REDUZIDA") parcelas_comissao = 10;
     if (comissaoTipo === "LINEAR") parcelas_comissao = 4;
     if (comissaoRegra === "INDICACAO_MAGALU") parcelas_comissao = 4;
-    if (celebrationLead.administradora === "ADEMICON") parcelas_comissao = 13;
+    if (finalAdmin === "ADEMICON") parcelas_comissao = 13;
 
-    const valorVenda = Number(celebrationLead.valor_credito) || 0;
-    const comissao_total = (valorVenda * taxa_comissao) / 100;
+    const comissao_total = (valorCredito * taxa_comissao) / 100;
 
     await supabase.from("comissoes").insert({
       organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
@@ -554,20 +571,23 @@ export function useFunil() {
       cliente_nome: celebrationLead.nome,
       grupo,
       cota,
-      valor_venda: valorVenda,
+      valor_venda: valorCredito,
       regra_comissao: comissaoRegra,
       taxa_comissao,
       tipo_comissionamento: comissaoRegra === "INDICACAO_MAGALU" ? "LINEAR" : comissaoTipo,
       comissao_total,
       parcelas_comissao,
       data_venda: new Date().toISOString().split('T')[0],
-      administradora: celebrationLead.administradora
+      administradora: finalAdmin
     });
 
     toast.success("Cliente adicionado à carteira e comissão registrada!");
     setCelebrationLead(null);
     setComissaoRegra("DEMAIS");
     setComissaoTipo("REDUZIDA");
+    setGrupo("");
+    setCota("");
+    setAdministradora("");
   };
 
   const handleDeleteLead = async (leadId: string, leadNome: string) => {
