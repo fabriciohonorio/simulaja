@@ -13,9 +13,12 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+import CinematicIntro from "@/components/CinematicIntro";
+
 const Index = () => {
   const { toast } = useToast();
   const [utmParams, setUtmParams] = useState({ origem: "", meio: "", campanha: "" });
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -24,7 +27,17 @@ const Index = () => {
       meio: params.get("utm_medium") || "",
       campanha: params.get("utm_campaign") || "",
     });
+
+    const hasSeenIntro = localStorage.getItem("simulaja_intro_seen_v1");
+    if (!hasSeenIntro) {
+      setShowIntro(true);
+    }
   }, []);
+
+  const handleCloseIntro = () => {
+    setShowIntro(false);
+    localStorage.setItem("simulaja_intro_seen_v1", "true");
+  };
 
   const handleSimulateSubmit = async (leadData: any) => {
     const { nome, celular, categoriaLabel, credito, prazo, r50, leadScoreValor } = leadData;
@@ -87,7 +100,8 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background selection:bg-primary/20">
-      <Header />
+      {showIntro && <CinematicIntro onClose={handleCloseIntro} />}
+      <Header onOpenIntro={() => setShowIntro(true)} />
       
       <Hero />
 

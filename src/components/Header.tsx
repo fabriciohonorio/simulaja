@@ -3,7 +3,7 @@ import { Menu, X, Phone } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5541997925357";
 
-const Header = () => {
+const Header = ({ onOpenIntro }: { onOpenIntro?: () => void }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -16,6 +16,7 @@ const Header = () => {
   }, []);
 
   const navLinks = [
+    { label: "Explorar", href: "#intro", isIntro: true },
     { label: "Sobre", href: "#about" },
     { label: "Segmentos", href: "#segments" },
     { label: "Simulador", href: "#simulator" },
@@ -39,6 +40,12 @@ const Header = () => {
             <a 
               key={link.label} 
               href={link.href}
+              onClick={(e) => {
+                if (link.isIntro && onOpenIntro) {
+                  e.preventDefault();
+                  onOpenIntro();
+                }
+              }}
               className="text-sm font-bold transition-colors hover:text-secondary text-white/80 hover:text-white"
             >
               {link.label}
@@ -71,7 +78,13 @@ const Header = () => {
                 key={link.label} 
                 href={link.href}
                 className="text-lg font-bold p-2 text-white/80 hover:text-white hover:bg-white/5 rounded-lg"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={(e) => {
+                  if (link.isIntro && onOpenIntro) {
+                    e.preventDefault();
+                    onOpenIntro();
+                  }
+                  setIsMenuOpen(false);
+                }}
               >
                 {link.label}
               </a>
