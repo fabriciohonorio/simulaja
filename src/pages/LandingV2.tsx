@@ -19,58 +19,58 @@ import { useNavigate } from "react-router-dom";
 const segments = [
   {
     id: "imoveis",
-    icon: Home,
     title: "IMÓVEIS",
     subtitle: "Casa, Apartamento, Construção, Comercial",
     subcategories: ["Casa", "Apartamento", "Construção", "Comercial"],
+    img: "/intro/luxury_house_facade_1778269450928.png",
     color: "#d4703f"
   },
   {
     id: "carros",
-    icon: Car,
     title: "CARROS",
     subtitle: "Sedãs, SUVs, Hatchbacks, Picapes",
     subcategories: ["Sedãs", "SUVs", "Hatchbacks", "Picapes"],
+    img: "/intro/premium_car_garage_1778269468949.png",
     color: "#d4703f"
   },
   {
     id: "motos",
-    icon: Bike,
     title: "MOTOS",
     subtitle: "Urbanas, Trail, Scooters, Esportivas",
     subcategories: ["Urbanas", "Trail", "Scooters", "Esportivas"],
+    img: "/intro/urban_moto_night_1778269490027.png",
     color: "#d4703f"
   },
   {
     id: "nautica",
-    icon: Ship,
     title: "NÁUTICA",
     subtitle: "Lanchas, Jet Skis, Barcos, Acessórios",
     subcategories: ["Lanchas", "Jet Skis", "Barcos", "Acessórios"],
+    img: "/intro/speedboat_sunset_1778269579296.png",
     color: "#d4703f"
   },
   {
     id: "frotas",
-    icon: Truck,
     title: "FROTAS",
     subtitle: "Caminhões, Tratores, Máquinas Agrícolas, Utilitários",
     subcategories: ["Caminhões", "Tratores", "Maq. Agrícolas", "Utilitários"],
+    img: "/intro/modern_truck_highway_1778269632881.png",
     color: "#d4703f"
   },
   {
     id: "agro",
-    icon: Leaf,
     title: "AGRO",
     subtitle: "Terras, Maquinário, Pecuária, Infraestrutura",
     subcategories: ["Terras", "Maquinário", "Pecuária", "Infraestrutura"],
+    img: "/intro/agro_harvest_sunset_1778269711978.png",
     color: "#d4703f"
   },
   {
     id: "investimentos",
-    icon: TrendingUp,
     title: "INVESTIMENTOS",
     subtitle: "Previdência, Imóvel, Renda Fixa, Futuro",
     subcategories: ["Previdência", "Imóvel", "Renda Fixa", "Ed. & Futuro"],
+    img: "/segment-investimento.png",
     color: "#d4703f"
   }
 ];
@@ -199,20 +199,27 @@ export default function LandingV2() {
                     }`}
                     style={{ 
                       display: anyExpanded && !isExpanded ? 'none' : 'block',
-                      width: isExpanded ? '100%' : 'auto'
+                      width: isExpanded ? '100%' : 'auto',
+                      background: 'black'
                     }}
                   >
-                    <div className={`flex flex-col h-full ${isExpanded ? 'md:flex-row gap-12 items-center' : ''}`}>
+                    {/* Background Image */}
+                    <img 
+                      src={s.img} 
+                      alt={s.title}
+                      className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-90 transition-all duration-1000 group-hover:scale-110"
+                    />
+                    
+                    {/* Dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+                    <div className={`relative z-10 flex flex-col h-full ${isExpanded ? 'md:flex-row gap-12 items-center' : ''}`}>
                       <div className={`flex-1 ${isExpanded ? 'max-w-md' : ''}`}>
-                        <motion.div layout="position" className="mb-6">
-                           <s.icon className={`w-12 h-12 transition-all duration-500 ${isExpanded ? 'w-16 h-16 text-[#d4703f]' : 'text-slate-500 group-hover:text-[#d4703f]'}`} strokeWidth={1} />
-                        </motion.div>
-                        
-                        <motion.h3 layout="position" className="text-3xl font-black mb-2 tracking-tight group-hover:text-[#d4703f] transition-colors">
+                        <motion.h3 layout="position" className="text-3xl md:text-5xl font-black mb-4 tracking-tight text-white drop-shadow-2xl">
                           {s.title}
                         </motion.h3>
                         
-                        <motion.p layout="position" className="text-sm text-slate-500 font-medium leading-relaxed mb-8">
+                        <motion.p layout="position" className="text-sm md:text-lg text-white/70 font-medium leading-relaxed mb-8 drop-shadow-md">
                           {s.subtitle}
                         </motion.p>
 
