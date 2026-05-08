@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, ChevronRight, MousePointer2 } from "lucide-react";
+import { 
+  X, 
+  Heart, 
+  ChevronRight, 
+  MousePointer2
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CinematicIntroProps {
@@ -13,42 +18,49 @@ const SEGMENTS = [
     title: "IMÓVEIS",
     desc: "Casa, Apartamento, Construção, Comercial",
     img: "/intro/luxury_house_facade_1778269450928.png",
+    color: "#d4703f"
   },
   {
     id: "carros",
     title: "CARROS",
     desc: "Sedãs, SUVs, Hatchbacks, Picapes",
     img: "/intro/premium_car_garage_1778269468949.png",
+    color: "#6b5dd6"
   },
   {
     id: "motos",
     title: "MOTOS",
     desc: "Urbanas, Trail, Scooters, Esportivas",
     img: "/intro/urban_moto_night_1778269490027.png",
+    color: "#d4703f"
   },
   {
     id: "nautica",
     title: "NÁUTICA",
     desc: "Lanchas, Jet Skis, Barcos, Acessórios",
     img: "/intro/speedboat_sunset_1778269579296.png",
+    color: "#6b5dd6"
   },
   {
     id: "frotas",
     title: "FROTAS",
     desc: "Caminhões, Tratores, Máquinas Agrícolas, Utilitários",
     img: "/intro/modern_truck_highway_1778269632881.png",
+    color: "#d4703f"
   },
   {
     id: "agro",
     title: "AGRO",
     desc: "Terras, Maquinário, Pecuária, Infraestrutura",
     img: "/intro/agro_harvest_sunset_1778269711978.png",
+    color: "#6b5dd6"
   },
   {
     id: "investimentos",
     title: "INVESTIMENTOS",
     desc: "Previdência, Imóvel, Renda Fixa, Educação & Futuro",
     img: "/segment-investimento.png",
+    color: "#d4703f"
   },
 ];
 
@@ -183,38 +195,44 @@ export default function CinematicIntro({ onClose }: CinematicIntroProps) {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 + index * 0.1, duration: 0.8 }}
                         whileHover={{ y: -5 }}
-                        className="group relative h-[300px] md:h-[350px] rounded-3xl overflow-hidden border border-white/10 cursor-pointer shadow-2xl"
+                        className="group relative h-[300px] md:h-[400px] rounded-[2rem] overflow-hidden border border-white/5 cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-black"
                         onClick={handleClose}
                       >
                         {/* Background Image */}
-                        <div 
-                          className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
-                          style={{ backgroundImage: `url(${segment.img})` }}
+                        <motion.img 
+                          src={segment.img} 
+                          alt={segment.title}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[4s] ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100"
                         />
                         
-                        {/* Overlays */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 transition-opacity group-hover:opacity-70" />
-                        <div className="absolute inset-0 bg-[#0a0a0a]/20 group-hover:bg-[#d4703f]/10 transition-colors" />
-
+                        {/* Cinematic Overlays */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90 transition-opacity group-hover:opacity-60" />
+                        <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[2rem]" />
+                        
                         {/* Content */}
-                        <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                        <div className="absolute inset-0 p-10 flex flex-col justify-end">
                           <motion.div
-                            initial={{ x: -10, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.5 + index * 0.1 }}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 + index * 0.1, duration: 0.8 }}
                           >
-                            <h3 className="text-2xl font-black tracking-tight mb-2 group-hover:text-[#d4703f] transition-colors">{segment.title}</h3>
-                            <p className="text-sm text-white/60 mb-6 line-clamp-2 font-medium leading-relaxed">{segment.desc}</p>
+                            <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-3 text-white drop-shadow-2xl">
+                              {segment.title}
+                            </h3>
+                            <div className="w-12 h-1 bg-[#d4703f] mb-4 transition-all duration-500 group-hover:w-24" />
+                            <p className="text-sm md:text-base text-white/70 mb-8 max-w-xs font-medium leading-relaxed drop-shadow-md">
+                              {segment.desc}
+                            </p>
                             
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#d4703f] group-hover:translate-x-2 transition-transform">
-                              <span>Saber mais</span>
-                              <ChevronRight className="w-3 h-3" />
+                            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-white transition-all">
+                              <span className="border-b border-white/20 group-hover:border-white transition-colors pb-1">Ver Experiência</span>
+                              <ChevronRight className="w-4 h-4 text-[#d4703f]" />
                             </div>
                           </motion.div>
                         </div>
 
-                        {/* Border Glow */}
-                        <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#d4703f]/30 rounded-3xl transition-all" />
+                        {/* Top Lighting Effect */}
+                        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                       </motion.div>
                     ))}
                   </div>
