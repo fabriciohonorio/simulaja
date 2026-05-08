@@ -2,7 +2,8 @@ import cardImovel from "@/assets/card-imovel.jpg";
 import cardVeiculo from "@/assets/card-veiculo.jpg";
 import cardMoto from "@/assets/card-moto.jpg";
 import cardNautica from "@/assets/card-nautica.jpg";
-import cardAgro from "@/assets/card-agro.jpg";
+import cardFrotas from "@/assets/segment-truck.webp";
+import cardAgro from "@/assets/card-agro.webp";
 import cardInvestimento from "@/assets/card-investment-chalets.webp";
 
 const segments = [
@@ -25,6 +26,11 @@ const segments = [
     title: "Consórcio Náutico",
     desc: "Jet ski, lancha ou barco — realize o sonho náutico com planejamento.",
     image: cardNautica,
+  },
+  {
+    title: "Consórcio de Frotas",
+    desc: "Caminhões, tratores e máquinas — potência para o seu negócio.",
+    image: cardFrotas,
   },
   {
     title: "Consórcio Agro",
