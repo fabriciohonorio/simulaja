@@ -124,6 +124,7 @@ export default function MissoesDiarias({
             grupo: lead.grupo,
             cota: lead.cota,
             status: "EP OK",
+            updated_at: new Date().toISOString(),
             organizacao_id: orgId
           });
           if (insErr) throw insErr;
@@ -131,7 +132,7 @@ export default function MissoesDiarias({
       } else {
         const { error } = await supabase
           .from("carteira")
-          .update({ status: "EP OK" })
+          .update({ status: "EP OK", updated_at: new Date().toISOString() })
           .eq("id", targetId);
         if (error) throw error;
       }

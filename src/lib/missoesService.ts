@@ -150,11 +150,15 @@ export const calcularMissoes = async (
     // 1. Verificar quem já está com EP OK na carteira
     const { data: carteiraEP } = await supabase
       .from("carteira")
-      .select("lead_id, status")
+      .select("lead_id, status, updated_at")
       .in("lead_id", leadIds)
       .eq("status", "EP OK");
 
-    const idsPagos = new Set((carteiraEP || []).map(c => c.lead_id));
+    const idsPagos = new Set(
+      (carteiraEP || [])
+        .filter(c => c.updated_at && c.updated_at >= inicioMesAtual)
+        .map(c => c.lead_id)
+    );
 
     // 2. Verificar quem está inadimplente (bloqueia EP OK automático)
     const { data: inadEP } = await (supabase as any)
@@ -395,7 +399,7 @@ export const getLeadsForMissao = async (
     // 2. Pegar status na Carteira
     const { data: carteira } = await supabase
       .from("carteira")
-      .select("id, lead_id, status")
+      .select("id, lead_id, status, updated_at")
       .in("lead_id", leadIds);
 
     // 3. Pegar Inadimplentes (por nome, integração total)
@@ -408,10 +412,11 @@ export const getLeadsForMissao = async (
 
     const carteiraMap = new Map((carteira || []).map(c => [c.lead_id, c]));
     const inadSet = new Set((inad || []).map((i: any) => normalizeName(i.nome)));
+    const inicioMesAtual = format(new Date(now.getFullYear(), now.getMonth(), 1), "yyyy-MM-dd");
 
     return leads.map(l => {
       const c = carteiraMap.get(l.id);
-      const isPaid = c?.status === "EP OK";
+      const isPaid = c?.status === "EP OK" && c?.updated_at && c.updated_at >= inicioMesAtual;
       const isInad = inadSet.has(normalizeName(l.nome));
 
       let statusLabel = l.status === "negociacao" ? "📈 Negociação" : 
