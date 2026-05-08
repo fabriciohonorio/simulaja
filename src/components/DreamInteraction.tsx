@@ -1,10 +1,10 @@
 import { useState } from "react";
-import cardImovel from "@/assets/card-imovel.jpg";
-import cardVeiculo from "@/assets/card-veiculo.jpg";
-import cardMoto from "@/assets/card-moto.jpg";
-import cardAgro from "@/assets/card-agro.jpg";
-import cardNautica from "@/assets/card-nautica.jpg";
-import cardInvest from "@/assets/card-investment-chalets.jpg";
+import cardImovel from "@/assets/card-imovel.webp";
+import cardVeiculo from "@/assets/card-veiculo.webp";
+import cardMoto from "@/assets/card-moto.webp";
+import cardAgro from "@/assets/card-agro.webp";
+import cardNautica from "@/assets/card-nautica.webp";
+import cardInvest from "@/assets/card-investment-chalets.webp";
 
 const segments = [
   { id: "imovel", label: "Imóvel", image: cardImovel, top: "48%", left: "64%" },
