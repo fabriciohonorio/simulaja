@@ -156,11 +156,12 @@ export default function CinematicIntro({ onClose }: CinematicIntroProps) {
                   <Heart className="w-12 h-12 text-white fill-white" />
                 </motion.div>
 
-                <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
-                  Consórcio
+                <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50 uppercase leading-[0.9]">
+                  O Especialista<br />
+                  <span className="text-[#d4703f]">Consórcio</span>
                 </h1>
-                <p className="text-lg md:text-xl font-light tracking-[0.2em] text-white/60 uppercase mb-12">
-                  Explore suas possibilidades
+                <p className="text-sm md:text-lg font-light tracking-[0.4em] text-white/40 uppercase mb-12">
+                  Gestão & Inteligência Financeira
                 </p>
 
                 <div className="flex flex-col items-center gap-2 text-white/30">
@@ -178,71 +179,138 @@ export default function CinematicIntro({ onClose }: CinematicIntroProps) {
                 key="grid"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.8 }}
-                className="relative z-10 w-full h-full overflow-y-auto pt-24 pb-12 px-6 md:px-12"
+                    <ChevronLeft className="w-4 h-4" /> Voltar
+                  </button>
+                ) : (
+                  <h2 className="text-xs font-black tracking-[0.5em] text-[#d4703f] uppercase">
+                    Explore os Segmentos
+                  </h2>
+                )}
+              </div>
+              <button 
+                onClick={handleClose}
+                className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-110 transition-all group"
               >
-                <div className="max-w-6xl mx-auto">
-                  <div className="mb-12 text-center">
-                    <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">O que você deseja conquistar?</h2>
-                    <p className="text-white/40 font-medium">Selecione uma categoria para iniciar sua jornada imersiva</p>
-                  </div>
+                <X className="w-5 h-5 text-white/60 group-hover:text-white" />
+              </button>
+            </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {SEGMENTS.map((segment, index) => (
-                      <motion.div
-                        key={segment.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 + index * 0.1, duration: 0.8 }}
-                        whileHover={{ y: -5 }}
-                        className="group relative h-[300px] md:h-[400px] rounded-[2rem] overflow-hidden border border-white/5 cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-black"
-                        onClick={handleClose}
-                      >
-                        {/* Background Image */}
-                        <motion.img 
-                          src={segment.img} 
-                          alt={segment.title}
-                          decoding="async"
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[4s] ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100"
-                        />
-                        
-                        {/* Cinematic Overlays */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90 transition-opacity group-hover:opacity-60" />
-                        <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[2rem]" />
-                        
-                        {/* Content */}
-                        <div className="absolute inset-0 p-10 flex flex-col justify-end">
-                          <motion.div
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.5 + index * 0.1, duration: 0.8 }}
+            {/* Cinematic Grid */}
+            <div className={`grid grid-cols-1 ${expandedId ? 'md:grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'} gap-8 relative z-10`}>
+              <AnimatePresence>
+                {SEGMENTS.map((segment, index) => {
+                  const isExpanded = expandedId === segment.id;
+                  const anyExpanded = expandedId !== null;
+
+                  if (anyExpanded && !isExpanded) return null;
+
+                  return (
+                    <motion.div
+                      key={segment.id}
+                      layoutId={segment.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ 
+                        opacity: 1, 
+                        y: 0,
+                        height: isExpanded ? "auto" : "400px"
+                      }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: isExpanded ? 0 : 0.1 + index * 0.1, duration: 0.8 }}
+                      whileHover={!isExpanded ? { y: -5 } : {}}
+                      className={`group relative rounded-[2rem] overflow-hidden border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-black ${
+                        isExpanded ? 'w-full max-w-5xl mx-auto' : 'cursor-pointer'
+                      }`}
+                      onClick={() => !isExpanded && setExpandedId(segment.id)}
+                    >
+                      {/* Background Image with Ken Burns */}
+                      <motion.img 
+                        src={segment.img} 
+                        alt={segment.title}
+                        decoding="async"
+                        animate={{ scale: [1, 1.15] }}
+                        transition={{ 
+                          duration: 20, 
+                          repeat: Infinity, 
+                          repeatType: "reverse", 
+                          ease: "linear" 
+                        }}
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-1000"
+                      />
+                      
+                      {/* Cinematic Overlays */}
+                      <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent ${isExpanded ? 'opacity-95' : 'opacity-90 group-hover:opacity-60'}`} />
+                      <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[2rem]" />
+                      
+                      {/* Content */}
+                      <div className={`relative z-10 p-10 flex flex-col ${isExpanded ? 'md:flex-row gap-12 min-h-[500px] items-center' : 'justify-end h-full'}`}>
+                        <div className={`flex-1 ${isExpanded ? 'max-w-md' : ''}`}>
+                          <motion.h3 
+                            layout="position"
+                            className={`${isExpanded ? 'text-5xl md:text-7xl' : 'text-3xl md:text-4xl'} font-black tracking-tight mb-3 text-white drop-shadow-2xl`}
                           >
-                            <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-3 text-white drop-shadow-2xl">
-                              {segment.title}
-                            </h3>
-                            <div className="w-12 h-1 bg-[#d4703f] mb-4 transition-all duration-500 group-hover:w-24" />
-                            <p className="text-sm md:text-base text-white/70 mb-8 max-w-xs font-medium leading-relaxed drop-shadow-md">
-                              {segment.desc}
-                            </p>
-                            
+                            {segment.title}
+                          </motion.h3>
+                          <motion.div layout="position" className="w-12 h-1 bg-[#d4703f] mb-4 transition-all duration-500 group-hover:w-24" />
+                          <motion.p layout="position" className={`${isExpanded ? 'text-lg' : 'text-sm md:text-base'} text-white/70 mb-8 max-w-xs font-medium leading-relaxed drop-shadow-md`}>
+                            {segment.desc}
+                          </motion.p>
+                          
+                          {!isExpanded && (
                             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-white transition-all">
-                              <span className="border-b border-white/20 group-hover:border-white transition-colors pb-1">Ver Experiência</span>
+                              <span className="border-b border-white/20 group-hover:border-white transition-colors pb-1">Ver Opções</span>
                               <ChevronRight className="w-4 h-4 text-[#d4703f]" />
                             </div>
-                          </motion.div>
+                          )}
                         </div>
 
-                        {/* Top Lighting Effect */}
-                        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      )}
-    </AnimatePresence>
+                        {/* Subcategories Grid (2x2) */}
+                        {isExpanded && (
+                          <motion.div 
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="flex-1 w-full"
+                          >
+                            <div className="grid grid-cols-2 gap-4">
+                              {segment.subcategories.map((sub, i) => (
+                                <motion.button
+                                  key={sub}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: 0.5 + i * 0.1 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectSub(segment.id, sub);
+                                  }}
+                                  className="p-8 text-left bg-white/5 border border-white/10 rounded-2xl hover:bg-[#d4703f]/20 hover:border-[#d4703f]/50 transition-all group/sub relative overflow-hidden"
+                                >
+                                  <div className="relative z-10">
+                                    <span className="text-xs font-black uppercase tracking-widest text-white/40 group-hover/sub:text-[#d4703f] transition-colors block mb-1">Explorar</span>
+                                    <span className="text-xl font-bold text-white group-hover/sub:scale-110 transition-transform block">{sub}</span>
+                                  </div>
+                                  <ArrowRight className="absolute right-6 bottom-6 w-5 h-5 text-[#d4703f] opacity-0 group-hover/sub:opacity-100 transition-all -translate-x-4 group-hover/sub:translate-x-0" />
+                                </motion.button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+
+                      {/* Top Lighting Effect */}
+                      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+
+            {/* Background Decorative Element */}
+            <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-[#d4703f]/5 blur-[150px] pointer-events-none -z-10" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
-}
+};
+
+export default CinematicIntro;

@@ -1,4 +1,26 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { WhatsAppIcon } from "@/components/SocialIcons";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CRMDrawer } from "@/components/admin/CRMDrawer";
+import { jsPDF } from "jspdf";
+import { 
+  Calculator, 
+  ChevronRight, 
+  TrendingDown, 
+  CircleDollarSign,
+  FileText,
+  Share2,
+  Calendar,
+  CheckCircle2,
+  Info
+} from "lucide-react";
+
+import { GRUPOS, CATEGORIAS, GrupoItem } from "@/components/ConsortiumSimulator";
 
 const sliderThumbStyles = `
   input[type=range].custom-slider::-webkit-slider-thumb {
@@ -41,29 +63,6 @@ const sliderThumbStyles = `
   }
 `;
 
-import { useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { WhatsAppIcon } from "@/components/SocialIcons";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CRMDrawer } from "@/components/admin/CRMDrawer";
-import { jsPDF } from "jspdf";
-import { 
-  Calculator, 
-  ChevronRight, 
-  TrendingDown, 
-  CircleDollarSign,
-  FileText,
-  Share2,
-  Calendar,
-  CheckCircle2,
-  Info
-} from "lucide-react";
-
-import { GRUPOS, CATEGORIAS, GrupoItem } from "@/components/ConsortiumSimulator";
-
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const MAX_CONSULTAS = 5;
@@ -82,13 +81,22 @@ export default function Simulador() {
   const [searchParams] = useSearchParams();
   const refCelular = searchParams.get("ref") || "";
   const refNome = searchParams.get("nome") ? decodeURIComponent(searchParams.get("nome")!) : "";
+  const initialSegment = searchParams.get("segmento") || "imovel";
+  const initialSub = searchParams.get("sub") || "";
   const isIndicacao = refCelular.length >= 10;
   const wppDestino = isIndicacao ? refCelular : "5541997925357";
 
-  const [categoria, setCategoria] = useState("imovel");
+  const [categoria, setCategoria] = useState(initialSegment);
   const [idx, setIdx] = useState(4);
   const [nome, setNome] = useState("");
   const [wpp, setWpp] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("segmento")) {
+      setCategoria(searchParams.get("segmento")!);
+    }
+  }, [searchParams]);
+
   const [errNome, setErrNome] = useState(false);
   const [errWpp, setErrWpp] = useState(false);
   const [consultas, setConsultas] = useState(0);
@@ -106,12 +114,12 @@ export default function Simulador() {
   const resultRef = useRef<HTMLDivElement>(null);
   const lockRef = useRef<HTMLDivElement>(null);
 
-  const lista = GRUPOS[categoria];
-  const g = lista[idx];
+  const lista = GRUPOS[categoria] || GRUPOS["imovel"];
+  const g = lista[idx] || lista[0];
 
   useEffect(() => {
     setIdx(Math.min(4, lista.length - 1));
-  }, [categoria]);
+  }, [categoria, lista]);
 
   const mascaraWpp = (value: string) => {
     let v = value.replace(/\D/g, "");
@@ -122,8 +130,6 @@ export default function Simulador() {
   };
 
   const pct = lista.length > 1 ? (idx / (lista.length - 1)) * 100 : 0;
-  const isLinear = categoria === "servicos";
-
   const confirmar = async () => {
     const nomeOk = nome.trim().length > 0;
     const wppOk = wpp.replace(/\D/g, "").length >= 10;

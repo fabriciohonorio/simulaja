@@ -80,7 +80,7 @@ export default function Dashboard() {
     }
   };
 
-  const loteriaFederal = localStorage.getItem("simulaja_loteria_federal") || "";
+  const loteriaFederal = localStorage.getItem("especialista_loteria_federal") || "";
 
   useEffect(() => {
     if (!profile?.organizacao_id) return;

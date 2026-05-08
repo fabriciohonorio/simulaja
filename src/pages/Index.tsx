@@ -28,7 +28,7 @@ const Index = () => {
       campanha: params.get("utm_campaign") || "",
     });
 
-    const hasSeenIntro = localStorage.getItem("simulaja_intro_seen_v1");
+    const hasSeenIntro = localStorage.getItem("especialista_intro_seen_v1");
     if (!hasSeenIntro) {
       setShowIntro(true);
     }
@@ -36,7 +36,7 @@ const Index = () => {
 
   const handleCloseIntro = () => {
     setShowIntro(false);
-    localStorage.setItem("simulaja_intro_seen_v1", "true");
+    localStorage.setItem("especialista_intro_seen_v1", "true");
   };
 
   const handleSimulateSubmit = async (leadData: any) => {
