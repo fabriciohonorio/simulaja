@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckCircle2, ArrowRight, ClipboardCheck } from "lucide-react";
-import heroBg from "@/assets/hero-premium-desk.jpg";
+import heroBg from "@/assets/hero-premium-desk.webp";
 import DreamInteraction from "./DreamInteraction";
 
 const Hero = () => {

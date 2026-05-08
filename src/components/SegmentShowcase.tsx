@@ -5,37 +5,37 @@ const segments = [
     id: "imovel",
     label: "Consórcio Imobiliário",
     desc: "Casa própria, apartamento ou terreno com planejamento inteligente.",
-    image: "/segment-imovel.png",
+    image: "/segment-imovel.webp",
   },
   {
     id: "veiculo",
     label: "Consórcio de Veículos",
     desc: "SUV, sedan ou utilitário — sem juros e com poder de compra à vista.",
-    image: "/segment-veiculo.png",
+    image: "/segment-veiculo.webp",
   },
   {
     id: "moto",
     label: "Consórcio de Motos",
     desc: "A moto dos seus sonhos com parcelas que cabem no seu bolso.",
-    image: "/segment-moto.png",
+    image: "/segment-moto.webp",
   },
   {
     id: "nautico",
     label: "Consórcio Náutico",
     desc: "Jet ski, lancha ou barco — realize o sonho náutico com planejamento.",
-    image: "/segment-nautico.png",
+    image: "/segment-nautico.webp",
   },
   {
     id: "agro",
     label: "Consórcio Agro",
     desc: "Tratores, máquinas e implementos para alavancar sua produção.",
-    image: "/segment-agro.png",
+    image: "/segment-agro.webp",
   },
   {
     id: "investimento",
     label: "Consórcio para Investimento",
     desc: "Construa patrimônio com estratégia e sem juros bancários.",
-    image: "/segment-investimento.png",
+    image: "/segment-investimento.webp",
   },
 ];
 

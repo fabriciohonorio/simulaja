@@ -22,7 +22,7 @@ const segments = [
     title: "IMÓVEIS",
     subtitle: "Casa, Apartamento, Construção, Comercial",
     subcategories: ["Casa", "Apartamento", "Construção", "Comercial"],
-    img: "/intro/luxury_house_facade_1778269450928.png",
+    img: "/intro/luxury_house_facade_1778269450928.webp",
     color: "#d4703f"
   },
   {
@@ -30,7 +30,7 @@ const segments = [
     title: "CARROS",
     subtitle: "Sedãs, SUVs, Hatchbacks, Picapes",
     subcategories: ["Sedãs", "SUVs", "Hatchbacks", "Picapes"],
-    img: "/intro/premium_car_garage_1778269468949.png",
+    img: "/intro/premium_car_garage_1778269468949.webp",
     color: "#d4703f"
   },
   {
@@ -38,7 +38,7 @@ const segments = [
     title: "MOTOS",
     subtitle: "Urbanas, Trail, Scooters, Esportivas",
     subcategories: ["Urbanas", "Trail", "Scooters", "Esportivas"],
-    img: "/intro/urban_moto_night_1778269490027.png",
+    img: "/intro/urban_moto_night_1778269490027.webp",
     color: "#d4703f"
   },
   {
@@ -46,7 +46,7 @@ const segments = [
     title: "NÁUTICA",
     subtitle: "Lanchas, Jet Skis, Barcos, Acessórios",
     subcategories: ["Lanchas", "Jet Skis", "Barcos", "Acessórios"],
-    img: "/intro/speedboat_sunset_1778269579296.png",
+    img: "/intro/speedboat_sunset_1778269579296.webp",
     color: "#d4703f"
   },
   {
@@ -54,7 +54,7 @@ const segments = [
     title: "FROTAS",
     subtitle: "Caminhões, Tratores, Máquinas Agrícolas, Utilitários",
     subcategories: ["Caminhões", "Tratores", "Maq. Agrícolas", "Utilitários"],
-    img: "/intro/modern_truck_highway_1778269632881.png",
+    img: "/intro/modern_truck_highway_1778269632881.webp",
     color: "#d4703f"
   },
   {
@@ -62,7 +62,7 @@ const segments = [
     title: "AGRO",
     subtitle: "Terras, Maquinário, Pecuária, Infraestrutura",
     subcategories: ["Terras", "Maquinário", "Pecuária", "Infraestrutura"],
-    img: "/intro/agro_harvest_sunset_1778269711978.png",
+    img: "/intro/agro_harvest_sunset_1778269711978.webp",
     color: "#d4703f"
   },
   {
@@ -207,6 +207,8 @@ export default function LandingV2() {
                     <img 
                       src={s.img} 
                       alt={s.title}
+                      loading="lazy"
+                      decoding="async"
                       className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-90 transition-all duration-1000 group-hover:scale-110"
                     />
                     

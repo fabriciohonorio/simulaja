@@ -3,7 +3,7 @@ import cardVeiculo from "@/assets/card-veiculo.jpg";
 import cardMoto from "@/assets/card-moto.jpg";
 import cardNautica from "@/assets/card-nautica.jpg";
 import cardAgro from "@/assets/card-agro.jpg";
-import cardInvestimento from "@/assets/card-investment-chalets.jpg";
+import cardInvestimento from "@/assets/card-investment-chalets.webp";
 
 const segments = [
   {
@@ -62,6 +62,8 @@ const SegmentCards = () => {
                 <img
                   src={seg.image}
                   alt={seg.title}
+                  loading="lazy"
+                  decoding="async"
                   className="cin-card-img w-full h-full object-cover"
                 />
               </div>

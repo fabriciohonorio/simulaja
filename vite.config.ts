@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc"
 import path from "path"
 import { VitePWA } from "vite-plugin-pwa"
 import { componentTagger } from "lovable-tagger"
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer"
 
 // https://vitejs.dev/config/
 const buildVersion = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
@@ -13,6 +14,26 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    ViteImageOptimizer({
+      png: { quality: 80 },
+      jpeg: { quality: 75 },
+      jpg: { quality: 75 },
+      webp: { lossy: true, quality: 75 },
+      svg: {
+        multipass: true,
+        plugins: [
+          {
+            name: 'preset-default',
+            params: {
+              overrides: {
+                cleanupIds: false,
+                removeViewBox: false,
+              },
+            },
+          },
+        ],
+      },
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],

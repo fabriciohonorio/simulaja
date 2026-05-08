@@ -17,42 +17,42 @@ const SEGMENTS = [
     id: "imoveis",
     title: "IMÓVEIS",
     desc: "Casa, Apartamento, Construção, Comercial",
-    img: "/intro/luxury_house_facade_1778269450928.png",
+    img: "/intro/luxury_house_facade_1778269450928.webp",
     color: "#d4703f"
   },
   {
     id: "carros",
     title: "CARROS",
     desc: "Sedãs, SUVs, Hatchbacks, Picapes",
-    img: "/intro/premium_car_garage_1778269468949.png",
+    img: "/intro/premium_car_garage_1778269468949.webp",
     color: "#6b5dd6"
   },
   {
     id: "motos",
     title: "MOTOS",
     desc: "Urbanas, Trail, Scooters, Esportivas",
-    img: "/intro/urban_moto_night_1778269490027.png",
+    img: "/intro/urban_moto_night_1778269490027.webp",
     color: "#d4703f"
   },
   {
     id: "nautica",
     title: "NÁUTICA",
     desc: "Lanchas, Jet Skis, Barcos, Acessórios",
-    img: "/intro/speedboat_sunset_1778269579296.png",
+    img: "/intro/speedboat_sunset_1778269579296.webp",
     color: "#6b5dd6"
   },
   {
     id: "frotas",
     title: "FROTAS",
     desc: "Caminhões, Tratores, Máquinas Agrícolas, Utilitários",
-    img: "/intro/modern_truck_highway_1778269632881.png",
+    img: "/intro/modern_truck_highway_1778269632881.webp",
     color: "#d4703f"
   },
   {
     id: "agro",
     title: "AGRO",
     desc: "Terras, Maquinário, Pecuária, Infraestrutura",
-    img: "/intro/agro_harvest_sunset_1778269711978.png",
+    img: "/intro/agro_harvest_sunset_1778269711978.webp",
     color: "#6b5dd6"
   },
   {
@@ -202,6 +202,7 @@ export default function CinematicIntro({ onClose }: CinematicIntroProps) {
                         <motion.img 
                           src={segment.img} 
                           alt={segment.title}
+                          decoding="async"
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-[4s] ease-out group-hover:scale-110 opacity-70 group-hover:opacity-100"
                         />
                         

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-import slideImovel from "@/assets/slide-imovel.png";
-import slideMoto from "@/assets/slide-moto.jpeg";
-import slideJetski from "@/assets/slide-jetski.jpeg";
-import slideCarro from "@/assets/slide-carro.jpeg";
+import slideImovel from "@/assets/slide-imovel.webp";
+import slideMoto from "@/assets/slide-moto.webp";
+import slideJetski from "@/assets/slide-jetski.webp";
+import slideCarro from "@/assets/slide-carro.webp";
 import logoMagalu from "@/assets/logo-consorcio-magalu.png";
 
 const slides = [
@@ -77,6 +77,7 @@ const HeroCarousel = () => {
             <img
               src={slide.src}
               alt={slide.alt}
+              decoding="async"
               className="w-full h-full object-cover"
             />
             {/* CTA Overlay - Bottom */}
