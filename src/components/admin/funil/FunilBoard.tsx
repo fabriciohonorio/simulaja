@@ -12,6 +12,10 @@ import { cn } from "@/lib/utils";
 import LeadCard from "./LeadCard";
 import { COLUMNS, COLUMN_COLORS } from "./constants";
 
+const fmtBRL = (value: number) => 
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+
+
 interface FunilBoardProps {
   leads?: Lead[];
   setLeads?: React.Dispatch<React.SetStateAction<Lead[]>>;
