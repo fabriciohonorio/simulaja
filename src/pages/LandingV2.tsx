@@ -76,7 +76,7 @@ const segments = [
 ];
 
 export default function LandingV2() {
-  const [phase, setPhase] = useState<"entry" | "grid">("entry");
+  const [phase, setPhase] = useState<"entry" | "grid">("grid");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const navigate = useNavigate();
 
