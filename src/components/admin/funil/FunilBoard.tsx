@@ -179,20 +179,19 @@ const FunilBoard = (props: FunilBoardProps) => {
                 )}
               >
                 <div className="p-3 flex items-center justify-between border-b border-slate-100 bg-white/50 rounded-t-xl shrink-0">
-                  <div>
-                    <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-1.5">
-                      {col.label}
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[9px] h-4 min-w-[18px] justify-center px-1">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-slate-800 text-[11px] uppercase tracking-tighter">
+                        {col.label}
+                      </span>
+                      <span className="bg-slate-200/50 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-full font-bold">
                         {colLeads.length}
-                      </Badge>
-                    </h2>
-                    <p className="text-[9px] font-bold text-slate-400 mt-0.5">
-                      {totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}
-                    </p>
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 mt-0.5">
+                      {fmtBRL(totalValue)}
+                    </span>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-primary">
-                    <Plus className="w-3.5 h-3.5" />
-                  </Button>
                 </div>
 
                 <Droppable droppableId={col.id} direction="vertical">
