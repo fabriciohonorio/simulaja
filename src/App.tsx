@@ -40,7 +40,7 @@ const AppContent = () => {
       <Toaster />
       <Sonner />
       <Routes>
-        <Route path="/" element={<LandingV2 />} />
+        <Route path="/" element={<Index />} />
         <Route path="/home" element={<LandingV2 />} />
         <Route path="/simulador" element={<Simulador />} />
         <Route path="/parceiro" element={<Simulador />} />
