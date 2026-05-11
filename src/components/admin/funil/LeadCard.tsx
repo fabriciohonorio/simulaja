@@ -194,14 +194,16 @@ export function LeadCard({
       {...provided.draggableProps}
       {...provided.dragHandleProps}
       className={cn(
-        "group relative bg-white rounded-lg border border-slate-200 select-none overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
-        snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-[999] opacity-100" : "shadow-sm hover:border-primary/30 hover:shadow-md",
+        "group relative bg-white rounded-lg border border-slate-200 select-none overflow-hidden transition-all duration-200",
+        snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-[999] opacity-100 cursor-grabbing" : "shadow-sm hover:border-primary/30 hover:shadow-md cursor-move",
         isDeadLead && "opacity-60 grayscale-[30%]"
       )}
       style={{
         ...provided.draggableProps.style,
         minWidth: snapshot.isDragging ? (compact ? 140 : 230) : 'auto',
-        minHeight: compact ? '90px' : '160px'
+        minHeight: compact ? '90px' : '160px',
+        touchAction: 'none',
+        pointerEvents: 'auto'
       }}
     >
       {/* Grip Handle & Draggable Zone */}
