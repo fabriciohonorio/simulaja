@@ -6,7 +6,7 @@ import { format, parseISO } from "date-fns";
 import confetti from "canvas-confetti";
 import { jsPDF } from "jspdf";
 import { DropResult } from "@hello-pangea/dnd";
-import { handleKanbanDragEnd } from "@/pages/admin/optimizations/dragDropOptimizations";
+
 import { Lead, HistoricoContato, Membro } from "@/types/funil";
 import { COLUMNS, normalizeStatus } from "@/components/admin/funil/constants";
 import { googleCalendarService } from "@/services/googleCalendarService";
