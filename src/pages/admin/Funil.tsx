@@ -1,6 +1,6 @@
 import React from "react";
 import { useFunil } from "@/hooks/useFunil";
-import FunilBoard from "@/components/admin/funil/FunilBoard";
+import { FunilBoard } from "@/components/admin/funil/FunilBoard";
 import { FunilModals } from "@/components/admin/funil/FunilModals";
 import { TrendingUp, Zap, FileText, Search } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";

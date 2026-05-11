@@ -184,6 +184,8 @@ export function LeadCard({
         <Clock className="w-2 h-2" /> {diasNaEtapa} {diasNaEtapa === 1 ? 'dia' : 'dias'}
       </span>
     );
+  };
+
   return (
     <div
       ref={provided.innerRef}
@@ -200,6 +202,8 @@ export function LeadCard({
         minHeight: compact ? '90px' : '160px'
       }}
     >
+      {/* Grip Handle & Draggable Zone */}
+      <div 
         className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center transition-colors z-20 group-hover:bg-slate-50/30"
       >
         <GripVertical className="h-3.5 w-3.5 text-slate-300 group-hover:text-primary/40" />
