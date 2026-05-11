@@ -189,22 +189,27 @@ export function LeadCard({
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
-      className={`group relative bg-white border rounded-xl overflow-hidden ${!snapshot.isDragging ? "transition-all duration-200" : ""}
+      className={`group relative bg-white border rounded-xl overflow-hidden select-none ${!snapshot.isDragging ? "transition-all duration-200" : ""}
         ${statusNormalized === "fechado" ? "border-emerald-200/80 shadow-[0_0_12px_rgba(34,197,94,0.08)]" : "border-slate-200/70 hover:shadow-lg hover:shadow-slate-200/60 hover:border-slate-300/60 hover:-translate-y-0.5"}
         ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
-        ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/30 scale-105 z-[9999] rotate-1 bg-white backdrop-blur-sm" : "shadow-sm"}
+        ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 scale-[1.02] z-[9999] rotate-1 bg-white/95 backdrop-blur-sm border-primary/20" : "shadow-sm"}
       `}
       style={{
         ...provided.draggableProps.style,
         width: snapshot.isDragging ? (provided.draggableProps.style?.width || (compact ? 180 : 240)) : 'auto',
-        minWidth: snapshot.isDragging ? (compact ? 140 : 230) : 'auto'
+        minWidth: snapshot.isDragging ? (compact ? 140 : 230) : 'auto',
+        cursor: snapshot.isDragging ? 'grabbing' : 'grab'
       }}
     >
-      {/* Grip Handle & Draggable Zone - Aumentado para melhor pegada */}
+      {/* Grip Handle & Draggable Zone - Expandido para o card todo para melhor UX */}
       <div 
         {...provided.dragHandleProps}
-        className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-slate-100/50 transition-colors z-20 group-hover:bg-slate-50/30"
-      >
+        className="absolute inset-0 cursor-grab active:cursor-grabbing z-10"
+        aria-label="Arraste para mover"
+      />
+
+      {/* Grip Visual Indicator - Mantido para sinalizar que é arrastável */}
+      <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center pointer-events-none z-20 group-hover:bg-slate-50/30">
         <GripVertical className="h-3.5 w-3.5 text-slate-300 group-hover:text-primary/40" />
       </div>
 
@@ -277,193 +282,197 @@ export function LeadCard({
           </div>
         )}
 
-        {/* Timing/Status Info */}
-        {(statusNormalized === "novo_lead" || statusNormalized === "fechado") && (
-          <div className="flex items-center gap-1 text-[8px]">
-            {statusNormalized === "novo_lead" ? (
-              <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
-                Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"}
-              </span>
-            ) : (
-              <span className="text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
-                🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-baseline gap-1.5 pt-0.5">
-          <p className={`text-primary font-black ${compact ? "text-[10px]" : "text-[12px]"}`}>
-            {formatLeadValue(Number(lead.valor_credito) || 0)}
-          </p>
-          {!compact && (
-            <span className="text-[9px] text-slate-400 font-bold" title="Prazo do consórcio em meses">
-              · {lead.prazo_meses} meses
-            </span>
-          )}
-        </div>
-
-        {ultimaTratativa ? (
-          <button
-            onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-            className="w-full text-left"
-          >
-            <div className={`flex items-start gap-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors ${compact ? "px-1.5 py-0.5" : "px-2 py-1.5"}`}>
-              <NotebookPen className={`text-slate-400 mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
-              <p className={`${compact ? "text-[8px]" : "text-[9px]"} font-medium text-slate-600 truncate`}>
-                {ultimaTratativa!.observacao || "Sem observação"}
-              </p>
+        <div className="relative z-30 space-y-2">
+          {/* Todas as ações e botões devem estar no z-30 para ficarem acima do dragHandle invisível */}
+          
+          {/* Timing/Status Info */}
+          {(statusNormalized === "novo_lead" || statusNormalized === "fechado") && (
+            <div className="flex items-center gap-1 text-[8px]">
+              {statusNormalized === "novo_lead" ? (
+                <span className="text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
+                  Entrada: {lead.created_at ? format(parseISO(lead.created_at), "dd/MM") : "--/--"}
+                </span>
+              ) : (
+                <span className="text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-emerald-200">
+                  🏆 Vendido: {lead.status_updated_at ? format(parseISO(lead.status_updated_at), "dd/MM/yy") : "--/--"}
+                </span>
+              )}
             </div>
-          </button>
-        ) : (!compact && !isFechado) && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-            className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-slate-200 text-[9px] text-slate-400 hover:border-primary/30 hover:text-primary/60 transition-colors"
-          >
-            <Plus className="h-3 w-3" /> Adicionar tratativa
-          </button>
-        )}
+          )}
 
-        {lead.data_vencimento && !isFechado && (
-          <div className={`flex items-center justify-between px-2 py-1 text-[9px] font-medium rounded-lg ${
-            vencAtrasado
-              ? "bg-red-50 text-red-600 border border-red-100"
-              : vencHoje
-                ? "bg-amber-50 text-amber-600 border border-amber-100"
-                : "bg-sky-50 text-sky-600 border border-sky-100"
-          }`}>
-            <span className="flex items-center gap-1">
-              {(vencHoje || vencAtrasado) && <Bell className="h-2.5 w-2.5 animate-pulse" />}
-              <CalendarIcon className="h-2.5 w-2.5" />
-              {format(parseISO(lead.data_vencimento), "dd/MM")}
-              {vencAtrasado && !compact && " — Atrasado"}
-              {vencHoje && !compact && " — Hoje!"}
-            </span>
-            {(lead as any).gcal_event_id && (
-              <span className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[8px] text-gray-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
-                GCal
+          <div className="flex items-baseline gap-1.5 pt-0.5">
+            <p className={`text-primary font-black ${compact ? "text-[10px]" : "text-[12px]"}`}>
+              {formatLeadValue(Number(lead.valor_credito) || 0)}
+            </p>
+            {!compact && (
+              <span className="text-[9px] text-slate-400 font-bold" title="Prazo do consórcio em meses">
+                · {lead.prazo_meses} meses
               </span>
             )}
           </div>
-        )}
 
-        {((isManager && onAssignLead) || lead.responsavel_id) ? (
-            isEditingField?.field === "responsavel" ? (
-             <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 mt-1">
-              <select
-                className="w-full text-[10px] p-1 rounded border border-slate-200 bg-white"
-                value={lead.responsavel_id || "none"}
-                onChange={(e) => {
-                  onAssignLead?.(lead.id, e.target.value);
-                  setIsEditingField(null);
-                }}
-                onBlur={() => setIsEditingField(null)}
-                autoFocus
-              >
-                <option value="none">Sem responsável</option>
-                {membros.map((m) => (
-                  <option key={m.id} value={m.id}>{m.nome_completo}</option>
-                ))}
-              </select>
-             </div>
-            ) : (
-            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 mt-0.5">
-              <div
-                className="flex items-center gap-1.5 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditingField({ field: "responsavel", value: lead.responsavel_id || "" });
-                }}
-              >
-                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 shrink-0 border border-slate-200 hover:bg-slate-200 transition-colors">
-                  {(() => {
-                    const nome = membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?";
-                    return nome.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-                  })()}
+          {ultimaTratativa ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+              className="w-full text-left"
+            >
+              <div className={`flex items-start gap-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors ${compact ? "px-1.5 py-0.5" : "px-2 py-1.5"}`}>
+                <NotebookPen className={`text-slate-400 mt-0.5 shrink-0 ${compact ? "h-2 w-2" : "h-3 w-3"}`} />
+                <p className={`${compact ? "text-[8px]" : "text-[9px]"} font-medium text-slate-600 truncate`}>
+                  {ultimaTratativa!.observacao || "Sem observação"}
+                </p>
+              </div>
+            </button>
+          ) : (!compact && !isFechado) && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+              className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-slate-200 text-[9px] text-slate-400 hover:border-primary/30 hover:text-primary/60 transition-colors"
+            >
+              <Plus className="h-3 w-3" /> Adicionar tratativa
+            </button>
+          )}
+
+          {lead.data_vencimento && !isFechado && (
+            <div className={`flex items-center justify-between px-2 py-1 text-[9px] font-medium rounded-lg ${
+              vencAtrasado
+                ? "bg-red-50 text-red-600 border border-red-100"
+                : vencHoje
+                  ? "bg-amber-50 text-amber-600 border border-amber-100"
+                  : "bg-sky-50 text-sky-600 border border-sky-100"
+            }`}>
+              <span className="flex items-center gap-1">
+                {(vencHoje || vencAtrasado) && <Bell className="h-2.5 w-2.5 animate-pulse" />}
+                <CalendarIcon className="h-2.5 w-2.5" />
+                {format(parseISO(lead.data_vencimento), "dd/MM")}
+                {vencAtrasado && !compact && " — Atrasado"}
+                {vencHoje && !compact && " — Hoje!"}
+              </span>
+              {(lead as any).gcal_event_id && (
+                <span className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[8px] text-gray-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                  GCal
+                </span>
+              )}
+            </div>
+          )}
+
+          {((isManager && onAssignLead) || lead.responsavel_id) ? (
+              isEditingField?.field === "responsavel" ? (
+               <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 mt-1">
+                <select
+                  className="w-full text-[10px] p-1 rounded border border-slate-200 bg-white"
+                  value={lead.responsavel_id || "none"}
+                  onChange={(e) => {
+                    onAssignLead?.(lead.id, e.target.value);
+                    setIsEditingField(null);
+                  }}
+                  onBlur={() => setIsEditingField(null)}
+                  autoFocus
+                >
+                  <option value="none">Sem responsável</option>
+                  {membros.map((m) => (
+                    <option key={m.id} value={m.id}>{m.nome_completo}</option>
+                  ))}
+                </select>
+               </div>
+              ) : (
+              <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 mt-0.5">
+                <div
+                  className="flex items-center gap-1.5 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditingField({ field: "responsavel", value: lead.responsavel_id || "" });
+                  }}
+                >
+                  <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 shrink-0 border border-slate-200 hover:bg-slate-200 transition-colors">
+                    {(() => {
+                      const nome = membros.find(m => m.id === lead.responsavel_id)?.nome_completo || "?";
+                      return nome.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-0.5">
+                  <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
+                    title="Agendar">
+                    <CalendarIcon className="h-3 w-3" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
+                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                    title="Ver Ficha Cadastral">
+                    <ClipboardList className="h-3.5 w-3.5" />
+                  </button>
+                  <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                    onClick={(e) => e.stopPropagation()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+                    title="WhatsApp">
+                    <WhatsAppIcon className="h-3 w-3" />
+                  </a>
+                  <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
+                    title="Histórico">
+                    <NotebookPen className="h-3 w-3" />
+                  </button>
+                  <button onClick={(e) => { 
+                    e.stopPropagation(); 
+                    if (onEdit) onEdit(lead); 
+                  }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
+                    title="Editar Lead">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
+                    title="Excluir">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-0.5">
-                <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
-                  title="Agendar">
-                  <CalendarIcon className="h-3 w-3" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
-                  className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
-                  title="Ver Ficha Cadastral">
-                  <ClipboardList className="h-3.5 w-3.5" />
-                </button>
-                <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
-                  onClick={(e) => e.stopPropagation()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
-                  title="WhatsApp">
-                  <WhatsAppIcon className="h-3 w-3" />
-                </a>
-                <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
-                  title="Histórico">
-                  <NotebookPen className="h-3 w-3" />
-                </button>
-                <button onClick={(e) => { 
-                  e.stopPropagation(); 
-                  if (onEdit) onEdit(lead); 
-                }}
-                  className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
-                  title="Editar Lead">
-                  <Pencil className="h-3 w-3" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
-                  title="Excluir">
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              </div>
+              )
+          ) : (
+            <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
+              <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
+                title="Agendar">
+                <CalendarIcon className="h-3 w-3" />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
+                className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
+                title="Ver Ficha Cadastral">
+                <ClipboardList className="h-3.5 w-3.5" />
+              </button>
+              <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                onClick={(e) => e.stopPropagation()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+                title="WhatsApp">
+                <WhatsAppIcon className="h-3 w-3" />
+              </a>
+              <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+                className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
+                title="Histórico">
+                <NotebookPen className="h-3 w-3" />
+              </button>
+              <button onClick={(e) => { 
+                e.stopPropagation(); 
+                if (onEdit) onEdit(lead); 
+              }}
+                className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
+                title="Editar Lead">
+                <Pencil className="h-3 w-3" />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+                className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
+                title="Excluir">
+                <Trash2 className="h-3 w-3" />
+              </button>
             </div>
-            )
-        ) : (
-          <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
-            <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-              className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
-              title="Agendar">
-              <CalendarIcon className="h-3 w-3" />
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
-              className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
-              title="Ver Ficha Cadastral">
-              <ClipboardList className="h-3.5 w-3.5" />
-            </button>
-            <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
-              onClick={(e) => e.stopPropagation()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
-              title="WhatsApp">
-              <WhatsAppIcon className="h-3 w-3" />
-            </a>
-            <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-              className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
-              title="Histórico">
-              <NotebookPen className="h-3 w-3" />
-            </button>
-            <button onClick={(e) => { 
-              e.stopPropagation(); 
-              if (onEdit) onEdit(lead); 
-            }}
-              className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
-              title="Editar Lead">
-              <Pencil className="h-3 w-3" />
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-              className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
-              title="Excluir">
-              <Trash2 className="h-3 w-3" />
-            </button>
-          </div>
-        )}
+          )}
+        </div>
 
       </div>
     </div>

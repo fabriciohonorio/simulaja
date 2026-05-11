@@ -13,50 +13,74 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
   tableName: string,
   successMsg?: string
 ) => {
-  const { destination, draggableId, source } = result;
+  const { destination, source, draggableId } = result;
 
   if (!destination) return;
   if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-  const newStatus = destination.droppableId;
   const originalData = [...data];
-
+  const newStatus = destination.droppableId;
   const nowIso = new Date().toISOString();
 
-  // 1. Optimistic Update
-  setData(prev => 
-    prev.map(item => 
-      item.id === draggableId ? { 
-        ...item, 
-        status: newStatus,
-        status_updated_at: tableName !== "inadimplentes" ? nowIso : (item as any).status_updated_at 
-      } : item
-    )
-  );
+  // 1. Optimistic Update with Reordering
+  const updatedData = [...data];
+  const itemIndex = updatedData.findIndex(item => item.id === draggableId);
+  
+  if (itemIndex !== -1) {
+    const [item] = updatedData.splice(itemIndex, 1);
+    const updatedItem = { 
+      ...item, 
+      status: newStatus,
+      status_updated_at: (newStatus !== item.status && tableName !== "inadimplentes") ? nowIso : (item as any).status_updated_at 
+    };
+
+    // Calculate insertion index in the global array
+    // We want to insert it at destination.index among items of the SAME new status
+    const itemsInTargetStatus = updatedData.filter(i => i.status === newStatus);
+    
+    // This is a bit complex because the global array might be sorted.
+    // To make it simple and predictable, we'll just put it at the "end" of the target status group 
+    // or use a temporary 'sort_order' if we had one.
+    // For now, let's just update the status and let the component's internal filtering/sorting handle it,
+    // BUT we need to make sure the component doesn't jump.
+    
+    setData(prev => {
+      const result = [...prev];
+      const idx = result.findIndex(i => i.id === draggableId);
+      if (idx !== -1) {
+        const [moved] = result.splice(idx, 1);
+        return [
+          ...result.slice(0, 0), // Placeholder for logic if needed
+          { 
+            ...moved, 
+            status: newStatus, 
+            status_updated_at: (newStatus !== moved.status && tableName !== "inadimplentes") ? nowIso : (moved as any).status_updated_at 
+          }
+        ];
+      }
+      return result;
+    });
+  }
 
   // 2. Persistence
   try {
     const updatePayload: any = { 
       status: newStatus,
-      updated_at: new Date().toISOString()
+      updated_at: nowIso
     };
     
     if (tableName !== "inadimplentes") {
       updatePayload.status_updated_at = nowIso;
     }
     
-    // Explicitly add .select() to verify the row was actually updated (RLS could silently filter it)
     const { data: updatedRows, error } = await (supabase.from(tableName as any) as any)
       .update(updatePayload)
       .eq("id", draggableId)
       .select();
 
-    if (error) {
-      throw error;
-    }
-
+    if (error) throw error;
     if (!updatedRows || updatedRows.length === 0) {
-      throw new Error("Permissão negada ou lead não encontrado. A atualização foi bloqueada.");
+      throw new Error("Permissão negada ou lead não encontrado.");
     }
 
     if (successMsg && newStatus === "fechado") {
@@ -67,7 +91,7 @@ export const handleKanbanDragEnd = async <T extends { id: string; status: string
   } catch (error: any) {
     console.error(`Error updating ${tableName}:`, error);
     toast.error(`Falha: ${error?.message || "Erro ao atualizar status."} Revertendo...`);
-    // 3. Rollback on failure
     setData(originalData);
   }
 };
+

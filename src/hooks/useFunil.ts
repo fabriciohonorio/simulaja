@@ -400,19 +400,77 @@ export function useFunil() {
 
   const onDragEnd = useCallback(async (result: DropResult) => {
     isDraggingCardRef.current = false;
-    if (!result.destination) return;
+    const { destination, source, draggableId } = result;
+    if (!destination) return;
     
-    const leadId = result.draggableId;
-    const oldStatus = result.source.droppableId;
-    const newStatus = result.destination.droppableId;
+    // Se não mudou de lugar, ignora
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-    if (oldStatus === newStatus) return;
-
+    const leadId = draggableId;
+    const oldStatus = source.droppableId;
+    const newStatus = destination.droppableId;
     const lead = leads.find((l) => l.id === leadId);
     if (!lead) return;
 
-    await handleKanbanDragEnd(result, leads, setLeads, "leads", "Ação concluída com sucesso!");
+    // --- Lógica de Reordenamento Persistente via Timestamp ---
+    const colLeads = getColumnLeads(newStatus);
+    let newTimestamp = new Date().toISOString();
 
+    if (colLeads.length > 0) {
+      if (destination.index === 0) {
+        // No topo: mais recente que o atual primeiro
+        const firstLead = colLeads[0];
+        const firstTime = new Date(firstLead.last_interaction_at || firstLead.status_updated_at || firstLead.created_at || Date.now()).getTime();
+        newTimestamp = new Date(firstTime + 1000).toISOString();
+      } else if (destination.index >= colLeads.length) {
+        // No fim: mais antigo que o atual último
+        const lastLead = colLeads[colLeads.length - 1];
+        const lastTime = new Date(lastLead.last_interaction_at || lastLead.status_updated_at || lastLead.created_at || Date.now()).getTime();
+        newTimestamp = new Date(lastTime - 1000).toISOString();
+      } else {
+        // No meio: entre o item de cima e o de baixo
+        // Importante: se source === destination, os índices podem mudar após o splice interno
+        const leadsAdjusted = colLeads.filter(l => l.id !== leadId);
+        const before = leadsAdjusted[destination.index - 1];
+        const after = leadsAdjusted[destination.index];
+        
+        if (before && after) {
+          const timeBefore = new Date(before.last_interaction_at || before.status_updated_at || before.created_at || Date.now()).getTime();
+          const timeAfter = new Date(after.last_interaction_at || after.status_updated_at || after.created_at || Date.now()).getTime();
+          newTimestamp = new Date((timeBefore + timeAfter) / 2).toISOString();
+        } else if (before) {
+           const timeBefore = new Date(before.last_interaction_at || before.status_updated_at || before.created_at || Date.now()).getTime();
+           newTimestamp = new Date(timeBefore - 1000).toISOString();
+        }
+      }
+    }
+
+    // Atualiza localmente com o novo timestamp para manter a posição após o sort
+    setLeads(prev => prev.map(l => l.id === leadId ? { 
+      ...l, 
+      status: newStatus, 
+      status_updated_at: newTimestamp,
+      last_interaction_at: newTimestamp 
+    } : l));
+
+    // Persiste no Supabase
+    const { error } = await supabase
+      .from("leads")
+      .update({ 
+        status: newStatus, 
+        status_updated_at: newTimestamp,
+        last_interaction_at: newTimestamp,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", leadId);
+
+    if (error) {
+      toast.error("Erro ao sincronizar posição: " + error.message);
+      // Revert op (simplified)
+      fetchLeads();
+    }
+
+    // --- Gatilhos de Status ---
     if (newStatus === "aguardando_pagamento") {
       setVencimentoLead({ ...lead, status: "aguardando_pagamento" });
       setSelectedDate(lead.data_vencimento ? parseISO(lead.data_vencimento) : undefined);
@@ -427,7 +485,7 @@ export function useFunil() {
     }
     
     const statusLabel = COLUMNS.find(c => c.id === newStatus)?.label || newStatus;
-    const logEntry = `Mudança de etapa: ${statusLabel}`;
+    const logEntry = `Movido para: ${statusLabel}`;
     await supabase.from("historico_contatos").insert({
       lead_id: leadId,
       tipo: "sistema",
@@ -435,7 +493,8 @@ export function useFunil() {
       resultado: "neutro",
       organizacao_id: lead.organizacao_id
     });
-  }, [leads, fireConfetti]);
+  }, [leads, fireConfetti, getColumnLeads, fetchLeads]);
+
 
   const handleSaveVencimento = async () => {
     if (!vencimentoLead || !selectedDate) return;
