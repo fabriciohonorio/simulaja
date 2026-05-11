@@ -199,8 +199,9 @@ const FunilBoard = (props: FunilBoardProps) => {
                       {...provided.droppableProps}
                       className={cn(
                         "flex-1 overflow-y-auto p-2.5 flex flex-col gap-2.5 no-scrollbar transition-all duration-200",
-                        snapshot.isDraggingOver ? "bg-slate-100/50" : ""
+                        snapshot.isDraggingOver ? "bg-slate-100/50 ring-2 ring-inset ring-slate-200 rounded-b-xl" : ""
                       )}
+                      style={{ minHeight: '500px' }}
                     >
                       {colLeads.map((lead, idx) => renderLeadCard(lead, idx))}
                       {provided.placeholder}
