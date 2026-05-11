@@ -23,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import LeadCard from "./LeadCard";
-import { COLUNAS, COLUMN_COLORS } from "@/hooks/useFunil";
+import { COLUMNS, COLUMN_COLORS } from "./constants";
 
 interface FunilBoardProps {
   leads: Lead[];
@@ -118,7 +118,7 @@ const FunilBoard = ({
   );
 
   if (isMobile) {
-    const currentCol = COLUNAS[mobileColIdx];
+    const currentCol = COLUMNS[mobileColIdx];
     const colLeads = applyFilters(getColumnLeads(currentCol.id));
     
     return (
@@ -128,10 +128,10 @@ const FunilBoard = ({
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <div className="text-center">
-            <h2 className="font-bold text-slate-800 uppercase text-xs">{currentCol.titulo}</h2>
+            <h2 className="font-bold text-slate-800 uppercase text-xs">{currentCol.label}</h2>
             <p className="text-[10px] text-slate-500">{colLeads.length} leads</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setMobileColIdx(prev => Math.min(COLUNAS.length - 1, prev + 1))} disabled={mobileColIdx === COLUNAS.length - 1}>
+          <Button variant="ghost" size="sm" onClick={() => setMobileColIdx(prev => Math.min(COLUMNS.length - 1, prev + 1))} disabled={mobileColIdx === COLUMNS.length - 1}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -203,7 +203,7 @@ const FunilBoard = ({
       <DragDropContext onDragEnd={handleKanbanDragEnd}>
         <div className="flex-1 overflow-x-auto pb-6 px-4 no-scrollbar">
           <div className="flex gap-4 h-full min-w-max">
-            {COLUNAS.map((col) => {
+            {COLUMNS.map((col) => {
               const colLeads = applyFilters(getColumnLeads(col.id));
               const totalValue = colLeads.reduce((acc, lead) => acc + Number(lead.valor_credito || 0), 0);
 
@@ -219,7 +219,7 @@ const FunilBoard = ({
                   <div className="p-4 flex items-center justify-between border-b border-slate-100 bg-white/50 rounded-t-lg">
                     <div>
                       <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                        {col.titulo}
+                        {col.label}
                         <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[9px] h-4 min-w-[18px] justify-center px-1">
                           {colLeads.length}
                         </Badge>
