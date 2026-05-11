@@ -29,7 +29,7 @@ const Hero = () => {
       
       {/* Dimmer overlay - behind content but on top of background */}
       <div className={`absolute inset-0 bg-[#0D214F]/80 transition-opacity duration-700 z-10 pointer-events-none ${activeId ? 'opacity-100' : 'opacity-0'}`} />
-
+      
       <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32 z-20">
         <div className="max-w-2xl space-y-7">
           <div>
@@ -71,7 +71,7 @@ const Hero = () => {
           <div className="cin-reveal cin-delay-4 pt-2 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <a
-                href="#simulator"
+                href="/simulador"
                 className="inline-flex items-center gap-3 bg-[#FF7A00] hover:bg-[#FF8B1F] text-white px-8 py-5 rounded-full text-base font-black uppercase tracking-widest shadow-xl hover:shadow-[#FF7A00]/40 transition-all hover:scale-[1.03] active:scale-95"
               >
                 Ver minha simulação

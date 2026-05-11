@@ -77,7 +77,7 @@ const SegmentCards = () => {
                 <h3 className="font-bold text-xl text-foreground mb-2">{seg.title}</h3>
                 <p className="text-muted-foreground text-sm mb-4 leading-relaxed">{seg.desc}</p>
                 <a
-                  href="#simulator"
+                  href="/simulador"
                   className="inline-flex items-center gap-2 bg-[#FF7A00] hover:bg-[#FF8B1F] text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all hover:scale-[1.03] hover:shadow-lg shadow-orange-500/20"
                 >
                   Simular

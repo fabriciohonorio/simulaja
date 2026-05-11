@@ -10,6 +10,7 @@ import Diferencial from "@/components/Diferencial";
 import MeetSpecialist from "@/components/MeetSpecialist";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
+import { StickySimulatorCTA } from "@/components/StickySimulatorCTA";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -87,6 +88,7 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background selection:bg-primary/20">
+      <StickySimulatorCTA />
       <Header />
 
       

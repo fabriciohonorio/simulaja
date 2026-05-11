@@ -19,7 +19,7 @@ const FinalCTA = () => {
 
         <div className="flex flex-wrap justify-center gap-4">
           <a
-            href="#simulator"
+            href="/simulador"
             className="inline-flex items-center gap-2 bg-[#FF7A00] hover:bg-[#FF8B1F] text-white px-8 py-4 rounded-full font-black text-lg uppercase tracking-wider shadow-xl transition-all hover:scale-[1.03] hover:shadow-[#FF7A00]/40"
           >
             Ver minha simulação
