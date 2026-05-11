@@ -184,26 +184,23 @@ export function LeadCard({
         <Clock className="w-2 h-2" /> {diasNaEtapa} {diasNaEtapa === 1 ? 'dia' : 'dias'}
       </span>
     );
-  };
   return (
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
-      className={`group relative bg-white border rounded-xl overflow-hidden ${!snapshot.isDragging ? "transition-all duration-200" : ""}
-        ${statusNormalized === "fechado" ? "border-emerald-200/80 shadow-[0_0_12px_rgba(34,197,94,0.08)]" : "border-slate-200/70 hover:shadow-lg hover:shadow-slate-200/60 hover:border-slate-300/60 hover:-translate-y-0.5"}
-        ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
-        ${snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/30 scale-105 z-[9999] rotate-1 bg-white backdrop-blur-sm" : "shadow-sm"}
-      `}
+      {...provided.dragHandleProps}
+      className={cn(
+        "group relative bg-white rounded-lg border border-slate-200 select-none overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+        snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-[999] opacity-100" : "shadow-sm hover:border-primary/30 hover:shadow-md",
+        isDeadLead && "opacity-60 grayscale-[30%]"
+      )}
       style={{
         ...provided.draggableProps.style,
-        width: snapshot.isDragging ? (provided.draggableProps.style?.width || (compact ? 180 : 240)) : 'auto',
-        minWidth: snapshot.isDragging ? (compact ? 140 : 230) : 'auto'
+        minWidth: snapshot.isDragging ? (compact ? 140 : 230) : 'auto',
+        minHeight: compact ? '90px' : '160px'
       }}
     >
-      {/* Grip Handle & Draggable Zone - Aumentado para melhor pegada */}
-      <div 
-        {...provided.dragHandleProps}
-        className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-slate-100/50 transition-colors z-20 group-hover:bg-slate-50/30"
+        className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center transition-colors z-20 group-hover:bg-slate-50/30"
       >
         <GripVertical className="h-3.5 w-3.5 text-slate-300 group-hover:text-primary/40" />
       </div>
@@ -385,17 +382,22 @@ export function LeadCard({
               </div>
               
               <div className="flex items-center gap-0.5">
-                <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                <button 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
                   className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
                   title="Agendar">
                   <CalendarIcon className="h-3 w-3" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
+                <button 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
                   className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
                   title="Ver Ficha Cadastral">
                   <ClipboardList className="h-3.5 w-3.5" />
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -403,20 +405,26 @@ export function LeadCard({
                   title="WhatsApp">
                   <WhatsAppIcon className="h-3 w-3" />
                 </a>
-                <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+                <button 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
                   className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
                   title="Histórico">
                   <NotebookPen className="h-3 w-3" />
                 </button>
-                <button onClick={(e) => { 
-                  e.stopPropagation(); 
-                  if (onEdit) onEdit(lead); 
-                }}
+                <button 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    if (onEdit) onEdit(lead); 
+                  }}
                   className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
                   title="Editar Lead">
                   <Pencil className="h-3 w-3" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+                <button 
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
                   className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
                   title="Excluir">
                   <Trash2 className="h-3 w-3" />
@@ -426,17 +434,22 @@ export function LeadCard({
             )
         ) : (
           <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
-            <button onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+            <button 
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
               title="Agendar">
               <CalendarIcon className="h-3 w-3" />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
+            <button 
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
               className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
               title="Ver Ficha Cadastral">
               <ClipboardList className="h-3.5 w-3.5" />
             </button>
             <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               target="_blank"
               rel="noopener noreferrer"
@@ -444,7 +457,9 @@ export function LeadCard({
               title="WhatsApp">
               <WhatsAppIcon className="h-3 w-3" />
             </a>
-            <button onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
+            <button 
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
               title="Histórico">
               <NotebookPen className="h-3 w-3" />
