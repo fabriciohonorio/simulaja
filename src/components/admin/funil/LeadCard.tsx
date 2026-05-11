@@ -154,6 +154,7 @@ export function LeadCard({
   };
 
   const statusNormalized = normalizeStatus(lead.status);
+  const isDeadLead = ["morto", "perdido"].includes(statusNormalized);
   const isFechado = statusNormalized === "fechado";
   const vencHoje = isToday(lead.data_vencimento);
   const vencAtrasado = isPastDue(lead.data_vencimento);
