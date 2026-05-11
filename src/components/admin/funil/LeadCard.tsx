@@ -230,7 +230,7 @@ export function LeadCard({
         {/* Header: Nome + Temperatura */}
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2">
-            <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[9px]" : "text-[11px]"}`}>{formatToUpper(lead.nome) || "LEAD"}</p>
+            <p className={`font-black truncate text-slate-900 leading-tight ${compact ? "text-[10px]" : "text-[12px]"}`}>{lead.nome || "LEAD SEM NOME"}</p>
           </div>
           
           {/* Pill Temperatura — saturação reduzida */}
@@ -401,9 +401,9 @@ export function LeadCard({
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+                  className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-[#25D366] transition-colors"
                   title="WhatsApp">
-                  <WhatsAppIcon className="h-3 w-3" />
+                  <WhatsAppIcon className="h-4 w-4" />
                 </a>
                 <button 
                   onMouseDown={(e) => e.stopPropagation()}
@@ -453,9 +453,9 @@ export function LeadCard({
               onClick={(e) => e.stopPropagation()}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-500 transition-colors"
+              className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-[#25D366] transition-colors"
               title="WhatsApp">
-              <WhatsAppIcon className="h-3 w-3" />
+              <WhatsAppIcon className="h-4 w-4" />
             </a>
             <button 
               onMouseDown={(e) => e.stopPropagation()}
