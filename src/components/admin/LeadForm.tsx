@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList, MessageSquare } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LeadChat } from "./LeadChat";
+import { LeadChat } from "./funil/LeadChat";
 
 export const STATUS_OPTIONS = [
   { value: "novo_lead", label: "Novo Lead" },
