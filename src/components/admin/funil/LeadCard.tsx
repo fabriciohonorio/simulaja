@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 import { Lead, HistoricoContato, Membro } from "@/types/funil";
 import { TEMP_EMOJIS, TEMP_LABELS, normalizeStatus } from "./constants";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
