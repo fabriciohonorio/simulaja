@@ -228,7 +228,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                   className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary transition-colors z-10"
                 />
 
-                <Droppable droppableId={col.id}>
+                <Droppable droppableId={col.id} direction="vertical" type="LEAD">
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
@@ -240,6 +240,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                     </div>
                   )}
                 </Droppable>
+
               </div>
             );
           })}

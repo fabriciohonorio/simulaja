@@ -189,6 +189,7 @@ export function LeadCard({
     <div
       ref={provided.innerRef}
       {...provided.draggableProps}
+      {...provided.dragHandleProps}
       className={`group relative bg-white border rounded-xl overflow-hidden select-none ${!snapshot.isDragging ? "transition-all duration-200" : ""}
         ${statusNormalized === "fechado" ? "border-emerald-200/80 shadow-[0_0_12px_rgba(34,197,94,0.08)]" : "border-slate-200/70 hover:shadow-lg hover:shadow-slate-200/60 hover:border-slate-300/60 hover:-translate-y-0.5"}
         ${statusNormalized === "morto" ? "opacity-55 grayscale-[30%]" : ""}
@@ -201,13 +202,6 @@ export function LeadCard({
         cursor: snapshot.isDragging ? 'grabbing' : 'grab'
       }}
     >
-      {/* Grip Handle & Draggable Zone - Expandido para o card todo para melhor UX */}
-      <div 
-        {...provided.dragHandleProps}
-        className="absolute inset-0 cursor-grab active:cursor-grabbing z-10"
-        aria-label="Arraste para mover"
-      />
-
       {/* Grip Visual Indicator - Mantido para sinalizar que é arrastável */}
       <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center pointer-events-none z-20 group-hover:bg-slate-50/30">
         <GripVertical className="h-3.5 w-3.5 text-slate-300 group-hover:text-primary/40" />
@@ -282,7 +276,7 @@ export function LeadCard({
           </div>
         )}
 
-        <div className="relative z-30 space-y-2">
+        <div className="relative space-y-2">
           {/* Todas as ações e botões devem estar no z-30 para ficarem acima do dragHandle invisível */}
           
           {/* Timing/Status Info */}
