@@ -26,46 +26,60 @@ import LeadCard from "./LeadCard";
 import { COLUMNS, COLUMN_COLORS } from "./constants";
 
 interface FunilBoardProps {
-  leads: Lead[];
-  setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
-  loading: boolean;
-  onLeadMove: (leadId: string, newStatus: string) => void;
-  onOpenHistorico: (lead: Lead) => void;
-  membros: any[];
-  isManager: boolean;
-  ultimasTratativas: Record<string, any>;
+  leads?: Lead[];
+  setLeads?: React.Dispatch<React.SetStateAction<Lead[]>>;
+  loading?: boolean;
+  onLeadMove?: (leadId: string, newStatus: string) => void;
+  onOpenHistorico?: (lead: Lead) => void;
+  membros?: any[];
+  isManager?: boolean;
+  ultimasTratativas?: Record<string, any>;
   state: any;
-  handleKanbanDragEnd: (result: DropResult) => Promise<void>;
-  handleDeleteLead: (id: string, nome: string) => void;
-  handleUpdateLeadField: (leadId: string, field: string, value: any) => void;
-  setVencimentoLead: (lead: Lead | null) => void;
-  setSelectedDate: (date: Date | undefined) => void;
-  setHistoricoLead: (lead: Lead | null) => void;
+  handleKanbanDragEnd?: (result: DropResult) => Promise<void>;
+  handleDeleteLead?: (id: string, nome: string) => void;
+  handleUpdateLeadField?: (leadId: string, field: string, value: any) => void;
+  setVencimentoLead?: (lead: Lead | null) => void;
+  setSelectedDate?: (date: Date | undefined) => void;
+  setHistoricoLead?: (lead: Lead | null) => void;
+  searchTerm?: string;
+  quickFilter?: string;
 }
 
-const FunilBoard = ({
-  leads,
-  setLeads,
-  loading,
-  onLeadMove,
-  onOpenHistorico,
-  membros,
-  isManager,
-  ultimasTratativas,
-  state,
-  handleKanbanDragEnd,
-  handleDeleteLead,
-  handleUpdateLeadField,
-  setVencimentoLead,
-  setSelectedDate,
-  setHistoricoLead
-}: FunilBoardProps) => {
+const FunilBoard = (props: FunilBoardProps) => {
+  const { state, searchTerm, quickFilter: externalQuickFilter } = props;
+  
+  // Destructure from props or state to prevent undefined errors
+  const leads = props.leads || state?.leads || [];
+  const setLeads = props.setLeads || state?.setLeads;
+  const loading = props.loading ?? state?.loading ?? false;
+  const membros = props.membros || state?.membros || [];
+  const isManager = props.isManager ?? state?.isManager ?? false;
+  const ultimasTratativas = props.ultimasTratativas || state?.ultimasTratativas || {};
+  const handleKanbanDragEnd = props.handleKanbanDragEnd || state?.onDragEnd;
+  const handleDeleteLead = props.handleDeleteLead || state?.handleDeleteLead;
+  const handleUpdateLeadField = props.handleUpdateLeadField || state?.handleUpdateLeadField;
+  const setVencimentoLead = props.setVencimentoLead || state?.setVencimentoLead;
+  const setSelectedDate = props.setSelectedDate || state?.setSelectedDate;
+  const setHistoricoLead = props.setHistoricoLead || state?.setHistoricoLead;
+
   const { toast } = useToast();
-  const [isWideView, setIsWideView] = useState(false);
+  const [isWideView, setIsWideView] = useState(state?.isWideView || false);
   const [mobileColIdx, setMobileColIdx] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [quickFilter, setQuickFilter] = useState<'todos' | 'vence_hoje' | 'sem_tratativa' | 'atrasados'>('todos');
+  const [searchQuery, setSearchQuery] = useState(searchTerm || "");
+  const [quickFilter, setQuickFilter] = useState<'todos' | 'hoje' | 'sem_tratativa' | 'atrasados'>(
+    (externalQuickFilter as any) || 'todos'
+  );
   const [indicadorFilter, setIndicadorFilter] = useState<string>('todos');
+
+  // Update local state when props change
+  useEffect(() => {
+    if (searchTerm !== undefined) setSearchQuery(searchTerm);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (externalQuickFilter !== undefined) setQuickFilter(externalQuickFilter as any);
+  }, [externalQuickFilter]);
+
 
   const isMobile = window.innerWidth < 768;
 
@@ -84,8 +98,9 @@ const FunilBoard = ({
       const matchSearch = l.nome.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          (l.celular && l.celular.includes(searchQuery));
       const matchQuick = quickFilter === 'todos' || 
-                        (quickFilter === 'vence_hoje' && l.data_vencimento && format(parseISO(l.data_vencimento), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) ||
-                        true;
+                        (quickFilter === 'hoje' && l.data_vencimento && format(parseISO(l.data_vencimento), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) ||
+                        (quickFilter === 'sem_tratativa' && !ultimasTratativas[l.id]) ||
+                        (quickFilter === 'atrasados' && l.status_updated_at && (new Date().getTime() - new Date(l.status_updated_at).getTime()) > 14 * 24 * 60 * 60 * 1000);
       const matchIndicador = indicadorFilter === 'todos' || l.indicador_nome === indicadorFilter;
       return matchSearch && matchQuick && matchIndicador;
     });
