@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { formatCurrency, formatLeadValue } from "@/lib/utils";
+import { formatCurrency, formatLeadValue, parseBRLValue } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -39,14 +39,7 @@ import { Lead } from "@/types/funil";
 
 const STATUS_FECHADOS = ["venda_fechada", "fechado"];
 
-/** Converte valor formatado em BRL (ex: "R$ 110.000,00") para number */
-function parseBRLValue(v: unknown): number {
-  if (!v) return 0;
-  if (typeof v === 'number') return v;
-  const cleaned = String(v).replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
-}
+
 
 /** Pega o primeiro valor não-vazio de uma lista de chaves no objeto dados_cadastro */
 function getDC(dc: Record<string, unknown> | undefined | null, keys: string[]): string {

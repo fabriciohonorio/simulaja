@@ -27,3 +27,13 @@ export function formatLeadValue(value: number | string | null | undefined): stri
   if (num === 1) return formatCurrency(0);
   return formatCurrency(num);
 }
+
+/** Converte valor formatado em BRL (ex: "R$ 110.000,00") para number */
+export function parseBRLValue(v: unknown): number {
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  const cleaned = String(v).replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+

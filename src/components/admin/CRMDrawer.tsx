@@ -17,18 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
-interface Lead {
-  id: string;
-  nome: string;
-  celular: string;
-  cidade: string;
-  tipo_consorcio: string;
-  valor_credito: number | null;
-  status: string | null;
-  updated_at: string | null;
-}
-
-import { Lead } from "@/types";
+import { Lead } from "@/types/funil";
 
 interface CRMDrawerProps {
   onLoadLead: (lead: Lead) => void;

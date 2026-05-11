@@ -19,20 +19,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";  // ADDED
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseBRLValue } from "@/lib/utils";
 import { HistoricoModal } from "./HistoricoModal";
 import { ADMINISTRADORAS } from "@/hooks/useFunil";
 
 import { LeadForm } from "@/components/admin/LeadForm";
 
-/** Converte valor BRL formatado (ex: "R$ 110.000,00") para number */
-function parseBRLValue(v: any): number {
-  if (!v) return 0;
-  if (typeof v === 'number') return v;
-  const cleaned = String(v).replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? 0 : n;
-}
+
 
 export function FunilModals({ state }: { state: any }) {
   const {

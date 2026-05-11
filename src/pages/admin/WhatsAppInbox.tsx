@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, MessageSquare, Bot, User, Send, Loader2, Filter, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Lead } from "@/types";
+import { Lead } from "@/types/funil";
 import { LeadChat } from "@/components/admin/funil/LeadChat";
 
 interface ChatLead extends Lead {
