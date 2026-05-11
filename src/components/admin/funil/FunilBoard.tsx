@@ -71,8 +71,8 @@ const FunilBoard = (props: FunilBoardProps) => {
   const isMobile = window.innerWidth < 768;
 
   const getColumnLeads = (status: string) => {
-    return leads
-      .filter((l) => l.status === status)
+    return (leads || [])
+      .filter((l) => l && l.status === status)
       .sort((a, b) => {
         const timeA = new Date(a.status_updated_at || a.created_at || 0).getTime();
         const timeB = new Date(b.status_updated_at || b.created_at || 0).getTime();
@@ -81,9 +81,12 @@ const FunilBoard = (props: FunilBoardProps) => {
   };
 
   const applyFilters = (leadList: Lead[]) => {
-    return leadList.filter(l => {
-      const matchSearch = l.nome.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         (l.celular && l.celular.includes(searchQuery));
+    return (leadList || []).filter(l => {
+      if (!l) return false;
+      const nome = l.nome || "";
+      const celular = l.celular || "";
+      const matchSearch = nome.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         celular.includes(searchQuery);
       const matchQuick = quickFilter === 'todos' || 
                         (quickFilter === 'hoje' && l.data_vencimento && format(parseISO(l.data_vencimento), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) ||
                         (quickFilter === 'sem_tratativa' && !ultimasTratativas[l.id]) ||

@@ -6,13 +6,9 @@ import {
   Trash2,
   Pencil,
   NotebookPen,
-  GripVertical,
   Eye,
-  AlertCircle,
-  MessageSquare,
   DollarSign,
   Tag,
-  User,
 } from "lucide-react";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { Lead } from "@/types/funil";
@@ -35,16 +31,8 @@ interface LeadCardProps {
   onViewFicha?: (lead: Lead) => void;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-const iniciais = (nome: string | null | undefined) => {
-  const safe = nome || "FH";
-  const p = safe.trim().split(" ");
-  return p.length >= 2 ? `${p[0][0]}${p[1][0]}`.toUpperCase() : safe.substring(0, 2).toUpperCase();
-};
-
 const fmtBRL = (v: any) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
-// ────────────────────────────────────────────────────────────────────────────
 const LeadCard = ({
   lead,
   index,
@@ -54,6 +42,7 @@ const LeadCard = ({
   ultimaTratativa,
   onEdit,
   onViewFicha,
+  compact = false,
 }: LeadCardProps) => {
   const temp = (lead.lead_temperatura || "frio").toLowerCase();
   const isDeadLead = ["morto", "perdido"].includes((lead.status || "").toLowerCase());
@@ -68,25 +57,26 @@ const LeadCard = ({
           {...provided.dragHandleProps}
           style={{ ...provided.draggableProps.style }}
           className={cn(
-            "group relative bg-white rounded-xl border-2 mb-2 select-none overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
-            snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-50 cursor-grabbing" : "shadow-sm border-slate-200 hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5",
-            isDeadLead && "opacity-60"
+            "group relative bg-white rounded-xl border-2 mb-2 select-none overflow-hidden transition-all duration-200 cursor-pointer",
+            snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-50" : "shadow-sm border-slate-200 hover:border-primary/40",
+            isDeadLead && "opacity-60",
+            compact ? "h-[85px]" : "h-[155px]" // STRICT FIXED HEIGHTS
           )}
         >
-          {/* Faixa de temperatura */}
+          {/* Temperatura Stripe */}
           <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", 
             temp === "quente" ? "bg-red-500" : temp === "morno" ? "bg-orange-400" : "bg-blue-400"
           )} />
 
-          <div className="p-4 pl-5">
-            {/* Linha 1: Nome e Alerta de Tempo */}
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="font-black text-slate-800 text-[13px] uppercase leading-tight truncate">
-                {lead.nome || "SEM NOME"}
+          <div className="p-3 pl-5 flex flex-col h-full justify-between">
+            {/* Header: Name + Days */}
+            <div className="flex items-start justify-between gap-1.5">
+              <h3 className="font-bold text-slate-800 text-[12px] uppercase leading-tight truncate flex-1">
+                {lead.nome || "LEAD SEM NOME"}
               </h3>
               {diasNaEtapa >= 5 && (
-                <span className={cn("flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-black border", 
-                  diasNaEtapa >= 15 ? "bg-red-500 text-white border-red-600 animate-pulse" : "bg-orange-100 text-orange-700 border-orange-200"
+                <span className={cn("shrink-0 flex items-center gap-0.5 px-1 rounded text-[8px] font-black border", 
+                  diasNaEtapa >= 15 ? "bg-red-500 text-white border-red-600 animate-pulse" : "bg-orange-50 text-orange-600 border-orange-200"
                 )}>
                   <Clock className="w-2.5 h-2.5" />
                   {diasNaEtapa}D
@@ -94,99 +84,85 @@ const LeadCard = ({
               )}
             </div>
 
-            {/* Linha 2: Badges */}
-            <div className="flex items-center gap-2 mb-3">
-              <Badge className={cn("text-[9px] font-black uppercase px-2 h-5", 
-                temp === "quente" ? "bg-red-100 text-red-600 border-red-200" : temp === "morno" ? "bg-orange-100 text-orange-600 border-orange-200" : "bg-blue-100 text-blue-600 border-blue-200"
+            {/* Badges */}
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-1.5 h-4 border", 
+                temp === "quente" ? "bg-red-50 text-red-600 border-red-200" : temp === "morno" ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-blue-50 text-blue-600 border-blue-200"
               )}>
                 {temp}
               </Badge>
-              {lead.lead_score_valor && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 rounded">{lead.lead_score_valor}%</span>}
-              {lead.dados_cadastro?.is_retroativo && <Badge className="bg-purple-600 text-white text-[8px] h-5">RETRO</Badge>}
+              {lead.lead_score_valor && <span className="text-[9px] font-bold text-slate-400">{lead.lead_score_valor}%</span>}
             </div>
 
-            {/* Linha 3: Telefone */}
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 mb-2">
-              <Phone className="w-3.5 h-3.5 text-blue-500" />
-              <span className="font-bold">{lead.celular || "(00) 00000-0000"}</span>
-            </div>
-
-            {/* Linha 4: Valor e Tipo */}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-100">
-                <DollarSign className="w-3.5 h-3.5 text-green-600" />
-                <span className="font-black text-[14px] text-green-700 tracking-tighter">{fmtBRL(lead.valor_credito)}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-100 truncate">
-                <Tag className="w-3 h-3 text-slate-400" />
-                <span className="text-[10px] font-bold text-slate-500 truncate">{(lead.tipo_consorcio || "Imóvel").split("(")[0]}</span>
-              </div>
-            </div>
-
-            {/* Linha 5: Última Tratativa */}
-            <div className="bg-slate-50 rounded-lg p-2 mb-3 border border-slate-100 min-h-[40px] flex items-center">
-              {ultimaTratativa ? (
-                <p className="text-[10px] text-slate-500 italic line-clamp-2 leading-tight">
-                  <span className="font-black text-primary/60 not-italic">[{format(parseISO(ultimaTratativa.created_at), "dd/MM")}]</span> {ultimaTratativa.descricao}
-                </p>
-              ) : (
-                <p className="text-[10px] text-slate-300 italic">Sem tratativas registradas</p>
-              )}
-            </div>
-
-            {/* Linha 6: Footer (Responsável, Agendamento e Ações) */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-black shadow-sm" title={lead.responsavel_nome || "Sem responsável"}>
-                  {iniciais(lead.responsavel_nome)}
+            {!compact && (
+              <>
+                {/* Contact Row */}
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                  <Phone className="w-3 h-3 text-blue-500" />
+                  <span className="font-bold">{lead.celular || "Sem telefone"}</span>
                 </div>
-                
-                {/* Botão de Agendamento (Calendar) */}
-                <button
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
-                  className={cn("flex items-center gap-1.5 px-2 py-1 rounded-md border shadow-sm text-[10px] font-bold transition-all hover:scale-105 cursor-pointer", 
-                    lead.data_vencimento ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-slate-50 text-slate-400 border-slate-100"
-                  )}
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  {lead.data_vencimento ? format(parseISO(lead.data_vencimento), "dd/MM") : "Agendar"}
-                </button>
+
+                {/* Financial Row */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
+                    <DollarSign className="w-3 h-3 text-green-600" />
+                    <span className="font-black text-[12px] text-green-700">{fmtBRL(lead.valor_credito)}</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate">
+                    <Tag className="w-2.5 h-2.5 text-slate-300" />
+                    <span className="text-[9px] font-bold text-slate-400 truncate">{(lead.tipo_consorcio || "Consórcio").split("(")[0]}</span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Footer with Actions on Hover */}
+            <div className="flex items-center justify-between pt-1.5 border-t border-slate-50 min-h-[22px]">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[8px] font-black border border-slate-200">
+                  { (lead.responsavel_nome || "FH").substring(0,2).toUpperCase() }
+                </div>
+                {lead.data_vencimento && (
+                   <div className="text-[9px] text-slate-500 flex items-center gap-0.5 font-bold">
+                    <Calendar className="w-2.5 h-2.5 text-orange-400" />
+                    {format(parseISO(lead.data_vencimento), "dd/MM")}
+                  </div>
+                )}
               </div>
 
-              {/* Grupo de Ações */}
-              <div className="flex items-center gap-1">
+              {/* Actions: Hover Only */}
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm transition-all hover:scale-110 cursor-pointer"
-                  title="Ficha do Lead"
+                  className="w-6 h-6 rounded flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                  title="Ficha"
                 >
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-sky-500 text-white hover:bg-sky-600 shadow-sm transition-all hover:scale-110 cursor-pointer"
-                  title="Histórico / Tratativa"
+                  className="w-6 h-6 rounded flex items-center justify-center bg-sky-50 text-sky-600 hover:bg-sky-100 transition-colors"
+                  title="Histórico"
                 >
-                  <NotebookPen className="w-4 h-4" />
+                  <NotebookPen className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500 text-white hover:bg-blue-600 shadow-sm transition-all hover:scale-110 cursor-pointer"
-                  title="Editar Lead"
+                  className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                  title="Editar"
                 >
-                  <Pencil className="w-4 h-4" />
+                  <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 transition-all hover:scale-110 cursor-pointer"
-                  title="Excluir Lead"
+                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+                  title="Excluir"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
