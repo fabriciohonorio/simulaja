@@ -161,8 +161,8 @@ const FunilBoard = (props: FunilBoardProps) => {
 
   return (
     <DragDropContext onDragEnd={handleKanbanDragEnd}>
-      <div className="flex-1 overflow-x-auto pb-6 no-scrollbar">
-        <div className="flex gap-3 h-full min-w-max">
+      <div className="w-full flex-1 overflow-x-auto overflow-y-hidden pb-4 custom-scrollbar min-h-0">
+        <div className="flex gap-4 h-full min-w-max px-2">
           {COLUMNS.map((col) => {
             const colLeads = applyFilters(getColumnLeads(col.id));
             const totalValue = colLeads.reduce((acc, lead) => acc + Number(lead.valor_credito || 0), 0);
@@ -171,11 +171,11 @@ const FunilBoard = (props: FunilBoardProps) => {
               <div 
                 key={col.id}
                 className={cn(
-                  "flex flex-col rounded-xl border-t-4 bg-slate-50/50 border-slate-200/50 transition-all shrink-0",
-                  "w-[270px]",
+                  "flex flex-col rounded-xl border-t-4 bg-slate-50/80 border-slate-200 transition-all shrink-0",
+                  "w-[280px]",
                   "h-[calc(100vh-280px)]",
                   COLUMN_COLORS[col.id] || "border-t-slate-300",
-                  state?.isWideView && "w-[310px]"
+                  state?.isWideView && "w-[340px]"
                 )}
               >
                 <div className="p-3 flex items-center justify-between border-b border-slate-100 bg-white/50 rounded-t-xl shrink-0">

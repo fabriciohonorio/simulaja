@@ -9,8 +9,11 @@ import {
   Eye,
   DollarSign,
   Tag,
+  MessageSquare,
+  AlertCircle,
+  ClipboardList,
 } from "lucide-react";
-import { format, parseISO, differenceInDays } from "date-fns";
+import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { Lead } from "@/types/funil";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -31,8 +34,23 @@ interface LeadCardProps {
   onViewFicha?: (lead: Lead) => void;
 }
 
-const fmtBRL = (v: any) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const safeFormatBRL = (v: any) => {
+  try {
+    const num = typeof v === "number" ? v : parseFloat(String(v || 0).replace(/[^\d.-]/g, ""));
+    return (num || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  } catch (e) { return "R$ 0"; }
+};
 
+const safeDate = (d: any) => {
+  if (!d) return null;
+  try {
+    const p = parseISO(d);
+    return isValid(p) ? p : null;
+  } catch (e) { return null; }
+};
+
+// ────────────────────────────────────────────────────────────────────────────
 const LeadCard = ({
   lead,
   index,
@@ -46,7 +64,13 @@ const LeadCard = ({
 }: LeadCardProps) => {
   const temp = (lead.lead_temperatura || "frio").toLowerCase();
   const isDeadLead = ["morto", "perdido"].includes((lead.status || "").toLowerCase());
-  const diasNaEtapa = lead.status_updated_at ? differenceInDays(new Date(), parseISO(lead.status_updated_at)) : 0;
+  
+  const statusDate = safeDate(lead.status_updated_at || lead.created_at);
+  const diasNaEtapa = statusDate ? differenceInDays(new Date(), statusDate) : 0;
+  const vencDate = safeDate(lead.data_vencimento);
+
+  const initials = (lead.responsavel_nome || "FH").substring(0, 2).toUpperCase();
+  const waLink = `https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`;
 
   return (
     <Draggable draggableId={lead.id} index={index}>
@@ -57,101 +81,139 @@ const LeadCard = ({
           {...provided.dragHandleProps}
           style={{ ...provided.draggableProps.style }}
           className={cn(
-            "group relative bg-white rounded-xl border-2 mb-2 select-none overflow-hidden transition-all duration-200 cursor-pointer",
-            snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-50" : "shadow-sm border-slate-200 hover:border-primary/40",
-            isDeadLead && "opacity-60",
-            compact ? "h-[85px]" : "h-[155px]" // STRICT FIXED HEIGHTS
+            "group relative bg-white rounded-xl border-2 mb-2 select-none overflow-hidden transition-all duration-200 cursor-grab active:cursor-grabbing",
+            snapshot.isDragging ? "shadow-2xl ring-2 ring-primary/40 rotate-1 z-[999]" : "shadow-sm border-slate-200 hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5",
+            isDeadLead && "opacity-60 grayscale-[30%]",
+            compact ? "h-[95px]" : "h-[165px]" // PADRONIZAÇÃO RÍGIDA
           )}
         >
-          {/* Temperatura Stripe */}
-          <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", 
+          {/* Faixa de Temperatura */}
+          <div className={cn("absolute left-0 top-0 bottom-0 w-1.5 z-10", 
             temp === "quente" ? "bg-red-500" : temp === "morno" ? "bg-orange-400" : "bg-blue-400"
           )} />
 
-          <div className="p-3 pl-5 flex flex-col h-full justify-between">
-            {/* Header: Name + Days */}
-            <div className="flex items-start justify-between gap-1.5">
-              <h3 className="font-bold text-slate-800 text-[12px] uppercase leading-tight truncate flex-1">
+          <div className="p-3 pl-5 flex flex-col h-full">
+            {/* Header: Nome + Badge Urgência */}
+            <div className="flex items-start justify-between gap-1.5 mb-1.5">
+              <h3 className="font-extrabold text-slate-800 text-[12px] uppercase leading-tight truncate flex-1 tracking-tight">
                 {lead.nome || "LEAD SEM NOME"}
               </h3>
               {diasNaEtapa >= 5 && (
-                <span className={cn("shrink-0 flex items-center gap-0.5 px-1 rounded text-[8px] font-black border", 
-                  diasNaEtapa >= 15 ? "bg-red-500 text-white border-red-600 animate-pulse" : "bg-orange-50 text-orange-600 border-orange-200"
+                <div className={cn("shrink-0 flex items-center justify-center rounded-full text-[9px] font-black w-6 h-6 border shadow-sm", 
+                  diasNaEtapa >= 30 ? "bg-red-500 text-white animate-pulse" : 
+                  diasNaEtapa >= 15 ? "bg-orange-500 text-white" : "bg-amber-100 text-amber-700 border-amber-200"
                 )}>
-                  <Clock className="w-2.5 h-2.5" />
-                  {diasNaEtapa}D
-                </span>
+                  {diasNaEtapa}d
+                </div>
               )}
             </div>
 
-            {/* Badges */}
-            <div className="flex items-center gap-1.5">
-              <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-1.5 h-4 border", 
-                temp === "quente" ? "bg-red-50 text-red-600 border-red-200" : temp === "morno" ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-blue-50 text-blue-600 border-blue-200"
+            {/* Status Info */}
+            <div className="flex items-center gap-1.5 mb-2">
+              <Badge variant="outline" className={cn("text-[8px] font-black uppercase px-2 h-4.5 border-2", 
+                temp === "quente" ? "bg-red-50 text-red-600 border-red-200" : 
+                temp === "morno" ? "bg-orange-50 text-orange-600 border-orange-200" : 
+                "bg-blue-50 text-blue-600 border-blue-200"
               )}>
                 {temp}
               </Badge>
-              {lead.lead_score_valor && <span className="text-[9px] font-bold text-slate-400">{lead.lead_score_valor}%</span>}
+              {lead.lead_score_valor && <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-1.5 rounded border border-slate-100 uppercase tracking-tighter">{lead.lead_score_valor}%</span>}
             </div>
 
-            {!compact && (
+            {!compact ? (
               <>
-                {/* Contact Row */}
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                  <Phone className="w-3 h-3 text-blue-500" />
-                  <span className="font-bold">{lead.celular || "Sem telefone"}</span>
+                {/* Detalhes Médios */}
+                <div className="flex items-center gap-2 text-[11px] text-slate-600 mb-2 font-bold">
+                  <Phone className="w-3.5 h-3.5 text-blue-500" />
+                  {lead.celular || "Sem número"}
                 </div>
 
-                {/* Financial Row */}
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
-                    <DollarSign className="w-3 h-3 text-green-600" />
-                    <span className="font-black text-[12px] text-green-700">{fmtBRL(lead.valor_credito)}</span>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <div className="flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded border border-green-200 shadow-sm">
+                    <DollarSign className="w-3.5 h-3.5 text-green-600" />
+                    <span className="font-black text-[13px] text-green-800 tracking-tighter">{safeFormatBRL(lead.valor_credito)}</span>
                   </div>
-                  <div className="flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate">
-                    <Tag className="w-2.5 h-2.5 text-slate-300" />
-                    <span className="text-[9px] font-bold text-slate-400 truncate">{(lead.tipo_consorcio || "Consórcio").split("(")[0]}</span>
+                  <div className="flex items-center gap-1 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 truncate flex-1">
+                    <Tag className="w-3 h-3 text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-500 truncate">{(lead.tipo_consorcio || "Consórcio").split("(")[0]}</span>
                   </div>
+                </div>
+
+                {/* Última Tratativa (Sempre presente) */}
+                <div className="h-9 bg-slate-50/50 rounded-lg p-2 border border-slate-100 flex items-center overflow-hidden mb-auto">
+                  {ultimaTratativa ? (
+                    <p className="text-[10px] text-slate-500 italic line-clamp-2 leading-tight">
+                      <span className="font-black text-primary/60 not-italic">[{format(parseISO(ultimaTratativa.created_at), "dd/MM")}]</span> {ultimaTratativa.descricao}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-slate-300 italic">Nenhuma tratativa registrada...</p>
+                  )}
                 </div>
               </>
+            ) : (
+              <div className="font-black text-[12px] text-green-700 mb-auto">{safeFormatBRL(lead.valor_credito)}</div>
             )}
 
-            {/* Footer with Actions on Hover */}
-            <div className="flex items-center justify-between pt-1.5 border-t border-slate-50 min-h-[22px]">
+            {/* Footer: ÍCONES SOLICITADOS (Sempre Visíveis) */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[8px] font-black border border-slate-200">
-                  { (lead.responsavel_nome || "FH").substring(0,2).toUpperCase() }
+                <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[9px] font-black shadow-sm border border-primary/20" title={lead.responsavel_nome}>
+                  {initials}
                 </div>
-                {lead.data_vencimento && (
-                   <div className="text-[9px] text-slate-500 flex items-center gap-0.5 font-bold">
-                    <Calendar className="w-2.5 h-2.5 text-orange-400" />
-                    {format(parseISO(lead.data_vencimento), "dd/MM")}
-                  </div>
-                )}
               </div>
 
-              {/* Actions: Hover Only */}
-              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* GRUPO DE FUNÇÕES: WHATSAPP, TRATATIVA, AGENDAMENTO, EDITAR, EXCLUIR */}
+              <div className="flex items-center gap-0.5">
+                {/* Agendamento */}
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                  title="Ficha"
+                  onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
+                  className={cn("w-7 h-7 rounded-md flex items-center justify-center border transition-all hover:scale-110", 
+                    vencDate ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-slate-50 text-slate-300 border-slate-100"
+                  )}
+                  title="Agendar Retorno"
                 >
-                  <Eye className="w-3.5 h-3.5" />
+                  <Calendar className="w-4 h-4" />
                 </button>
+
+                {/* WhatsApp */}
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 transition-all hover:scale-110"
+                  title="Abrir WhatsApp"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </a>
+
+                {/* Histórico/Tratativa */}
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-sky-50 text-sky-600 hover:bg-sky-100 transition-colors"
-                  title="Histórico"
+                  className="w-7 h-7 rounded-md flex items-center justify-center bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-all hover:scale-110"
+                  title="Ver Histórico"
                 >
-                  <NotebookPen className="w-3.5 h-3.5" />
+                  <NotebookPen className="w-4 h-4" />
                 </button>
+
+                {/* Ficha */}
+                <button
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
+                  className="w-7 h-7 rounded-md flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-all hover:scale-110"
+                  title="Ver Ficha"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                </button>
+
+                {/* Editar/Excluir (Mais discretos) */}
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onEdit?.(lead); }}
-                  className="w-6 h-6 rounded flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-slate-300 hover:text-blue-500 transition-all"
                   title="Editar"
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -159,7 +221,7 @@ const LeadCard = ({
                 <button
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
-                  className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-slate-300 hover:text-red-500 transition-all"
                   title="Excluir"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
