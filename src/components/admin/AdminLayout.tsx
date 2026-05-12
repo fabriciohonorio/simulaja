@@ -3,7 +3,7 @@ import { Profile, OrganizationRow } from "@/types";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings, MessageSquare, Loader2, FileText } from "lucide-react";
+import { LayoutDashboard, Filter, Users, LogOut, Target, Briefcase, AlertTriangle, Menu, ChevronLeft, ChevronRight, Calculator, CalendarDays, Sparkles, Settings, MessageSquare, RefreshCw, FileText } from "lucide-react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Button } from "@/components/ui/button";
@@ -241,7 +241,7 @@ export default function AdminLayout() {
                         <ErrorBoundary>
                             <Suspense fallback={
                                 <div className="flex h-full w-full items-center justify-center py-20">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    <RefreshCw className="h-8 w-8 animate-spin text-primary" />
                                 </div>
                             }>
                                 <Outlet />

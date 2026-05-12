@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel, Zap } from "lucide-react";
+import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel, Zap, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
@@ -225,7 +225,7 @@ export function HistoricoModal({
                 </div>
 
                 {loadingHistorico ? (
-                  <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-slate-300" /></div>
+                  <div className="flex justify-center py-12"><RefreshCw className="h-6 w-6 animate-spin text-slate-300" /></div>
                 ) : historico.length === 0 ? (
                   <div className="text-center py-12 text-slate-300 italic text-sm">Nenhuma nota interna registrada.</div>
                 ) : (

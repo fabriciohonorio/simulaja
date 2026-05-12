@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, MessageCircle, Loader2 } from "lucide-react";
+import { Send, MessageCircle, RefreshCw } from "lucide-react";
 
 interface Membro {
   id: string;
@@ -138,7 +138,7 @@ export default function Chat() {
   if (profileLoading)
     return (
       <div className="flex justify-center items-center h-[60vh]">
-        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+        <RefreshCw className="animate-spin h-8 w-8 text-primary" />
       </div>
     );
 
@@ -214,7 +214,7 @@ export default function Chat() {
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/30">
           {loadingMsgs && (
             <div className="flex justify-center py-6">
-              <Loader2 className="animate-spin h-6 w-6 text-slate-300" />
+              <RefreshCw className="animate-spin h-6 w-6 text-slate-300" />
             </div>
           )}
           {!loadingMsgs && mensagens.length === 0 && (
@@ -266,7 +266,7 @@ export default function Chat() {
               disabled={!texto.trim() || sending}
               className="h-11 w-11 rounded-xl p-0 shrink-0"
             >
-              {sending ? <Loader2 className="animate-spin h-4 w-4" /> : <Send className="h-4 w-4" />}
+              {sending ? <RefreshCw className="animate-spin h-4 w-4" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
           <p className="text-[10px] text-slate-400 mt-1 text-right">{texto.length}/2000 · Enter para enviar</p>

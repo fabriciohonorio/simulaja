@@ -23,7 +23,6 @@ import {
   Trash2,
   CalendarDays,
   Pencil,
-  Loader2,
   Home,
   Car,
   Bike,
@@ -911,7 +910,7 @@ export default function Carteira() {
           const renderCotaActions = (c: Cliente) => (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={loadingClientTratativas === c.id} className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 ${ c.lead_id && leadsComLance.has(c.lead_id) ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600" : "border-slate-200 hover:bg-slate-50 text-slate-600" }`} onClick={() => handleOpenTratativas(c)}>
-                {loadingClientTratativas === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <NotebookPen className="h-3 w-3" />}
+                {loadingClientTratativas === c.id ? <RefreshCw className="h-3 w-3 animate-spin" /> : <NotebookPen className="h-3 w-3" />}
                 {c.lead_id && leadsComLance.has(c.lead_id) ? "Lance" : "Tratativas"}
               </Button>
               {c.boleto_url && <Button variant="ghost" size="sm" className="h-8 text-[9px] font-black uppercase bg-blue-50 text-blue-600" onClick={() => window.open(c.boleto_url!, '_blank')}><FileText className="h-3 w-3" /></Button>}
@@ -1050,7 +1049,7 @@ export default function Carteira() {
               disabled={savingNewCota || !newCotaForm.grupo || !newCotaForm.cota}
               onClick={handleAddNovaCota}
             >
-              {savingNewCota ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar Nova Cota"}
+              {savingNewCota ? <RefreshCw className="h-4 w-4 animate-spin" /> : "Salvar Nova Cota"}
             </Button>
           </div>
         </DialogContent>

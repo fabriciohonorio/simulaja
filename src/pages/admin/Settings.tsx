@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { ProfileRow, ConviteRow, OrganizationRow } from "@/types";
-import { Users, Mail, UserPlus, Copy, Loader2, Trash2, Shield, ChevronDown, Upload, CalendarDays, Settings as SettingsIcon } from "lucide-react";
+import { Users, Mail, UserPlus, Copy, RefreshCw, Trash2, Shield, ChevronDown, Upload, CalendarDays, Settings as SettingsIcon } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 
 const ROLES = [
@@ -142,7 +142,7 @@ export default function Settings() {
   if (loading)
     return (
       <div className="flex justify-center items-center h-[60vh]">
-        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+        <RefreshCw className="animate-spin h-8 w-8 text-primary" />
       </div>
     );
 
@@ -312,7 +312,7 @@ export default function Settings() {
                 onClick={handleInvite}
                 disabled={inviting || !emailToInvite}
               >
-                {inviting ? <Loader2 className="animate-spin h-4 w-4" /> : "Gerar Link de Acesso"}
+                {inviting ? <RefreshCw className="animate-spin h-4 w-4" /> : "Gerar Link de Acesso"}
               </Button>
             </CardContent>
           </Card>
@@ -377,7 +377,7 @@ export default function Settings() {
                         <>
                           <div className="flex items-center gap-2">
                             {changingRole === u.id ? (
-                              <Loader2 className="animate-spin h-4 w-4 text-slate-400" />
+                              <RefreshCw className="animate-spin h-4 w-4 text-slate-400" />
                             ) : (
                               <Select value={u.tipo_acesso || "vendedor"} onValueChange={(val) => changeRole(u.id, val)}>
                                 <SelectTrigger className={`h-8 text-[11px] font-black uppercase rounded-full border px-3 ${ROLE_COLORS[u.tipo_acesso || "vendedor"]}`}>

@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, MessageSquare, Bot, User, Send, Loader2, Filter, Zap } from "lucide-react";
+import { Search, MessageSquare, Bot, User, Send, RefreshCw, Filter, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Lead } from "@/types/funil";
@@ -122,7 +122,7 @@ export default function WhatsAppInbox() {
           <div className="px-3 pb-6 space-y-1">
             {loading ? (
               <div className="flex justify-center py-10">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-300" />
+                <RefreshCw className="h-6 w-6 animate-spin text-slate-300" />
               </div>
             ) : filteredLeads.length === 0 ? (
               <div className="text-center py-10 px-6">

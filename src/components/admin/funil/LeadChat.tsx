@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Loader2, Send, Bot, User, MessageSquare } from "lucide-react";
+import { RefreshCw, Send, Bot, User, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Lead } from "@/types/funil";
@@ -104,7 +104,7 @@ export function LeadChat({ lead }: { lead: Lead }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -182,7 +182,7 @@ export function LeadChat({ lead }: { lead: Lead }) {
           className="rounded-full h-10 w-10 shrink-0 bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all active:scale-90"
           disabled={!newMessage.trim() || sending}
         >
-          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {sending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </form>
     </div>
