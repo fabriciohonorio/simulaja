@@ -244,7 +244,7 @@ export default function Leads() {
   if (loading) return <div className="p-20 text-center animate-pulse">Carregando leads...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-black text-slate-900">Operação Leads</h1>
         <button

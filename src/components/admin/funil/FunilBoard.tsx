@@ -175,7 +175,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
       onDragEnd={onDragEnd}
       onDragStart={() => { isDraggingCardRef.current = true; }}
     >
-      <div className="relative group w-full">
+      <div className="relative group w-full flex-1 min-h-0 flex flex-col">
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 500)}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -ml-8 border-4 border-background group-hover:opacity-100 opacity-80"
@@ -194,11 +194,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <div
           ref={kanbanRef}
-          className={`flex overflow-x-auto pb-4 no-scrollbar ${isWideView ? '' : 'justify-start'}`}
-          style={{ 
-            scrollbarWidth: 'none', 
-            msOverflowStyle: 'none'
-          }}
+          className={`flex-1 min-h-0 flex overflow-x-auto pb-4 no-scrollbar ${isWideView ? '' : 'justify-start'} custom-scrollbar`}
         >
           {COLUMNS.map((col, index) => {
             const colLeads = applyFilters(getColumnLeads(col.id));
@@ -209,7 +205,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
             return (
               <div
                 key={col.id}
-                className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 p-1.5 flex flex-col h-[calc(100vh-160px)] relative group/col mr-2 first:ml-2`}
+                className={`shrink-0 rounded-lg border-t-4 ${COLUMN_COLORS[col.id] || "border-t-border bg-card/50"} bg-card/80 p-1.5 flex flex-col h-full relative group/col mr-2 first:ml-2`}
                 style={{ width: columnWidths[col.id] || (isWideView ? 180 : 240), minWidth: isWideView ? 140 : 230 }}
               >
                 <div className="mb-2 flex items-center justify-between">

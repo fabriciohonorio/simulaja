@@ -236,8 +236,8 @@ export default function AdminLayout() {
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-auto p-4 md:p-6 bg-slate-50 min-h-[calc(100vh-4rem)] lg:min-h-screen">
-                    <div className="max-w-[1600px] mx-auto h-full">
+                <main className="flex-1 flex flex-col overflow-hidden p-4 md:p-6 bg-slate-50 min-h-0">
+                    <div className="max-w-[1600px] w-full mx-auto h-full flex flex-col min-h-0">
                         <ErrorBoundary>
                             <Suspense fallback={
                                 <div className="flex h-full w-full items-center justify-center py-20">

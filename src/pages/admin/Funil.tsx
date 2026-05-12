@@ -47,7 +47,7 @@ export default function Funil() {
   const activeColor = getCategoryColor(selectedCategory);
 
   return (
-    <div className="space-y-2 select-none no-scrollbar w-full">
+    <div className="flex flex-col h-[calc(100vh-120px)] lg:h-[calc(100vh-100px)] space-y-2 select-none no-scrollbar w-full overflow-hidden">
       {/* Operational Summary Bar - Ultra Slim */}
       <div className="flex flex-col xl:flex-row gap-2">
         {/* Rapid Status Stats */}
@@ -220,9 +220,8 @@ export default function Funil() {
       <FunilModals state={funilState} />
 
       <style>{`
-        *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
-        * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none !important; }
+        .no-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
       `}</style>
     </div>
   );
