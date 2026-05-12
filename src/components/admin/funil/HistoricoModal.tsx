@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel, Zap, RefreshCw } from "lucide-react";
+import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel, Zap, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/utils";
@@ -218,37 +218,68 @@ export function HistoricoModal({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Histórico de Atividades</h4>
-                  <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{historico.length} registros</span>
+              <div className="flex-1 relative group/history-scroll overflow-hidden">
+                <div 
+                  id="history-list-container"
+                  className="h-full overflow-y-auto space-y-4 pr-2 custom-scrollbar"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Histórico de Atividades</h4>
+                    <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{historico.length} registros</span>
+                  </div>
+
+                  {loadingHistorico ? (
+                    <div className="flex justify-center py-12"><RefreshCw className="h-6 w-6 animate-spin text-slate-300" /></div>
+                  ) : historico.length === 0 ? (
+                    <div className="text-center py-12 text-slate-300 italic text-sm">Nenhuma nota interna registrada.</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {historico.map((h) => {
+                        const tipoOpt = TIPO_CONTATO_OPTIONS.find(t => t.value === h.tipo);
+                        return (
+                          <div key={h.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-indigo-500" />}
+                                <span className="text-[10px] font-black uppercase text-slate-600">{tipoOpt?.label}</span>
+                              </div>
+                              <span className="text-[9px] font-bold text-slate-400">
+                                {h.created_at ? format(new Date(h.created_at), "dd/MM 'às' HH:mm", { locale: ptBR }) : "—"}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-700 leading-relaxed">{h.observacao}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                {loadingHistorico ? (
-                  <div className="flex justify-center py-12"><RefreshCw className="h-6 w-6 animate-spin text-slate-300" /></div>
-                ) : historico.length === 0 ? (
-                  <div className="text-center py-12 text-slate-300 italic text-sm">Nenhuma nota interna registrada.</div>
-                ) : (
-                  <div className="space-y-3">
-                    {historico.map((h) => {
-                      const tipoOpt = TIPO_CONTATO_OPTIONS.find(t => t.value === h.tipo);
-                      return (
-                        <div key={h.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-indigo-500" />}
-                              <span className="text-[10px] font-black uppercase text-slate-600">{tipoOpt?.label}</span>
-                            </div>
-                            <span className="text-[9px] font-bold text-slate-400">
-                              {h.created_at ? format(new Date(h.created_at), "dd/MM 'às' HH:mm", { locale: ptBR }) : "—"}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-700 leading-relaxed">{h.observacao}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Vertical Scroll Controls */}
+                <div className="absolute right-4 bottom-4 flex flex-col gap-1 opacity-0 group-hover/history-scroll:opacity-100 transition-opacity z-20">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 rounded-full shadow-lg bg-white/90 hover:bg-white border border-slate-200"
+                    onClick={() => {
+                      const container = document.getElementById('history-list-container');
+                      container?.scrollBy({ top: -200, behavior: 'smooth' });
+                    }}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8 rounded-full shadow-lg bg-white/90 hover:bg-white border border-slate-200"
+                    onClick={() => {
+                      const container = document.getElementById('history-list-container');
+                      container?.scrollBy({ top: 200, behavior: 'smooth' });
+                    }}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </TabsContent>
           </div>

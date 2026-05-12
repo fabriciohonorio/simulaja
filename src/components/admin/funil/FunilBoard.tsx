@@ -1,7 +1,7 @@
 import React from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { COLUMNS, COLUMN_COLORS, COLUMN_DOT_COLORS } from "./constants";
@@ -147,23 +147,60 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId={currentCol.id}>
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-450px)] overflow-y-auto no-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-              >
-                <div className="space-y-2">
-                  {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
-                  {currentColLeads.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-8">
-                      Nenhum lead nesta etapa
-                    </p>
-                  )}
-                  {provided.placeholder}
+            {(provided, snapshot) => {
+              const mobileRef = React.useRef<HTMLDivElement>(null);
+              const scrollMobile = (direction: 'up' | 'down') => {
+                if (mobileRef.current) {
+                  mobileRef.current.scrollBy({
+                    top: direction === 'up' ? -300 : 300,
+                    behavior: 'smooth'
+                  });
+                }
+              };
+
+              return (
+                <div className="relative group/mobile-scroll">
+                  <div
+                    ref={(el) => {
+                      provided.innerRef(el);
+                      (mobileRef as any).current = el;
+                    }}
+                    {...provided.droppableProps}
+                    className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-400px)] overflow-y-auto custom-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                  >
+                    <div className="space-y-2">
+                      {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
+                      {currentColLeads.length === 0 && (
+                        <p className="text-center text-sm text-muted-foreground py-8">
+                          Nenhum lead nesta etapa
+                        </p>
+                      )}
+                      {provided.placeholder}
+                    </div>
+                  </div>
+
+                  {/* Mobile Vertical Scroll Controls */}
+                  <div className="absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/mobile-scroll:opacity-100 transition-opacity z-20">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary"
+                      onClick={() => scrollMobile('up')}
+                    >
+                      <ChevronUp className="h-6 w-6" />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary"
+                      onClick={() => scrollMobile('down')}
+                    >
+                      <ChevronDown className="h-6 w-6" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           </Droppable>
         </DragDropContext>
       </div>
@@ -223,16 +260,54 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                 />
 
                 <Droppable droppableId={col.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`space-y-1.5 flex-1 overflow-y-auto pr-1 custom-scrollbar min-h-[100px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30 rounded" : ""}`}
-                    >
-                      {colLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
-                      {provided.placeholder}
-                    </div>
-                  )}
+                  {(provided, snapshot) => {
+                    const columnRef = React.useRef<HTMLDivElement>(null);
+                    
+                    const scrollColumn = (direction: 'up' | 'down') => {
+                      if (columnRef.current) {
+                        columnRef.current.scrollBy({
+                          top: direction === 'up' ? -300 : 300,
+                          behavior: 'smooth'
+                        });
+                      }
+                    };
+
+                    return (
+                      <div className="relative flex-1 min-h-[100px] flex flex-col group/colcontent">
+                        <div
+                          ref={(el) => {
+                            provided.innerRef(el);
+                            (columnRef as any).current = el;
+                          }}
+                          {...provided.droppableProps}
+                          className={`space-y-1.5 flex-1 overflow-y-auto pr-1 custom-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30 rounded" : ""}`}
+                        >
+                          {colLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
+                          {provided.placeholder}
+                        </div>
+                        
+                        {/* Vertical Scroll Controls - Facilitated Methodology */}
+                        <div className="absolute right-2 bottom-2 flex flex-col gap-1 opacity-0 group-hover/colcontent:opacity-100 transition-opacity z-20">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-7 w-7 rounded-full shadow-lg bg-white/90 hover:bg-white border border-slate-200"
+                            onClick={() => scrollColumn('up')}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-7 w-7 rounded-full shadow-lg bg-white/90 hover:bg-white border border-slate-200"
+                            onClick={() => scrollColumn('down')}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  }}
                 </Droppable>
               </div>
             );

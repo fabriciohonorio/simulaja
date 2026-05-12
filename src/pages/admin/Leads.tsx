@@ -15,7 +15,9 @@ import {
   CalendarCheck,
   NotebookPen,
   ClipboardList,
-  RefreshCw
+  RefreshCw,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { formatToUpper, formatToFourDigits } from "@/lib/formatters";
 import { WhatsAppIcon } from "@/components/SocialIcons";
@@ -244,7 +246,11 @@ export default function Leads() {
   if (loading) return <div className="p-20 text-center animate-pulse">Carregando leads...</div>;
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+    <div className="flex-1 flex flex-col min-h-0 relative group/main-scroll overflow-hidden">
+      <div 
+        id="leads-main-container"
+        className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar p-1"
+      >
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-black text-slate-900">Operação Leads</h1>
         <button
@@ -651,6 +657,33 @@ export default function Leads() {
           />
         </DialogContent>
       </Dialog>
+      </div>
+
+      {/* Vertical Scroll Controls - Facilitated Methodology */}
+      <div className="absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/main-scroll:opacity-100 transition-opacity z-20">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+          onClick={() => {
+            const container = document.getElementById('leads-main-container');
+            container?.scrollBy({ top: -400, behavior: 'smooth' });
+          }}
+        >
+          <ChevronUp className="h-6 w-6" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+          onClick={() => {
+            const container = document.getElementById('leads-main-container');
+            container?.scrollBy({ top: 400, behavior: 'smooth' });
+          }}
+        >
+          <ChevronDown className="h-6 w-6" />
+        </Button>
+      </div>
     </div>
   );
 }
