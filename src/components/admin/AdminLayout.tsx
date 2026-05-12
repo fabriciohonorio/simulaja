@@ -215,11 +215,11 @@ export default function AdminLayout() {
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
-            <aside className="hidden lg:block h-full">
+            <aside className="hidden lg:block h-full w-auto shrink-0 z-40">
                 {renderSidebar(sidebarCollapsed)}
             </aside>
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
                 <header className={`lg:hidden flex items-center justify-between px-4 h-16 shadow-sm z-30 transition-colors ${
                     isDayTime ? 'bg-white text-slate-900 border-b border-slate-100' : 'bg-[#001E3C] text-white border-b border-white/5'
                 }`}>
@@ -236,8 +236,8 @@ export default function AdminLayout() {
                     </Sheet>
                 </header>
 
-                <main className="flex-1 flex flex-col overflow-hidden p-4 md:p-6 bg-slate-50 min-h-0">
-                    <div className="max-w-[1600px] w-full mx-auto h-full flex flex-col min-h-0">
+                <main className="flex-1 flex flex-col min-h-0 bg-slate-50 overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 w-full p-4 md:p-6 overflow-hidden">
                         <ErrorBoundary>
                             <Suspense fallback={
                                 <div className="flex h-full w-full items-center justify-center py-20">

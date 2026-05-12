@@ -178,7 +178,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
       <div className="relative group w-full flex-1 min-h-0 flex flex-col">
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 500)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -ml-8 border-4 border-background group-hover:opacity-100 opacity-80"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all border-4 border-background group-hover:opacity-100 opacity-80"
           aria-label="Rolar para esquerda"
         >
           <ChevronLeft className="h-10 w-10" />
@@ -186,7 +186,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 500)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all -mr-8 border-4 border-background group-hover:opacity-100 opacity-80"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all border-4 border-background group-hover:opacity-100 opacity-80"
           aria-label="Rolar para direita"
         >
           <ChevronRight className="h-10 w-10" />
@@ -194,7 +194,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <div
           ref={kanbanRef}
-          className={`flex-1 min-h-0 flex overflow-x-auto pb-4 no-scrollbar ${isWideView ? '' : 'justify-start'} custom-scrollbar`}
+          className={`flex-1 min-h-0 flex overflow-x-auto pb-4 custom-scrollbar ${isWideView ? '' : 'justify-start'}`}
         >
           {COLUMNS.map((col, index) => {
             const colLeads = applyFilters(getColumnLeads(col.id));
@@ -227,7 +227,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`space-y-1.5 flex-1 overflow-y-auto pr-1 no-scrollbar min-h-[100px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30 rounded" : ""}`}
+                      className={`space-y-1.5 flex-1 overflow-y-auto pr-1 custom-scrollbar min-h-[100px] ${snapshot.isDraggingOver ? "ring-2 ring-primary/30 rounded" : ""}`}
                     >
                       {colLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
                       {provided.placeholder}
