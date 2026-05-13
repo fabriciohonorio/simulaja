@@ -93,7 +93,7 @@ export const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "Magalu", credito: 350000, r50: 1172.84, prazo: 240 },
     { grupo: "Magalu", credito: 400000, r50: 1340.38, prazo: 240 },
     { grupo: "Magalu", credito: 450000, r50: 1508.23, prazo: 240 },
-    { grupo: "Magalu", credito: 500000, r50: 1675.48, prazo: 240 },
+    { grupo: "6042", credito: 500000, r50: 1478.50, prazo: 240, tx: 20, fr: 1 },
     { grupo: "Magalu", credito: 600000, r50: 2010.58, prazo: 240 },
     { grupo: "Magalu", credito: 700000, r50: 2345.67, prazo: 240 },
   ],

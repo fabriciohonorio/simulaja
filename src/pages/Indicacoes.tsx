@@ -65,7 +65,7 @@ const GRUPOS: Record<string, GrupoItem[]> = {
     { grupo: "6042", credito: 350000, r50: 1141.67, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6042", credito: 400000, r50: 1304.77, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6042", credito: 450000, r50: 1467.86, prazo: 240, tx: 20, fr: 1 },
-    { grupo: "6042", credito: 500000, r50: 1630.96, prazo: 240, tx: 20, fr: 1 },
+    { grupo: "6042", credito: 500000, r50: 1478.50, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6042", credito: 600000, r50: 1957.15, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6042", credito: 700000, r50: 2069.90, prazo: 240, tx: 20, fr: 1 },
     { grupo: "6039", credito: 1000000, r50: 3043.0, prazo: 230 },
