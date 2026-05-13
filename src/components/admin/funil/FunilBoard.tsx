@@ -271,17 +271,17 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                         {/* Vertical Scroll Controls - Facilitated Methodology */}
                         <div className="absolute right-2 bottom-2 flex flex-col gap-1 opacity-0 group-hover/colcontent:opacity-100 transition-opacity z-20">
                           <Button
-                            variant="secondary"
+                            variant="ghost"
                             size="icon"
-                            className="h-6 w-6 rounded-full shadow-lg bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
+                            className="h-6 w-6 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/30 transition-all"
                             onClick={() => scrollColumn('up')}
                           >
                             <ChevronUp className="h-3.5 w-3.5" />
                           </Button>
                           <Button
-                            variant="secondary"
+                            variant="ghost"
                             size="icon"
-                            className="h-6 w-6 rounded-full shadow-lg bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
+                            className="h-6 w-6 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/30 transition-all"
                             onClick={() => scrollColumn('down')}
                           >
                             <ChevronDown className="h-3.5 w-3.5" />
