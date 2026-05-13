@@ -260,9 +260,10 @@ function ScrollAssistant() {
 
     useEffect(() => {
         const checkVisibility = () => {
-            // Only show on desktop screens (XL breakpoint and above)
-            // AND ensure it's not a touch device if possible (optional but safer)
-            setIsVisible(window.innerWidth >= 1280);
+            const isDesktopWidth = window.innerWidth >= 1280;
+            // Also check that it's not a touch device (phones/tablets)
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            setIsVisible(isDesktopWidth && !isTouchDevice);
         };
 
         checkVisibility();
