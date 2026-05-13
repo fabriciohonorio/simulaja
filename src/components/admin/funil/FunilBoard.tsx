@@ -184,18 +184,18 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary"
+                      className="h-8 w-8 rounded-full shadow-2xl bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
                       onClick={() => scrollMobile('up')}
                     >
-                      <ChevronUp className="h-6 w-6" />
+                      <ChevronUp className="h-5 w-5" />
                     </Button>
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary"
+                      className="h-8 w-8 rounded-full shadow-2xl bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
                       onClick={() => scrollMobile('down')}
                     >
-                      <ChevronDown className="h-6 w-6" />
+                      <ChevronDown className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>
@@ -215,18 +215,18 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
       <div className="relative group w-full flex-1 min-h-0 flex flex-col">
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 500)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all border-4 border-background group-hover:opacity-100 opacity-80"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-primary/30 backdrop-blur-xl text-primary shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all border-2 border-primary/20 group-hover:opacity-100 opacity-60"
           aria-label="Rolar para esquerda"
         >
-          <ChevronLeft className="h-10 w-10" />
+          <ChevronLeft className="h-8 w-8" />
         </button>
 
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 500)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-primary/95 text-primary-foreground shadow-[0_0_30px_rgba(0,0,0,0.4)] rounded-full p-4 hover:scale-110 active:scale-95 transition-all border-4 border-background group-hover:opacity-100 opacity-80"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-primary/30 backdrop-blur-xl text-primary shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all border-2 border-primary/20 group-hover:opacity-100 opacity-60"
           aria-label="Rolar para direita"
         >
-          <ChevronRight className="h-10 w-10" />
+          <ChevronRight className="h-8 w-8" />
         </button>
 
         <div
@@ -291,18 +291,18 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                           <Button
                             variant="secondary"
                             size="icon"
-                            className="h-7 w-7 rounded-full shadow-lg bg-white/90 hover:bg-white border border-slate-200"
+                            className="h-6 w-6 rounded-full shadow-lg bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
                             onClick={() => scrollColumn('up')}
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="secondary"
                             size="icon"
-                            className="h-7 w-7 rounded-full shadow-lg bg-white/90 hover:bg-white border border-slate-200"
+                            className="h-6 w-6 rounded-full shadow-lg bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
                             onClick={() => scrollColumn('down')}
                           >
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>

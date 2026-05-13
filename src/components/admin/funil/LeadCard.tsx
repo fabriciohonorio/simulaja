@@ -310,6 +310,7 @@ export function LeadCard({
 
         {ultimaTratativa ? (
           <button
+            onTouchStart={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
             className="w-full text-left"
           >
@@ -392,6 +393,7 @@ export function LeadCard({
               <div className="flex items-center gap-0.5">
                 <button 
                   onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
                   className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
                   title="Agendar">
@@ -399,6 +401,7 @@ export function LeadCard({
                 </button>
                 <button 
                   onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
                   className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
                   title="Ver Ficha Cadastral">
@@ -406,6 +409,7 @@ export function LeadCard({
                 </button>
                 <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
                   onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => e.stopPropagation()}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -415,6 +419,7 @@ export function LeadCard({
                 </a>
                 <button 
                   onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
                   className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
                   title="Histórico">
@@ -422,6 +427,7 @@ export function LeadCard({
                 </button>
                 <button 
                   onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => { 
                     e.stopPropagation(); 
                     if (onEdit) onEdit(lead); 
@@ -432,6 +438,7 @@ export function LeadCard({
                 </button>
                 <button 
                   onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
                   className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
                   title="Excluir">
@@ -444,6 +451,7 @@ export function LeadCard({
           <div className="flex items-center justify-end gap-0.5 pt-1.5 border-t border-slate-100 mt-0.5">
             <button 
               onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onSetVencimento(lead); }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-colors"
               title="Agendar">
@@ -451,6 +459,7 @@ export function LeadCard({
             </button>
             <button 
               onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onViewFicha?.(lead); }}
               className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${lead.dados_cadastro ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-slate-50 text-slate-300 hover:bg-slate-100"}`}
               title="Ver Ficha Cadastral">
@@ -458,6 +467,7 @@ export function LeadCard({
             </button>
             <a href={`https://wa.me/55${(lead.celular || "").replace(/\D/g, "")}?text=Olá!`}
               onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               target="_blank"
               rel="noopener noreferrer"
@@ -467,20 +477,27 @@ export function LeadCard({
             </a>
             <button 
               onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onOpenHistorico(lead); }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-sky-50 hover:bg-sky-100 text-sky-500 transition-colors"
               title="Histórico">
               <NotebookPen className="h-3 w-3" />
             </button>
-            <button onClick={(e) => { 
-              e.stopPropagation(); 
-              if (onEdit) onEdit(lead); 
-            }}
+            <button 
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (onEdit) onEdit(lead); 
+              }}
               className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-500 transition-colors"
               title="Editar Lead">
               <Pencil className="h-3 w-3" />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
+            <button 
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onDelete(lead.id, lead.nome); }}
               className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-50 text-slate-300 hover:text-red-400 transition-colors"
               title="Excluir">
               <Trash2 className="h-3 w-3" />

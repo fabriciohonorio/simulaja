@@ -254,11 +254,11 @@ export default function AdminLayout() {
 
             {/* Global Facilitated Scroll Assistant - Right Side Bar */}
             <div className="fixed right-1 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-[100] group/scroll-bar">
-                <div className="flex flex-col bg-white/40 backdrop-blur-xl border border-white/50 p-1 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all hover:bg-white/90 hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] border-r-4 border-r-primary/10">
+                <div className="flex flex-col bg-primary/30 backdrop-blur-xl border border-primary/20 p-1 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all hover:bg-primary/40 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] border-r-4 border-r-primary/30">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full text-slate-400 hover:text-primary hover:bg-primary/10 transition-all hover:scale-110 active:scale-95"
+                        className="h-8 w-8 rounded-full text-primary hover:text-white hover:bg-primary/20 transition-all hover:scale-110 active:scale-95"
                         onClick={() => {
                             const scrollable = document.querySelector('.custom-scrollbar, .overflow-y-auto');
                             scrollable?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -268,12 +268,12 @@ export default function AdminLayout() {
                         <ChevronUp className="h-4 w-4" />
                     </Button>
                     
-                    <div className="w-6 h-[1px] bg-slate-200/50 mx-auto my-1" />
+                    <div className="w-6 h-[1px] bg-primary/20 mx-auto my-1" />
                     
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-8 rounded-full text-slate-400 hover:text-primary hover:bg-primary/10 transition-all hover:scale-110 active:scale-95"
+                        className="h-10 w-8 rounded-full text-primary hover:text-white hover:bg-primary/20 transition-all hover:scale-110 active:scale-95"
                         onClick={() => {
                             const scrollables = document.querySelectorAll('.custom-scrollbar, .overflow-y-auto');
                             scrollables.forEach(el => el.scrollBy({ top: -400, behavior: 'smooth' }));
@@ -283,14 +283,14 @@ export default function AdminLayout() {
                         <ChevronUp className="h-5 w-5" />
                     </Button>
 
-                    <div className="h-24 w-1 bg-slate-100 rounded-full mx-auto my-1 relative overflow-hidden group/track">
-                        <div className="absolute top-0 left-0 w-full bg-primary/20 h-1/3 rounded-full transition-all group-hover/track:h-full group-hover/track:bg-primary/40" />
+                    <div className="h-24 w-1 bg-primary/10 rounded-full mx-auto my-1 relative overflow-hidden group/track">
+                        <div className="absolute top-0 left-0 w-full bg-primary/40 h-1/3 rounded-full transition-all group-hover/track:h-full group-hover/track:bg-primary/60" />
                     </div>
 
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-8 rounded-full text-slate-400 hover:text-primary hover:bg-primary/10 transition-all hover:scale-110 active:scale-95"
+                        className="h-10 w-8 rounded-full text-primary hover:text-white hover:bg-primary/20 transition-all hover:scale-110 active:scale-95"
                         onClick={() => {
                             const scrollables = document.querySelectorAll('.custom-scrollbar, .overflow-y-auto');
                             scrollables.forEach(el => el.scrollBy({ top: 400, behavior: 'smooth' }));
@@ -300,12 +300,12 @@ export default function AdminLayout() {
                         <ChevronDown className="h-5 w-5" />
                     </Button>
 
-                    <div className="w-6 h-[1px] bg-slate-200/50 mx-auto my-1" />
+                    <div className="w-6 h-[1px] bg-primary/20 mx-auto my-1" />
 
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full text-slate-400 hover:text-primary hover:bg-primary/10 transition-all hover:scale-110 active:scale-95"
+                        className="h-8 w-8 rounded-full text-primary hover:text-white hover:bg-primary/20 transition-all hover:scale-110 active:scale-95"
                         onClick={() => {
                             const scrollable = document.querySelector('.custom-scrollbar, .overflow-y-auto');
                             if (scrollable) scrollable.scrollTo({ top: scrollable.scrollHeight, behavior: 'smooth' });

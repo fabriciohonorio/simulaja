@@ -915,7 +915,14 @@ export default function Carteira() {
           // Helper: cota action buttons
           const renderCotaActions = (c: Cliente) => (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={loadingClientTratativas === c.id} className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 ${ c.lead_id && leadsComLance.has(c.lead_id) ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600" : "border-slate-200 hover:bg-slate-50 text-slate-600" }`} onClick={() => handleOpenTratativas(c)}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={loadingClientTratativas === c.id} 
+                className={`flex-1 h-8 text-[9px] font-black uppercase gap-1.5 ${ c.lead_id && leadsComLance.has(c.lead_id) ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600" : "border-slate-200 hover:bg-slate-50 text-slate-600" }`} 
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={() => handleOpenTratativas(c)}
+              >
                 {loadingClientTratativas === c.id ? <RefreshCw className="h-3 w-3 animate-spin" /> : <NotebookPen className="h-3 w-3" />}
                 {c.lead_id && leadsComLance.has(c.lead_id) ? "Lance" : "Tratativas"}
               </Button>

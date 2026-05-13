@@ -388,6 +388,7 @@ export default function Leads() {
                           <WhatsAppIcon className="h-3.5 w-3.5" />
                         </a>
                         <button
+                          onTouchStart={(e) => e.stopPropagation()}
                           onClick={() => setHistoryLead(l as Lead)}
                           className="w-7 h-7 flex items-center justify-center rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
                           title="Tratativas / Histórico"

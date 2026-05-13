@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RefreshCw, Send, Bot, User, MessageSquare } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Lead } from "@/types/funil";
 import { toast } from "sonner";
@@ -130,7 +130,10 @@ export function LeadChat({ lead }: { lead: Lead }) {
       </div>
 
       {/* Área de Mensagens */}
-      <ScrollArea className="flex-1 p-4" viewportRef={scrollRef}>
+      <div 
+        ref={scrollRef}
+        className="flex-1 p-4 overflow-y-auto custom-scrollbar bg-slate-50/50"
+      >
         <div className="space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-400 text-center">
@@ -149,7 +152,15 @@ export function LeadChat({ lead }: { lead: Lead }) {
                     {msg.sender === 'client' ? 'Cliente' : msg.sender === 'ai' ? 'Jarvis AI' : 'Consultor'}
                   </span>
                   <span className="text-[8px] text-slate-300">
-                    {format(new Date(msg.created_at), "HH:mm")}
+                    {(() => {
+                      if (!msg.created_at) return "";
+                      try {
+                        const date = parseISO(msg.created_at);
+                        return isValid(date) ? format(date, "HH:mm") : "";
+                      } catch (e) {
+                        return "";
+                      }
+                    })()}
                   </span>
                 </div>
                 <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
@@ -165,7 +176,7 @@ export function LeadChat({ lead }: { lead: Lead }) {
             ))
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Input de Mensagem */}
       <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-slate-200 flex gap-2">

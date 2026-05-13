@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, parseISO, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { NotebookPen, Plus, PhoneCall, Mail, MessageSquare, Gavel, Zap, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
@@ -76,11 +76,19 @@ export function HistoricoModal({
     const dataHoje = format(new Date(), "dd/MM");
     const observacaoComData = `[${dataHoje}] ${observacao.trim()}`;
  
-    const organizationFromOtherLeads = allLeads.find(l => l.organizacao_id)?.organizacao_id;
-    const finalOrgId = lead.organizacao_id || organizationFromOtherLeads;
+    const leadToUse = lead || { id: '', nome: 'Lead Desconhecido', organizacao_id: '' };
+    const organizationFromOtherLeads = allLeads?.find(l => l?.organizacao_id)?.organizacao_id;
+    const finalOrgId = leadToUse.organizacao_id || organizationFromOtherLeads || '';
+
+    if (!finalOrgId) {
+      toast.error("Erro: Organização não identificada.");
+      setLoadingNota(false);
+      setSavingNota(false);
+      return;
+    }
 
     const { error } = await supabase.from("historico_contatos").insert({
-      lead_id: lead.id,
+      lead_id: leadToUse.id,
       tipo: tipoContato,
       observacao: observacaoComData,
       resultado,
@@ -126,7 +134,10 @@ export function HistoricoModal({
 
   return (
     <Dialog open={!!lead} onOpenChange={(open: boolean) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+      <DialogContent 
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="sm:max-w-2xl w-[95vw] sm:w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl rounded-2xl sm:rounded-3xl"
+      >
         <DialogHeader className="p-6 bg-slate-900 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -243,9 +254,19 @@ export function HistoricoModal({
                                 {tipoOpt && <tipoOpt.icon className="h-3 w-3 text-indigo-500" />}
                                 <span className="text-[10px] font-black uppercase text-slate-600">{tipoOpt?.label}</span>
                               </div>
-                              <span className="text-[9px] font-bold text-slate-400">
-                                {h.created_at ? format(new Date(h.created_at), "dd/MM 'às' HH:mm", { locale: ptBR }) : "—"}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                                  {(() => {
+                                    if (!h.created_at) return "—";
+                                    try {
+                                      const date = parseISO(h.created_at);
+                                      return isValid(date) ? format(date, "dd/MM 'às' HH:mm", { locale: ptBR }) : "—";
+                                    } catch (e) {
+                                      return "—";
+                                    }
+                                  })()}
+                                </span>
+                              </div>
                             </div>
                             <p className="text-xs text-slate-700 leading-relaxed">{h.observacao}</p>
                           </div>
