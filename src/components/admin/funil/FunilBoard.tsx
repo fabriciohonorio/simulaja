@@ -147,42 +147,23 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId={currentCol.id}>
-            {(provided, snapshot) => {
-              const mobileRef = React.useRef<HTMLDivElement>(null);
-              const scrollMobile = (direction: 'up' | 'down') => {
-                if (mobileRef.current) {
-                  mobileRef.current.scrollBy({
-                    top: direction === 'up' ? -300 : 300,
-                    behavior: 'smooth'
-                  });
-                }
-              };
-
-              return (
-                <div className="relative group/mobile-scroll">
-                  <div
-                    ref={(el) => {
-                      provided.innerRef(el);
-                      (mobileRef as any).current = el;
-                    }}
-                    {...provided.droppableProps}
-                    className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-400px)] overflow-y-auto custom-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-                  >
-                    <div className="space-y-2">
-                      {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
-                      {currentColLeads.length === 0 && (
-                        <p className="text-center text-sm text-muted-foreground py-8">
-                          Nenhum lead nesta etapa
-                        </p>
-                      )}
-                      {provided.placeholder}
-                    </div>
-                  </div>
-
-
+            {(provided, snapshot) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-400px)] overflow-y-auto custom-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+              >
+                <div className="space-y-2">
+                  {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
+                  {currentColLeads.length === 0 && (
+                    <p className="text-center text-sm text-muted-foreground py-8">
+                      Nenhum lead nesta etapa
+                    </p>
+                  )}
+                  {provided.placeholder}
                 </div>
-              );
-            }}
+              </div>
+            )}
           </Droppable>
         </DragDropContext>
       </div>
@@ -197,18 +178,18 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
       <div className="relative group w-full flex-1 min-h-0 flex flex-col">
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft -= 500)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-primary/30 backdrop-blur-xl text-primary shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all border-2 border-primary/20 group-hover:opacity-100 opacity-60"
+          className="hidden lg:block absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-primary/20 backdrop-blur-xl text-primary shadow-[0_8px_32px_rgba(0,0,0,0.15)] rounded-full p-2 hover:scale-110 active:scale-95 transition-all border border-primary/20 opacity-0 group-hover:opacity-70"
           aria-label="Rolar para esquerda"
         >
-          <ChevronLeft className="h-8 w-8" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
 
         <button
           onClick={() => kanbanRef.current && (kanbanRef.current.scrollLeft += 500)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-primary/30 backdrop-blur-xl text-primary shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-full p-3 hover:scale-110 active:scale-95 transition-all border-2 border-primary/20 group-hover:opacity-100 opacity-60"
+          className="hidden lg:block absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-primary/20 backdrop-blur-xl text-primary shadow-[0_8px_32px_rgba(0,0,0,0.15)] rounded-full p-2 hover:scale-110 active:scale-95 transition-all border border-primary/20 opacity-0 group-hover:opacity-70"
           aria-label="Rolar para direita"
         >
-          <ChevronRight className="h-8 w-8" />
+          <ChevronRight className="h-6 w-6" />
         </button>
 
         <div
@@ -268,8 +249,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                           {provided.placeholder}
                         </div>
                         
-                        {/* Vertical Scroll Controls - Facilitated Methodology */}
-                        <div className="absolute right-2 bottom-2 flex flex-col gap-1 opacity-0 group-hover/colcontent:opacity-100 transition-opacity z-20">
+                        {/* Vertical Scroll Controls - Desktop Only */}
+                        <div className="hidden lg:flex absolute right-2 bottom-2 flex-col gap-1 opacity-0 group-hover/colcontent:opacity-100 transition-opacity z-20">
                           <Button
                             variant="ghost"
                             size="icon"
