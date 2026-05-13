@@ -195,6 +195,43 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   const [parcelasContemplar, setParcelasContemplar] = useState(1);
   const [incluirComp, setIncluirComp] = useState(true);
 
+  // Drag to scroll
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const isInteractive = (e.target as HTMLElement).closest('button, input, a, textarea, select, label, .custom-slider');
+    if (isInteractive) return;
+
+    let container: HTMLElement | null = e.currentTarget as HTMLElement;
+    while (container) {
+      const style = window.getComputedStyle(container);
+      if (style.overflowY === 'auto' || style.overflowY === 'scroll' || container === document.documentElement) {
+        break;
+      }
+      container = container.parentElement;
+    }
+    if (!container) container = document.documentElement;
+
+    scrollContainerRef.current = container;
+    setIsDragging(true);
+    setStartY(e.pageY);
+    setScrollTop(container.scrollTop);
+  };
+
+  const handleMouseLeave = () => setIsDragging(false);
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const y = e.pageY;
+    const walk = (y - startY) * 1.5;
+    scrollContainerRef.current.scrollTop = scrollTop - walk;
+  };
+
   const resultRef = useRef<HTMLDivElement>(null);
 
   const [utmParams, setUtmParams] = useState({ origem: "", meio: "", campanha: "" });
@@ -441,7 +478,13 @@ const ConsortiumSimulator = ({ overrideConfig, isInternal, onSimulateSubmit }: C
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent">
+    <div 
+      className={`min-h-screen flex flex-col bg-transparent ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+    >
       <style>{sliderThumbStyles}</style>
       <section id="simulator" className="py-20 bg-transparent">
         <div className="container max-w-[620px] mx-auto px-2 sm:px-4">
