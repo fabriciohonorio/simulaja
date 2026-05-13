@@ -249,7 +249,8 @@ export default function AdminLayout() {
                         </ErrorBoundary>
                     </div>
                 </main>
-                       <PwaInstallPrompt />
+            </div>
+            <PwaInstallPrompt />
             <ScrollAssistant />
         </div>
     );
