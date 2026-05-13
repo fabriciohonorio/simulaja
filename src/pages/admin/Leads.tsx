@@ -660,8 +660,8 @@ export default function Leads() {
       </Dialog>
       </div>
 
-      {/* Vertical Scroll Controls - Facilitated Methodology */}
-      <div className="absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/main-scroll:opacity-100 transition-opacity z-20">
+      {/* Vertical Scroll Controls - Facilitated Methodology (Desktop Only) */}
+      <div className="hidden lg:flex absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/main-scroll:opacity-100 transition-opacity z-20">
         <Button
           variant="secondary"
           size="icon"

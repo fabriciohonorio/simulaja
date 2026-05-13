@@ -179,25 +179,7 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                     </div>
                   </div>
 
-                  {/* Mobile Vertical Scroll Controls */}
-                  <div className="absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/mobile-scroll:opacity-100 transition-opacity z-20">
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-8 w-8 rounded-full shadow-2xl bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
-                      onClick={() => scrollMobile('up')}
-                    >
-                      <ChevronUp className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-8 w-8 rounded-full shadow-2xl bg-primary/30 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/40 transition-all"
-                      onClick={() => scrollMobile('down')}
-                    >
-                      <ChevronDown className="h-5 w-5" />
-                    </Button>
-                  </div>
+
                 </div>
               );
             }}

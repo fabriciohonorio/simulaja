@@ -252,8 +252,8 @@ export default function AdminLayout() {
             </div>
             <PwaInstallPrompt />
 
-            {/* Global Facilitated Scroll Assistant - Right Side Bar */}
-            <div className="fixed right-1 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-[100] group/scroll-bar">
+            {/* Global Facilitated Scroll Assistant - Right Side Bar (Desktop Only) */}
+            <div className="hidden lg:flex fixed right-1 top-1/2 -translate-y-1/2 flex-col items-center gap-2 z-[100] group/scroll-bar">
                 <div className="flex flex-col bg-primary/30 backdrop-blur-xl border border-primary/20 p-1 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all hover:bg-primary/40 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] border-r-4 border-r-primary/30">
                     <Button
                         variant="ghost"
