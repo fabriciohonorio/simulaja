@@ -184,6 +184,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary transition-all"
+                      onPointerDown={(e) => { e.preventDefault(); scrollColumn('up'); }}
+                      onTouchStart={(e) => { e.preventDefault(); scrollColumn('up'); }}
                       onClick={() => scrollColumn('up')}
                     >
                       <ChevronUp className="h-5 w-5" />
@@ -192,6 +194,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary transition-all"
+                      onPointerDown={(e) => { e.preventDefault(); scrollColumn('down'); }}
+                      onTouchStart={(e) => { e.preventDefault(); scrollColumn('down'); }}
                       onClick={() => scrollColumn('down')}
                     >
                       <ChevronDown className="h-5 w-5" />
@@ -291,6 +295,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/30 transition-all"
+                            onPointerDown={(e) => { e.preventDefault(); scrollColumn('up'); }}
+                            onTouchStart={(e) => { e.preventDefault(); scrollColumn('up'); }}
                             onClick={() => scrollColumn('up')}
                           >
                             <ChevronUp className="h-3.5 w-3.5" />
@@ -299,6 +305,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary hover:bg-primary/30 transition-all"
+                            onPointerDown={(e) => { e.preventDefault(); scrollColumn('down'); }}
+                            onTouchStart={(e) => { e.preventDefault(); scrollColumn('down'); }}
                             onClick={() => scrollColumn('down')}
                           >
                             <ChevronDown className="h-3.5 w-3.5" />
