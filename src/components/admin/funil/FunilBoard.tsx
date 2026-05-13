@@ -147,23 +147,59 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
 
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId={currentCol.id}>
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-400px)] overflow-y-auto custom-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
-              >
-                <div className="space-y-2">
-                  {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
-                  {currentColLeads.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-8">
-                      Nenhum lead nesta etapa
-                    </p>
-                  )}
-                  {provided.placeholder}
+            {(provided, snapshot) => {
+              const columnRef = React.useRef<HTMLDivElement>(null);
+              const scrollColumn = (direction: 'up' | 'down') => {
+                if (columnRef.current) {
+                  columnRef.current.scrollBy({
+                    top: direction === 'up' ? -300 : 300,
+                    behavior: 'smooth'
+                  });
+                }
+              };
+
+              return (
+                <div className="relative">
+                  <div
+                    ref={(el) => {
+                      provided.innerRef(el);
+                      (columnRef as any).current = el;
+                    }}
+                    {...provided.droppableProps}
+                    className={`rounded-lg border-t-4 ${COLUMN_COLORS[currentCol.id]} bg-card p-3 min-h-[400px] max-h-[calc(100vh-400px)] overflow-y-auto custom-scrollbar ${snapshot.isDraggingOver ? "ring-2 ring-primary/30" : ""}`}
+                  >
+                    <div className="space-y-2">
+                      {currentColLeads.map((lead: Lead, idx: number) => renderLeadCard(lead, idx))}
+                      {currentColLeads.length === 0 && (
+                        <p className="text-center text-sm text-muted-foreground py-8">
+                          Nenhum lead nesta etapa
+                        </p>
+                      )}
+                      {provided.placeholder}
+                    </div>
+                  </div>
+
+                  <div className="flex absolute right-4 bottom-4 flex-col gap-1 z-20">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary transition-all"
+                      onClick={() => scrollColumn('up')}
+                    >
+                      <ChevronUp className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full shadow-md bg-primary/20 backdrop-blur-md border border-primary/20 text-primary transition-all"
+                      onClick={() => scrollColumn('down')}
+                    >
+                      <ChevronDown className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           </Droppable>
         </DragDropContext>
       </div>
@@ -249,8 +285,8 @@ export function FunilBoard({ state, searchTerm = "", quickFilter = "todos" }: { 
                           {provided.placeholder}
                         </div>
                         
-                        {/* Vertical Scroll Controls - Desktop Only */}
-                        <div className="hidden lg:flex absolute right-2 bottom-2 flex-col gap-1 opacity-0 group-hover/colcontent:opacity-100 transition-opacity z-20">
+                        {/* Vertical Scroll Controls - Always Visible on Touch / Hover on Desktop */}
+                        <div className="flex absolute right-2 bottom-2 flex-col gap-1 opacity-100 lg:opacity-0 lg:group-hover/colcontent:opacity-100 transition-opacity z-20">
                           <Button
                             variant="ghost"
                             size="icon"
