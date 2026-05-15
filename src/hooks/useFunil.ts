@@ -577,7 +577,7 @@ export function useFunil() {
     const valorCredito = Number(celebrationLead.valor_credito) || 0;
     const finalAdmin = (administradora === "none" ? null : administradora) || celebrationLead.administradora;
 
-    const { error: carteiraError } = await supabase.from("carteira").upsert({
+    const carteiraData = {
       lead_id: celebrationLead.id,
       nome: celebrationLead.nome,
       celular: celebrationLead.celular,
@@ -590,7 +590,18 @@ export function useFunil() {
       data_adesao: celebrationLead.status_updated_at ? celebrationLead.status_updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
       organizacao_id: celebrationLead.organizacao_id || profile?.organizacao_id,
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'lead_id' });
+    };
+
+    const { data: existingCarteira } = await supabase.from("carteira").select("id").eq("lead_id", celebrationLead.id).maybeSingle();
+    
+    let carteiraError = null;
+    if (existingCarteira) {
+      const { error } = await supabase.from("carteira").update(carteiraData).eq("id", existingCarteira.id);
+      carteiraError = error;
+    } else {
+      const { error } = await supabase.from("carteira").insert(carteiraData);
+      carteiraError = error;
+    }
 
     if (!carteiraError) {
       await supabase.from("leads").update({
