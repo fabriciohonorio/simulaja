@@ -45,7 +45,9 @@ import {
     Building,
     Ship,
     Tractor,
-    Plane
+    Plane,
+    ChevronUp,
+    ChevronDown
 } from "lucide-react";
 import { AdminHeroCard } from "@/components/admin/AdminHeroCard";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -536,8 +538,9 @@ export default function Metas() {
     if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
     return (
-        <div className="space-y-4 sm:space-y-6 pb-12">
-            {/* Header */}
+        <div className="flex-1 flex flex-col min-h-0 relative group/main-scroll overflow-hidden">
+            <div id="metas-main-container" className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pb-12 pr-2 custom-scrollbar">
+                {/* Header */}
             <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -1087,6 +1090,33 @@ export default function Metas() {
             </div>
 
 
+            </div>
+
+            {/* Vertical Scroll Controls */}
+            <div className="hidden lg:flex absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/main-scroll:opacity-100 transition-opacity z-20">
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+                    onClick={() => {
+                        const container = document.getElementById('metas-main-container');
+                        container?.scrollBy({ top: -400, behavior: 'smooth' });
+                    }}
+                >
+                    <ChevronUp className="h-6 w-6" />
+                </Button>
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+                    onClick={() => {
+                        const container = document.getElementById('metas-main-container');
+                        container?.scrollBy({ top: 400, behavior: 'smooth' });
+                    }}
+                >
+                    <ChevronDown className="h-6 w-6" />
+                </Button>
+            </div>
         </div>
     );
 }

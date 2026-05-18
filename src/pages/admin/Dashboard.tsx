@@ -15,6 +15,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getLoteriaStatus } from "@/lib/consortium-logic";
 import StreakBadge from "@/components/admin/StreakBadge";
 import MissoesDiarias from "@/components/admin/MissoesDiarias";
+import { Button } from "@/components/ui/button";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface Lead {
   id: string;
@@ -325,7 +327,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+    <div className="flex-1 flex flex-col min-h-0 relative group/main-scroll overflow-hidden">
+      <div id="dashboard-main-container" className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Clientes na Carteira */}
         <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
@@ -911,6 +914,33 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+      </div>
+
+      {/* Vertical Scroll Controls */}
+      <div className="hidden lg:flex absolute right-4 bottom-4 flex flex-col gap-2 opacity-0 group-hover/main-scroll:opacity-100 transition-opacity z-20">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+          onClick={() => {
+            const container = document.getElementById('dashboard-main-container');
+            container?.scrollBy({ top: -400, behavior: 'smooth' });
+          }}
+        >
+          <ChevronUp className="h-6 w-6" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-10 w-10 rounded-full shadow-2xl bg-white/95 border-2 border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+          onClick={() => {
+            const container = document.getElementById('dashboard-main-container');
+            container?.scrollBy({ top: 400, behavior: 'smooth' });
+          }}
+        >
+          <ChevronDown className="h-6 w-6" />
+        </Button>
       </div>
     </div>
   );
